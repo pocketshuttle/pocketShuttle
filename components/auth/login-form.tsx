@@ -4,8 +4,8 @@ import { CardWrapper } from "@/components/auth/card-wrapper"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "@/components/ui/form"
-// import { LoginSchema } from "@/schemas"
-// import { Input } from "@/components/ui/input"
+import { LoginSchema } from "@/schemas"
+import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 // import { FormError } from "@/components/errorandsuces/form-error"
 // import { FormSuccess } from "@/components/errorandsuces/form-success"
@@ -34,21 +34,24 @@ export const LoginForm = () => {
         }
     })
     const onSubmit = (values: z.infer<typeof LoginSchema>) => {
-        setIsError("")
-        setIsSuccess("")
+        // setIsError("")
+        // setIsSuccess("")
         // using the useTransition hook from react
-        startTransition(() => {
-            Login(values).then((data) => {
-                setIsError(data?.error)
-                setIsSuccess(data?.success)
-            })
-        })
+        // startTransition(() => {
+        //     Login(values).then((data) => {
+        //         // setIsError(data?.error)
+        //         // setIsSuccess(data?.success)
+        //     })
+        // })
+
+        console.log(values)
     }
     return (
         <CardWrapper
             headLabel="Welcome Back"
-            backButtonLabel="Don't have an account?"
-            backButtonHref="/auth/register"
+            backButtonLabel="Register?"
+            description="Dont have an account"
+            backButtonHref="/register"
             showSocial
         >
             <Form {...form}>
@@ -64,11 +67,12 @@ export const LoginForm = () => {
                                     <FormControl>
                                         <Input
                                             {...field}
-                                            placeholder="iwinosa@gmail.com"
+                                            placeholder="ciroma@email.com"
                                             type="email"
                                             disabled={isPending}
                                         />
                                     </FormControl>
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         >
@@ -91,6 +95,8 @@ export const LoginForm = () => {
 
                                         />
                                     </FormControl>
+                                    <FormMessage />
+
                                     {/* <Image src={eye} alt="eye" /> */}
                                 </FormItem>
                             )}
@@ -98,8 +104,8 @@ export const LoginForm = () => {
 
                         </FormField>
                     </div>
-                    <FormError message={isError} />
-                    <FormSuccess message={isSuccess} />
+                    {/* <FormError message={isError} />
+                    <FormSuccess message={isSuccess} /> */}
                     <Button
                         disabled={isPending}
                         size="lg" className="w-full" type="submit">Login</Button>
