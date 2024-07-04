@@ -9,29 +9,30 @@ import { AuthError } from "next-auth";
 export const Login = async (values: z.infer<typeof LoginSchema>) => {
   //validating the data
   const validatedFields = LoginSchema.safeParse(values);
- 
+
   if (!validatedFields) {
     return { error: "Invalid Fields" };
   }
 
   const { email, password } = validatedFields.data;
-  // try {
-  //   await signIn("credentials", {
-  //     email,
-  //     password,
-  //     redirectTo: DEFAULT_LOGIN_REDIRECT,
-  //   });
-  // } catch (error) {
-  //   if (error instanceof AuthError) {
-  //     console.log(error);
-  //     switch (error.type) {
-  //       case "CredentialsSignin":
-  //         return { error: "Invalid Credentials!" };
-  //       default:
-  //         return { error: "Something went wrong!" };
-  //     }
-  //   }
-  //   throw error;
-  // }
+
+  try {
+    await signIn("credentials", {
+      email,
+      password,
+      // redirectTo: DEFAULT_LOGIN_REDIRECT,
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      console.log(error);
+      switch (error.type) {
+        case "CredentialsSignin":
+          return { error: "Invalid Credentials!" };
+        default:
+          return { error: "Something went wrong!" };
+      }
+    }
+    throw error;
+  }
   return { success: "Login Successful" };
 };

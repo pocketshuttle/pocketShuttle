@@ -29,25 +29,25 @@ export default {
       //   timeout: 40000,
       // },
     }),
-    // Credentials({
-    //   async authorize(credentials) {
-    //     console.log(credentials, "credentials");
+    Credentials({
+      async authorize(credentials) {
+        console.log(credentials, "credentials");
 
-    //     //we validating the fields again
-    //     const validatedFields = LoginSchema.safeParse(credentials);
-    //     if (validatedFields.success) {
-    //       const { email, password } = validatedFields.data;
-    //       const user = await NewUser.findOne({ email: email });
-    //       console.log(user);
-    //       if (!user || !user.password) {
-    //         return null;
-    //       }
+        //we validating the fields again
+        const validatedFields = LoginSchema.safeParse(credentials);
+        if (validatedFields.success) {
+          const { email, password } = validatedFields.data;
+          const user = await NewUser.findOne({ email: email });
+          console.log(user);
+          if (!user || !user.password) {
+            return null;
+          }
 
-    //       const passwordMatch = await bcrypt.compare(password, user.password);
-    //       if (passwordMatch) return user;
-    //     }
-    //     return null;
-    //   },
-    // }),
+          const passwordMatch = await bcrypt.compare(password, user.password);
+          if (passwordMatch) return user;
+        }
+        return null;
+      },
+    }),
   ],
 } satisfies NextAuthConfig;
