@@ -1,11 +1,10 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
-import google from "@/public/images/google.svg"
-import facebook from "@/public/images/facebook.svg"
+import { FcGoogle } from "react-icons/fc"
 import { signIn } from "next-auth/react"
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes"
+import { FaFacebook } from "react-icons/fa"
 
 export const Social = () => {
     const onClick = (provider: "google") => {
@@ -16,10 +15,10 @@ export const Social = () => {
     return (
         <div className="flex items-center gap-x-2 w-full">
             <Button size="lg" variant="outline" className="w-full" onClick={() => onClick("google")}>
-                <Image src={google} alt="google" width={15} />
+                <FcGoogle />
             </Button>
             <Button size="lg" variant="outline" className="w-full" onClick={() => { }}>
-                <Image src={facebook} alt="google" width={15} />
+                <FaFacebook />
             </Button>
 
         </div>

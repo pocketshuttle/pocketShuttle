@@ -8,7 +8,6 @@ Define a schema for login validation using Zod
 
 @Usage:
    This schema can be used to validate user input for a login form
-
 */
 }
 export const LoginSchema = z.object({
