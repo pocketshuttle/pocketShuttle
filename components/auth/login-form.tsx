@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "
 import { LoginSchema } from "@/schemas"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-// import { Login } from "@/actions/login"
+import { Login } from "@/actions/login"
 import { useState, useTransition } from "react"
 import { FormError } from "@/components/errorsandsuccess/form-error"
 import { FormSuccess } from "@/components/errorsandsuccess/form-success"
@@ -15,8 +15,8 @@ import { FormSuccess } from "@/components/errorsandsuccess/form-success"
 
 export const LoginForm = () => {
     const [isPending, startTransition] = useTransition()
-    const [isError, setIsError] = useState("")
-    const [isSuccess, setIsSuccess] = useState("")
+    const [isError, setIsError] = useState<string | undefined>("")
+    const [isSuccess, setIsSuccess] = useState<string | undefined>("")
     {/**
      Initialize the form with react-hook-form, integrating Zod for validation
  - The form's validation schema is defined using Zod's `LoginSchema`
@@ -37,12 +37,12 @@ export const LoginForm = () => {
         setIsError("")
         setIsSuccess("")
         // using the useTransition hook from react
-        // startTransition(() => {
-        //     Login(values).then((data) => {
-        //         // setIsError(data?.error)
-        //         // setIsSuccess(data?.success)
-        //     })
-        // })
+        startTransition(() => {
+            Login(values).then((data) => {
+                setIsError(data?.error)
+                setIsSuccess(data?.success)
+            })
+        })
 
         console.log(values)
     }
