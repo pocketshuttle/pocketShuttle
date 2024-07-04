@@ -18,15 +18,17 @@ export const RegisterForm = () => {
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState<string | undefined>("")
     const [isSuccess, setIsSuccess] = useState<string | undefined>("")
+
     {/**
-     Initialize the form with react-hook-form, integrating Zod for validation
- - The form's validation schema is defined using Zod's `LoginSchema`
- - `useForm` hook is used to handle form state and validation
- - `zodResolver` is used to connect Zod schema validation with react-hook-form
- - Default values for the form fields are set to empty strings
- @Usage:
- This setup enables the form to use `LoginSchema` for validating the email and password fields.
+            Initialize the form with react-hook-form, integrating Zod for validation
+        - The form's validation schema is defined using Zod's `LoginSchema`
+        - `useForm` hook is used to handle form state and validation
+        - `zodResolver` is used to connect Zod schema validation with react-hook-form
+        - Default values for the form fields are set to empty strings
+        @Usage:
+        This setup enables the form to use `LoginSchema` for validating the email and password fields.
 */}
+
     const form = useForm<z.infer<typeof RegisterSchema>>({
         resolver: zodResolver(RegisterSchema),
         defaultValues: {
