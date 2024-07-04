@@ -7,10 +7,10 @@ import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "
 import { LoginSchema } from "@/schemas"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-// import { FormError } from "@/components/errorandsuces/form-error"
-// import { FormSuccess } from "@/components/errorandsuces/form-success"
 // import { Login } from "@/actions/login"
 import { useState, useTransition } from "react"
+import { FormError } from "@/components/errorsandsuccess/form-error"
+import { FormSuccess } from "@/components/errorsandsuccess/form-success"
 
 
 export const LoginForm = () => {
@@ -34,8 +34,8 @@ export const LoginForm = () => {
         }
     })
     const onSubmit = (values: z.infer<typeof LoginSchema>) => {
-        // setIsError("")
-        // setIsSuccess("")
+        setIsError("")
+        setIsSuccess("")
         // using the useTransition hook from react
         // startTransition(() => {
         //     Login(values).then((data) => {
@@ -104,8 +104,8 @@ export const LoginForm = () => {
 
                         </FormField>
                     </div>
-                    {/* <FormError message={isError} />
-                    <FormSuccess message={isSuccess} /> */}
+                    <FormError message={isError} />
+                    <FormSuccess message={isSuccess} />
                     <Button
                         disabled={isPending}
                         size="lg" className="w-full" type="submit">Login</Button>
