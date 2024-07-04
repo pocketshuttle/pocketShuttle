@@ -30,7 +30,7 @@ export const RegisterForm = () => {
     const form = useForm<z.infer<typeof RegisterSchema>>({
         resolver: zodResolver(RegisterSchema),
         defaultValues: {
-            username: "",
+            schoolname: "",
             email: "",
             password: "",
         }
@@ -61,19 +61,21 @@ export const RegisterForm = () => {
                     <div className="space-y-4 ">
                         <FormField
                             control={form.control}
-                            name="username"
+                            name="schoolname"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Username</FormLabel>
+                                    <FormLabel>Name of Your School</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
-                                            placeholder="iwinosa"
+                                            placeholder="school name"
                                             type="text"
                                             disabled={isPending}
                                             className="placeholder-slate-300"
                                         />
                                     </FormControl>
+                                    <FormMessage />
+
                                 </FormItem>
                             )}
                         >
@@ -95,6 +97,8 @@ export const RegisterForm = () => {
                                             disabled={isPending}
                                         />
                                     </FormControl>
+                                    <FormMessage />
+
                                 </FormItem>
                             )}
                         >
@@ -117,6 +121,8 @@ export const RegisterForm = () => {
 
                                         />
                                     </FormControl>
+                                    <FormMessage />
+
                                     {/* <Image src={eye} alt="eye" /> */}
                                 </FormItem>
                             )}
