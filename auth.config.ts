@@ -3,6 +3,7 @@ import GoogleProvider from "next-auth/providers/google";
 import type { NextAuthConfig } from "next-auth";
 import { LoginSchema } from "@/schemas";
 import bcrypt from "bcryptjs";
+import { getUserByEmail } from "./data/user";
 
 export default {
   providers: [
@@ -32,17 +33,15 @@ export default {
     Credentials({
       async authorize(credentials) {
         console.log(credentials, "credentials");
-
-        //we validating the fields again
+        //     //we validating the fields again
         const validatedFields = LoginSchema.safeParse(credentials);
         if (validatedFields.success) {
           const { email, password } = validatedFields.data;
-          const user = await NewUser.findOne({ email: email });
-          console.log(user);
+          const user = await getUserByEmail(email);
+          //       console.log(user);
           if (!user || !user.password) {
             return null;
           }
-
           const passwordMatch = await bcrypt.compare(password, user.password);
           if (passwordMatch) return user;
         }

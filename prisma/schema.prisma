@@ -41,3 +41,69 @@ model Account {
   @@unique([provider, providerAccountId])
   @@map("accounts")
 }
+
+model Teacher {
+  id            String    @id @default(cuid())
+  teacherId     String    @map("teacher_id")
+  name          String?
+  image         String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  password      String?
+  phoneNumber   String?
+  students      Student[] @relation("TeacherStudents")
+  bus           Bus?      @relation("TeacherBus", fields: [busId], references: [id])
+  busId         String?   @unique
+  Buses         Buses?    @relation(fields: [busesId], references: [id])
+  busesId       String?
+  Student       Student[]
+  Buses         Buses?    @relation(fields: [busesId], references: [id])
+}
+
+model Driver {
+  id          String  @id @default(cuid())
+  driverId    String  @map("driver_id")
+  name        String?
+  phoneNumber String?
+  address     String?
+  bus         Bus?    @relation("DriverBus", fields: [busId], references: [id])
+  busId       String  @unique
+  Buses       Buses?  @relation(fields: [busesId], references: [id])
+  busesId     String?
+  Buses       Buses?  @relation(fields: [busesId], references: [id])
+}
+
+model Bus {
+  id         String    @id @default(cuid())
+  busId      String    @map("bus_id")
+  busNumber  String?
+  driver     Driver?   @relation("DriverBus")
+  seatNumber String?
+  teacher    Teacher?  @relation("TeacherBus")
+  students   Student[] @relation("BusStudents")
+}
+
+model Buses {
+  id         String    @id @default(cuid())
+  name       String?
+  busNumber  String?
+  drivers    Driver[]  @relation("DriversBus", fields: [driverId], references: [id])
+  seatNumber String?
+  teachers   Teacher[] @relation("TeachersBus", fields: [teachersId], references: [id])
+  driverId   String?
+  teachersId String?
+  Teacher    Teacher[]
+  Driver     Driver[]
+}
+
+model Student {
+  id        String   @id @default(cuid())
+  age       String?
+  image     String?
+  grade     String?
+  teacherId String?
+  teacher   Teacher? @relation(fields: [teacherId], references: [id], name: "TeacherStudents")
+  busId     String?
+  bus       Bus?     @relation(fields: [busId], references: [id], name: "BusStudents")
+  Teacher   Teacher? @relation(fields: [teacherId], references: [id])
+}

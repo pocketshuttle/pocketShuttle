@@ -1,8 +1,15 @@
-import React from 'react'
+"use client"
+import { signOut } from "next-auth/react"
 
-const Home = () => {
+const Home = async () => {
+
     return (
-        <div>Home</div>
+        <div className="text-red-600">
+
+
+
+            <button onClick={() => signOut()}>signout</button>
+        </div>
     )
 }
 
