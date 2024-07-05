@@ -10,6 +10,7 @@ import dashbaord from "@/public/images/dashboard.svg"
 import Image from "next/image"
 import MenuLink from "./menuLink/menuLink"
 import { DashboardHeader } from "../header/header"
+import { BiLogOut } from "react-icons/bi"
 const Sidebar = () => {
     const menuItems = [
 
@@ -65,11 +66,7 @@ const Sidebar = () => {
                     link: "/help",
                     icon: headset
                 },
-                {
-                    title: "Logout",
-                    link: "/signOut",
-                    icon: headset
-                }
+
             ]
         }
     ]
@@ -87,6 +84,10 @@ const Sidebar = () => {
                         <MenuLink menu={menus.list} />
                     </li>
                 ))}
+                <button className="flex gap-2 items-center text-[0.75rem] py-3 px-2 hover:bg-[#2e374a] w-full rounded-md">
+                    <BiLogOut />
+                    logout
+                </button>
             </ul>
 
         </div>
