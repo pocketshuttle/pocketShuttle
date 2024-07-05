@@ -9,6 +9,7 @@ import headset from "@/public/images/headset.svg"
 import dashbaord from "@/public/images/dashboard.svg"
 import Image from "next/image"
 import MenuLink from "./menuLink/menuLink"
+import { DashboardHeader } from "../header/header"
 const Sidebar = () => {
     const menuItems = [
 
@@ -63,17 +64,26 @@ const Sidebar = () => {
                     title: "Help",
                     link: "/help",
                     icon: headset
+                },
+                {
+                    title: "Logout",
+                    link: "/signOut",
+                    icon: headset
                 }
             ]
         }
     ]
 
     return (
-        <div className="h-screen fixed ">
-            <ul>
+        <div className="h-screen sticky  top-[40px]">
+            <div>
+                <DashboardHeader />
+            </div>
+
+            <ul >
                 {menuItems.map((menus, index) => (
                     <li key={index} className="space-y-5">
-                        <span className="space-y-5">{menus.title}</span>
+                        <span className="space-y-5 text-[#b7cac1] text-[0.8rem]">{menus.title}</span>
                         <MenuLink menu={menus.list} />
                     </li>
                 ))}
