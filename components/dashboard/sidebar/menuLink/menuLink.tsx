@@ -1,14 +1,23 @@
+"use client"
 import Image from "next/image"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
-const MenuLink = ({ menu }) => {
+type ListType = {
+    link: string
+    icon: string
+    title: string
+}
+
+const MenuLink = ({ menu }: { menu: ListType[] }) => {
+    const pathname = usePathname()
     return (
-        <div >
-            {menu.map((item, index) => (
-                <Link href={item.link} key={index}   >
-                    <div className="flex items-center space-x-2 mt-6 mb-6 ml-4">
-                        <Image src={item.icon} alt={menu.title} className="w-3" />
-                        <span className="text-sm">{item.title}</span>
+        <div className="w-full" >
+            {menu.map((item: ListType, index: any) => (
+                <Link href={item.link} key={index} >
+                    <div className={`flex items-center space-x-2  p-3 hover:bg-[#2e374a] ${pathname === item.title && "bg-red-500"}`}>
+                        <Image src={item.icon} alt={item.title} className="w-3" />
+                        <span className="text-[0.7rem]">{item.title}</span>
                     </div>
                 </Link>
             ))}
