@@ -1,7 +1,7 @@
-
+import { Student } from "@/components/students/students"
 const Students = () => {
     return (
-        <div>Students</div>
+        <div><Student /></div>
     )
 }
 
