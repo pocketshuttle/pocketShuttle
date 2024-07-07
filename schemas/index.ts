@@ -30,3 +30,18 @@ export const RegisterSchema = z.object({
     message: "Password must be more 6 characters!",
   }),
 });
+
+export const TeacherScheam = z.object({
+  teacher_name: z.string().min(1, {
+    message: "Name is required!",
+  }),
+  image: z.string().min(1, {
+    message: "Image is required!",
+  }),
+  email: z.string().email({
+    message: "Invalid email",
+  }),
+  phoneNumber: z.string().min(11, {
+    message: "Phone number must be 11 numbers",
+  }),
+});

@@ -1,9 +1,15 @@
-import { Pagination } from "@/components/dashboard/pagination/pagination"
 import { Search } from "@/components/dashboard/search/search"
 import { Button } from "@/components/ui/button"
 import dashboard from "@/public/images/dashboard.svg"
 import Image from "next/image"
-export const StudentsData = () => {
+type TeachersDriversProps = {
+    username?: string
+    email?: string
+    phone?: string
+    busId:string
+    
+}
+export const TeachersAndDriverTable = () => {
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
             <div className="p-4 flex justify-between items-center ">
@@ -68,13 +74,10 @@ export const StudentsData = () => {
                             </div>
                         </td>
 
-
                     </tr>
-
                 </tbody>
             </table>
-            <Pagination />
-        </div >
+        </div>
 
     )
 }
