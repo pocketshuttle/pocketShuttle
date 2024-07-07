@@ -14,7 +14,7 @@ type TeachersDriversProps = {
 }
 export const TeachersAndDriverTable = () => {
     const router = useRouter()
-    const [isOpenModal, setIsOpenModal] = useState<Boolean>(true)
+    const [isOpenModal, setIsOpenModal] = useState<Boolean>(false)
 
     const handleModal = () => {
         setIsOpenModal(!isOpenModal)
