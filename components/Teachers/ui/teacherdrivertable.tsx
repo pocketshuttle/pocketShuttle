@@ -2,19 +2,33 @@ import { Search } from "@/components/dashboard/search/search"
 import { Button } from "@/components/ui/button"
 import dashboard from "@/public/images/dashboard.svg"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { DriverAndTeacherModal } from "./teachers-modal"
 type TeachersDriversProps = {
     username?: string
     email?: string
     phone?: string
-    busId:string
-    
+    busId: string
+
 }
 export const TeachersAndDriverTable = () => {
+    const router = useRouter()
+    const [isOpenModal, setIsOpenModal] = useState<Boolean>(true)
+
+    const handleModal = () => {
+        setIsOpenModal(!isOpenModal)
+    }
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
+            {
+                isOpenModal && <DriverAndTeacherModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
+            }
+
+
             <div className="p-4 flex justify-between items-center ">
                 <Search placeholder="Search for students..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
-                <Button variant="secondary">
+                <Button variant="secondary" onClick={handleModal}>
                     add new
                 </Button>
             </div>
