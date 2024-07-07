@@ -1,9 +1,10 @@
+import { Teachers } from '@/components/Teachers/teachers'
 import React from 'react'
 
-const Teachers = () => {
+const TeachersDrivers = () => {
     return (
-        <div>Teachers</div>
+        <div><Teachers /></div>
     )
 }
 
-export default Teachers
+export default TeachersDrivers
