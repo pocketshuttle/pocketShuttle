@@ -6,20 +6,21 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "@/components/ui/form"
 import { Dispatch, SetStateAction, useState, useTransition } from "react"
 import { Input } from "@/components/ui/input"
-import { TeacherSchema } from "@/schemas"
+import { StudentSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { BiCloset } from "react-icons/bi"
 import { IoMdClose } from "react-icons/io"
+import { SelectProperty } from "@/components/ui/select-wrapper"
 
 interface DriverModalProps {
     setIsOpenModal: Dispatch<SetStateAction<Boolean>>
     isOpenModal: boolean
 }
 
-export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) => {
+export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) => {
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState("")
@@ -28,17 +29,19 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal }: DriverMod
     const [selectImage, setSelectedImage] = useState<string>("")
     const [newAvatar, setNewAvatar] = useState<string>("")
 
-    const form = useForm<z.infer<typeof TeacherSchema>>({
-        resolver: zodResolver(TeacherSchema),
+    const form = useForm<z.infer<typeof StudentSchema>>({
+        resolver: zodResolver(StudentSchema),
         defaultValues: {
             full_name: "",
             email: "",
-            password: "",
+            parent: "",
             phoneNumber: "",
             address: "",
-            image: ""
+            image: "",
+            grade: ""
         }
     })
+
     const onSubmit = () => {
         startTransition(() => { })
     }
@@ -47,6 +50,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal }: DriverMod
         inputElement?.click()
         // console.log(inputElement)
     }
+
     const handleCameraInputChange = async (event) => {
         const file = event.target.files[0]
         console.log(file)
@@ -93,7 +97,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal }: DriverMod
             <div className="relative bg-gray-900  rounded-md w-5/6 ">
 
                 <TeacherCardWrapper
-                    headLabel="Add a Teacher"
+                    headLabel="Add Student"
                     action={() => handleCloseModal()}
                 >
                     <div className=" flex ">
@@ -182,20 +186,21 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal }: DriverMod
                                                 )}
                                             />
                                         </div>
-
                                     </div>
+
                                     <div className="space-y-4">
+
                                         <FormField
                                             control={form.control}
-                                            name="password"
+                                            name="parent"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Password</FormLabel>
+                                                    <FormLabel>Parent Name</FormLabel>
                                                     <FormControl>
                                                         <Input
                                                             {...field}
-                                                            placeholder="******"
-                                                            type="password"
+                                                            placeholder="Family Name"
+                                                            type="text"
                                                             disabled={isPending}
                                                             className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
                                                         />
@@ -237,11 +242,15 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal }: DriverMod
 
                                         </FormField>
                                     </div>
+                                    <div className="flex  justify-between ">
+                                        < SelectProperty placeholder="Grade" label="Student Grade" item="Grade A" />
+                                        < SelectProperty placeholder="Bus" label="Student Grade" item="Grade A" />
+                                    </div>
                                     {/* <FormError message={isError} /> */}
                                     {/* <FormSuccess message={isSuccess} /> */}
                                     <Button
                                         disabled={isPending}
-                                        size="lg" className="w-full" type="submit">Add teacher
+                                        size="lg" className="w-full" type="submit">Add Student
                                     </Button>
                                 </form>
                             </Form>

@@ -50,3 +50,25 @@ export const TeacherSchema = z.object({
   }),
   address: z.string(),
 });
+export const StudentSchema = z.object({
+  full_name: z.string().min(1, {
+    message: "Name is required!",
+  }),
+  image: z.string().min(1, {
+    message: "Image is required!",
+  }),
+  parent: z.string().min(1, {
+    message: "Parent name is required!",
+  }),
+
+  email: z.string().email({
+    message: "Invalid email",
+  }),
+  grade: z.string().min(1, {
+    message: "Grade is required!",
+  }),
+  phoneNumber: z.string().min(11, {
+    message: "Phone number must be 11 numbers",
+  }),
+  address: z.string(),
+});

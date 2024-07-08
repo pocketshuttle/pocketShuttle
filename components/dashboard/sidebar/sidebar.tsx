@@ -72,14 +72,13 @@ const Sidebar = () => {
     ]
 
     return (
-        <div className="h-screen sticky  top-[40px]">
+        <div className="h-screen fixed  top-[40px]">
             <div>
                 <DashboardHeader />
             </div>
-
-            <ul >
+            <ul className="w-[250px]" >
                 {menuItems.map((menus, index) => (
-                    <li key={index} className="space-y-5">
+                    <li key={index} className="space-y-5 w-full">
                         <span className="space-y-5 text-[#b7cac1] text-[0.8rem]">{menus.title}</span>
                         <MenuLink menu={menus.list} />
                     </li>
