@@ -1,8 +1,12 @@
-
+import { Poppins } from "next/font/google"
+const poppins = Poppins({ weight: "500", subsets: ["latin"] })
 export const ActiveCommuteTable = () => {
     return (
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
-            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+        <div className={`relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237] ${poppins}`} >
+            <header className="px-4 py-3 text-[1rem] text-[var(--textSoft)] ">
+                Ongoing Commute
+            </header>
+            <table className="w-full text-[0.8rem] text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead className="text-xs text-gray-300 capitalize  ">
                     <tr>
                         <th scope="col" className="px-6 py-3">
