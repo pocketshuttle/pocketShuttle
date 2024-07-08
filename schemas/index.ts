@@ -72,3 +72,9 @@ export const StudentSchema = z.object({
   }),
   address: z.string(),
 });
+export const BusSchema = z.object({
+  bus_number: z.string(),
+  driver: z.string(),
+  seat_number: z.string(),
+  teacher: z.string(),
+});

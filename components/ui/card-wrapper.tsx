@@ -10,7 +10,7 @@ import { IoMdClose } from "react-icons/io"
 interface CardWrapperProps {
     children: React.ReactNode
     headLabel: string
-    action: () => void
+    action?: () => void
 }
 export const TeacherCardWrapper = ({ children, headLabel, action }: CardWrapperProps) => {
     return (

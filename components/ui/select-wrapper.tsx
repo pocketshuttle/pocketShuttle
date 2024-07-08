@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select"
 
 type SelectProps = {
-    item?: string
+    item?: string | undefined
     placeholder: string
     label?: string
 
@@ -24,8 +24,8 @@ export const SelectProperty = ({ item, placeholder, label }: SelectProps) => {
             <SelectContent>
                 <SelectGroup>
                     <SelectLabel>{label}</SelectLabel>
-                    <SelectItem value="apple">{item}</SelectItem>
-                    <SelectItem value="banana">{item}</SelectItem>
+                    <SelectItem value={item}>{item}</SelectItem>
+                    <SelectItem value={item}>{item}</SelectItem>
                 </SelectGroup>
             </SelectContent>
         </Select>

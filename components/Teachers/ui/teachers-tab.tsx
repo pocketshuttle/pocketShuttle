@@ -15,19 +15,22 @@ const Tab = (props: TabType) => {
 
     return (
         <div>
-            <nav className="flex w-full bg-white items-center justify-center space-x-3 text-sm text-slate-500">
+            <nav className="flex w-full  items-center justify-center space-x-3 text-sm p-2">
 
                 {
                     <>
                         <p
                             onClick={() => handleTab("teachers")}
-                            className={`cursor-pointer p-2 eventTab ${activeTab === "about" && "text-slate-900 active"}`}
+                            className={`cursor-pointer p-2 eventTab  px-16 capitalize text-gray-300
+                                ${activeTab ===
+                                "teachers" && " text-gray-800 inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground active"}`}
                         >
                             {tab1}
                         </p>
                         <p
                             onClick={() => handleTab("drivers")}
-                            className={`cursor-pointer p-2 eventTab ${activeTab === "bank" && "text-slate-900 active"}`}
+                            className={`cursor-pointer p-2 eventTab px-16 text-gray-300 capitalize  ${activeTab ===
+                                "drivers" && "text-gray-800 inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground active"}`}
                         >
                             {tab2}
                         </p>
@@ -36,7 +39,7 @@ const Tab = (props: TabType) => {
                 }
 
             </nav>
-        </div>
+        </div >
     )
 }
 
