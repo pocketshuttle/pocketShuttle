@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { DriverAndTeacherModal } from "./teachers-modal"
 import { Pagination } from "@/components/dashboard/pagination/pagination"
+
 type TeachersDriversProps = {
     username?: string
     email?: string
@@ -28,7 +29,7 @@ export const TeachersAndDriverTable = () => {
 
 
             <div className="p-4 flex justify-between items-center ">
-                <Search placeholder="Search for students..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
+                <Search placeholder="Search for teachers..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
                 <Button variant="secondary" onClick={handleModal}>
                     add new
                 </Button>

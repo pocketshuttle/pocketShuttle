@@ -11,12 +11,10 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
-import { BiCloset } from "react-icons/bi"
-import { IoMdClose } from "react-icons/io"
 import { SelectProperty } from "@/components/ui/select-wrapper"
 
 interface DriverModalProps {
-    setIsOpenModal: Dispatch<SetStateAction<Boolean>>
+    setIsOpenModal?: Dispatch<SetStateAction<Boolean>>
     isOpenModal: boolean
 }
 
@@ -244,7 +242,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
                                     </div>
                                     <div className="flex  justify-between ">
                                         < SelectProperty placeholder="Grade" label="Student Grade" item="Grade A" />
-                                        < SelectProperty placeholder="Bus" label="Student Grade" item="Grade A" />
+                                        < SelectProperty placeholder="Bus" label="Bus Name" item="Bus A" />
                                     </div>
                                     {/* <FormError message={isError} /> */}
                                     {/* <FormSuccess message={isSuccess} /> */}

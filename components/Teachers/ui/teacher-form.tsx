@@ -155,7 +155,7 @@ const AddTeacher = () => {
                     {/* <FormSuccess message={isSuccess} /> */}
                     <Button
                         disabled={isPending}
-                        size="lg" className="w-full" type="submit">Add teacher
+                        size="lg" className="w-full" type="submit">Add a Teacher
                     </Button>
                 </form>
             </Form>
