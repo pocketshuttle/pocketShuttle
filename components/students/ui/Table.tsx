@@ -7,7 +7,7 @@ import { useState } from "react"
 import { StudentModal } from "@/components/students/ui/Student-modal"
 
 export const StudentsData = () => {
-    const [isOpenModal, setIsOpenModal] = useState(true)
+    const [isOpenModal, setIsOpenModal] = useState(false)
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
