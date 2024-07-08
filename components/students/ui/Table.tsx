@@ -5,9 +5,11 @@ import dashboard from "@/public/images/dashboard.svg"
 import Image from "next/image"
 import { useState } from "react"
 import { StudentModal } from "@/components/students/ui/Student-modal"
+import Link from "next/link"
 
 export const StudentsData = () => {
     const [isOpenModal, setIsOpenModal] = useState(false)
+
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
@@ -67,9 +69,12 @@ export const StudentsData = () => {
                         </td>
                         <td className="px-6 py-4">
                             <div className="space-x-2">
-                                <button>
-                                    edit
-                                </button>
+                                <Link href="/dashboard/students/idie">
+                                    <button >
+                                        view
+                                    </button>
+                                </Link>
+                                
                                 <button>
                                     delete
                                 </button>

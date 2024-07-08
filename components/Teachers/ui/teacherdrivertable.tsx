@@ -16,7 +16,7 @@ type TeachersDriversProps = {
 }
 export const TeachersAndDriverTable = () => {
     const router = useRouter()
-    const [isOpenModal, setIsOpenModal] = useState<Boolean>(false)
+    const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
 
     const handleModal = () => {
         setIsOpenModal(!isOpenModal)
@@ -52,7 +52,6 @@ export const TeachersAndDriverTable = () => {
                         <th scope="col" className="px-6 py-3">
                             Bus No
                         </th>
-
                     </tr>
                 </thead>
                 <tbody>

@@ -13,6 +13,7 @@ import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { BiCloset } from "react-icons/bi"
 import { IoMdClose } from "react-icons/io"
+import { Textarea } from "@/components/ui/textarea"
 
 interface DriverModalProps {
     setIsOpenModal: Dispatch<SetStateAction<Boolean>>
@@ -97,7 +98,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal }: DriverMod
                     action={() => handleCloseModal()}
                 >
                     <div className=" flex ">
-                        <div className=" w-[20%] items-center  bg-[var(--bgSoft)] h-[13.5rem] p-2 rounded-md" >
+                        <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
                             <input
                                 id="cameraInput"
                                 type="file"
@@ -106,7 +107,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal }: DriverMod
                                 style={{ display: 'none' }}
                                 onChange={handleCameraInputChange}
                             />
-                            <Image src={avatar} alt="avatar" className="cursor-pointer rounded-md " onClick={() => handleCameraClick()} />
+                            <Image src={avatar} alt="avatar" className="cursor-pointer rounded-md h-[13.5rem] w-24% object-fill" onClick={() => handleCameraClick()} />
                         </div>
                         <div className="flex-1 px-5 ">
 
@@ -220,12 +221,18 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal }: DriverMod
                                                 <FormItem>
                                                     <FormLabel>Address</FormLabel>
                                                     <FormControl>
-                                                        <Input
+                                                        {/* <Input
                                                             {...field}
                                                             placeholder="Teachers Address"
                                                             type="text"
                                                             disabled={isPending}
                                                             className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                        /> */}
+                                                        <Textarea
+                                                            {...field}
+                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none "
+                                                            placeholder="Teachers Address..."
+                                                            disabled={isPending}
                                                         />
                                                     </FormControl>
                                                     <FormMessage />

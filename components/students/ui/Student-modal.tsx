@@ -14,7 +14,7 @@ import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { SelectProperty } from "@/components/ui/select-wrapper"
 
 interface DriverModalProps {
-    setIsOpenModal?: Dispatch<SetStateAction<Boolean>>
+    setIsOpenModal?: Dispatch<SetStateAction<boolean>>
     isOpenModal: boolean
 }
 
@@ -99,7 +99,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
                     action={() => handleCloseModal()}
                 >
                     <div className=" flex ">
-                        <div className=" w-[20%] items-center  bg-[var(--bgSoft)] h-[13.5rem] p-2 rounded-md" >
+                        <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
                             <input
                                 id="cameraInput"
                                 type="file"
@@ -108,7 +108,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
                                 style={{ display: 'none' }}
                                 onChange={handleCameraInputChange}
                             />
-                            <Image src={avatar} alt="avatar" className="cursor-pointer rounded-md " onClick={() => handleCameraClick()} />
+                            <Image src={avatar} alt="avatar" className="cursor-pointer rounded-md h-[13.5rem] w-24% object-fill" onClick={() => handleCameraClick()} />
                         </div>
                         <div className="flex-1 px-5 ">
 
@@ -172,7 +172,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
                                                             <Input
                                                                 {...field}
                                                                 placeholder="08012345678"
-                                                                type="number"
+                                                                type="phone"
                                                                 disabled={isPending}
                                                                 className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
                                                             />
@@ -248,7 +248,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
                                     {/* <FormSuccess message={isSuccess} /> */}
                                     <Button
                                         disabled={isPending}
-                                        size="lg" className="w-full" type="submit">Add Student
+                                        size="lg" className="w-full bg-[teal] p-5" type="submit">Add Student
                                     </Button>
                                 </form>
                             </Form>
