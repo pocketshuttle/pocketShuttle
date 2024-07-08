@@ -3,15 +3,23 @@ import { Search } from "@/components/dashboard/search/search"
 import { Button } from "@/components/ui/button"
 import dashboard from "@/public/images/dashboard.svg"
 import Image from "next/image"
+import { useState } from "react"
+import { StudentModal } from "@/components/students/ui/Student-modal"
+
 export const StudentsData = () => {
+    const [isOpenModal, setIsOpenModal] = useState(true)
+
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
             <div className="p-4 flex justify-between items-center ">
                 <Search placeholder="Search for students..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
-                <Button variant="secondary">
+                <Button variant="secondary" onClick={() => setIsOpenModal(true)}>
                     add new
                 </Button>
             </div>
+            {
+                isOpenModal && <StudentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
+            }
             <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead className="text-xs text-gray-300 capitalize  ">
                     <tr >

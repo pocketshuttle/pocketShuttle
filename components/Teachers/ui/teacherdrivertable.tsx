@@ -5,6 +5,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { DriverAndTeacherModal } from "./teachers-modal"
+import { Pagination } from "@/components/dashboard/pagination/pagination"
 type TeachersDriversProps = {
     username?: string
     email?: string
@@ -36,16 +37,16 @@ export const TeachersAndDriverTable = () => {
                 <thead className="text-xs text-gray-300 capitalize  ">
                     <tr >
                         <th scope="col" className="px-6 py-3" rowSpan={6}>
-                            Name
+                            Full Name
                         </th>
                         <th scope="col" className="px-6 py-3">
-                            Grade
+                            Email
                         </th>
                         <th scope="col" className="px-6 py-3">
-                            Status
+                            Phone Number
                         </th>
                         <th scope="col" className="px-6 py-3">
-                            Date
+                            Address
                         </th>
                         <th scope="col" className="px-6 py-3">
                             Bus No
@@ -91,6 +92,7 @@ export const TeachersAndDriverTable = () => {
                     </tr>
                 </tbody>
             </table>
+            <Pagination />
         </div>
 
     )

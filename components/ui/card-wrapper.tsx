@@ -14,7 +14,7 @@ interface CardWrapperProps {
 }
 export const TeacherCardWrapper = ({ children, headLabel, action }: CardWrapperProps) => {
     return (
-        <Card className="w-full shadow-md">
+        <Card className="w-full shadow-md bg-inherit border-none text-gray-300">
 
             <CardHeader>
                 <div className="flex justify-end p-3">
