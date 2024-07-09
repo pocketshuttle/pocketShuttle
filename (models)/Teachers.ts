@@ -4,18 +4,18 @@ const { Schema, models } = mongoose;
 
 const teacherSchema = new Schema(
   {
-    name: String,
+    full_name: String,
     image: String,
     email: { type: String, unique: true, sparse: true },
     emailVerified: Date,
     password: String,
+    address: String,
     phoneNumber: String,
     students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
-    busId: { type: mongoose.Schema.Types.ObjectId, ref: "Bus" },
-    busesId: { type: mongoose.Schema.Types.ObjectId, ref: "Buses" },
+    // busId: { type: mongoose.Schema.Types.ObjectId, ref: "Bus" },
   },
   { collection: "teachers" }
 );
 
 const Teacher = models.Teacher || mongoose.model("Teacher", teacherSchema);
-module.exports = Teacher;
+export default Teacher;

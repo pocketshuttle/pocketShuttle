@@ -43,9 +43,8 @@ export const LoginForm = () => {
                 setIsSuccess(data?.success)
             })
         })
-
-        console.log(values)
     }
+
     return (
         <CardWrapper
             headLabel="Welcome Back"

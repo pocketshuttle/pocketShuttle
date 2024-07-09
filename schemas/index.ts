@@ -41,15 +41,18 @@ export const TeacherSchema = z.object({
   password: z.string().min(6, {
     message: "Password must be more 6 characters!",
   }),
-
   email: z.string().email({
     message: "Invalid email",
   }),
   phoneNumber: z.string().min(11, {
     message: "Phone number must be 11 numbers",
   }),
-  address: z.string(),
+  address: z.string().min(1, {
+    message: "Please add the teacher's address",
+  }),
+  // busId: z.string(),
 });
+
 export const StudentSchema = z.object({
   full_name: z.string().min(1, {
     message: "Name is required!",
