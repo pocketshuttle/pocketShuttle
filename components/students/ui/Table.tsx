@@ -9,7 +9,7 @@ import Link from "next/link"
 
 export const StudentsData = () => {
     const [isOpenModal, setIsOpenModal] = useState(false)
-
+    
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
@@ -70,14 +70,15 @@ export const StudentsData = () => {
                         <td className="px-6 py-4">
                             <div className="space-x-2">
                                 <Link href="/dashboard/students/idie">
-                                    <button >
+                                    <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
                                         view
                                     </button>
                                 </Link>
-                                
-                                <button>
-                                    delete
-                                </button>
+                                <Link href="/dashboard">
+                                    <button className="bg-destructive px-2 text-[0.5rem] rounded-sm">
+                                        delete
+                                    </button>
+                                </Link>
                             </div>
                         </td>
 

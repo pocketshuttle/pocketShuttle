@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { DriverAndTeacherModal } from "./teachers-modal"
 import { Pagination } from "@/components/dashboard/pagination/pagination"
+import Link from "next/link"
 
 type TeachersDriversProps = {
     username?: string
@@ -80,12 +81,16 @@ export const TeachersAndDriverTable = () => {
                         </td>
                         <td className="px-6 py-4">
                             <div className="space-x-2">
-                                <button>
-                                    edit
-                                </button>
-                                <button>
-                                    delete
-                                </button>
+                                <Link href="/dashboard/teachers/">
+                                    <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
+                                        view
+                                    </button>
+                                </Link>
+                                <Link href="/dashboard">
+                                    <button className="bg-destructive px-2 text-[0.5rem] rounded-sm">
+                                        delete
+                                    </button>
+                                </Link>
                             </div>
                         </td>
 
@@ -93,7 +98,7 @@ export const TeachersAndDriverTable = () => {
                 </tbody>
             </table>
             <Pagination />
-        </div>
+        </div >
 
     )
 }
