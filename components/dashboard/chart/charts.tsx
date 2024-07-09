@@ -1,10 +1,12 @@
 import { ChartUI } from "./ui/chart-ui"
+import { Poppins } from "next/font/google"
 
+const poppins = Poppins({ weight: "500", subsets: ["latin"] })
 export const Charts = () => {
     return (
-        <div>
+        <div className="bg-[var(--bgSoft)] p-4">
 
-            <h1>Weekly Students Chart</h1>
+            <h1 className={`${poppins} text-[var(--textSoft)] py-4`}>Weekly Students Chart</h1>
             <div className="h-[400px] w-full">
                 < ChartUI />
             </div>

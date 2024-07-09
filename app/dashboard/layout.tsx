@@ -5,11 +5,11 @@ const poppins = Poppins({ weight: "500", subsets: ["latin"] })
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     return (
         <div className={`flex h-screen ${poppins.className}`}>
-            <div className="w-1/5 bg-[#182237] p-3">
+            <div className="w-1/5 max-h-screen">
                 <Sidebar />
             </div>
 
-            <div className="flex-1 p-3">
+            <div className="flex-1 p-3 ml-1/5">
                 <Navbar />
                 {children}
             </div>
