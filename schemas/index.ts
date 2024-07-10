@@ -126,4 +126,5 @@ export const BusSchema = z.object({
   seat_number: z.string(),
   teacher: z.string(),
   student: z.string(),
+  image: z.string(),
 });

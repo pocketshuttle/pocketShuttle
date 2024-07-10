@@ -1,19 +1,17 @@
 "use client"
 import * as z from "zod"
-import { CardWrapper } from "@/components/auth/card-wrapper"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "@/components/ui/form"
 import { Dispatch, SetStateAction, useState, useTransition } from "react"
 import { Input } from "@/components/ui/input"
-import { StudentSchema } from "@/schemas"
+import { BusSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
-import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { SelectProperty } from "@/components/ui/select-wrapper"
 
-const SingleStudent = () => {
+const SingleBus = () => {
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState("")
@@ -22,16 +20,14 @@ const SingleStudent = () => {
     const [selectImage, setSelectedImage] = useState<string>("")
     const [newAvatar, setNewAvatar] = useState<string>("")
 
-    const form = useForm<z.infer<typeof StudentSchema>>({
-        resolver: zodResolver(StudentSchema),
+    const form = useForm<z.infer<typeof BusSchema>>({
+        resolver: zodResolver(BusSchema),
         defaultValues: {
-            full_name: "",
-            teacherId: "",
-            parentId: "",
-            address: "",
-            age: "",
-            grade: "",
-            busId: "",
+            bus_number: "",
+            driver: "",
+            seat_number: "",
+            teacher: "",
+            student: "",
             image: "",
         }
     })
@@ -45,7 +41,7 @@ const SingleStudent = () => {
         // console.log(inputElement)
     }
 
-    const handleCameraInputChange = async (event) => {
+    const handleCameraInputChange = async (event: React.HTMLAttributes<InputEvent>) => {
         const file = event.target.files[0]
         console.log(file)
         if (file) {
@@ -106,14 +102,14 @@ const SingleStudent = () => {
                             <div className="space-y-4">
                                 <FormField
                                     control={form.control}
-                                    name="full_name"
+                                    name="bus_number"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Full Name</FormLabel>
+                                            <FormLabel>Bus Number</FormLabel>
                                             <FormControl>
                                                 <Input
                                                     {...field}
-                                                    placeholder="ciroma@email.com"
+                                                    placeholder="abc-1234"
                                                     type="text"
                                                     disabled={isPending}
                                                     className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
@@ -130,15 +126,15 @@ const SingleStudent = () => {
                                 <div className="w-3/6">
                                     <FormField
                                         control={form.control}
-                                        name="email"
+                                        name="driver"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Email</FormLabel>
+                                                <FormLabel>Driver Name</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         {...field}
-                                                        placeholder="ciroma@email.com"
-                                                        type="email"
+                                                        placeholder="John Doe"
+                                                        type="text"
                                                         disabled={isPending}
                                                         className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
                                                     />
@@ -152,15 +148,15 @@ const SingleStudent = () => {
                                 <div className="w-3/6">
                                     <FormField
                                         control={form.control}
-                                        name="phoneNumber"
+                                        name="seat_number"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Phone Number</FormLabel>
+                                                <FormLabel>Seat Number</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         {...field}
-                                                        placeholder="08012345678"
-                                                        type="phone"
+                                                        placeholder="50"
+                                                        type="text"
                                                         disabled={isPending}
                                                         className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
                                                     />
@@ -178,14 +174,14 @@ const SingleStudent = () => {
 
                                 <FormField
                                     control={form.control}
-                                    name="parent"
+                                    name="teacher"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Parent Name</FormLabel>
+                                            <FormLabel>Teacher Name</FormLabel>
                                             <FormControl>
                                                 <Input
                                                     {...field}
-                                                    placeholder="Family Name"
+                                                    placeholder="Teacher Name"
                                                     type="text"
                                                     disabled={isPending}
                                                     className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
@@ -203,35 +199,11 @@ const SingleStudent = () => {
                             <div className="space-y-4">
 
                             </div>
-                            <div className="space-y-4">
-                                <FormField
-                                    control={form.control}
-                                    name="address"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Address</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    placeholder="Teachers Address"
-                                                    type="text"
-                                                    disabled={isPending}
-                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
 
-                                            {/* <Image src={eye} alt="eye" /> */}
-                                        </FormItem>
-                                    )}
-                                >
-
-                                </FormField>
-                            </div>
-                            <div className="flex  justify-between w-full ">
+                            {/* <div className="flex  justify-between w-full ">
                                 < SelectProperty placeholder="Grade" label="Student Grade" item="Grade A" />
                                 < SelectProperty placeholder="Bus" label="Bus Name" item="Bus A" />
-                            </div>
+                            </div> */}
                             {/* <FormError message={isError} /> */}
                             {/* <FormSuccess message={isSuccess} /> */}
                             <Button
@@ -246,4 +218,4 @@ const SingleStudent = () => {
     )
 }
 
-export default SingleStudent
+export default SingleBus
