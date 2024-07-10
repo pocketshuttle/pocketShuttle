@@ -56,7 +56,7 @@ export const TeachersAndDriverTable = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr className="dark:bg-gray-800  hover:bg-gray-900 cursor-pointer text-gray-300 text-[0.8rem]">
+                    <tr className="dark:bg-gray-800  hover:bg-gray-900 cursor-pointer text-[var(--textSoft)] text-[0.7rem]">
 
                         <td className="px-6 py-4" rowSpan={8}>
                             <div className="flex items-center gap-2">
@@ -64,19 +64,16 @@ export const TeachersAndDriverTable = () => {
                                 <span className="">John Doe</span>
                             </div>
                         </td>
-                        <td className="px-6 py-4 bg-crimson">
+                        <td className="px-6 py-4 ">
                             7
                         </td>
-                        <td className="px-6 py-4 text-[0.7rem] ">
-                            <span className="bg-[crimson] rounded-md text-[0.6rem] p-[5px]">
-                                ongoing
-                            </span>
-
+                        <td className="px-6 py-4  ">
+                            ongoing
                         </td>
-                        <td className="px-6 py-4 text-[0.7rem">
+                        <td className="px-6 py-4 ">
                             12/20/2024
                         </td>
-                        <td className="px-6 py-4 text-[0.7rem">
+                        <td className="px-6 py-4 ">
                             000/20/2024
                         </td>
                         <td className="px-6 py-4">
