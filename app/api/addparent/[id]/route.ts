@@ -1,6 +1,6 @@
 import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
-import Teacher from "@/(models)/Teachers";
+import Parent from "@/(models)/Parent";
 
 type ParamProp = {
   id: string;
@@ -13,15 +13,15 @@ export const GET = async (
   try {
     await connectToDB();
     const { id } = params;
-    const teacher = await Teacher.findById(id);
+    const parent = await Parent.findById(id);
 
-    if (!teacher) {
-      return new Response(JSON.stringify({ message: "Teacher not found!" }), {
+    if (!parent) {
+      return new Response(JSON.stringify({ message: "Parent not found" }), {
         status: 404,
       });
     }
 
-    return new Response(JSON.stringify(teacher), {
+    return new Response(JSON.stringify(parent), {
       status: 200,
     });
   } catch (error) {
@@ -29,7 +29,7 @@ export const GET = async (
     if (error instanceof Error) {
       return new Response(
         JSON.stringify({
-          message: "Error fetching teacher",
+          message: "Error fetching Parent",
           error: error.message,
         }),
         { status: 500 }
