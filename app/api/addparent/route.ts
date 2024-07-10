@@ -1,6 +1,6 @@
 import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
-import Teacher from "@/(models)/Teachers";
+import Parent from "@/(models)/Parent";
 import bcrypt from "bcryptjs";
 
 export const POST = async (req: NextRequest) => {
@@ -19,7 +19,7 @@ export const POST = async (req: NextRequest) => {
 
     const hashPassword = await bcrypt.hash(password, 10);
 
-    const newTeacher = new Teacher({
+    const newParent = new Parent({
       full_name,
       email,
       phoneNumber,
@@ -30,10 +30,10 @@ export const POST = async (req: NextRequest) => {
       image,
     });
 
-    await newTeacher.save();
+    await newParent.save();
 
-    return Response.json({ message: "Teacher added Succesfully " });
+    return Response.json({ message: "Parent added Succesfully " });
   } catch (error) {
-    console.log(error);
+    return Response.json({ message: "Error " }, { status: 400 });
   }
 };
