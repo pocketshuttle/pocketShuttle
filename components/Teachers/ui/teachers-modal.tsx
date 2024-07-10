@@ -17,11 +17,12 @@ import { useToast } from "@/components/ui/use-toast"
 
 
 interface DriverModalProps {
-    setIsOpenModal: Dispatch<SetStateAction<Boolean>>
-    isOpenModal: boolean
+    setIsOpenModal: Dispatch<SetStateAction<boolean>>
+    isOpenModal?: boolean
+    mode?: string
 }
 
-export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) => {
+export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode }: DriverModalProps) => {
 
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState("")
@@ -77,14 +78,15 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal }: DriverMod
             }
         });
     };
+
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
         inputElement?.click()
         // console.log(inputElement)
     }
     const handleCameraInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files[0]
-        console.log(file)
+        const file = event.target.files?.[0]
+
         if (file) {
             const reader = new FileReader()
             reader.onload = async () => {
@@ -128,10 +130,9 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal }: DriverMod
             <div className="relative bg-gray-900  rounded-md w-5/6 ">
 
                 <TeacherCardWrapper
-                    headLabel="Add a Teacher"
+                    headLabel={mode === "driver" ? "Add a Driver" : "Add a Teacher"}
                     action={() => handleCloseModal()}
                 >
-
                     <div className=" flex ">
                         <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
                             <input
@@ -219,34 +220,35 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal }: DriverMod
                                         </div>
 
                                     </div>
-                                    <div className="space-y-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="password"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Password</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            placeholder="******"
-                                                            type="password"
-                                                            disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
+                                    {
+                                        mode === "driver" ? "" :
+                                            <div className="space-y-4">
+                                                <FormField
+                                                    control={form.control}
+                                                    name="password"
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Password</FormLabel>
+                                                            <FormControl>
+                                                                <Input
+                                                                    {...field}
+                                                                    placeholder="******"
+                                                                    type="password"
+                                                                    disabled={isPending}
+                                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                />
+                                                            </FormControl>
+                                                            <FormMessage />
 
-                                                    {/* <Image src={eye} alt="eye" /> */}
-                                                </FormItem>
-                                            )}
-                                        >
+                                                            {/* <Image src={eye} alt="eye" /> */}
+                                                        </FormItem>
+                                                    )}
+                                                >
+                                                </FormField>
+                                            </div>
+                                    }
 
-                                        </FormField>
-                                    </div>
-                                    {/* <div className="space-y-4">
 
-                                    </div> */}
                                     <div className="space-y-4">
                                         <FormField
                                             control={form.control}

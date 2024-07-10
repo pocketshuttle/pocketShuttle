@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import Tab from '@/components/Teachers/ui/teachers-tab'
 import { TeachersUI } from './ui/teacher-ui'
+import { DriverTable } from '../driver/ui/Table'
 
 export const Teachers = () => {
     const [activeTab, setActiveTab] = useState("teachers")
@@ -21,7 +22,7 @@ export const Teachers = () => {
                     </div>
                 }
                 {
-                    activeTab === "drivers" && <div className='flex flex-col gap-4'>drivers</div>
+                    activeTab === "drivers" && <div className='flex flex-col gap-4'> <DriverTable /></div>
                 }
 
             </nav>

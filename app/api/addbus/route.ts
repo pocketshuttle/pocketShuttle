@@ -8,7 +8,7 @@ export const POST = async (req: NextRequest) => {
     await connectToDB();
     const data = await req.json();
     const validatedData = BusSchema.safeParse(data);
-
+    console.log(validatedData);
     if (!validatedData.success) {
       return NextResponse.json(
         { message: "Validation error", errors: validatedData.error.errors },

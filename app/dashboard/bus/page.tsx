@@ -1,9 +1,9 @@
-import { BusData } from '@/components/buses/ui/Table'
+import Buses from '@/components/buses/buses'
 
 const Bus = () => {
     return (
         <div>
-            <BusData />
+            <Buses />
         </div>
     )
 }

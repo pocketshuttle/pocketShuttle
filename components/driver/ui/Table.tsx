@@ -1,47 +1,57 @@
-"use client"
-import { Pagination } from "@/components/dashboard/pagination/pagination"
 import { Search } from "@/components/dashboard/search/search"
 import { Button } from "@/components/ui/button"
 import dashboard from "@/public/images/dashboard.svg"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { StudentModal } from "@/components/students/ui/Student-modal"
+import { Pagination } from "@/components/dashboard/pagination/pagination"
 import Link from "next/link"
+import { DriverAndTeacherModal } from "@/components/Teachers/ui/teachers-modal"
 
-export const BusData = () => {
-    const [isOpenModal, setIsOpenModal] = useState(false)
+type TeachersDriversProps = {
+    username?: string
+    email?: string
+    phone?: string
+    busId: string
+}
 
+export const DriverTable = () => {
+    const router = useRouter()
+    const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
 
+    const handleModal = () => {
+        setIsOpenModal(!isOpenModal)
+    }
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
+            {
+                isOpenModal && <DriverAndTeacherModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} mode="driver" />
+            }
+
             <div className="p-4 flex justify-between items-center ">
-                <Search placeholder="Search for Buses..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
-                <Button variant="secondary" onClick={() => setIsOpenModal(true)}>
+                <Search placeholder="Search for teachers..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
+                <Button variant="secondary" onClick={handleModal}>
                     add new
                 </Button>
             </div>
-            {
-                isOpenModal && <StudentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
-            }
             <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead className="text-xs text-gray-300 capitalize  ">
                     <tr >
                         <th scope="col" className="px-6 py-3" rowSpan={6}>
-                            Bus Number
+                            Full Name
                         </th>
                         <th scope="col" className="px-6 py-3">
-                            Driver
+                            Email
                         </th>
                         <th scope="col" className="px-6 py-3">
-                            Status
+                            Phone Number
                         </th>
                         <th scope="col" className="px-6 py-3">
-                            Teacher
+                            Address
                         </th>
                         <th scope="col" className="px-6 py-3">
-                            Seat Number
+                            Bus No
                         </th>
-
                     </tr>
                 </thead>
                 <tbody>
@@ -57,20 +67,17 @@ export const BusData = () => {
                             7
                         </td>
                         <td className="px-6 py-4 text-[0.7rem] ">
-                            <span className="bg-[crimson] rounded-md text-[0.6rem] p-[5px]">
-                                ongoing
-                            </span>
-
+                            ongoing
                         </td>
-                        <td className="px-6 py-4 text-[0.7rem">
+                        <td className="px-6 py-4 text-[0.7rem]">
                             12/20/2024
                         </td>
-                        <td className="px-6 py-4 text-[0.7rem">
+                        <td className="px-6 py-4 text-[0.7rem]">
                             000/20/2024
                         </td>
                         <td className="px-6 py-4">
                             <div className="space-x-2">
-                                <Link href="/dashboard/bus/idie">
+                                <Link href="/dashboard/teachers/">
                                     <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
                                         view
                                     </button>
@@ -83,9 +90,7 @@ export const BusData = () => {
                             </div>
                         </td>
 
-
                     </tr>
-
                 </tbody>
             </table>
             <Pagination />
