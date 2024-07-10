@@ -125,4 +125,5 @@ export const BusSchema = z.object({
   driver: z.string(),
   seat_number: z.string(),
   teacher: z.string(),
+  student: z.string(),
 });
