@@ -16,4 +16,4 @@ const driverSchema = new Schema(
 );
 
 const Driver = models.Driver || mongoose.model("Driver", driverSchema);
-module.exports = Driver;
+export default Driver;

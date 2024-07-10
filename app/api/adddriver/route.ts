@@ -1,7 +1,7 @@
 import { connectToDB } from "@/utils/connect-to-db";
-import { NextRequest, NextResponse } from "next/server";
-import Teacher from "@/(models)/Teachers";
+import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
+import Driver from "@/(models)/Driver";
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -19,7 +19,7 @@ export const POST = async (req: NextRequest) => {
 
     const hashPassword = await bcrypt.hash(password, 10);
 
-    const newTeacher = new Teacher({
+    const newDriver = new Driver({
       full_name,
       email,
       phoneNumber,
@@ -30,10 +30,10 @@ export const POST = async (req: NextRequest) => {
       image,
     });
 
-    await newTeacher.save();
+    await newDriver.save();
 
-    return Response.json({ message: "Teacher added Succesfully " });
+    return Response.json({ message: "Driver added Succesfully " });
   } catch (error) {
-    console.log(error);
+    return Response.json({ message: "Error " }, { status: 400 });
   }
 };
