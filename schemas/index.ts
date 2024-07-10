@@ -50,7 +50,51 @@ export const TeacherSchema = z.object({
   address: z.string().min(1, {
     message: "Please add the teacher's address",
   }),
-  // busId: z.string(),
+  busId: z.string(),
+  studentId: z.string(),
+});
+
+export const DriverSchema = z.object({
+  full_name: z.string().min(1, {
+    message: "Name is required!",
+  }),
+  image: z.string().min(1, {
+    message: "Image is required!",
+  }),
+  email: z.string().email({
+    message: "Invalid email",
+  }),
+  phoneNumber: z.string().min(11, {
+    message: "Phone number must be 11 numbers",
+  }),
+  address: z.string().min(1, {
+    message: "Please add the teacher's address",
+  }),
+  busId: z.string(),
+  studentId: z.string(),
+});
+
+export const ParentSchema = z.object({
+  full_name: z.string().min(1, {
+    message: "Name is required!",
+  }),
+  image: z.string().min(1, {
+    message: "Image is required!",
+  }),
+  password: z.string().min(6, {
+    message: "Password must be more 6 characters!",
+  }),
+  email: z.string().email({
+    message: "Invalid email",
+  }),
+  phoneNumber: z.string().min(11, {
+    message: "Phone number must be 11 numbers",
+  }),
+  address: z.string().min(1, {
+    message: "Please add the teacher's address",
+  }),
+  busId: z.string(),
+  studentId: z.string(),
 });
 
 export const StudentSchema = z.object({
@@ -60,21 +104,22 @@ export const StudentSchema = z.object({
   image: z.string().min(1, {
     message: "Image is required!",
   }),
-  parent: z.string().min(1, {
+  parentId: z.string().min(1, {
     message: "Parent name is required!",
   }),
-
-  email: z.string().email({
-    message: "Invalid email",
+  teacherId: z.string().min(1, {
+    message: "Teacher is required!",
+  }),
+  busId: z.string().min(1, {
+    message: "Bus is required!",
   }),
   grade: z.string().min(1, {
     message: "Grade is required!",
   }),
-  phoneNumber: z.string().min(11, {
-    message: "Phone number must be 11 numbers",
-  }),
   address: z.string(),
+  age: z.string(),
 });
+
 export const BusSchema = z.object({
   bus_number: z.string(),
   driver: z.string(),
