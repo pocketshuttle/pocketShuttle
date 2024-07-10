@@ -5,9 +5,6 @@ export const Student = () => {
     return (
         <div className="mt-2">
             <StudentsData />
-
-          
-
         </div>
     )
 }
