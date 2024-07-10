@@ -50,8 +50,8 @@ export const TeacherSchema = z.object({
   address: z.string().min(1, {
     message: "Please add the teacher's address",
   }),
-  busId: z.string(),
-  studentId: z.string(),
+  busId: z.string().optional(),
+  studentId: z.string().optional(),
 });
 
 export const DriverSchema = z.object({
@@ -121,10 +121,10 @@ export const StudentSchema = z.object({
 });
 
 export const BusSchema = z.object({
-  bus_number: z.string(),
-  driver: z.string(),
+  bus_number: z.number(),
+  driver: z.string().optional(),
   seat_number: z.string(),
-  teacher: z.string(),
-  student: z.string(),
-  image: z.string(),
+  teacher: z.string().optional(),
+  student: z.string().optional(),
+  image: z.string().optional(),
 });

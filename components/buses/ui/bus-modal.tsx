@@ -1,78 +1,65 @@
 "use client"
 import * as z from "zod"
+import { CardWrapper } from "@/components/auth/card-wrapper"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "@/components/ui/form"
-import { Dispatch, SetStateAction, useEffect, useState, useTransition } from "react"
+import { Dispatch, SetStateAction, useState, useTransition } from "react"
 import { Input } from "@/components/ui/input"
-import { TeacherSchema } from "@/schemas"
+import { BusSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
-import { BiCloset } from "react-icons/bi"
-import { IoMdClose } from "react-icons/io"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/components/ui/use-toast"
-import { usePost } from "@/hooks/usePost"
-import { FormSuccess } from "@/components/ui/form-success"
+import { SelectProperty } from "@/components/ui/select-wrapper"
 
-
-interface DriverModalProps {
+interface BusModalProps {
     setIsOpenModal: Dispatch<SetStateAction<boolean>>
-    isOpenModal?: boolean
-    mode?: string
+    isOpenModal: boolean
 }
 
-export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode }: DriverModalProps) => {
-
+export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
     const [isPending, startTransition] = useTransition()
-    const [submittedData, setSubmittedData] = useState(null);
-
     const [isError, setIsError] = useState("")
-    const [isSuccess, setIsSuccess] = useState(false)
-    const [dataMessage, setDataMessage] = useState("")
+    const [isSuccess, setIsSuccess] = useState("")
     const [selectAvatar, setSelectedAvatar] = useState<number>(0)
     const [newTryAvatar, setNewTryAvatar] = useState<string>("")
     const [selectImage, setSelectedImage] = useState<string>("")
     const [newAvatar, setNewAvatar] = useState<string>("")
-    const { toast } = useToast()
-    const { data, loading, errorMessage, success } = usePost("/api/addteacher", submittedData, "POST")
 
-    const form = useForm<z.infer<typeof TeacherSchema>>({
-        resolver: zodResolver(TeacherSchema),
+    const form = useForm<z.infer<typeof BusSchema>>({
+        resolver: zodResolver(BusSchema),
         defaultValues: {
-            full_name: "",
-            email: "",
-            password: "",
-            phoneNumber: "",
-            address: "",
-            image: "images",
-            busId: "12345de3e3resd466"
+            bus_number: "",
+            driver: "",
+            seat_number: "",
+            teacher: "",
+            student: "",
+            image: "",
         }
     })
 
-    const onSubmit = (values: z.infer<typeof TeacherSchema>) => {
-        startTransition(() => {
-            setSubmittedData(values)
-        });
-    };
-
-    useEffect(() => {
-        if (success && data) {
-            setIsSuccess(success); // handle the response data
-            setDataMessage(data.message);
-        }
-    }, [success]);
-
+    const onSubmit = (values: z.infer<typeof BusSchema>) => {
+        startTransition(async () => {
+            try {
+                const res = await fetch("api/addbus/", {
+                    method: "POST",
+                    body: JSON.stringify(values)
+                })
+            } catch (error) {
+                
+            }
+        })
+    }
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
         inputElement?.click()
         // console.log(inputElement)
     }
+
     const handleCameraInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
-
+        console.log(file)
         if (file) {
             const reader = new FileReader()
             reader.onload = async () => {
@@ -111,19 +98,15 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode }: Dri
         setIsOpenModal(false)
     }
 
-    if (isSuccess) {
-        return <FormSuccess message={dataMessage} setIsOpenModal={setIsOpenModal} />
-    }
-
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
             <div className="relative bg-gray-900  rounded-md w-5/6 ">
+
                 <TeacherCardWrapper
-                    headLabel={mode === "driver" ? "Add a Driver" : "Add a Teacher"}
+                    headLabel="Add a Bus"
                     action={() => handleCloseModal()}
                 >
-
-                    <div className=" flex ">
+                    <div className=" flex justify-center">
                         <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
                             <input
                                 id="cameraInput"
@@ -136,20 +119,22 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode }: Dri
                             <Image src={avatar} alt="avatar" className="cursor-pointer rounded-md h-[13.5rem] w-24% object-fill" onClick={() => handleCameraClick()} />
                         </div>
                         <div className="flex-1 px-5 ">
+
                             <Form {...form}>
                                 {/* the handle submit comes from the form constant */}
                                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                                    <div className="space-y-4">
+
+                                    <div >
                                         <FormField
                                             control={form.control}
-                                            name="full_name"
+                                            name="driver"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Full Name</FormLabel>
+                                                    <FormLabel>Driver Name</FormLabel>
                                                     <FormControl>
                                                         <Input
                                                             {...field}
-                                                            placeholder="ciroma@email.com"
+                                                            placeholder="John Doe"
                                                             type="text"
                                                             disabled={isPending}
                                                             className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
@@ -158,23 +143,22 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode }: Dri
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
-                                        >
-
-                                        </FormField>
+                                        />
                                     </div>
                                     <div className="space-x-4 flex items-center w-full justify-between">
-                                        <div className="w-3/6">
+
+                                        <div className="space-y-4 w-3/6">
                                             <FormField
                                                 control={form.control}
-                                                name="email"
+                                                name="bus_number"
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Email</FormLabel>
+                                                        <FormLabel>Bus Number</FormLabel>
                                                         <FormControl>
                                                             <Input
                                                                 {...field}
-                                                                placeholder="ciroma@email.com"
-                                                                type="email"
+                                                                placeholder="abc-1234"
+                                                                type="text"
                                                                 disabled={isPending}
                                                                 className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
                                                             />
@@ -182,20 +166,21 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode }: Dri
                                                         <FormMessage />
                                                     </FormItem>
                                                 )}
-                                            />
-                                        </div>
+                                            >
 
+                                            </FormField>
+                                        </div>
                                         <div className="w-3/6">
                                             <FormField
                                                 control={form.control}
-                                                name="phoneNumber"
+                                                name="seat_number"
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Phone Number</FormLabel>
+                                                        <FormLabel>Number of Seats</FormLabel>
                                                         <FormControl>
                                                             <Input
                                                                 {...field}
-                                                                placeholder="08012345678"
+                                                                placeholder="100"
                                                                 type="number"
                                                                 disabled={isPending}
                                                                 className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
@@ -208,58 +193,23 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode }: Dri
                                                 )}
                                             />
                                         </div>
-
                                     </div>
-                                    {
-                                        mode === "driver" ? "" :
-                                            <div className="space-y-4">
-                                                <FormField
-                                                    control={form.control}
-                                                    name="password"
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Password</FormLabel>
-                                                            <FormControl>
-                                                                <Input
-                                                                    {...field}
-                                                                    placeholder="******"
-                                                                    type="password"
-                                                                    disabled={isPending}
-                                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                                />
-                                                            </FormControl>
-                                                            <FormMessage />
-
-                                                            {/* <Image src={eye} alt="eye" /> */}
-                                                        </FormItem>
-                                                    )}
-                                                >
-                                                </FormField>
-                                            </div>
-                                    }
-
 
                                     <div className="space-y-4">
                                         <FormField
                                             control={form.control}
-                                            name="address"
+                                            name="teacher"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Address</FormLabel>
+                                                    <FormLabel>Teacher Name</FormLabel>
                                                     <FormControl>
                                                         <Input
                                                             {...field}
-                                                            placeholder="Teachers Address..."
+                                                            placeholder="Teacher Name"
                                                             type="text"
                                                             disabled={isPending}
                                                             className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
                                                         />
-                                                        {/* <Textarea
-                                                            {...field}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none "
-                                                            placeholder="Teachers Address..."
-                                                            disabled={isPending}
-                                                        /> */}
                                                     </FormControl>
                                                     <FormMessage />
 
@@ -267,13 +217,19 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode }: Dri
                                                 </FormItem>
                                             )}
                                         >
+
                                         </FormField>
                                     </div>
+
+                                    {/* <div className="flex  justify-between ">
+                                        < SelectProperty placeholder="Grade" label="Bus Grade" item="Grade A" />
+                                        < SelectProperty placeholder="Bus" label="Bus Name" item="Bus A" />
+                                    </div> */}
                                     {/* <FormError message={isError} /> */}
                                     {/* <FormSuccess message={isSuccess} /> */}
                                     <Button
-                                        // disabled={isPending}
-                                        size="lg" className="w-full" type="submit">Add teacher
+                                        disabled={isPending}
+                                        size="lg" className="w-full bg-[teal] p-5" type="submit">Add Bus
                                     </Button>
                                 </form>
                             </Form>

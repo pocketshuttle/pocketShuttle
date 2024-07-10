@@ -28,7 +28,10 @@ export const POST = async (req: NextRequest) => {
 
     await newBus.save();
 
-    return Response.json({ message: "Bus added Succesfully " });
+    return Response.json(
+      { message: "Bus added Succesfully " },
+      { status: 200 }
+    );
   } catch (error) {
     if (error instanceof Error) {
       return Response.json(
