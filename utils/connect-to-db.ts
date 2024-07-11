@@ -18,7 +18,11 @@ export const connectToDB = async () => {
   }
 
   try {
-    await mongoose.connect(`${process.env.MONGODB_URI}`);
+    await mongoose.connect(`${process.env.MONGODB_URI}`, {
+      dbName: "dropoff",
+      bufferCommands: true, // Disable command buffering
+      socketTimeoutMS: 10000,
+    });
 
     isConnected = true;
     if (process.env.NODE_ENV === "development") {

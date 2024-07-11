@@ -1,6 +1,5 @@
 "use client"
 import * as z from "zod"
-import { CardWrapper } from "@/components/auth/card-wrapper"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "@/components/ui/form"
@@ -47,7 +46,7 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                     body: JSON.stringify(values)
                 })
             } catch (error) {
-                
+
             }
         })
     }
