@@ -35,8 +35,10 @@ export default {
         console.log(credentials, "credentials");
         //     //we validating the fields again
         const validatedFields = LoginSchema.safeParse(credentials);
+
         if (validatedFields.success) {
           const { email, password } = validatedFields.data;
+
           const user = await getUserByEmail(email);
           //       console.log(user);
           if (!user || !user.password) {

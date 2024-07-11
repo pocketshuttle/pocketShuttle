@@ -1,3 +1,4 @@
+"use client"
 import { Search } from "@/components/dashboard/search/search"
 import { Button } from "@/components/ui/button"
 import dashboard from "@/public/images/dashboard.svg"
@@ -7,6 +8,8 @@ import { useState } from "react"
 import { DriverAndTeacherModal } from "./teachers-modal"
 import { Pagination } from "@/components/dashboard/pagination/pagination"
 import Link from "next/link"
+import { useFetch } from "@/hooks/useFetch"
+import { useSession } from "next-auth/react"
 
 type TeachersDriversProps = {
     username?: string
@@ -16,12 +19,14 @@ type TeachersDriversProps = {
 
 }
 export const TeachersAndDriverTable = () => {
+    const { data: session } = useSession()
     const router = useRouter()
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-
+    const { data, loading, errorMessage } = useFetch(`api/addteacher/`)
     const handleModal = () => {
         setIsOpenModal(!isOpenModal)
     }
+    console.log(session)
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
             {

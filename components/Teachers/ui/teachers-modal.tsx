@@ -22,9 +22,10 @@ interface DriverModalProps {
     setIsOpenModal: Dispatch<SetStateAction<boolean>>
     isOpenModal?: boolean
     mode?: string
+    route?: string
 }
 
-export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode }: DriverModalProps) => {
+export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route }: DriverModalProps) => {
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState(null);
@@ -42,7 +43,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode }: Dri
     const form = useForm<z.infer<typeof TeacherSchema>>({
         resolver: zodResolver(TeacherSchema),
         defaultValues: {
-            full_name: "",
+            full_name: "hellow world",
             email: "",
             password: "",
             phoneNumber: "",

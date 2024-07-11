@@ -1,13 +1,47 @@
 import NextAuth from "next-auth";
 import authConfig from "./auth.config";
-
-import { PrismaClient } from "@prisma/client";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-
-const prisma = new PrismaClient();
+import { MongoDBAdapter } from "@auth/mongodb-adapter";
+import { getUserById } from "@/data/user";
+import clientPromise from "@/utils/db-promise";
+import User from "./(models)/User";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  pages: {
+    signIn: "/auth/login",
+    error: "/auth/error",
+  },
+  events: {
+    async linkAccount({ user }) {
+      await User.findByIdAndUpdate({
+        where: { id: user.id },
+        data: { emailVerified: new Date() },
+      });
+    },
+  },
+
+  callbacks: {
+    async session({ token, session }) {
+      if (token.sub && session.user) {
+        session.user.id = token.sub;
+      }
+
+      if (token.role && session.user) {
+        session.user.role = token.role;
+      }
+      return session;
+    },
+
+    async jwt({ token }) {
+      if (!token.sub) return token;
+      const existingUser = await getUserById(token.sub);
+      if (!existingUser) return token;
+
+      token.role = existingUser.role;
+
+      return token;
+    },
+  },
+  adapter: MongoDBAdapter(clientPromise),
   session: { strategy: "jwt" },
   ...authConfig,
 });

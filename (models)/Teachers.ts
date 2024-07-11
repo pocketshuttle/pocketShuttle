@@ -4,6 +4,10 @@ const { Schema, models } = mongoose;
 
 const teacherSchema = new Schema(
   {
+    creator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     full_name: String,
     image: String,
     email: { type: String, unique: true, sparse: true },

@@ -1,3 +1,4 @@
+"use client"
 import { DashboardIcon } from "@radix-ui/react-icons";
 import training from "@/public/images/training.svg";
 import students from "@/public/images/students.svg";
@@ -11,6 +12,7 @@ import Image from "next/image";
 import MenuLink from "./menuLink/menuLink";
 import { DashboardHeader } from "../header/header";
 import { BiLogOut } from "react-icons/bi";
+import { signOut } from "@/auth";
 
 const Sidebar = () => {
     const menuItems = [
@@ -86,7 +88,9 @@ const Sidebar = () => {
                         <MenuLink menu={menuSection.list} />
                     </li>
                 ))}
-                <button className="flex gap-2 items-center text-[0.75rem] py-3 px-2 hover:bg-[#2e374a] w-full rounded-md">
+                <button className="flex gap-2 items-center text-[0.75rem] py-3 px-2 hover:bg-[#2e374a] w-full rounded-md"
+                    onClick={ signOut()}
+                >
                     <BiLogOut />
                     Logout
                 </button>
