@@ -1,3 +1,4 @@
+"use client"
 import { CheckCircledIcon } from "@radix-ui/react-icons";
 import { Button } from "./button";
 import { Dispatch, SetStateAction } from "react";

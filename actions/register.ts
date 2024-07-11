@@ -4,8 +4,11 @@ import * as z from "zod";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { getUserByEmail } from "@/data/user";
+import User from "@/(models)/User";
+import { connectToDB } from "@/utils/connect-to-db";
 
 export const register = async (values: z.infer<typeof RegisterSchema>) => {
+  await connectToDB();
   const validatedFields = RegisterSchema.safeParse(values);
 
   if (!validatedFields.success) {
@@ -22,14 +25,20 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     if (existingUser) {
       return { error: "Email already in use!" };
     }
-
-    await db.user.create({
-      data: {
-        name: schoolname,
-        email,
-        password: hashedPassword,
-      },
+    const user = new User({
+      name: schoolname,
+      email,
+      password: hashedPassword,
     });
+
+    // await db.user.create({
+    //   data: {
+    //     name: schoolname,
+    //     email,
+    //     password: hashedPassword,
+    //   },
+    // });
+    await user.save();
 
     return { success: "Successfully Registered" };
   } catch (error) {
