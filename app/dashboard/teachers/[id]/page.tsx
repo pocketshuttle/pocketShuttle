@@ -19,6 +19,7 @@ import { useFetch } from "@/hooks/useFetch"
 import { usePathname, useSearchParams } from "next/navigation"
 import { SelectTrigger } from "@/components/ui/select"
 import { SelectProperty } from "@/components/ui/select-wrapper"
+import spinner from "@/public/images/spinner.gif"
 
 
 interface SingleTeacherlProps {
@@ -32,7 +33,6 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState(null);
-
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState(false)
     const [dataMessage, setDataMessage] = useState("")
@@ -40,6 +40,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
     const [newTryAvatar, setNewTryAvatar] = useState<string>("")
     const [selectImage, setSelectedImage] = useState<string>("")
     const [newAvatar, setNewAvatar] = useState<string>("")
+
     const pathname = usePathname()
     const id = pathname.split('/').pop()
     const { data: session } = useSession()
@@ -60,7 +61,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
             password: "",
             phoneNumber: "",
             address: "",
-            image: "",
+            image: newAvatar,
             busId: ""
         }
     })
@@ -72,7 +73,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
                 email: teacherData[0]?.email,
                 phoneNumber: teacherData[0]?.phoneNumber,
                 address: teacherData[0]?.address,
-                image: teacherData[0]?.image,
+                image: newAvatar,
             });
         }
     }, [teacherData, form, userId]);
@@ -157,9 +158,9 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
     if (isLoading) {
         return <p>Loading...</p>;
     }
-    if (isSuccess) {
-        return <FormSuccess message={dataMessage} setIsOpenModal={setIsOpenModal} />
-    }
+    // if (isSuccess) {
+    //     return <FormSuccess message={dataMessage} setIsOpenModal={setIsOpenModal} />
+    // }
 
 
     return (
@@ -179,7 +180,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
                             onChange={handleCameraInputChange}
                         />
 
-                        <img src={newAvatar || avatar} alt="avatar" className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
+                        <Image src={isLoadingImage ? spinner : newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
                     </div>
                     <div className="flex-1 px-5 ">
                         <Form {...form}>

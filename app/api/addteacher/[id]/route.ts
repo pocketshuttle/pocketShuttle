@@ -20,9 +20,12 @@ export const GET = async (
     });
 
     if (!teacher) {
-      return new Response(JSON.stringify({ message: "Teacher not found!" }), {
-        status: 404,
-      });
+      return Response.json(
+        { message: "Teacher not found!" },
+        {
+          status: 404,
+        }
+      );
     }
 
     return new Response(JSON.stringify(teacher), {
@@ -62,25 +65,31 @@ export const PATCH = async (
     });
 
     if (!updatedTeacher) {
-      return new Response(JSON.stringify({ message: "Teacher not found" }), {
-        status: 404,
-      });
+      return Response.json(
+        { message: "Teacher not found!" },
+        {
+          status: 404,
+        }
+      );
     }
-    return new Response(JSON.stringify(updatedTeacher), {
-      status: 200,
-    });
+    return Response.json(
+      { message: "Teacher Added Successfully" },
+      {
+        status: 200,
+      }
+    );
   } catch (error) {
     if (error instanceof Error) {
-      return new Response(
-        JSON.stringify({
+      return Response.json(
+        {
           message: "Error updating Student",
           error: error.message,
-        }),
+        },
         { status: 500 }
       );
     } else {
-      return new Response(
-        JSON.stringify({ message: "Unknown error occurred" }),
+      return  Response.json(
+        { message: "Unknown error occurred" },
         { status: 500 }
       );
     }
