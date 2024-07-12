@@ -49,6 +49,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
 
     const { data, loading, errorMessage, success } = usePost(`/api/addteacher/${id}`, submittedData, "PATCH")
     const { data: teacherData, isPending: isLoading, errorMessage: editMessage } = useFetch(`/api/addteacher/${id}`, userId);
+    const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
 
     const form = useForm<z.infer<typeof TeacherSchema>>({
         resolver: zodResolver(TeacherSchema),
@@ -117,6 +118,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
     }
 
     const uploadFile = async (file: any) => {
+        setisLoadingImage(true)
         try {
             const data = new FormData()
             data.append('file', file)
@@ -130,14 +132,28 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
             if (res.ok) {
                 const data = await res.json()
                 setNewAvatar(data.url)
+                window.localStorage.setItem('user_selected_avatar_url', data.url)
 
             }
         }
         catch (error) {
             console.log(error);
+        } finally {
+            setisLoadingImage(false)
         }
     }
-    console.log(newAvatar);
+
+    useEffect(() => {
+        const storedSelectedAvatar = window.localStorage.getItem('user_selected_avatar_url');
+        if (storedSelectedAvatar) {
+            setNewAvatar(storedSelectedAvatar);
+        }
+    }, [])
+
+    // useEffect(() => {
+    //     window.localStorage.setItem('user_selected_avatar_url', newAvatar)
+    // }, [newAvatar])
+
     if (isLoading) {
         return <p>Loading...</p>;
     }
@@ -162,6 +178,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
                             style={{ display: 'none' }}
                             onChange={handleCameraInputChange}
                         />
+
                         <img src={newAvatar || avatar} alt="avatar" className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
                     </div>
                     <div className="flex-1 px-5 ">
