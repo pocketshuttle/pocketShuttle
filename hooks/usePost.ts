@@ -1,7 +1,11 @@
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
 
-export const usePost = (url, value, method) => {
+export const usePost = (
+  url: string,
+  value: string | undefined,
+  method: string
+) => {
   const { toast } = useToast();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -34,7 +38,9 @@ export const usePost = (url, value, method) => {
           setIsSuccess(false);
         }
       } catch (error) {
-        setErrorMessage(error.message);
+        if (error instanceof Error) {
+          setErrorMessage(error.message);
+        }
       } finally {
         setLoading(false);
       }
