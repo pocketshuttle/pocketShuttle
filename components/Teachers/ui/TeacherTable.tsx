@@ -21,7 +21,16 @@ import {
     TableRow,
 } from "@/components/ui/table"
 
-
+type TeacherProps = {
+    _id: string,
+    id: string,
+    full_name: string,
+    email: string,
+    phoneNumber: string,
+    address: string,
+    image: string,
+    busId: string
+}
 export const TeachersTable = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
@@ -65,13 +74,13 @@ export const TeachersTable = () => {
                 <TableBody className="text-[0.8rem] text-[var(--textSoft)]">
                     {
                         // teachersData && teachersData > 0 ? (
-                        teachersData?.map((teacher) => {
+                        teachersData?.map((teacher: TeacherProps) => {
                             console.log(teacher)
                             return (
                                 <TableRow key={teacher.id}>
                                     <TableCell className="">
                                         <div className="flex items-center gap-2">
-                                            {/* <Image src={dashboard} alt="student name" className="rounded-full object-cover" /> */}
+                                            <Image src={teacher.image || dashboard} alt="student name" className="rounded-full object-cover" />
                                             <span className="">{teacher.full_name}</span>
                                         </div>
                                     </TableCell>
