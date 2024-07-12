@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input"
 import { TeacherSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import spinner from "@/public/images/spinner.gif"
+
 import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { Textarea } from "@/components/ui/textarea"
@@ -37,9 +39,14 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
     const [newTryAvatar, setNewTryAvatar] = useState<string>("")
     const [selectImage, setSelectedImage] = useState<string>("")
     const [newAvatar, setNewAvatar] = useState<string>("")
+    const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
+
+
     const { data, loading, errorMessage, success } = usePost("/api/addteacher", submittedData, "POST")
     const { data: session } = useSession()
     const userId = session?.user?.id
+
+
 
     const form = useForm<z.infer<typeof TeacherSchema>>({
         resolver: zodResolver(TeacherSchema),
@@ -50,8 +57,8 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
             password: "",
             phoneNumber: "",
             address: "",
-            image: "images",
-            // busId: "12345de3e3resd466"
+            image: newAvatar,
+            busId: "12345de3e3resd466"
         }
     })
 
@@ -67,8 +74,6 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
             setDataMessage(data.message);
         }
     }, [success]);
-
-
 
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
@@ -92,12 +97,14 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
     }
 
     const uploadFile = async (file: any) => {
+        setisLoadingImage(true)
         try {
+
             const data = new FormData()
             data.append('file', file)
             // data.append("upload_preset", 'images')
 
-            const res = await fetch(`api/upload`, {
+            const res = await fetch(`/api/upload/`, {
                 method: 'POST',
                 body: data,
             })
@@ -105,13 +112,21 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
             if (res.ok) {
                 const data = await res.json()
                 setNewAvatar(data.url)
-                console.log(newAvatar);
+                window.localStorage.setItem("new_user_selected_avatar_url", data.url)
             }
         }
         catch (error) {
             console.log(error);
+        } finally {
+            setisLoadingImage(false)
         }
     }
+    useEffect(() => {
+        const storedSelectedAvatar = window.localStorage.getItem("new_user_selected_avatar_url")
+        if (storedSelectedAvatar) {
+            setNewAvatar(storedSelectedAvatar)
+        }
+    }, [])
     const handleCloseModal = () => {
         setIsOpenModal(false)
     }
@@ -138,7 +153,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                 style={{ display: 'none' }}
                                 onChange={handleCameraInputChange}
                             />
-                            <Image src={avatar} alt="avatar" className="cursor-pointer rounded-md h-[13.5rem] w-24% object-fill" onClick={() => handleCameraClick()} />
+                            <Image src={isLoadingImage ? spinner : newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
                         </div>
                         <div className="flex-1 px-5 ">
                             <Form {...form}>
