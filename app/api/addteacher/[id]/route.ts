@@ -15,7 +15,9 @@ export const GET = async (
     await connectToDB();
 
     const { id } = params;
-    const teacher = await Teacher.find({ creator: id });
+    const teacher = await Teacher.find({
+      $or: [{ creator: id }, { _id: id }],
+    });
 
     if (!teacher) {
       return new Response(JSON.stringify({ message: "Teacher not found!" }), {
