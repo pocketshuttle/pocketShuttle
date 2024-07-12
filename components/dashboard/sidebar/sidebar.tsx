@@ -12,7 +12,7 @@ import Image from "next/image";
 import MenuLink from "./menuLink/menuLink";
 import { DashboardHeader } from "../header/header";
 import { BiLogOut } from "react-icons/bi";
-import { signOut } from "@/auth";
+import { signOut, useSession, } from "next-auth/react"
 
 const Sidebar = () => {
     const menuItems = [
@@ -89,7 +89,7 @@ const Sidebar = () => {
                     </li>
                 ))}
                 <button className="flex gap-2 items-center text-[0.75rem] py-3 px-2 hover:bg-[#2e374a] w-full rounded-md"
-                    onClick={ signOut()}
+                    onClick={() => signOut()}
                 >
                     <BiLogOut />
                     Logout

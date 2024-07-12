@@ -1,28 +1,57 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 
-export const useFetch = async (url) => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
+export const useFetch = (url: string, userId: string | undefined) => {
+  const [data, setData] = useState<any>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState<boolean>(false);
 
   useEffect(() => {
+    if (!userId) return;
     const fetchData = async () => {
+      setIsPending(true);
       try {
         const res = await fetch(url);
         if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+          throw new Error("Something went wrong");
         }
-        const data = await res.json();
-        setData(data);
+        const result = await res.json();
+        setData(result);
       } catch (error) {
-        setErrorMessage(error.message);
+        if (error instanceof Error) {
+          setErrorMessage(error.message);
+        } else {
+          setErrorMessage("Unknown error occurred");
+        }
       } finally {
-        setLoading(false);
+        setIsPending(false);
       }
     };
 
     fetchData();
-  }, [url]);
+    //   startTransition(() => {
+    //     fetch(url)
+    //       .then((res) => {
+    //         if (res.ok) {
+    //           return res.json();
+    //         } else {
+    //           return res.json().then((err) => {
+    //             throw new Error(err.message);
+    //           });
+    //         }
+    //       })
+    //       .then((result) => {
+    //         setData(result);
+    //       })
+    //       .catch((error) => {
+    //         if (error instanceof Error) {
+    //           setErrorMessage(error.message);
+    //         } else {
+    //           setErrorMessage("Unknown error occurred");
+    //         }
+    //       });
+    //   });
+  }, [url, userId]);
 
-  return { data, loading, errorMessage };
+  return { data, isPending, errorMessage };
 };
