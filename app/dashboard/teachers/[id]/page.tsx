@@ -122,7 +122,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
             data.append('file', file)
             // data.append("upload_preset", 'images')
 
-            const res = await fetch(`api/upload`, {
+            const res = await fetch(`/api/upload/`, {
                 method: 'POST',
                 body: data,
             })
@@ -130,16 +130,14 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
             if (res.ok) {
                 const data = await res.json()
                 setNewAvatar(data.url)
-                console.log(newAvatar);
+
             }
         }
         catch (error) {
             console.log(error);
         }
     }
-    const handleCloseModal = () => {
-        setIsOpenModal(false)
-    }
+    console.log(newAvatar);
     if (isLoading) {
         return <p>Loading...</p>;
     }
@@ -164,7 +162,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
                             style={{ display: 'none' }}
                             onChange={handleCameraInputChange}
                         />
-                        <Image src={avatar} alt="avatar" className="cursor-pointer rounded-md h-[13.5rem] w-24% object-fill" onClick={() => handleCameraClick()} />
+                        <img src={newAvatar || avatar} alt="avatar" className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
                     </div>
                     <div className="flex-1 px-5 ">
                         <Form {...form}>
@@ -295,7 +293,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
                                 </div>
                                 <div>
                                     {
-                                        teacherData[0].busId && <SelectProperty />
+                                        teacherData && teacherData[0].busId && <SelectProperty />
                                     }
 
                                 </div>
