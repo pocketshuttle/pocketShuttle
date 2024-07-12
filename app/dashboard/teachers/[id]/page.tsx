@@ -310,10 +310,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
                                     </FormField>
                                 </div>
                                 <div>
-                                    {
-                                        teacherData && teacherData[0].busId && <SelectProperty />
-                                    }
-
+                                    <SelectProperty />
                                 </div>
                                 {/* <FormError message={isError} /> */}
                                 {/* <FormSuccess message={isSuccess} /> */}
