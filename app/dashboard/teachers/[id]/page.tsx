@@ -16,6 +16,9 @@ import { usePost } from "@/hooks/usePost"
 import { FormSuccess } from "@/components/ui/form-success"
 import { useSession } from "next-auth/react"
 import { useFetch } from "@/hooks/useFetch"
+import { usePathname, useSearchParams } from "next/navigation"
+import { SelectTrigger } from "@/components/ui/select"
+import { SelectProperty } from "@/components/ui/select-wrapper"
 
 
 interface SingleTeacherlProps {
@@ -37,23 +40,45 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
     const [newTryAvatar, setNewTryAvatar] = useState<string>("")
     const [selectImage, setSelectedImage] = useState<string>("")
     const [newAvatar, setNewAvatar] = useState<string>("")
+    const pathname = usePathname()
+    const id = pathname.split('/').pop()
     const { data: session } = useSession()
     const userId = session?.user?.id
 
-    const { data, loading, errorMessage, success } = usePost(`/api/addteacher/6690508ae9258aecb1509c06`, submittedData, "PATCH")
+    const [newData, setNewData] = useState(null)
+
+    const { data, loading, errorMessage, success } = usePost(`/api/addteacher/${id}`, submittedData, "PATCH")
+    const { data: teacherData, isPending: isLoading, errorMessage: editMessage } = useFetch(`/api/addteacher/${id}`, userId);
+
     const form = useForm<z.infer<typeof TeacherSchema>>({
         resolver: zodResolver(TeacherSchema),
         defaultValues: {
             userId: userId,
-            full_name: "",
+            full_name: teacherData && teacherData[0].full_name,
             email: "",
             password: "",
             phoneNumber: "",
             address: "",
-            image: "images",
-            // busId: "12345de3e3resd466"
+            image: "",
+            busId: ""
         }
     })
+    useEffect(() => {
+        if (teacherData) {
+            form.reset({
+                userId: userId,
+                full_name: teacherData[0]?.full_name,
+                email: teacherData[0]?.email,
+                phoneNumber: teacherData[0]?.phoneNumber,
+                address: teacherData[0]?.address,
+                image: teacherData[0]?.image,
+            });
+        }
+    }, [teacherData, form, userId]);
+
+    useEffect(() => {
+        setNewData(teacherData && teacherData[0].full_name)
+    }, [id, teacherData])
 
     const onSubmit = (values: z.infer<typeof TeacherSchema>) => {
         startTransition(() => {
@@ -115,10 +140,13 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
     const handleCloseModal = () => {
         setIsOpenModal(false)
     }
-
+    if (isLoading) {
+        return <p>Loading...</p>;
+    }
     if (isSuccess) {
         return <FormSuccess message={dataMessage} setIsOpenModal={setIsOpenModal} />
     }
+
 
     return (
         <div >
@@ -264,6 +292,12 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
                                         )}
                                     >
                                     </FormField>
+                                </div>
+                                <div>
+                                    {
+                                        teacherData[0].busId && <SelectProperty />
+                                    }
+
                                 </div>
                                 {/* <FormError message={isError} /> */}
                                 {/* <FormSuccess message={isSuccess} /> */}
