@@ -32,6 +32,9 @@ export const RegisterSchema = z.object({
 });
 
 export const TeacherSchema = z.object({
+  userId: z.string().min(1, {
+    message: "userId is Required",
+  }),
   full_name: z.string().min(1, {
     message: "Name is required!",
   }),
@@ -98,6 +101,9 @@ export const ParentSchema = z.object({
 });
 
 export const StudentSchema = z.object({
+  userId: z.string().min(1, {
+    message: "userId is Required",
+  }),
   full_name: z.string().min(1, {
     message: "Name is required!",
   }),

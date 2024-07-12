@@ -17,6 +17,7 @@ export const POST = async (req: NextRequest) => {
       );
     }
     const {
+      userId,
       full_name,
       email,
       phoneNumber,
@@ -30,6 +31,7 @@ export const POST = async (req: NextRequest) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newTeacher = new Teacher({
+      creator: userId,
       full_name,
       email,
       phoneNumber,

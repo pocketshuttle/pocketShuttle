@@ -16,7 +16,7 @@ const teacherSchema = new Schema(
     address: String,
     phoneNumber: String,
     students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
-    // busId: { type: mongoose.Schema.Types.ObjectId, ref: "Bus" },
+    busId: { type: mongoose.Schema.Types.ObjectId, ref: "Bus" },
   },
   { collection: "teachers" }
 );

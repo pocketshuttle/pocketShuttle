@@ -10,12 +10,12 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
-import { BiCloset } from "react-icons/bi"
-import { IoMdClose } from "react-icons/io"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
 import { usePost } from "@/hooks/usePost"
 import { FormSuccess } from "@/components/ui/form-success"
+import { useSession } from "next-auth/react"
+import { useFetch } from "@/hooks/useFetch"
 
 
 interface DriverModalProps {
@@ -37,19 +37,21 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
     const [newTryAvatar, setNewTryAvatar] = useState<string>("")
     const [selectImage, setSelectedImage] = useState<string>("")
     const [newAvatar, setNewAvatar] = useState<string>("")
-    const { toast } = useToast()
     const { data, loading, errorMessage, success } = usePost("/api/addteacher", submittedData, "POST")
+    const { data: session } = useSession()
+    const userId = session?.user?.id
 
     const form = useForm<z.infer<typeof TeacherSchema>>({
         resolver: zodResolver(TeacherSchema),
         defaultValues: {
-            full_name: "hellow world",
+            userId: userId,
+            full_name: "",
             email: "",
             password: "",
             phoneNumber: "",
             address: "",
             image: "images",
-            busId: "12345de3e3resd466"
+            // busId: "12345de3e3resd466"
         }
     })
 
@@ -65,6 +67,8 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
             setDataMessage(data.message);
         }
     }, [success]);
+
+
 
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
@@ -248,19 +252,12 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                                 <FormItem>
                                                     <FormLabel>Address</FormLabel>
                                                     <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            placeholder="Teachers Address..."
-                                                            type="text"
-                                                            disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                        />
-                                                        {/* <Textarea
+                                                        <Textarea
                                                             {...field}
                                                             className="py-3 border-none bg-[var(--bgSoft)] outline-none "
                                                             placeholder="Teachers Address..."
                                                             disabled={isPending}
-                                                        /> */}
+                                                        />
                                                     </FormControl>
                                                     <FormMessage />
 
