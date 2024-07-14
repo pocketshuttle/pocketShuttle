@@ -13,7 +13,8 @@ import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { SelectProperty } from "@/components/ui/select-wrapper"
 import { useSession } from "next-auth/react"
-import {  grades, buses, gender } from "@/data/schooldata"
+import { grades, buses, gender } from "@/data/schooldata"
+import { usePost } from "@/hooks/usePost"
 
 interface DriverModalProps {
     setIsOpenModal?: Dispatch<SetStateAction<boolean>>
@@ -21,6 +22,7 @@ interface DriverModalProps {
 }
 
 export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) => {
+    const [submittedData, setSubmittedData] = useState(null);
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState("")
@@ -29,13 +31,16 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
     const [selectImage, setSelectedImage] = useState<string>("")
     const [newAvatar, setNewAvatar] = useState<string>("")
 
-    const [selectGrade, setSelectGrade] = useState<string>("")
+    const [selectGender, setSelectGender] = useState<string>("")
     const [classGrade, setClassGrade] = useState<string>("")
     const [selectBus, setSelectBus] = useState<string>("")
 
 
     const { data: session } = useSession()
     const userId = session?.user?.id
+
+    const { data, loading, errorMessage, success } = usePost("/api/addteacher", submittedData, "POST")
+
 
     const form = useForm<z.infer<typeof StudentSchema>>({
         resolver: zodResolver(StudentSchema),
@@ -44,16 +49,20 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
             full_name: "",
             parentId: "",
             teacherId: "",
-            // busId: ,
+            // busId: selectBus,
             address: "",
             image: newAvatar,
-            grade: selectGrade,
+            grade: classGrade,
             age: "",
-            gender: "",
+            gender: selectGender,
         }
     })
-    const onSubmit = () => {
-        startTransition(() => { })
+    const onSubmit = (values: z.infer<typeof StudentSchema>) => {
+        startTransition(() => {
+            startTransition(() => {
+                setSubmittedData(values)
+            });
+        })
     }
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
@@ -104,16 +113,19 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
     }
 
 
-    const handleSelectChange = (value: string) => {
-        setSelectGrade(value);
+    const handleGenderChange = (value: string) => {
+        setSelectGender(value);
         console.log("Selected item:", value);
     };
     const handleBusChange = (value: string) => {
         setSelectBus(value);
         console.log("Selected item:", value);
     };
+    const handleGradeChange = (value: string) => {
+        setClassGrade(value);
+        console.log("Selected item:", value);
+    };
 
-    console.log(selectBus)
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
@@ -188,8 +200,8 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
                                             />
                                         </div>
 
-                                        <div className="w-3/6">
-                                            < SelectProperty placeholder="Gender" label="Student Grade" data={gender} handleSelectChange={handleSelectChange} />
+                                        <div className="w-full">
+                                            < SelectProperty placeholder="Gender" label="Student Grade" data={gender} handleSelectChange={handleGenderChange} />
                                         </div>
                                     </div>
 
@@ -248,7 +260,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
                                         </FormField>
                                     </div>
                                     <div className="flex space-x-3 justify-between ">
-                                        < SelectProperty placeholder="Grade" label="Select Grade" data={grades} handleSelectChange={handleBusChange} />
+                                        < SelectProperty placeholder="Grade" label="Select Grade" data={grades} handleSelectChange={handleGradeChange} />
                                         < SelectProperty placeholder="Bus" label="Bus Name" data={buses} handleSelectChange={handleBusChange} />
                                     </div>
                                     {/* <FormError message={isError} /> */}
