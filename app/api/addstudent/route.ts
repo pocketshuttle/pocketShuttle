@@ -16,6 +16,7 @@ export const POST = async (req: NextRequest) => {
       );
     }
     const {
+      creator,
       full_name,
       age,
       address,
@@ -27,6 +28,7 @@ export const POST = async (req: NextRequest) => {
     } = validatedData.data;
 
     const newStudent = new Student({
+      creator,
       full_name,
       age,
       bus: busId,

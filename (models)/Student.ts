@@ -3,10 +3,15 @@ import mongoose from "mongoose";
 const { Schema, models, model } = mongoose;
 
 const studentSchema = new Schema({
-  fullname: String,
+  creator: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  full_name: String,
   age: String,
   image: String,
   grade: String,
+  gender: String,
   address: String,
   parent: {
     type: Schema.Types.ObjectId,

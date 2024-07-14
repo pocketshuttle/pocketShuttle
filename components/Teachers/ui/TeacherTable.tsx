@@ -37,6 +37,7 @@ export const TeachersTable = () => {
     const { data: teachersData, isPending, errorMessage } = useFetch(`/api/addteacher/${userId}`, userId);
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
 
+    console.log(session)
     const handleModal = () => {
         setIsOpenModal(!isOpenModal);
     };
@@ -60,18 +61,17 @@ export const TeachersTable = () => {
             </div>
             <Table>
                 <TableHeader>
-                    <TableRow className="text-gray-300">
-                        <TableHead className="w-[250px]">Full Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone Number</TableHead>
-                        <TableHead className="">Address</TableHead>
-                        <TableHead className="">Bus</TableHead>
+                    <TableRow className=" text-[0.7rem]">
+                        <TableHead className="w-[250px] text-gray-300">Full Name</TableHead>
+                        <TableHead className="text-gray-300">Email</TableHead>
+                        <TableHead className="text-gray-300">Phone Number</TableHead>
+                        <TableHead className="text-gray-300">Address</TableHead>
+                        <TableHead className="text-gray-300">Bus</TableHead>
                     </TableRow>
-
                 </TableHeader>
 
                 {/* <TableCaption>Teachers Table</TableCaption> */}
-                <TableBody className="text-[0.8rem] text-[var(--textSoft)]">
+                <TableBody className="text-[0.75rem] text-gray-400 ">
                     {
                         // teachersData && teachersData > 0 ? (
                         teachersData?.map((teacher: TeacherProps) => {
@@ -80,7 +80,7 @@ export const TeachersTable = () => {
                                 <TableRow key={teacher.id}>
                                     <TableCell className="">
                                         <div className="flex items-center gap-2">
-                                            <Image src={teacher.image || dashboard} alt="student name" className="rounded-full object-cover" />
+                                            <img src={teacher.image && teacher.image || dashboard} alt={teacher.full_name} className="rounded-md object-cover w-9 h-9" />
                                             <span className="">{teacher.full_name}</span>
                                         </div>
                                     </TableCell>
