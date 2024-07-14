@@ -101,24 +101,37 @@ export const ParentSchema = z.object({
 });
 
 export const StudentSchema = z.object({
-  userId: z.string().min(1, {
-    message: "userId is Required",
+  creator: z.string().min(1, {
+    message: "creator Id is Required",
   }),
   full_name: z.string().min(1, {
     message: "Name is required!",
   }),
-  image: z.string().min(1, {
-    message: "Image is required!",
-  }),
-  parentId: z.string().min(1, {
-    message: "Parent name is required!",
-  }),
-  teacherId: z.string().min(1, {
-    message: "Teacher is required!",
-  }),
-  busId: z.string().min(1, {
-    message: "Bus is required!",
-  }),
+  image: z
+    .string()
+    .min(1, {
+      message: "Image is required!",
+    })
+    .optional(),
+  parentId: z
+    .string()
+    .min(1, {
+      message: "Parent name is required!",
+    })
+    .optional(),
+  teacherId: z
+    .string()
+    .min(1, {
+      message: "Teacher is required!",
+    })
+    .optional(),
+  busId: z
+    .string()
+    .min(1, {
+      message: "Bus is required!",
+    })
+    .optional(),
+  gender: z.string(),
   grade: z.string().min(1, {
     message: "Grade is required!",
   }),

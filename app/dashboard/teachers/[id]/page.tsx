@@ -180,7 +180,12 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
                             onChange={handleCameraInputChange}
                         />
 
-                        <Image src={isLoadingImage ? spinner : newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
+                        <Image src={
+
+                            newAvatar ? isLoadingImage ? spinner : newAvatar :
+                                teacherData && teacherData[0]?.image ?
+                                    teacherData[0]?.image : avatar
+                        } alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
                     </div>
                     <div className="flex-1 px-5 ">
                         <Form {...form}>

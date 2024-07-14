@@ -4,7 +4,7 @@ import { CardWrapper } from "@/components/auth/card-wrapper"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "@/components/ui/form"
-import { Dispatch, SetStateAction, useState, useTransition } from "react"
+import { ChangeEvent, Dispatch, SetStateAction, useState, useTransition } from "react"
 import { Input } from "@/components/ui/input"
 import { StudentSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,8 @@ import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { SelectProperty } from "@/components/ui/select-wrapper"
+import { useSession } from "next-auth/react"
+import {  grades, buses, gender } from "@/data/schooldata"
 
 interface DriverModalProps {
     setIsOpenModal?: Dispatch<SetStateAction<boolean>>
@@ -27,19 +29,29 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
     const [selectImage, setSelectedImage] = useState<string>("")
     const [newAvatar, setNewAvatar] = useState<string>("")
 
+    const [selectGrade, setSelectGrade] = useState<string>("")
+    const [classGrade, setClassGrade] = useState<string>("")
+    const [selectBus, setSelectBus] = useState<string>("")
+
+
+    const { data: session } = useSession()
+    const userId = session?.user?.id
+
     const form = useForm<z.infer<typeof StudentSchema>>({
         resolver: zodResolver(StudentSchema),
         defaultValues: {
+            creator: userId,
             full_name: "",
-            email: "",
-            parent: "",
-            phoneNumber: "",
+            parentId: "",
+            teacherId: "",
+            // busId: ,
             address: "",
-            image: "",
-            grade: ""
+            image: newAvatar,
+            grade: selectGrade,
+            age: "",
+            gender: "",
         }
     })
-
     const onSubmit = () => {
         startTransition(() => { })
     }
@@ -49,7 +61,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
         // console.log(inputElement)
     }
 
-    const handleCameraInputChange = async (event) => {
+    const handleCameraInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files[0]
         console.log(file)
         if (file) {
@@ -65,13 +77,14 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
         }
     }
 
+
     const uploadFile = async (file: any) => {
         try {
             const data = new FormData()
             data.append('file', file)
             // data.append("upload_preset", 'images')
 
-            const res = await fetch(`api/upload`, {
+            const res = await fetch(`/api/upload/`, {
                 method: 'POST',
                 body: data,
             })
@@ -89,6 +102,18 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
     const handleCloseModal = () => {
         setIsOpenModal(false)
     }
+
+
+    const handleSelectChange = (value: string) => {
+        setSelectGrade(value);
+        console.log("Selected item:", value);
+    };
+    const handleBusChange = (value: string) => {
+        setSelectBus(value);
+        console.log("Selected item:", value);
+    };
+
+    console.log(selectBus)
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
@@ -108,7 +133,9 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
                                 style={{ display: 'none' }}
                                 onChange={handleCameraInputChange}
                             />
-                            <Image src={avatar} alt="avatar" className="cursor-pointer rounded-md h-[13.5rem] w-24% object-fill" onClick={() => handleCameraClick()} />
+                            {/* <Image src={isLoadingImage ? spinner : newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} /> */}
+
+                            <Image src={newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full object-fill" onClick={() => handleCameraClick()} />
                         </div>
                         <div className="flex-1 px-5 ">
 
@@ -138,19 +165,19 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
 
                                         </FormField>
                                     </div>
-                                    <div className="space-x-4 flex items-center w-full justify-between">
-                                        <div className="w-3/6">
+                                    <div className="space-x-4 flex items-center w-full justify-center">
+                                        <div className="w-5/6">
                                             <FormField
                                                 control={form.control}
-                                                name="email"
+                                                name="age"
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Email</FormLabel>
+                                                        <FormLabel>Age</FormLabel>
                                                         <FormControl>
                                                             <Input
                                                                 {...field}
-                                                                placeholder="ciroma@email.com"
-                                                                type="email"
+                                                                placeholder="mm/dd/yyyy"
+                                                                type="text"
                                                                 disabled={isPending}
                                                                 className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
                                                             />
@@ -162,27 +189,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
                                         </div>
 
                                         <div className="w-3/6">
-                                            <FormField
-                                                control={form.control}
-                                                name="phoneNumber"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Phone Number</FormLabel>
-                                                        <FormControl>
-                                                            <Input
-                                                                {...field}
-                                                                placeholder="08012345678"
-                                                                type="phone"
-                                                                disabled={isPending}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-
-                                                        {/* <Image src={eye} alt="eye" /> */}
-                                                    </FormItem>
-                                                )}
-                                            />
+                                            < SelectProperty placeholder="Gender" label="Student Grade" data={gender} handleSelectChange={handleSelectChange} />
                                         </div>
                                     </div>
 
@@ -190,7 +197,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
 
                                         <FormField
                                             control={form.control}
-                                            name="parent"
+                                            name="parentId"
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>Parent Name</FormLabel>
@@ -240,9 +247,9 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: DriverModalProps) 
 
                                         </FormField>
                                     </div>
-                                    <div className="flex  justify-between ">
-                                        < SelectProperty placeholder="Grade" label="Student Grade" item="Grade A" />
-                                        < SelectProperty placeholder="Bus" label="Bus Name" item="Bus A" />
+                                    <div className="flex space-x-3 justify-between ">
+                                        < SelectProperty placeholder="Grade" label="Select Grade" data={grades} handleSelectChange={handleBusChange} />
+                                        < SelectProperty placeholder="Bus" label="Bus Name" data={buses} handleSelectChange={handleBusChange} />
                                     </div>
                                     {/* <FormError message={isError} /> */}
                                     {/* <FormSuccess message={isSuccess} /> */}

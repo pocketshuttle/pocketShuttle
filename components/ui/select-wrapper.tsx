@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
     Select,
     SelectContent,
@@ -6,28 +7,32 @@ import {
     SelectLabel,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
 type SelectProps = {
-    item?: string | undefined
-    placeholder: string
-    label?: string
+    placeholder: string;
+    label?: string;
+    handleSelectChange: (value: string) => void;
+    data: any
+};
 
-}
-
-export const SelectProperty = ({ item, placeholder, label }: SelectProps) => {
+export const SelectProperty = ({ placeholder, label, data, handleSelectChange }: SelectProps) => {
     return (
-        <Select>
-            <SelectTrigger className="w-[180px]">
+        <Select onValueChange={handleSelectChange}>
+            <SelectTrigger className="w-3/6">
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
                 <SelectGroup>
                     <SelectLabel>{label}</SelectLabel>
-                    <SelectItem value={item}>{item}</SelectItem>
-                    <SelectItem value={item}>{item}</SelectItem>
+                    {
+                        data?.map((item: any, index: number) => (
+                            <SelectItem key={index} value={item.label}>{item.value}</SelectItem>
+                        ))
+                    }
                 </SelectGroup>
             </SelectContent>
         </Select>
-    )
-}
+    );
+};
+

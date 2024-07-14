@@ -10,17 +10,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/auth/login",
     error: "/auth/error",
   },
-  events: {
-    async linkAccount({ user }) {
-      await User.findByIdAndUpdate({
-        where: { id: user.id },
-        data: { emailVerified: new Date() },
-      });
-    },
-  },
+  // events: {
+  //   async linkAccount({ user }) {
+  //     await User.findByIdAndUpdate({
+  //       where: { id: user.id },
+  //       data: { emailVerified: new Date() },
+  //     });
+  //   },
+  // },
 
   callbacks: {
     async session({ token, session }) {
+      console.log("session", session);
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }

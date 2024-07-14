@@ -6,11 +6,21 @@ import Image from "next/image"
 import { useState } from "react"
 import { StudentModal } from "@/components/students/ui/Student-modal"
 import Link from "next/link"
+import {
+    Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableFooter,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
 
 export const StudentsData = () => {
-    const [isOpenModal, setIsOpenModal] = useState(false)
+    const [isOpenModal, setIsOpenModal] = useState<boolean>(true)
 
-  
+
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
@@ -23,68 +33,49 @@ export const StudentsData = () => {
             {
                 isOpenModal && <StudentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
             }
-            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead className="text-xs text-gray-300 capitalize  ">
-                    <tr >
-                        <th scope="col" className="px-6 py-3" rowSpan={6}>
-                            Name
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                            Grade
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                            Status
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                            Date
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                            Bus No
-                        </th>
 
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr className="dark:bg-gray-800  hover:bg-gray-900 cursor-pointer text-[var(--textSoft)] text-[0.75rem]">
+            <Table>
+                <TableHeader>
+                    <TableRow className=" uppercase text-[0.7rem]">
+                        <TableHead className="w-[250px]">Full Name</TableHead>
+                        <TableHead>Grade</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="">Age</TableHead>
+                        <TableHead className="">Gender</TableHead>
+                        <TableHead className="w-[150px]">Teacher</TableHead>
+                        <TableHead className="w-[250px]">Address</TableHead>
+                        <TableHead className="">Bus</TableHead>
+                    </TableRow>
 
-                        <td className="px-6 py-4" rowSpan={8}>
-                            <div className="flex items-center gap-2">
-                                <Image src={dashboard} alt="student name" className="rounded-full object-cover" />
-                                <span className="">John Doe</span>
-                            </div>
-                        </td>
-                        <td className="px-6 py-4 bg-crimson">
-                            7
-                        </td>
-                        <td className="px-6 py-4 ">
-                            ongoing
-                        </td>
-                        <td className="px-6 py-4 ">
-                            12/20/2024
-                        </td>
-                        <td className="px-6 py-4 ">
-                            000/20/2024
-                        </td>
-                        <td className="px-6 py-4">
-                            <div className="space-x-2">
-                                <Link href="/dashboard/students/idie">
-                                    <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
-                                        view
-                                    </button>
-                                </Link>
-                                <Link href="/dashboard">
-                                    <button className="bg-destructive px-2 text-[0.5rem] rounded-sm">
-                                        delete
-                                    </button>
-                                </Link>
-                            </div>
-                        </td>
+                </TableHeader>
+                <TableBody className="text-[0.8rem] text-[var(--textSoft)]">
+                    <TableCell className="">
+                        {/* <div className="flex items-center gap-2">
+                            <img src={teacher.image && teacher.image || dashboard} alt={teacher.full_name} className="rounded-md object-cover w-9 h-9" />
+                            <span className="">{teacher.full_name}</span>
+                        </div> */}
+                    </TableCell>
+                    <TableCell>
+                        {/* {teacher.email} */}
+                    </TableCell>
+                    <TableCell>
+                        <div className="space-x-2">
+                            <Link href="/dashboard/students/idie">
+                                <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
+                                    view
+                                </button>
+                            </Link>
+                            <Link href="/dashboard">
+                                <button className="bg-destructive px-2 text-[0.5rem] rounded-sm">
+                                    delete
+                                </button>
+                            </Link>
+                        </div>
+                    </TableCell>
+                </TableBody>
+            </Table>
 
 
-                    </tr>
-
-                </tbody>
-            </table>
             <Pagination />
         </div >
 
