@@ -4,13 +4,16 @@ import Student from "@/(models)/Student";
 import { StudentSchema } from "@/schemas";
 
 export const POST = async (req: NextRequest) => {
+  console.log("Hello");
   try {
     await connectToDB();
     const data = await req.json();
+    console.log(data);
     const validatedData = StudentSchema.safeParse(data);
 
     if (!validatedData.success) {
-      return NextResponse.json(
+      console.log(validatedData.error.errors);
+      return Response.json(
         { message: "Validation error", errors: validatedData.error.errors },
         { status: 400 }
       );
@@ -25,6 +28,7 @@ export const POST = async (req: NextRequest) => {
       parentId,
       teacherId,
       grade,
+      gender,
     } = validatedData.data;
 
     const newStudent = new Student({
@@ -37,6 +41,7 @@ export const POST = async (req: NextRequest) => {
       grade,
       address,
       image,
+      gender,
     });
 
     await newStudent.save();

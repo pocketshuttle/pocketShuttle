@@ -30,7 +30,7 @@ interface DriverModalProps {
 export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route }: DriverModalProps) => {
 
     const [isPending, startTransition] = useTransition()
-    const [submittedData, setSubmittedData] = useState(null);
+    const [submittedData, setSubmittedData] = useState<object | undefined>({});
 
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState(false)
@@ -58,7 +58,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
             phoneNumber: "",
             address: "",
             image: newAvatar,
-            busId: "12345de3e3resd466"
+            // busId: "12345de3e3resd466"
         }
     })
 
@@ -169,7 +169,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                                     <FormControl>
                                                         <Input
                                                             {...field}
-                                                            placeholder="ciroma@email.com"
+                                                            placeholder="John Doe"
                                                             type="text"
                                                             disabled={isPending}
                                                             className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
