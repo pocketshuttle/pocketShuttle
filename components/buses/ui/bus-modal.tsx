@@ -171,72 +171,7 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="teacher"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Teacherr</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            placeholder="Teacher"
-                                                            type="text"
-                                                            disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
 
-                                                    {/* <Image src={eye} alt="eye" /> */}
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="driver"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Driver</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            placeholder="driver"
-                                                            type="text"
-                                                            disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-
-                                                    {/* <Image src={eye} alt="eye" /> */}
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="student"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Student</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            placeholder="driver"
-                                                            type="text"
-                                                            disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-
-                                                    {/* <Image src={eye} alt="eye" /> */}
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                    </div>
 
                                     {/* <div className="flex  justify-between ">
                                         < SelectProperty placeholder="Grade" label="Bus Grade" item="Grade A" />

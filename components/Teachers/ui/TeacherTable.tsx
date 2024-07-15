@@ -37,7 +37,6 @@ export const TeachersTable = () => {
     const { data: teachersData, isPending, errorMessage } = useFetch(`/api/addteacher/${userId}`, userId);
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
 
-    console.log(session)
     const handleModal = () => {
         setIsOpenModal(!isOpenModal);
     };

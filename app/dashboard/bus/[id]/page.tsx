@@ -7,30 +7,40 @@ import { Dispatch, SetStateAction, useState, useTransition } from "react"
 import { Input } from "@/components/ui/input"
 import { BusSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
-import avatar from "@/public/images/avatar.jpg"
 import { SelectProperty } from "@/components/ui/select-wrapper"
 import { useToast } from "@/components/ui/use-toast"
+import { useFetch } from "@/hooks/useFetch"
+import { useSession } from "next-auth/react"
+import { usePost } from "@/hooks/usePost"
 
 const SingleBus = () => {
+    const { data: session } = useSession()
+    const userId = session?.user?.id
+    const [submittedData, setSubmittedData] = useState<object | undefined>(undefined)
+
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState("")
-    const [selectAvatar, setSelectedAvatar] = useState<number>(0)
-    const [newTryAvatar, setNewTryAvatar] = useState<string>("")
-    const [selectImage, setSelectedImage] = useState<string>("")
+    const [selectTeacher, setSelectedTeacher] = useState<string>("")
+    const [selectBusDriver, setSelectedBusDriver] = useState<string>("")
+    const [selectStudent, setSelectedStudent] = useState<string>("")
     const [newAvatar, setNewAvatar] = useState<string>("")
     const { toast } = useToast()
+
+
+    const { data: teachersData, isPending: loading, errorMessage } = useFetch(`/api/addteacher/${userId}`, userId);
+    const { data: postData, loading: postLoading, errorMessage: postError, success } = usePost(`/api/addbus/${userId}`, submittedData, "PATCH")
+
+    console.log(teachersData)
 
     const form = useForm<z.infer<typeof BusSchema>>({
         resolver: zodResolver(BusSchema),
         defaultValues: {
             bus_number: "",
             driver: "",
-            seat_number: "",
+            seat_number: 0,
             teacher: "",
-            student: "students",
-            image: "images",
+            student: "",
         }
     })
 
@@ -64,64 +74,13 @@ const SingleBus = () => {
             }
         })
     }
-    const handleCameraClick = () => {
-        const inputElement = document.getElementById("cameraInput")
-        inputElement?.click()
-        // console.log(inputElement)
-    }
 
-    const handleCameraInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0]
-        if (file) {
-            const reader = new FileReader()
-            reader.onload = async () => {
-                await uploadFile(file)
-            }
-            if (reader.readyState === FileReader.EMPTY) {
-                reader.readAsDataURL(file);
-            } else {
-                console.error('FileReader is busy reading another file.');
-            }
-        }
-    }
 
-    const uploadFile = async (file: any) => {
-        try {
-            const data = new FormData()
-            data.append('file', file)
-            // data.append("upload_preset", 'images')
-
-            const res = await fetch(`api/upload`, {
-                method: 'POST',
-                body: data,
-            })
-
-            if (res.ok) {
-                const data = await res.json()
-                setNewAvatar(data.url)
-                console.log(newAvatar);
-            }
-        }
-        catch (error) {
-            console.log(error);
-        }
-    }
 
     return (
         <div className="">
             <h2 className="text-center font-semibold text-2xl p-4">Edit Bus Details</h2>
             <div className=" flex ">
-                <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
-                    <input
-                        id="cameraInput"
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        style={{ display: 'none' }}
-                        onChange={handleCameraInputChange}
-                    />
-                    <Image src={avatar} alt="avatar" className="cursor-pointer rounded-md h-[13.5rem] w-24% object-fill" onClick={() => handleCameraClick()} />
-                </div>
                 <div className="flex-1 px-5 ">
 
                     <Form {...form}>
@@ -229,10 +188,10 @@ const SingleBus = () => {
 
                             </div>
 
-                            {/* <div className="flex  justify-between w-full ">
-                                < SelectProperty placeholder="Grade" label="Student Grade" item="Grade A" />
-                                < SelectProperty placeholder="Bus" label="Bus Name" item="Bus A" />
-                            </div> */}
+                            <div className="flex  justify-between w-full gap-3 ">
+                                < SelectProperty placeholder="Select Bus Teacher" label="Select Teachers" data={teachersData} />
+                                < SelectProperty placeholder="Select Bus Drivers" label="Bus Name" item="Bus A" />
+                            </div>
                             {/* <FormError message={isError} /> */}
                             {/* <FormSuccess message={isSuccess} /> */}
                             <Button
