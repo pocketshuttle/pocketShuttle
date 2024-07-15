@@ -8,10 +8,45 @@ import { useState } from "react"
 import { StudentModal } from "@/components/students/ui/Student-modal"
 import Link from "next/link"
 import { BusModal } from "./bus-modal"
+import { useSession } from "next-auth/react"
+import { useFetch } from "@/hooks/useFetch"
+import {
+    Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableFooter,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
+
+type BusProps = {
+    _id: string,
+    id: string,
+    full_name: string,
+    email: string,
+    phoneNumber: string,
+    address: string,
+    image: string,
+    busId: string
+}
 
 export const BusData = () => {
     const [isOpenModal, setIsOpenModal] = useState(false)
+    const { data: session } = useSession()
+    const userId = session?.user?.id
+    const { data: busData, isPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
 
+    if (isPending) {
+        return <p>Loading...</p>;
+    }
+
+    if (errorMessage) {
+        return <p>Error: {errorMessage}</p>;
+    }
+
+    console.log(busData)
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237] mt-2">
@@ -24,67 +59,76 @@ export const BusData = () => {
             {
                 isOpenModal && <BusModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
             }
-            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead className="text-xs text-gray-300 capitalize  ">
-                    <tr >
-                        <th scope="col" className="px-6 py-3" rowSpan={6}>
-                            Bus Number
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                            Driver
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                            Number of Seats
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                            Teacher
-                        </th>
-                        <th scope="col" className="px-6 py-3">
-                            Students
-                        </th>
 
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr className="dark:bg-gray-800  hover:bg-gray-900 cursor-pointer text-[var(--textSoft)] text-[0.8rem]">
+            <Table>
+                <TableHeader>
+                    <TableRow className=" text-[0.7rem]">
+                        <TableHead className="w-[250px] text-gray-300">Bus Number</TableHead>
+                        <TableHead className=" text-gray-300">Bus Name</TableHead>
+                        <TableHead className=" text-gray-300">Bus Color</TableHead>
+                        <TableHead className="text-gray-300">Number of Seats</TableHead>
+                        <TableHead className="text-gray-300">Driver</TableHead>
+                        <TableHead className="text-gray-300">Teacher</TableHead>
+                        <TableHead className="text-gray-300">Students</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody className="text-[0.75rem] text-gray-400 ">
+                    {busData?.map((bus) => {
+                        console.log(bus)
+                        return (
+                            <TableRow key={bus._id}>
+                                <TableCell className="capitalize">
+                                    {bus.bus_product_name}
+                                </TableCell>
+                                <TableCell className="capitalize">
+                                    {bus.bus_number}
+                                </TableCell>
+                                <TableCell className="capitalize">
+                                    {bus.color}
+                                </TableCell>
+                                <TableCell className="capitalize">
+                                    {bus.seat_number}
+                                </TableCell>
+                                <TableCell className="capitalize">
+                                    {bus.driver}
+                                </TableCell>
+                                <TableCell className="capitalize">
+                                    {bus.teacher}
+                                </TableCell>
+                                <TableCell className="capitalize">
+                                    {bus.student}
+                                </TableCell>
+                                <TableCell>
+                                    <div className="space-x-2">
+                                        <Link href="/dashboard/bus/idie">
+                                            <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
+                                                view
+                                            </button>
+                                        </Link>
+                                        <Link href="/dashboard">
+                                            <button className="bg-destructive px-2 text-[0.5rem] rounded-sm">
+                                                delete
+                                            </button>
+                                        </Link>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )
+                    })}
+                </TableBody>
 
-                        <td className="px-6 py-4" rowSpan={8}>
-                            John Doe
-                        </td>
-                        <td className="px-6 py-4 bg-crimson">
-                            7
-                        </td>
-                        <td className="px-6 py-4  ">
-                            ongoing
 
-                        </td>
-                        <td className="px-6 py-4 ">
-                            12/20/2024
-                        </td>
-                        <td className="px-6 py-4">
-                            000/20/2024
-                        </td>
-                        <td className="px-6 py-4">
-                            <div className="space-x-2">
-                                <Link href="/dashboard/bus/idie">
-                                    <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
-                                        view
-                                    </button>
-                                </Link>
-                                <Link href="/dashboard">
-                                    <button className="bg-destructive px-2 text-[0.5rem] rounded-sm">
-                                        delete
-                                    </button>
-                                </Link>
-                            </div>
-                        </td>
+            </Table>
 
-
-                    </tr>
-
-                </tbody>
-            </table>
             <Pagination />
+
+
+
+
+
+
+
+
         </div >
 
     )

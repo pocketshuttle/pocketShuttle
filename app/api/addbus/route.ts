@@ -31,7 +31,7 @@ export const POST = async (req: NextRequest) => {
 
     const newBus = new Buses({
       school_id,
-      busNumber: bus_number,
+      bus_number,
       driver,
       seatNumber: seat_number,
       teacher,

@@ -10,7 +10,6 @@ export const GET = async (
   req: NextRequest,
   { params }: { params: ParamProp }
 ) => {
-  console.log("params", params);
   try {
     await connectToDB();
 

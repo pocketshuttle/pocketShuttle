@@ -13,15 +13,17 @@ export const GET = async (
   try {
     await connectToDB();
     const { id } = params;
-    const Bus = await Buses.findById(id);
+    const bus = await Buses.find({
+      $or: [{ school_id: id }, { _id: id }],
+    });
 
-    if (!Bus) {
+    if (!bus) {
       return new Response(JSON.stringify({ message: "Bus not found" }), {
         status: 404,
       });
     }
 
-    return new Response(JSON.stringify(Bus), {
+    return new Response(JSON.stringify(bus), {
       status: 200,
     });
   } catch (error) {
