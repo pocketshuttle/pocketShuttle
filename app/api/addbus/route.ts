@@ -15,15 +15,26 @@ export const POST = async (req: NextRequest) => {
         { status: 400 }
       );
     }
-    const { bus_number, driver, seat_number, teacher, student } =
-      validatedData.data;
+    const {
+      school_id,
+      bus_number,
+      driver,
+      seat_number,
+      teacher,
+      student,
+      color,
+      bus_product_name,
+    } = validatedData.data;
 
     const newBus = new Buses({
+      school_id,
       busNumber: bus_number,
       driver,
       seatNumber: seat_number,
       teacher,
       student,
+      color,
+      bus_product_name,
     });
 
     await newBus.save();

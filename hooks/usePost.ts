@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 export const usePost = (
   url: string,
-  value: string | undefined,
+  value: object | undefined,
   method: string
 ) => {
   const { toast } = useToast();

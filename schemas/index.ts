@@ -58,8 +58,11 @@ export const TeacherSchema = z.object({
 });
 
 export const DriverSchema = z.object({
+  creator: z.string().min(1, {
+    message: "Creator is required",
+  }),
   full_name: z.string().min(1, {
-    message: "Name is required!",
+    message: "Full Name is required!",
   }),
   image: z.string().min(1, {
     message: "Image is required!",
@@ -136,14 +139,16 @@ export const StudentSchema = z.object({
     message: "Grade is required!",
   }),
   address: z.string(),
-  age: z.string(),
+  age: z.string().transform((val) => parseInt(val, 10)),
 });
 
 export const BusSchema = z.object({
-  bus_number: z.number(),
+  school_id: z.string(),
+  bus_number: z.string(),
   driver: z.string().optional(),
-  seat_number: z.string(),
+  seat_number: z.string().transform((val) => parseInt(val, 10)),
   teacher: z.string().optional(),
   student: z.string().optional(),
-  image: z.string().optional(),
+  color: z.string().optional(),
+  bus_product_name: z.string(),
 });
