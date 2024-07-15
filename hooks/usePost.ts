@@ -14,6 +14,8 @@ export const usePost = (
 
   useEffect(() => {
     const postData = async () => {
+      setLoading(true); // Set loading true when postData starts
+
       try {
         const response = await fetch(url, {
           method: method,

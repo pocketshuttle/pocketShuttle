@@ -30,7 +30,7 @@ interface DriverModalProps {
 export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route }: DriverModalProps) => {
 
     const [isPending, startTransition] = useTransition()
-    const [submittedData, setSubmittedData] = useState<object | undefined>({});
+    const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
 
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState(false)
@@ -58,7 +58,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
             phoneNumber: "",
             address: "",
             image: newAvatar,
-            // busId: "12345de3e3resd466"
+            busId: "12345de3e3resd466"
         }
     })
 

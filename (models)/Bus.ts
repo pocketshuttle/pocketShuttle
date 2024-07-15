@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { string } from "zod";
 const { Schema, models, model } = mongoose;
 
 const busesSchema = new Schema({
@@ -13,7 +12,7 @@ const busesSchema = new Schema({
   teacher: String,
   student: String,
   color: String,
-  seat_Number: String,
+  seat_number: Number,
   bus_product_name: String,
   // teacher: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher" },
   // student: [
