@@ -23,13 +23,14 @@ import {
 
 type BusProps = {
     _id: string,
-    id: string,
-    full_name: string,
-    email: string,
-    phoneNumber: string,
-    address: string,
-    image: string,
-    busId: string
+    shchool_id: string,
+    bus_product_name: string,
+    color: string,
+    seat_number: string,
+    driver: string,
+    bus_number: string,
+    student: string
+    teacher: string
 }
 
 export const BusData = () => {
@@ -63,17 +64,17 @@ export const BusData = () => {
             <Table>
                 <TableHeader>
                     <TableRow className=" text-[0.7rem]">
-                        <TableHead className="w-[250px] text-gray-300">Bus Number</TableHead>
+                        <TableHead className=" text-gray-300">Bus Number</TableHead>
                         <TableHead className=" text-gray-300">Bus Name</TableHead>
                         <TableHead className=" text-gray-300">Bus Color</TableHead>
                         <TableHead className="text-gray-300">Number of Seats</TableHead>
-                        <TableHead className="text-gray-300">Driver</TableHead>
-                        <TableHead className="text-gray-300">Teacher</TableHead>
+                        <TableHead className="w-[150px] text-gray-300">Driver</TableHead>
+                        <TableHead className="w-[150px] text-gray-300">Teacher</TableHead>
                         <TableHead className="text-gray-300">Students</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody className="text-[0.75rem] text-gray-400 ">
-                    {busData?.map((bus) => {
+                    {busData?.map((bus: BusProps) => {
                         console.log(bus)
                         return (
                             <TableRow key={bus._id}>
