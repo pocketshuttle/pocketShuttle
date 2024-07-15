@@ -7,10 +7,13 @@ export const POST = async (req: NextRequest) => {
   try {
     await connectToDB();
     const data = await req.json();
+    console.log(data);
     const validatedData = BusSchema.safeParse(data);
+
     console.log(validatedData);
+
     if (!validatedData.success) {
-      return NextResponse.json(
+      return Response.json(
         { message: "Validation error", errors: validatedData.error.errors },
         { status: 400 }
       );
@@ -47,12 +50,12 @@ export const POST = async (req: NextRequest) => {
     if (error instanceof Error) {
       return Response.json(
         { message: "Error adding Bus", error: error.message },
-        { status: 400 }
+        { status: 500 }
       );
     } else {
       return Response.json(
         { message: "Unknown error occurred" },
-        { status: 400 }
+        { status: 404 }
       );
     }
   }

@@ -21,7 +21,7 @@ interface BusModalProps {
 
 export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
     const [isPending, startTransition] = useTransition()
-    const [submittedData, setSubmittedData] = useState<object | undefined>({})
+    const [submittedData, setSubmittedData] = useState<object | undefined>(undefined)
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState("")
     const { data, loading, errorMessage, success } = usePost("/api/addbus", submittedData, "POST")
@@ -45,12 +45,11 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
     })
 
     const onSubmit = (values: z.infer<typeof BusSchema>) => {
+        console.log(values)
         startTransition(async () => {
             setSubmittedData(values)
         })
     }
-
-
 
 
     const handleCloseModal = () => {
@@ -134,10 +133,12 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                                         <FormControl>
                                                             <Input
                                                                 {...field}
-                                                                placeholder="1"
-                                                                type="text"
+                                                                placeholder="20"
+                                                                type="number"
                                                                 disabled={isPending}
                                                                 className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                onChange={(e) => field.onChange(Number(e.target.value))}
+
                                                             />
                                                         </FormControl>
                                                     </FormItem>

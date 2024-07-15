@@ -146,7 +146,9 @@ export const BusSchema = z.object({
   school_id: z.string(),
   bus_number: z.string(),
   driver: z.string().optional(),
-  seat_number: z.string().transform((val) => parseInt(val, 10)),
+  seat_number: z
+    .number()
+    .min(1, { message: "Seat number must be a positive number" }),
   teacher: z.string().optional(),
   student: z.string().optional(),
   color: z.string().optional(),

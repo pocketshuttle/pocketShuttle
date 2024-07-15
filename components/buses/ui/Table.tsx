@@ -10,7 +10,7 @@ import Link from "next/link"
 import { BusModal } from "./bus-modal"
 
 export const BusData = () => {
-    const [isOpenModal, setIsOpenModal] = useState(true)
+    const [isOpenModal, setIsOpenModal] = useState(false)
 
 
     return (
