@@ -64,8 +64,8 @@ export const BusData = () => {
             <Table>
                 <TableHeader>
                     <TableRow className=" text-[0.7rem]">
-                        <TableHead className=" text-gray-300">Bus Number</TableHead>
                         <TableHead className=" text-gray-300">Bus Name</TableHead>
+                        <TableHead className=" text-gray-300">Bus Number</TableHead>
                         <TableHead className=" text-gray-300">Bus Color</TableHead>
                         <TableHead className="text-gray-300">Number of Seats</TableHead>
                         <TableHead className="w-[150px] text-gray-300">Driver</TableHead>
@@ -75,7 +75,6 @@ export const BusData = () => {
                 </TableHeader>
                 <TableBody className="text-[0.75rem] text-gray-400 ">
                     {busData?.map((bus: BusProps) => {
-                        console.log(bus)
                         return (
                             <TableRow key={bus._id}>
                                 <TableCell className="capitalize">
@@ -101,7 +100,7 @@ export const BusData = () => {
                                 </TableCell>
                                 <TableCell>
                                     <div className="space-x-2">
-                                        <Link href="/dashboard/bus/idie">
+                                        <Link href={`/dashboard/bus/${bus._id}`}>
                                             <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
                                                 view
                                             </button>
