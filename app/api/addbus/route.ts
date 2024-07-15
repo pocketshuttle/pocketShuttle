@@ -33,7 +33,7 @@ export const POST = async (req: NextRequest) => {
       school_id,
       bus_number,
       driver,
-      seatNumber: seat_number,
+      seat_number,
       teacher,
       student,
       color,
