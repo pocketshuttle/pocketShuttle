@@ -6,19 +6,28 @@ const busesSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "User",
   },
-  bus_number: String,
-  driver: { type: mongoose.Schema.Types.ObjectId, ref: "Driver" },
-  // driver: String,
-  // teacher: String,
-  // student: String,
+  bus_number: {
+    type: String,
+    unique: true,
+  },
+  driver: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Driver",
+    default: null,
+  },
   color: String,
   seat_number: Number,
   bus_product_name: String,
-  teacher: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher" },
+  teacher: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Teacher",
+    default: null,
+  },
   student: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Student",
+      default: [],
     },
   ],
 });

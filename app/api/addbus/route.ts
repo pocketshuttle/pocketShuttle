@@ -13,7 +13,7 @@ export const POST = async (req: NextRequest) => {
     console.log(validatedData);
 
     if (!validatedData.success) {
-      return Response.json(
+      return NextResponse.json(
         { message: "Validation error", errors: validatedData.error.errors },
         { status: 400 }
       );
@@ -32,30 +32,37 @@ export const POST = async (req: NextRequest) => {
     const newBus = new Buses({
       school_id,
       bus_number,
-      driver,
+      driver: driver || null,
       seat_number,
-      teacher,
-      student,
+      teacher: teacher || null,
+      student: student || [],
       color,
       bus_product_name,
     });
 
     await newBus.save();
 
-    return Response.json(
-      { message: "Bus added Succesfully " },
+    return NextResponse.json(
+      { message: "Bus added successfully" },
       { status: 200 }
     );
   } catch (error) {
+    if (error.code === 11000) {
+      return NextResponse.json(
+        { message: "Bus number must be unique" },
+        { status: 400 }
+      );
+    }
+
     if (error instanceof Error) {
-      return Response.json(
+      return NextResponse.json(
         { message: "Error adding Bus", error: error.message },
         { status: 500 }
       );
     } else {
-      return Response.json(
+      return NextResponse.json(
         { message: "Unknown error occurred" },
-        { status: 404 }
+        { status: 500 }
       );
     }
   }

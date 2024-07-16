@@ -21,7 +21,7 @@ type dataProps = {
     full_name: string
 }
 
-export const SelectProperty = ({ placeholder, label, data, handleSelectChange }: SelectProps) => {
+export const SelectDataProperty = ({ placeholder, label, data, handleSelectChange }: SelectProps) => {
     return (
         <Select onValueChange={handleSelectChange}>
             <SelectTrigger className="w-3/6">
@@ -31,7 +31,7 @@ export const SelectProperty = ({ placeholder, label, data, handleSelectChange }:
                 <SelectGroup>
                     <SelectLabel>{label}</SelectLabel>
                     {
-                        data?.map((item: dataProps, index: number) => (
+                        data && data?.map((item: dataProps, index: number) => (
                             <SelectItem key={index} value={item._id}>{item.full_name}</SelectItem>
                         ))
                     }
