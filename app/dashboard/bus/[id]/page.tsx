@@ -12,11 +12,15 @@ import { useToast } from "@/components/ui/use-toast"
 import { useFetch } from "@/hooks/useFetch"
 import { useSession } from "next-auth/react"
 import { usePost } from "@/hooks/usePost"
+import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
+import { usePathname, useSearchParams } from "next/navigation"
 
 const SingleBus = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined)
+    const getPathname = usePathname()
+    const busId = getPathname.split("/").pop()
 
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState("")
@@ -29,6 +33,7 @@ const SingleBus = () => {
 
 
     const { data: teachersData, isPending: loading, errorMessage } = useFetch(`/api/addteacher/${userId}`, userId);
+    const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
     const { data: postData, loading: postLoading, errorMessage: postError, success } = usePost(`/api/addbus/${userId}`, submittedData, "PATCH")
 
     console.log(teachersData)
@@ -36,46 +41,28 @@ const SingleBus = () => {
     const form = useForm<z.infer<typeof BusSchema>>({
         resolver: zodResolver(BusSchema),
         defaultValues: {
-            bus_number: "",
-            driver: "",
-            seat_number: 0,
-            teacher: "",
-            student: "",
-        }
-    })
+            school_id: '',
+            bus_number: '',
+            driver: selectBusDriver || "",
+            teacher: selectTeacher || "",
+            student: '',
+            color: '',
+            bus_product_name: '',
+        },
+    });
 
     const onSubmit = (values: z.infer<typeof BusSchema>) => {
         startTransition(async () => {
-            try {
-                const res = await fetch("/api/addbus", {
-                    method: "POST",
-                    body: JSON.stringify(values),
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                if (res.ok) {
-                    setIsSuccess("Bus added successfully")
-                    toast({
-                        title: "Teacher Added Succesfully",
-                        description: "You successfulluy adderd a teacher",
-                    })
-                } else {
-                    setIsError("Something went wrong")
-                    toast({
-                        title: "Failed",
-                        description: "Something went wrong",
-                    })
-                }
-            } catch (error) {
-                setIsError("An error occurred while adding the teacher");
-
-            }
+            setSubmittedData(values)
         })
     }
 
+    const handleTeacherChange = (value: string) => {
+        setSelectedTeacher(value);
+        form.setValue("teacher", value);
+    };
 
+    console.log(selectTeacher)
 
     return (
         <div className="">
@@ -189,8 +176,8 @@ const SingleBus = () => {
                             </div>
 
                             <div className="flex  justify-between w-full gap-3 ">
-                                < SelectProperty placeholder="Select Bus Teacher" label="Select Teachers" data={teachersData} />
-                                < SelectProperty placeholder="Select Bus Drivers" label="Bus Name" item="Bus A" />
+                                < SelectDataProperty placeholder="Select Bus Teacher" label="Select Teachers" data={teachersData} handleSelectChange={handleTeacherChange} />
+                                {/* < SelectProperty placeholder="Select Bus Drivers" label="Bus Name" item="Bus A" /> */}
                             </div>
                             {/* <FormError message={isError} /> */}
                             {/* <FormSuccess message={isSuccess} /> */}
