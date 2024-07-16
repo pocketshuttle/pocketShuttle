@@ -13,7 +13,10 @@ export const GET = async (
   try {
     await connectToDB();
     const { id } = params;
-    const driver = await Driver.findById(id);
+    console.log(id);
+    const driver = await Driver.find({
+      $or: [{ school_id: id }, { _id: id }],
+    });
 
     if (!driver) {
       return new Response(JSON.stringify({ message: "Driver not found" }), {
