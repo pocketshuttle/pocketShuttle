@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "@/components/ui/form"
 import { Dispatch, SetStateAction, useEffect, useState, useTransition } from "react"
 import { Input } from "@/components/ui/input"
-import { TeacherSchema } from "@/schemas"
+import { DriverSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
@@ -23,14 +23,14 @@ import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 
 
-interface SingleTeacherlProps {
+interface SingledriverlProps {
     setIsOpenModal: Dispatch<SetStateAction<boolean>>
     isOpenModal?: boolean
     mode?: string
     route?: string
 }
 
-const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleTeacherlProps) => {
+const SingleDriverPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingledriverlProps) => {
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
@@ -45,6 +45,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
 
     const pathname = usePathname()
     const id = pathname.split('/').pop()
+    console.log(id)
 
     const { data: session } = useSession()
     const userId = session?.user?.id
@@ -54,43 +55,46 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
 
     const [newData, setNewData] = useState(null)
 
-    const { data, loading, errorMessage, success } = usePost(`/api/addteacher/${id}`, submittedData, "PATCH")
-    const { data: teacherData, isPending: isLoading, errorMessage: editMessage } = useFetch(`/api/addteacher/${id}`, userId);
+    const { data, loading, errorMessage, success } = usePost(`/api/addriver/${id}`, submittedData, "PATCH")
+    const { data: driverData, isPending: isLoading, errorMessage: editMessage } = useFetch(`/api/addriver/${id}`, userId);
     const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
 
-    const form = useForm<z.infer<typeof TeacherSchema>>({
-        resolver: zodResolver(TeacherSchema),
+    console.log(driverData)
+    const form = useForm<z.infer<typeof DriverSchema>>({
+        resolver: zodResolver(DriverSchema),
         defaultValues: {
             school_id: userId,
-            full_name: teacherData && teacherData[0].full_name,
+            full_name: "",
             email: "",
-            password: "",
             phoneNumber: "",
             address: "",
+            busId: selectBus || "",
+            studentId: selectStudent || "",
             image: newAvatar,
-            busId: ""
+            password: "",
         }
     })
     useEffect(() => {
-        if (teacherData) {
+        if (driverData) {
             form.reset({
                 school_id: userId,
-                full_name: teacherData[0]?.full_name,
-                email: teacherData[0]?.email,
-                phoneNumber: teacherData[0]?.phoneNumber,
-                address: teacherData[0]?.address,
+                full_name: driverData[0]?.full_name,
+                email: driverData[0]?.email,
+                phoneNumber: driverData[0]?.phoneNumber,
+                address: driverData[0]?.address,
                 image: newAvatar,
             });
         }
-    }, [teacherData, form, userId]);
+    }, [driverData, form, userId]);
 
     useEffect(() => {
-        setNewData(teacherData && teacherData[0].full_name)
-    }, [id, teacherData])
+        setNewData(driverData && driverData[0].full_name)
+    }, [id, driverData])
 
-    const onSubmit = (values: z.infer<typeof TeacherSchema>) => {
+    const onSubmit = (values: z.infer<typeof DriverSchema>) => {
         startTransition(() => {
             setSubmittedData(values)
+            window.localStorage.removeItem("user_selected_avatar_url")
         });
     };
 
@@ -183,7 +187,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
         <div >
             <div >
                 <div>
-                    <h1 className="text-center p-3 text-xl">Update Teacher</h1>
+                    <h1 className="text-center p-3 text-xl">Update driver</h1>
                 </div>
                 <div className=" flex ">
                     <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
@@ -198,8 +202,8 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
 
                         <Image src={
                             newAvatar ? isLoadingImage ? spinner : newAvatar :
-                                teacherData && teacherData[0]?.image ?
-                                    teacherData[0]?.image : avatar
+                                driverData && driverData[0]?.image ?
+                                    driverData[0]?.image : avatar
                         } alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
                     </div>
                     <div className="flex-1 px-5 ">
@@ -277,33 +281,6 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
                                     </div>
 
                                 </div>
-                                {
-                                    mode === "driver" ? "" :
-                                        <div className="space-y-4">
-                                            <FormField
-                                                control={form.control}
-                                                name="password"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Password</FormLabel>
-                                                        <FormControl>
-                                                            <Input
-                                                                {...field}
-                                                                placeholder="******"
-                                                                type="password"
-                                                                disabled={isPending}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-
-                                                        {/* <Image src={eye} alt="eye" /> */}
-                                                    </FormItem>
-                                                )}
-                                            >
-                                            </FormField>
-                                        </div>
-                                }
 
 
                                 <div className="space-y-4">
@@ -317,7 +294,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
                                                     <Textarea
                                                         {...field}
                                                         className="py-3 border-none bg-[var(--bgSoft)] outline-none "
-                                                        placeholder="Teachers Address..."
+                                                        placeholder="drivers Address..."
                                                         disabled={isPending}
                                                     />
                                                 </FormControl>
@@ -341,7 +318,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
                                 {/* <FormSuccess message={isSuccess} /> */}
                                 <Button
                                     // disabled={isPending}
-                                    size="lg" className="w-full" type="submit">Update teacher
+                                    size="lg" className="w-full" type="submit">Update driver
                                 </Button>
                             </form>
                         </Form>
@@ -352,4 +329,4 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
     )
 }
 
-export default SingleTeacherPage
+export default SingleDriverPage

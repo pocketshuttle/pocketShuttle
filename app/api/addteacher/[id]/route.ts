@@ -15,7 +15,7 @@ export const GET = async (
 
     const { id } = params;
     const teacher = await Teacher.find({
-      $or: [{ creator: id }, { _id: id }],
+      $or: [{ school_id: id }, { _id: id }],
     });
 
     if (!teacher) {
@@ -87,7 +87,7 @@ export const PATCH = async (
         { status: 500 }
       );
     } else {
-      return  Response.json(
+      return Response.json(
         { message: "Unknown error occurred" },
         { status: 500 }
       );

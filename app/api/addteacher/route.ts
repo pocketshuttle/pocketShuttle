@@ -17,7 +17,7 @@ export const POST = async (req: NextRequest) => {
       );
     }
     const {
-      userId,
+      school_id,
       full_name,
       email,
       phoneNumber,
@@ -31,31 +31,31 @@ export const POST = async (req: NextRequest) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newTeacher = new Teacher({
-      creator: userId,
+      school_id,
       full_name,
       email,
       phoneNumber,
-      bus: busId,
+      busId,
       address,
-      students: studentId,
+      students: studentId ? [studentId] : [],
       image,
       password: hashedPassword,
     });
 
     await newTeacher.save();
 
-    return Response.json({ message: "Teacher added Succesfully " });
+    return Response.json(
+      { message: "Teacher added Succesfully " },
+      { status: 200 }
+    );
   } catch (error) {
-    if (error instanceof Error) {
-      return Response.json(
-        { message: "Error adding Teacher", error: error.message },
-        { status: 400 }
-      );
-    } else {
-      return Response.json(
-        { message: "Unknown error occurred" },
-        { status: 400 }
-      );
-    }
+    console.error("Error adding driver:", error);
+    return NextResponse.json(
+      {
+        message: "Error adding Teacher",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 };
