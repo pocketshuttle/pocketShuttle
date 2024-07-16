@@ -19,6 +19,7 @@ import { FormSuccess } from "@/components/ui/form-success"
 import { useSession } from "next-auth/react"
 import { useFetch } from "@/hooks/useFetch"
 import { SelectBusWrapper } from "./select-bus-wrapper"
+import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 
 
 interface DriverModalProps {
@@ -45,13 +46,15 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
     const [newAvatar, setNewAvatar] = useState<string>("")
     const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
     const [selectBus, setSelectedBus] = useState<string>("")
+    const [selectStudent, setSelectedStudent] = useState<string>("")
 
-    const url = mode === "driver" ? "/api/addbus/" : "/api/addteacher/"
-    const { data, loading, errorMessage, success } = usePost(`${url}${userId}`, submittedData, "POST")
+    const url = mode === "driver" ? "/api/addriver" : "/api/addteacher"
+    const { data, loading, errorMessage, success } = usePost(`${url}`, submittedData, "POST")
 
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
+    const { data: studentData, isPending: studentPending, errorMessage: studentError } = useFetch(`/api/addstudent/${userId}`, userId);
 
-
+    console.log(userId)
 
     const useSchema = mode === "driver" ? DriverSchema : TeacherSchema
 
@@ -64,8 +67,9 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
             phoneNumber: "",
             address: "",
             busId: selectBus || "",
-            studentId: "",
+            studentId: selectStudent || "",
             image: newAvatar,
+            password: "",
         }
     })
 
@@ -75,6 +79,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
         console.log(values)
         startTransition(() => {
             setSubmittedData(values)
+            window.localStorage.removeItem("new_user_selected_avatar_url")
         });
     };
 
@@ -145,6 +150,10 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
     const handleSelectBus = (value: string) => {
         setSelectedBus(value)
         form.setValue("busId", value)
+    }
+    const handleSelectStudent = (value: string) => {
+        setSelectedStudent(value)
+        form.setValue("studentId", value)
     }
 
     if (isSuccess) {
@@ -299,11 +308,21 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                         </FormField>
                                     </div>
 
-                                    <div>
-                                        {
-                                            busData &&
-                                            < SelectBusWrapper placeholder="Select Bus Teacher" label="Select Teachers" data={busData} handleSelectChange={handleSelectBus} />
-                                        }
+                                    <div className="flex gap-3">
+                                        <div className="w-3/6">
+                                            {
+                                                busData &&
+                                                < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} />
+                                            }
+                                        </div>
+                                        <div className="w-3/6">
+                                            <div>
+                                                {
+                                                    studentData &&
+                                                    < SelectDataProperty placeholder="Select Bus Teacher" label="Select Teachers" data={studentData} handleSelectChange={handleSelectStudent} />
+                                                }
+                                            </div>
+                                        </div>
                                     </div>
 
                                     {/* <FormError message={isError} /> */}

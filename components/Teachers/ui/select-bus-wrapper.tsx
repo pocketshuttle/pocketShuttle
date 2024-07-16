@@ -18,7 +18,7 @@ type SelectProps = {
 
 type dataProps = {
     _id: string
-    bus_product_name: string
+    bus_product_name: string | null
 }
 
 export const SelectBusWrapper = ({ placeholder, label, data, handleSelectChange }: SelectProps) => {

@@ -22,7 +22,7 @@ const studentSchema = new Schema({
     ref: "Teacher",
     required: true,
   },
-  bus: { type: mongoose.Schema.Types.ObjectId, ref: "Bus" },
+  bus: { type: mongoose.Schema.Types.ObjectId, ref: "Buses" },
 });
 
 const Student = models.Student || model("Student", studentSchema);

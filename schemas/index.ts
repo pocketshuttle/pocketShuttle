@@ -32,15 +32,13 @@ export const RegisterSchema = z.object({
 });
 
 export const TeacherSchema = z.object({
-  userId: z.string().min(1, {
+  school_id: z.string().min(1, {
     message: "userId is Required",
   }),
   full_name: z.string().min(1, {
     message: "Name is required!",
   }),
-  image: z.string().min(1, {
-    message: "Image is required!",
-  }),
+  image: z.string().optional(),
   password: z.string().min(6, {
     message: "Password must be more 6 characters!",
   }),
@@ -64,24 +62,14 @@ export const DriverSchema = z.object({
   full_name: z.string().min(1, {
     message: "Full Name is required!",
   }),
-  image: z
-    .string()
-    .min(1, {
-      message: "Image is required!",
-    })
-    .optional(),
+  image: z.string().optional(),
   email: z
     .string()
     .email({
       message: "Invalid email",
     })
     .optional(),
-  password: z
-    .string()
-    .min(6, {
-      message: "Password must be more 6 characters!",
-    })
-    .optional(),
+  password: z.string().optional(),
   phoneNumber: z.string().min(11, {
     message: "Phone number must be 11 numbers",
   }),
