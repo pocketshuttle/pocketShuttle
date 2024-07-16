@@ -58,26 +58,38 @@ export const TeacherSchema = z.object({
 });
 
 export const DriverSchema = z.object({
-  creator: z.string().min(1, {
+  school_id: z.string().min(1, {
     message: "Creator is required",
   }),
   full_name: z.string().min(1, {
     message: "Full Name is required!",
   }),
-  image: z.string().min(1, {
-    message: "Image is required!",
-  }),
-  email: z.string().email({
-    message: "Invalid email",
-  }),
+  image: z
+    .string()
+    .min(1, {
+      message: "Image is required!",
+    })
+    .optional(),
+  email: z
+    .string()
+    .email({
+      message: "Invalid email",
+    })
+    .optional(),
+  password: z
+    .string()
+    .min(6, {
+      message: "Password must be more 6 characters!",
+    })
+    .optional(),
   phoneNumber: z.string().min(11, {
     message: "Phone number must be 11 numbers",
   }),
   address: z.string().min(1, {
     message: "Please add the teacher's address",
   }),
-  busId: z.string(),
-  studentId: z.string(),
+  busId: z.string().optional(),
+  studentId: z.string().optional(),
 });
 
 export const ParentSchema = z.object({

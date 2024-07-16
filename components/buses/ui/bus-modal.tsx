@@ -45,7 +45,6 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
     })
 
     const onSubmit = (values: z.infer<typeof BusSchema>) => {
-        console.log(values)
         startTransition(async () => {
             setSubmittedData(values)
         })
