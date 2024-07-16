@@ -20,6 +20,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { deleteItem } from "@/lib/utils"
+
 
 type BusProps = {
     _id: string,
@@ -105,11 +107,11 @@ export const BusData = () => {
                                                 view
                                             </button>
                                         </Link>
-                                        <Link href="/dashboard">
-                                            <button className="bg-destructive px-2 text-[0.5rem] rounded-sm">
-                                                delete
-                                            </button>
-                                        </Link>
+                                        <button className="bg-destructive px-2 text-[0.5rem] rounded-sm"
+                                            onClick={() => deleteItem(busData, bus._id)}
+                                        >
+                                            delete
+                                        </button>
                                     </div>
                                 </TableCell>
                             </TableRow>

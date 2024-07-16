@@ -3,11 +3,10 @@ import * as z from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "@/components/ui/form"
-import { Dispatch, SetStateAction, useState, useTransition } from "react"
+import { Dispatch, SetStateAction, useEffect, useState, useTransition } from "react"
 import { Input } from "@/components/ui/input"
 import { BusSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
-import { SelectProperty } from "@/components/ui/select-wrapper"
 import { useToast } from "@/components/ui/use-toast"
 import { useFetch } from "@/hooks/useFetch"
 import { useSession } from "next-auth/react"
@@ -33,25 +32,39 @@ const SingleBus = () => {
 
 
     const { data: teachersData, isPending: loading, errorMessage } = useFetch(`/api/addteacher/${userId}`, userId);
-    const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
-    const { data: postData, loading: postLoading, errorMessage: postError, success } = usePost(`/api/addbus/${userId}`, submittedData, "PATCH")
-
-    console.log(teachersData)
+    const { data: driversData, isPending: driverLoading, errorMessage: driversError } = useFetch(`/api/addteacher/${userId}`, userId);
+    const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${busId}`, busId);
+    const { data: postData, loading: postLoading, errorMessage: postError, success } = usePost(`/api/addbus/${busId}`, submittedData, "PATCH")
 
     const form = useForm<z.infer<typeof BusSchema>>({
         resolver: zodResolver(BusSchema),
         defaultValues: {
-            school_id: '',
-            bus_number: '',
+            school_id: userId,
+            bus_number: "",
             driver: selectBusDriver || "",
+            seat_number: 0,
             teacher: selectTeacher || "",
-            student: '',
-            color: '',
-            bus_product_name: '',
-        },
+            student: selectStudent || "",
+            color: "",
+            bus_product_name: ""
+
+        }
     });
+    useEffect(() => {
+        if (busData) {
+            form.reset({
+                school_id: userId,
+                bus_product_name: busData[0]?.bus_product_name,
+                bus_number: busData[0]?.bus_number,
+                color: busData[0]?.color,
+                seat_number: busData[0]?.seat_number,
+                teacher: selectTeacher
+            });
+        }
+    }, [busData, form, userId]);
 
     const onSubmit = (values: z.infer<typeof BusSchema>) => {
+        console.log(values)
         startTransition(async () => {
             setSubmittedData(values)
         })
@@ -59,10 +72,14 @@ const SingleBus = () => {
 
     const handleTeacherChange = (value: string) => {
         setSelectedTeacher(value);
+
         form.setValue("teacher", value);
     };
+    const handleDriverChange = (value: string) => {
+        setSelectedBusDriver(value);
 
-    console.log(selectTeacher)
+        form.setValue("driver", value);
+    };
 
     return (
         <div className="">
@@ -73,31 +90,33 @@ const SingleBus = () => {
                     <Form {...form}>
                         {/* the handle submit comes from the form constant */}
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                            <div >
-                                <FormField
-                                    control={form.control}
-                                    name="driver"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Driver Name</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    placeholder="John Doe"
-                                                    type="text"
-                                                    disabled={isPending}
-                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
 
-                            <div className="space-x-4 flex items-center w-full justify-between">
+                            <div className="flex gap-3">
+                                <div className="w-3/6">
+                                    <FormField
+                                        control={form.control}
+                                        name="bus_product_name"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Bus Name</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        {...field}
+                                                        placeholder="Tesla"
+                                                        type="text"
+                                                        disabled={isPending}
+                                                        className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                                <div>
 
-                                <div className="space-y-4 w-3/6">
+                                </div>
+                                <div className="w-3/6">
                                     <FormField
                                         control={form.control}
                                         name="bus_number"
@@ -116,11 +135,16 @@ const SingleBus = () => {
                                                 <FormMessage />
                                             </FormItem>
                                         )}
-                                    >
-
-                                    </FormField>
+                                    />
                                 </div>
-                                <div className="w-3/6">
+
+
+                            </div>
+
+                            <div className="space-x-4 flex items-center w-full justify-between">
+
+                                <div className="space-y-4 w-3/6">
+
                                     <FormField
                                         control={form.control}
                                         name="seat_number"
@@ -130,63 +154,67 @@ const SingleBus = () => {
                                                 <FormControl>
                                                     <Input
                                                         {...field}
-                                                        placeholder="50"
+                                                        placeholder="20"
+                                                        type="number"
+                                                        disabled={isPending}
+                                                        className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                        onChange={(e) => field.onChange(Number(e.target.value))}
+
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )
+                                        }
+                                    />
+                                </div>
+                                <div className="w-3/6">
+                                    <FormField
+                                        control={form.control}
+                                        name="color"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Bus Color</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        {...field}
+                                                        placeholder="red"
                                                         type="text"
                                                         disabled={isPending}
                                                         className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
-
-                                                {/* <Image src={eye} alt="eye" /> */}
                                             </FormItem>
                                         )}
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-
-                                <FormField
-                                    control={form.control}
-                                    name="teacher"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Teacher Name</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    placeholder="Teacher Name"
-                                                    type="text"
-                                                    disabled={isPending}
-                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-
-                                            {/* <Image src={eye} alt="eye" /> */}
-                                        </FormItem>
-                                    )}
-                                >
-
-                                </FormField>
-                            </div>
-                            <div className="space-y-4">
-
-                            </div>
-
                             <div className="flex  justify-between w-full gap-3 ">
-                                < SelectDataProperty placeholder="Select Bus Teacher" label="Select Teachers" data={teachersData} handleSelectChange={handleTeacherChange} />
+                                <div className="w-3/6">
+                                    {
+                                        teachersData &&
+                                        < SelectDataProperty placeholder="Select Bus Teacher" label="Select Teachers" data={teachersData} handleSelectChange={handleTeacherChange} />
+                                    }
+                                </div>
+                                <div className="w-3/6">
+                                    {
+                                        driversData &&
+                                        < SelectDataProperty placeholder="Select Bus Driver" label="Select Teachers" data={driversData} handleSelectChange={handleDriverChange} />
+                                    }
+                                </div>
                                 {/* < SelectProperty placeholder="Select Bus Drivers" label="Bus Name" item="Bus A" /> */}
                             </div>
+
                             {/* <FormError message={isError} /> */}
                             {/* <FormSuccess message={isSuccess} /> */}
                             <Button
                                 disabled={isPending}
-                                size="lg" className="w-full bg-[teal] p-5" type="submit">Update Bus
+                                size="lg" className="w-full bg-[teal] p-5" type="submit">Add Bus
                             </Button>
                         </form>
                     </Form>
+
                 </div>
             </div>
         </div >

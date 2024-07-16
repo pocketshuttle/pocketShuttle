@@ -1,6 +1,7 @@
 import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Buses from "@/(models)/Bus";
+import { BusSchema } from "@/schemas";
 
 type ParamProp = {
   id: string;
@@ -53,6 +54,15 @@ export const PATCH = async (
     await connectToDB();
     const { id } = params;
     const data = await req.json();
+    const validatedData = BusSchema.safeParse(data);
+
+    if (!validatedData.success) {
+      return NextResponse.json(
+        { message: "Validation error", errors: validatedData.error.errors },
+        { status: 400 }
+      );
+    }
+    console.log(data);
 
     const updatedBus = await Buses.findByIdAndUpdate(id, data, {
       new: true, // Return the updated document
@@ -81,7 +91,7 @@ export const PATCH = async (
     } else {
       return new Response(
         JSON.stringify({ message: "Unknown error occurred" }),
-        { status: 500 }
+        { status: 404 }
       );
     }
   }
