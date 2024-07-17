@@ -7,21 +7,27 @@ export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }) => {
         inputElement?.click()
         // console.log(inputElement)
     }
+
     const handleCameraInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files[0]
-        console.log(file)
-        if (file) {
-            const reader = new FileReader()
-            reader.onload = async () => {
-                await uploadFile(file)
-            }
-            if (reader.readyState === FileReader.EMPTY) {
+        const files = event.target.files;
+
+        if (files && files.length > 0) {
+            const file = files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async () => {
+                    await uploadFile(file);
+                };
                 reader.readAsDataURL(file);
             } else {
-                console.error('FileReader is busy reading another file.');
+                console.error('No file selected.');
             }
+        } else {
+            console.error('No files in event.');
         }
-    }
+    };
+
     const uploadFile = async (file: any) => {
         try {
             const data = new FormData()
@@ -44,7 +50,7 @@ export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }) => {
         }
     }
     return (
-        <div> <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
+        <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
             <input
                 id="cameraInput"
                 type="file"
@@ -56,6 +62,6 @@ export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }) => {
             {/* <Image src={isLoadingImage ? spinner : newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} /> */}
 
             <Image src={newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full object-fill" onClick={() => handleCameraClick()} />
-        </div></div>
+        </div>
     )
 }
