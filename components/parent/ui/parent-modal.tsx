@@ -51,23 +51,20 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
         defaultValues: {
             school_id: userId || "",
             full_name: "",
-            age: 0,
             image: newAvatar || "",
-            parentId: selectParent || "",
-            teacherId: selectTeacher || undefined,
-            driverId: selectDriver || "",
-            busId: "",
+            studentId: selectTeacher || undefined,
+            password: "",
+            phoneNumber: "",
             address: "",
-            grade: selectGrade || "",
-            gender: selectGender || "",
+            email: ""
         }
     })
 
     const onSubmit = (values: z.infer<typeof ParentSchema>) => {
         console.log(values)
-        startTransition(() => {
-            setSubmittedData(values)
-        });
+        // startTransition(() => {
+        //     setSubmittedData(values)
+        // });
     }
 
     const handleCameraClick = () => {
@@ -168,10 +165,9 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                                             <Input
                                                                 {...field}
                                                                 placeholder="johndoe@email.com"
-                                                                type="Email"
+                                                                type="email"
                                                                 disabled={isPending}
                                                                 className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                                onChange={e => field.onChange(Number(e.target.value))}
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
@@ -190,7 +186,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                                             <Input
                                                                 {...field}
                                                                 placeholder="johndoe@email.com"
-                                                                type="phone"
+                                                                type="text"
                                                                 disabled={isPending}
                                                                 className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
                                                             // onChange={e => field.onChange(Number(e.target.value))}
@@ -203,6 +199,28 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                         </div>
 
 
+                                    </div>
+                                    < div className="w-5/6">
+                                        <FormField
+                                            control={form.control}
+                                            name="password"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Password</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            {...field}
+                                                            placeholder="johndoe@email.com"
+                                                            type="password"
+                                                            disabled={isPending}
+                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                        // onChange={e => field.onChange(Number(e.target.value))}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
                                     </div>
                                     <div className="space-y-4">
                                         <FormField
@@ -241,8 +259,8 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                     </div>
                 </TeacherCardWrapper>
 
-            </div>
-        </div>
+            </div >
+        </div >
     )
 }
 
