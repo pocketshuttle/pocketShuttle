@@ -4,7 +4,7 @@ import { CardWrapper } from "@/components/auth/card-wrapper"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "@/components/ui/form"
-import { Dispatch, SetStateAction, useState, useTransition } from "react"
+import { ChangeEvent, Dispatch, SetStateAction, useEffect, useState, useTransition } from "react"
 import { Input } from "@/components/ui/input"
 import { StudentSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
@@ -12,8 +12,27 @@ import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { SelectProperty } from "@/components/ui/select-wrapper"
+import { usePathname } from "next/navigation"
+import { useFetch } from "@/hooks/useFetch"
+import { Textarea } from "@/components/ui/textarea"
+import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
+import { useSession } from "next-auth/react"
+import { grades, buses, gender } from "@/data/schooldata"
+import spinner from "@/public/images/spinner.gif"
+
+
 
 const SingleStudent = () => {
+    const pathname = usePathname()
+    const id = pathname.split('/').pop()
+
+    const { data: session } = useSession()
+    const userId = session?.user?.id
+
+    const { data: studentData, isPending: studentPending, errorMessage } = useFetch(`/api/addstudent/${id}`, id);
+    const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
+
+
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState("")
@@ -21,20 +40,43 @@ const SingleStudent = () => {
     const [newTryAvatar, setNewTryAvatar] = useState<string>("")
     const [selectImage, setSelectedImage] = useState<string>("")
     const [newAvatar, setNewAvatar] = useState<string>("")
+    const [selectGender, setSelectGender] = useState<string>("")
+    const [selectGrade, setClassGrade] = useState<string>("")
+    const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
+
+    const [selectBus, setSelectBus] = useState<string>("")
+    const [selectParent, setSelectParent] = useState<string>("")
+    const [selectDriver, setSelectDriver] = useState<string>("")
+    const [selectTeacher, setSelectTeacher] = useState<string>("")
 
     const form = useForm<z.infer<typeof StudentSchema>>({
         resolver: zodResolver(StudentSchema),
         defaultValues: {
+            school_id: userId || "",
             full_name: "",
-            teacherId: "",
-            parentId: "",
-            address: "",
-            age: "",
-            grade: "",
+            age: 0,
+            image: newAvatar || "",
+            parentId: selectParent || "",
+            teacherId: selectTeacher || undefined,
+            driverId: selectDriver || "",
             busId: "",
-            image: "",
+            address: "",
+            grade: selectGrade || "",
+            gender: selectGender || "",
         }
     })
+
+    useEffect(() => {
+        if (studentData) {
+            form.reset({
+                school_id: userId,
+                full_name: studentData[0]?.full_name,
+                address: studentData[0]?.address,
+                age: studentData[0]?.age,
+                image: newAvatar,
+            });
+        }
+    }, [studentData, form, userId]);
 
     const onSubmit = () => {
         startTransition(() => { })
@@ -45,7 +87,7 @@ const SingleStudent = () => {
         // console.log(inputElement)
     }
 
-    const handleCameraInputChange = async (event) => {
+    const handleCameraInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files[0]
         console.log(file)
         if (file) {
@@ -82,12 +124,29 @@ const SingleStudent = () => {
             console.log(error);
         }
     }
+    const handleGenderChange = (value: string) => {
+        setSelectGender(value);
+        form.setValue("gender", value); // Update form value
+    };
+    const handleSelectBus = (value: string) => {
+        setSelectBus(value);
+        form.setValue("busId", value);
+    };
+    const handleSelectParent = (value: string) => {
+        setSelectParent(value);
+        form.setValue("parentId", value);
+    };
+
+    const handleGradeChange = (value: string) => {
+        setClassGrade(value);
+        form.setValue("grade", value);
+    };
 
     return (
         <div className="">
             <h2 className="text-center font-semibold text-2xl p-4">Edit Student</h2>
             <div className=" flex ">
-                <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
+                <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[15.8rem] p-2 rounded-md" >
                     <input
                         id="cameraInput"
                         type="file"
@@ -96,7 +155,13 @@ const SingleStudent = () => {
                         style={{ display: 'none' }}
                         onChange={handleCameraInputChange}
                     />
-                    <Image src={avatar} alt="avatar" className="cursor-pointer rounded-md h-[13.5rem] w-24% object-fill" onClick={() => handleCameraClick()} />
+                    <Image src={
+
+                        newAvatar ? isLoadingImage ? spinner : newAvatar :
+                            studentData && studentData[0]?.image ?
+                                studentData[0]?.image : avatar
+
+                    } alt="avatar" className="cursor-pointer rounded-md object-fill object-center w-full " width={300} height={100} onClick={() => handleCameraClick()} />
                 </div>
                 <div className="flex-1 px-5 ">
 
@@ -113,7 +178,7 @@ const SingleStudent = () => {
                                             <FormControl>
                                                 <Input
                                                     {...field}
-                                                    placeholder="ciroma@email.com"
+                                                    placeholder="John Doe"
                                                     type="text"
                                                     disabled={isPending}
                                                     className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
@@ -123,24 +188,24 @@ const SingleStudent = () => {
                                         </FormItem>
                                     )}
                                 >
-
                                 </FormField>
                             </div>
-                            <div className="space-x-4 flex items-center w-full justify-between">
-                                <div className="w-3/6">
+                            <div className="space-x-4 flex items-center w-full justify-center">
+                                <div className="w-5/6">
                                     <FormField
                                         control={form.control}
-                                        name="email"
+                                        name="age"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Email</FormLabel>
+                                                <FormLabel>Age</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         {...field}
-                                                        placeholder="ciroma@email.com"
-                                                        type="email"
+                                                        placeholder="mm/dd/yyyy"
+                                                        type="number"
                                                         disabled={isPending}
                                                         className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                        onChange={e => field.onChange(Number(e.target.value))}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
@@ -149,59 +214,19 @@ const SingleStudent = () => {
                                     />
                                 </div>
 
-                                <div className="w-3/6">
-                                    <FormField
-                                        control={form.control}
-                                        name="phoneNumber"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Phone Number</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        {...field}
-                                                        placeholder="08012345678"
-                                                        type="phone"
-                                                        disabled={isPending}
-                                                        className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-
-                                                {/* <Image src={eye} alt="eye" /> */}
-                                            </FormItem>
-                                        )}
-                                    />
+                                <div className="w-full">
+                                    < SelectProperty placeholder="Gender" label="Student Grade" data={gender} handleSelectChange={handleGenderChange} />
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-
-                                <FormField
-                                    control={form.control}
-                                    name="parent"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Parent Name</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    placeholder="Family Name"
-                                                    type="text"
-                                                    disabled={isPending}
-                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-
-                                            {/* <Image src={eye} alt="eye" /> */}
-                                        </FormItem>
-                                    )}
-                                >
-
-                                </FormField>
-                            </div>
-                            <div className="space-y-4">
-
+                            <div className="flex space-x-3 justify-between w-full ">
+                                < SelectProperty placeholder="Grade" label="Select Grade" data={grades} handleSelectChange={handleGradeChange} />
+                                <div className="w-full">
+                                    {
+                                        busData &&
+                                        < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} />
+                                    }
+                                </div>
                             </div>
                             <div className="space-y-4">
                                 <FormField
@@ -209,14 +234,13 @@ const SingleStudent = () => {
                                     name="address"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Address</FormLabel>
+                                            <FormLabel>Student Address</FormLabel>
                                             <FormControl>
-                                                <Input
+                                                <Textarea
                                                     {...field}
-                                                    placeholder="Teachers Address"
-                                                    type="text"
+                                                    placeholder="Student Address..."
                                                     disabled={isPending}
-                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none "
                                                 />
                                             </FormControl>
                                             <FormMessage />
@@ -228,10 +252,7 @@ const SingleStudent = () => {
 
                                 </FormField>
                             </div>
-                            <div className="flex  justify-between w-full ">
-                                < SelectProperty placeholder="Grade" label="Student Grade" item="Grade A" />
-                                < SelectProperty placeholder="Bus" label="Bus Name" item="Bus A" />
-                            </div>
+
                             {/* <FormError message={isError} /> */}
                             {/* <FormSuccess message={isSuccess} /> */}
                             <Button

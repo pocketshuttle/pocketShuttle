@@ -35,6 +35,8 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
     const [selectGrade, setClassGrade] = useState<string>("")
     const [selectBus, setSelectBus] = useState<string>("")
     const [selectParent, setSelectParent] = useState<string>("")
+    const [selectDriver, setSelectDriver] = useState<string>("")
+    const [selectTeacher, setSelectTeacher] = useState<string>("")
 
 
     const { data: session } = useSession()
@@ -51,8 +53,8 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
             age: 0,
             image: newAvatar || "",
             parentId: selectParent || "",
-            teacherId: "",
-            driverId: "",
+            teacherId: selectTeacher || undefined,
+            driverId: selectDriver || "",
             busId: "",
             address: "",
             grade: selectGrade || "",

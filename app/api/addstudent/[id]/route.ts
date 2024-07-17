@@ -13,7 +13,9 @@ export const GET = async (
   try {
     await connectToDB();
     const { id } = params;
-    const student = await Student.findById(id);
+    const student = await Student.find({
+      $or: [{ school_id: id }, { _id: id }],
+    }).populate("bus");
 
     if (!student) {
       return new Response(JSON.stringify({ message: "Student not found" }), {
@@ -25,21 +27,15 @@ export const GET = async (
       status: 200,
     });
   } catch (error) {
-    console.error(error);
-    if (error instanceof Error) {
-      return new Response(
-        JSON.stringify({
-          message: "Error fetching Student",
-          error: error.message,
-        }),
-        { status: 500 }
-      );
-    } else {
-      return new Response(
-        JSON.stringify({ message: "Unknown error occurred" }),
-        { status: 500 }
-      );
-    }
+    // Handle errors
+    console.error("Error fetching Student:", error);
+    return NextResponse.json(
+      {
+        message: "Error fetching Student",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 };
 

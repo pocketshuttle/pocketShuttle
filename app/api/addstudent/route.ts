@@ -26,6 +26,7 @@ export const POST = async (req: NextRequest) => {
       busId,
       parentId,
       teacherId,
+      driverId,
       address,
       grade,
       gender,
@@ -38,6 +39,7 @@ export const POST = async (req: NextRequest) => {
       bus: busId,
       parent: parentId,
       teacher: teacherId,
+      driver: driverId,
       grade,
       address,
       image,
@@ -52,10 +54,10 @@ export const POST = async (req: NextRequest) => {
     );
   } catch (error) {
     // Handle errors
-    console.error("Error adding driver:", error);
+    console.error("Error adding Student:", error);
     return NextResponse.json(
       {
-        message: "Error adding driver",
+        message: "Error adding Student",
         error: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
