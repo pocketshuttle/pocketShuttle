@@ -1,8 +1,9 @@
+import Parent from '@/components/parent/parent'
 import React from 'react'
 
 const Parents = () => {
     return (
-        <div>Parents</div>
+        <div><Parent /></div>
     )
 }
 
