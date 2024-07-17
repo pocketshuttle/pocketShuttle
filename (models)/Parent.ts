@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 
 const { models, model, Schema } = mongoose;
 const parentSchema = new Schema({
+  school_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   full_name: String,
   email: { type: String, unique: true, sparse: true },
   image: { type: String },

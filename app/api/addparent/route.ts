@@ -17,6 +17,7 @@ export const POST = async (req: NextRequest) => {
       );
     }
     const {
+      school_id,
       full_name,
       email,
       phoneNumber,
@@ -24,17 +25,16 @@ export const POST = async (req: NextRequest) => {
       studentId,
       image,
       password,
-      busId,
     } = validatedData.data;
 
     const hashPassword = await bcrypt.hash(password, 10);
 
     const newParent = new Parent({
+      school_id,
       full_name,
       email,
       phoneNumber,
       password: hashPassword,
-      bus: busId,
       address,
       students: studentId,
       image,
@@ -42,7 +42,10 @@ export const POST = async (req: NextRequest) => {
 
     await newParent.save();
 
-    return Response.json({ message: "Parent added Succesfully " });
+    return Response.json(
+      { message: "Parent added Succesfully " },
+      { status: 200 }
+    );
   } catch (error) {
     if (error instanceof Error) {
       return Response.json(

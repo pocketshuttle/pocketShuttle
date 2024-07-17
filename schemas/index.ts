@@ -84,9 +84,12 @@ export const ParentSchema = z.object({
   full_name: z.string().min(1, {
     message: "Name is required!",
   }),
-  image: z.string().min(1, {
-    message: "Image is required!",
-  }),
+  image: z
+    .string()
+    .min(1, {
+      message: "Image is required!",
+    })
+    .optional(),
   password: z.string().min(6, {
     message: "Password must be more 6 characters!",
   }),
@@ -99,8 +102,10 @@ export const ParentSchema = z.object({
   address: z.string().min(1, {
     message: "Please add the teacher's address",
   }),
-  busId: z.string(),
-  studentId: z.string(),
+  studentId: z
+    .string()
+    .transform((value) => (value === "" ? undefined : value))
+    .optional(),
 });
 
 export const StudentSchema = z.object({
