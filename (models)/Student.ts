@@ -17,16 +17,19 @@ const studentSchema = new Schema({
   driver: {
     type: Schema.Types.ObjectId,
     ref: "Driver",
+    default: null,
   },
   parent: {
     type: Schema.Types.ObjectId,
     ref: "Parent",
+    default: null,
   },
   teacher: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Teacher",
+    default: null,
   },
-  bus: { type: mongoose.Schema.Types.ObjectId, ref: "Buses" },
+  bus: { type: mongoose.Schema.Types.ObjectId, ref: "Buses", default: null },
 });
 
 const Student = models.Student || model("Student", studentSchema);
