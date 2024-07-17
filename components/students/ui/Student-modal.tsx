@@ -15,6 +15,9 @@ import { SelectProperty } from "@/components/ui/select-wrapper"
 import { useSession } from "next-auth/react"
 import { grades, buses, gender } from "@/data/schooldata"
 import { usePost } from "@/hooks/usePost"
+import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
+import { useFetch } from "@/hooks/useFetch"
+import { Textarea } from "@/components/ui/textarea"
 
 interface StudentModalProps {
     setIsOpenModal?: Dispatch<SetStateAction<boolean>>
@@ -22,7 +25,7 @@ interface StudentModalProps {
 }
 
 export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) => {
-    const [submittedData, setSubmittedData] = useState<object | undefined>({});
+    const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState("")
@@ -31,12 +34,14 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
     const [selectGender, setSelectGender] = useState<string>("")
     const [selectGrade, setClassGrade] = useState<string>("")
     const [selectBus, setSelectBus] = useState<string>("")
+    const [selectParent, setSelectParent] = useState<string>("")
 
 
     const { data: session } = useSession()
     const userId = session?.user?.id
 
     const { data, loading, errorMessage, success } = usePost("/api/addstudent", submittedData, "POST")
+    const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
 
     const form = useForm<z.infer<typeof StudentSchema>>({
         resolver: zodResolver(StudentSchema),
@@ -45,13 +50,13 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
             full_name: "",
             age: 0,
             image: newAvatar || "",
-            parentId: "",
+            parentId: selectParent || "",
             teacherId: "",
             driverId: "",
             busId: "",
             address: "",
-            grade: selectGrade,
-            gender: selectGender,
+            grade: selectGrade || "",
+            gender: selectGender || "",
         }
     })
 
@@ -117,15 +122,19 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
         setSelectGender(value);
         form.setValue("gender", value); // Update form value
     };
-    const handleBusChange = (value: string) => {
+    const handleSelectBus = (value: string) => {
         setSelectBus(value);
         form.setValue("busId", value);
     };
+    const handleSelectParent = (value: string) => {
+        setSelectParent(value);
+        form.setValue("parentId", value);
+    };
+
     const handleGradeChange = (value: string) => {
         setClassGrade(value);
         form.setValue("grade", value);
     };
-
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
@@ -205,33 +214,15 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                         </div>
                                     </div>
 
-                                    <div className="space-y-4">
-
-                                        <FormField
-                                            control={form.control}
-                                            name="parentId"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Parent Name</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            placeholder="Family Name"
-                                                            type="text"
-                                                            disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-
-                                                    {/* <Image src={eye} alt="eye" /> */}
-                                                </FormItem>
-                                            )}
-                                        >
-
-                                        </FormField>
+                                    <div className="flex space-x-3 justify-between w-full ">
+                                        < SelectProperty placeholder="Grade" label="Select Grade" data={grades} handleSelectChange={handleGradeChange} />
+                                        <div className="w-full">
+                                            {
+                                                busData &&
+                                                < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} />
+                                            }
+                                        </div>
                                     </div>
-
                                     <div className="space-y-4">
                                         <FormField
                                             control={form.control}
@@ -240,12 +231,11 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                                 <FormItem>
                                                     <FormLabel>Student Address</FormLabel>
                                                     <FormControl>
-                                                        <Input
+                                                        <Textarea
                                                             {...field}
                                                             placeholder="Teachers Address"
-                                                            type="text"
                                                             disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none "
                                                         />
                                                     </FormControl>
                                                     <FormMessage />
@@ -257,10 +247,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
 
                                         </FormField>
                                     </div>
-                                    <div className="flex space-x-3 justify-between ">
-                                        < SelectProperty placeholder="Grade" label="Select Grade" data={grades} handleSelectChange={handleGradeChange} />
-                                        < SelectProperty placeholder="Bus" label="Bus Name" data={buses} handleSelectChange={handleBusChange} />
-                                    </div>
+
                                     {/* <FormError message={isError} /> */}
                                     {/* <FormSuccess message={isSuccess} /> */}
                                     <Button

@@ -112,9 +112,15 @@ export const StudentSchema = z.object({
   }),
   age: z.number().min(1, { message: "Seat number must be a positive number" }),
   image: z.string().optional(),
-  parentId: z.string().optional(),
+  parentId: z
+    .string()
+    .transform((value) => (value === "" ? undefined : value))
+    .optional(),
   teacherId: z.string().optional(),
-  driverId: z.string().optional(),
+  driverId: z
+    .string()
+    .transform((value) => (value === "" ? undefined : value))
+    .optional(),
   busId: z.string().optional(),
   gender: z.string(),
   grade: z.string().optional(),

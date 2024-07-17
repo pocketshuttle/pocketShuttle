@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const { Schema, models, model } = mongoose;
 
 const studentSchema = new Schema({
-  creator: {
+  school_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
@@ -13,6 +13,11 @@ const studentSchema = new Schema({
   grade: String,
   gender: String,
   address: String,
+
+  driver: {
+    type: Schema.Types.ObjectId,
+    ref: "Driver",
+  },
   parent: {
     type: Schema.Types.ObjectId,
     ref: "Parent",
@@ -20,7 +25,6 @@ const studentSchema = new Schema({
   teacher: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Teacher",
-    required: true,
   },
   bus: { type: mongoose.Schema.Types.ObjectId, ref: "Buses" },
 });
