@@ -63,8 +63,6 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
         }
     })
 
-
-
     const onSubmit = (values: z.infer<typeof StudentSchema>) => {
         console.log(values)
         startTransition(() => {
@@ -93,7 +91,6 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
             }
         }
     }
-
 
     const uploadFile = async (file: any) => {
         try {
@@ -160,7 +157,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                             {/* <Image src={isLoadingImage ? spinner : newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} /> */}
 
                             {/* <Image src={newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full object-fill" onClick={() => handleCameraClick()} /> */} */}
-                            < UploadImage newAvatar={newAvatar} avatar={avatar} />
+                            < UploadImage newAvatar={newAvatar} avatar={avatar} form={form} setNewAvatar={setNewAvatar} />
                         </div>
                         <div className="flex-1 px-5 ">
 

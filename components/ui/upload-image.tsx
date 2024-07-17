@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import React, { ChangeEvent } from 'react'
 
-export const UploadImage = ({ newAvatar, avatar }) => {
+export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }) => {
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
         inputElement?.click()
@@ -35,8 +35,8 @@ export const UploadImage = ({ newAvatar, avatar }) => {
 
             if (res.ok) {
                 const data = await res.json()
-                // form.setValue("image", data.url)
-                // setNewAvatar(data.url)
+                form.setValue("image", data.url)
+                setNewAvatar(data.url)
             }
         }
         catch (error) {
