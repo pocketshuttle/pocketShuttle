@@ -26,9 +26,6 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState("")
-    const [selectAvatar, setSelectedAvatar] = useState<number>(0)
-    const [newTryAvatar, setNewTryAvatar] = useState<string>("")
-    const [selectImage, setSelectedImage] = useState<string>("")
     const [newAvatar, setNewAvatar] = useState<string>("")
 
     const [selectGender, setSelectGender] = useState<string>("")
@@ -41,20 +38,19 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
 
     const { data, loading, errorMessage, success } = usePost("/api/addstudent", submittedData, "POST")
 
-    const imageUrl = "https://res.cloudinary.com/du5poiq3l/image/upload/v1720959163/mjhybmj3nluuot6ukqru.jpg"
-
     const form = useForm<z.infer<typeof StudentSchema>>({
         resolver: zodResolver(StudentSchema),
         defaultValues: {
-            creator: userId || "",
+            school_id: userId || "",
             full_name: "",
+            age: 0,
+            image: newAvatar || "",
             parentId: "",
             teacherId: "",
+            driverId: "",
             busId: "",
-            image: imageUrl || "",
             address: "",
             grade: selectGrade,
-            age: 0,
             gender: selectGender,
         }
     })
@@ -104,6 +100,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
 
             if (res.ok) {
                 const data = await res.json()
+                form.setValue("image", data.url)
                 setNewAvatar(data.url)
             }
         }
@@ -122,7 +119,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
     };
     const handleBusChange = (value: string) => {
         setSelectBus(value);
-        // form.setValue("busId", value);
+        form.setValue("busId", value);
     };
     const handleGradeChange = (value: string) => {
         setClassGrade(value);
@@ -150,7 +147,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                             />
                             {/* <Image src={isLoadingImage ? spinner : newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} /> */}
 
-                            <Image src={newAvatar || imageUrl || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full object-fill" onClick={() => handleCameraClick()} />
+                            <Image src={newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full object-fill" onClick={() => handleCameraClick()} />
                         </div>
                         <div className="flex-1 px-5 ">
 
@@ -194,6 +191,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                                                 type="number"
                                                                 disabled={isPending}
                                                                 className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                onChange={e => field.onChange(Number(e.target.value))}
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
