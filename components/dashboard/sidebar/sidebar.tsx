@@ -44,6 +44,11 @@ const Sidebar = () => {
                     link: "/dashboard/bus",
                     icon: commute,
                 },
+                {
+                    title: "Parent",
+                    link: "/dashboard/parent",
+                    icon: commute,
+                },
             ],
         },
         {
