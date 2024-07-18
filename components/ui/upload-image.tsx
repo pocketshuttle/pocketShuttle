@@ -1,7 +1,17 @@
-import Image from 'next/image'
-import React, { ChangeEvent } from 'react'
+"use client"
+import Image, { StaticImageData } from 'next/image'
+import React, { ChangeEvent, Dispatch, SetStateAction } from 'react'
+import spinner from "@/public/images/spinner.gif"
+import { UseFormReturn } from 'react-hook-form'
+type ImageProps = {
+    newAvatar: string,
+    avatar: StaticImageData,
+    form: UseFormReturn,
+    setNewAvatar: Dispatch<SetStateAction<string>>,
+}
 
-export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }) => {
+export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }: ImageProps) => {
+    const [isLoading, setIsLoading] = React.useState<boolean>(false)
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
         inputElement?.click()
@@ -29,6 +39,7 @@ export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }) => {
     };
 
     const uploadFile = async (file: any) => {
+        setIsLoading(true)
         try {
             const data = new FormData()
             data.append('file', file)
@@ -47,10 +58,14 @@ export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }) => {
         }
         catch (error) {
             console.log(error);
+        } finally {
+            setIsLoading(false)
         }
+
     }
+
     return (
-        <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
+        <div >
             <input
                 id="cameraInput"
                 type="file"
@@ -59,9 +74,7 @@ export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }) => {
                 style={{ display: 'none' }}
                 onChange={handleCameraInputChange}
             />
-            {/* <Image src={isLoadingImage ? spinner : newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} /> */}
-
-            <Image src={newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full object-fill" onClick={() => handleCameraClick()} />
+            <Image src={isLoading ? spinner : newAvatar || avatar} alt="avatar" width={100} height={330} className="cursor-pointer rounded-md  w-full  object-fill" onClick={() => handleCameraClick()} />
         </div>
     )
 }
