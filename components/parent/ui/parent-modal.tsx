@@ -21,7 +21,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { UploadImage } from "@/components/ui/upload-image"
 
 interface StudentModalProps {
-    setIsOpenModal?: Dispatch<SetStateAction<boolean>>
+    setIsOpenModal: Dispatch<SetStateAction<boolean>>
     isOpenModal: boolean
 }
 
@@ -43,6 +43,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
     const { data: session } = useSession()
     const userId = session?.user?.id
 
+
     const { data, loading, errorMessage, success } = usePost("/api/addstudent", submittedData, "POST")
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
 
@@ -60,6 +61,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
         }
     })
 
+
     const onSubmit = (values: z.infer<typeof ParentSchema>) => {
         console.log(values)
         // startTransition(() => {
@@ -67,49 +69,6 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
         // });
     }
 
-    const handleCameraClick = () => {
-        const inputElement = document.getElementById("cameraInput")
-        inputElement?.click()
-        // console.log(inputElement)
-    }
-
-    const handleCameraInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files[0]
-        console.log(file)
-        if (file) {
-            const reader = new FileReader()
-            reader.onload = async () => {
-                await uploadFile(file)
-            }
-            if (reader.readyState === FileReader.EMPTY) {
-                reader.readAsDataURL(file);
-            } else {
-                console.error('FileReader is busy reading another file.');
-            }
-        }
-    }
-
-    const uploadFile = async (file: any) => {
-        try {
-            const data = new FormData()
-            data.append('file', file)
-            // data.append("upload_preset", 'images')
-
-            const res = await fetch(`/api/upload`, {
-                method: 'POST',
-                body: data,
-            })
-
-            if (res.ok) {
-                const data = await res.json()
-                form.setValue("image", data.url)
-                setNewAvatar(data.url)
-            }
-        }
-        catch (error) {
-            console.log(error);
-        }
-    }
     const handleCloseModal = () => {
         setIsOpenModal(false)
     }
@@ -123,7 +82,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                     action={() => handleCloseModal()}
                 >
                     <div className=" flex ">
-                        <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
+                        <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[21.5rem] p-2 rounded-md" >
                             < UploadImage newAvatar={newAvatar} avatar={avatar} form={form} setNewAvatar={setNewAvatar} />
                         </div>
                         <div className="flex-1 px-5 ">

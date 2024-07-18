@@ -37,8 +37,6 @@ export const ParentData = () => {
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
     const { data: studentsData, isPending, errorMessage } = useFetch(`/api/addparent/${userId}`, userId);
 
-    console.log(studentsData);
-
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
             <div className="p-4 flex justify-between items-center ">
