@@ -1,7 +1,7 @@
 import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Parent from "@/(models)/Parent";
-
+import Student from "@/(models)/Student";
 type ParamProp = {
   id: string;
 };
@@ -10,12 +10,17 @@ export const GET = async (
   req: NextRequest,
   { params }: { params: ParamProp }
 ) => {
-  try {
+  try {  
     await connectToDB();
     const { id } = params;
-    const parent = await Parent.findById(id);
+    console.log(id);
+    const parent = await Parent.find({
+      $or: [{ school_id: id }, { _id: id }],
+    }).populate({ path: "students", model: "Student" });
 
-    if (!parent) {
+    console.log("Fetched parent data: ", parent);
+
+    if (parent.length === 0) {
       return new Response(JSON.stringify({ message: "Parent not found" }), {
         status: 404,
       });

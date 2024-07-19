@@ -1,19 +1,50 @@
 import mongoose from "mongoose";
 
 const { models, model, Schema } = mongoose;
+
 const parentSchema = new Schema({
   school_id: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: "User",
+    required: true,
   },
-  full_name: String,
-  email: { type: String, unique: true, sparse: true },
-  image: { type: String },
-  phoneNumber: String,
-  address: String,
-  students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
-  bus: { type: mongoose.Schema.Types.ObjectId, ref: "Student" },
+  full_name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  email: {
+    type: String,
+    unique: true,
+    sparse: true,
+    trim: true,
+    lowercase: true,
+  },
+  image: {
+    type: String,
+    default: "",
+  },
+  phoneNumber: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  address: {
+    type: String,
+    required: true,
+  },
+  students: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Student",
+      default: [],
+    },
+  ],
+  password: {
+    type: String,
+    required: true,
+  },
 });
 
-const Parent = mongoose.model("Parent", parentSchema);
+const Parent = models.Parent || model("Parent", parentSchema);
 export default Parent;

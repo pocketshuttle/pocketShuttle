@@ -30,6 +30,11 @@ const studentSchema = new Schema({
     default: null,
   },
   bus: { type: mongoose.Schema.Types.ObjectId, ref: "Buses", default: null },
+  status: {
+    type: String,
+    enum: ["dropped", "picked"],
+    default: "dropped",
+  },
 });
 
 const Student = models.Student || model("Student", studentSchema);

@@ -81,7 +81,12 @@ export const DriverSchema = z.object({
 });
 
 export const ParentSchema = z.object({
-  school_id: z.string(),
+  school_id: z
+    .string()
+    .min(1, {
+      message: "Id is required!",
+    })
+    .transform((value) => (value === "" ? undefined : value)),
   full_name: z.string().min(1, {
     message: "Name is required!",
   }),

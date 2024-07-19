@@ -25,7 +25,7 @@ interface StudentModalProps {
     isOpenModal: boolean
 }
 
-export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) => {
+export const ParentModal = ({ isOpenModal, setIsOpenModal, parentId }: StudentModalProps) => {
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState("")
@@ -39,18 +39,22 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
     const [selectDriver, setSelectDriver] = useState<string>("")
     const [selectTeacher, setSelectTeacher] = useState<string>("")
 
+    console.log(parentId)
 
     const { data: session } = useSession()
     const userId = session?.user?.id
 
 
-    const { data, loading, errorMessage, success } = usePost("/api/addstudent", submittedData, "POST")
-    const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
+    const { data, loading, errorMessage, success } = usePost("/api/addparent", submittedData, "POST")
+    const { data: parentData, isPending: parentPending, errorMessage: parentError } = useFetch(`/api/addparent/${parentId}`, parentId);
+
+
+    console.log(userId);
 
     const form = useForm<z.infer<typeof ParentSchema>>({
         resolver: zodResolver(ParentSchema),
         defaultValues: {
-            school_id: userId || "",
+            school_id: userId,
             full_name: "",
             image: newAvatar || "",
             studentId: selectTeacher || undefined,
@@ -64,9 +68,9 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
 
     const onSubmit = (values: z.infer<typeof ParentSchema>) => {
         console.log(values)
-        // startTransition(() => {
-        //     setSubmittedData(values)
-        // });
+        startTransition(() => {
+            setSubmittedData(values)
+        });
     }
 
     const handleCloseModal = () => {
@@ -78,7 +82,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
             <div className="relative bg-gray-900  rounded-md w-5/6 ">
 
                 <TeacherCardWrapper
-                    headLabel="Add Student"
+                    headLabel="Add Parent"
                     action={() => handleCloseModal()}
                 >
                     <div className=" flex ">

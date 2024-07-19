@@ -16,7 +16,9 @@ export const GET = async (
     const { id } = params;
     const teacher = await Teacher.find({
       $or: [{ school_id: id }, { _id: id }],
-    });
+    })
+      .populate("students")
+      .populate("busId");
 
     if (!teacher) {
       return Response.json(

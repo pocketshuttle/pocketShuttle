@@ -89,8 +89,10 @@ export const DriverTable = () => {
                                     <TableCell>
                                         {driver.address}
                                     </TableCell>
-                                    <TableCell className="text-[0.7rem]">
-                                        {driver.bus || "No Bus"}
+                                    <TableCell className="text-[0.7rem] capitalize">
+                                        <span>{driver.bus.color} </span>
+                                        {driver.bus.bus_product_name || "No Bus"}
+                                        <span> ({driver.bus.bus_number})</span>
                                     </TableCell>
                                     <TableCell>
                                         <div className="space-x-2 flex">

@@ -8,6 +8,7 @@ export const POST = async (req: NextRequest) => {
   try {
     await connectToDB();
     const data = await req.json();
+    console.log(data);
     const validatedData = ParentSchema.safeParse(data);
 
     if (!validatedData.success) {
@@ -16,6 +17,8 @@ export const POST = async (req: NextRequest) => {
         { status: 400 }
       );
     }
+
+    console.log(validatedData.data);
     const {
       school_id,
       full_name,
@@ -36,7 +39,7 @@ export const POST = async (req: NextRequest) => {
       phoneNumber,
       password: hashPassword,
       address,
-      students: studentId,
+      students: studentId ? [studentId] : [],
       image,
     });
 
@@ -47,16 +50,14 @@ export const POST = async (req: NextRequest) => {
       { status: 200 }
     );
   } catch (error) {
-    if (error instanceof Error) {
-      return Response.json(
-        { message: "Error adding parent", error: error.message },
-        { status: 400 }
-      );
-    } else {
-      return Response.json(
-        { message: "Unknown error occurred" },
-        { status: 400 }
-      );
-    }
+    // Handle errors
+    console.error("Error adding Parent:", error);
+    return NextResponse.json(
+      {
+        message: "Error adding Parent",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 };
