@@ -21,6 +21,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { deleteItem } from "@/lib/utils"
+import { ViewStudent } from "@/components/students/ui/view-student-wrapper"
 
 
 type BusProps = {
@@ -98,7 +99,7 @@ export const BusData = () => {
                                     {bus.teacher}
                                 </TableCell>
                                 <TableCell className="capitalize">
-                                    {bus.student}
+                                    {bus.student?.length ? <ViewStudent /> : "no kids"}
                                 </TableCell>
                                 <TableCell>
                                     <div className="space-x-2">

@@ -1,9 +1,11 @@
-import React from 'react'
+import CommuteUI from '@/components/commute/commute'
 
-const BusAndDriver = () => {
+const Commute = () => {
   return (
-    <div>BusAndDriver</div>
+    <div>
+      <CommuteUI />
+    </div>
   )
 }
 
-export default BusAndDriver
+export default Commute

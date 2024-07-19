@@ -65,7 +65,7 @@ export const TeachersTable = () => {
                         <TableHead className="text-gray-300">Email</TableHead>
                         <TableHead className="text-gray-300">Phone Number</TableHead>
                         <TableHead className="text-gray-300">Address</TableHead>
-                        <TableHead className="text-gray-300">Bus</TableHead>
+                        <TableHead className="text-gray-300">Bus No</TableHead>
                     </TableRow>
                 </TableHeader>
 
@@ -92,8 +92,10 @@ export const TeachersTable = () => {
                                     <TableCell>
                                         {teacher.address}
                                     </TableCell>
-                                    <TableCell className="text-[0.7rem]">
-                                        {teacher.busId || "No Bus"}
+                                    <TableCell className="text-[0.7rem] capitalize">
+                                        <span>{teacher.busId.color} </span>
+                                        {teacher.busId.bus_product_name || "No Bus"}
+                                        <span> ({teacher.busId.bus_number})</span>
                                     </TableCell>
                                     <TableCell>
                                         <div className="space-x-2 flex">

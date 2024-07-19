@@ -16,7 +16,7 @@ export const GET = async (
     console.log(id);
     const driver = await Driver.find({
       $or: [{ school_id: id }, { _id: id }],
-    });
+    }).populate("bus");
 
     if (!driver) {
       return new Response(JSON.stringify({ message: "Driver not found" }), {

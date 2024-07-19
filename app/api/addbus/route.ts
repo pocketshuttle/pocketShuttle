@@ -47,23 +47,13 @@ export const POST = async (req: NextRequest) => {
       { status: 200 }
     );
   } catch (error) {
-    if (error.code === 11000) {
-      return NextResponse.json(
-        { message: "Bus number must be unique" },
-        { status: 400 }
-      );
-    }
-
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { message: "Error adding Bus", error: error.message },
-        { status: 500 }
-      );
-    } else {
-      return NextResponse.json(
-        { message: "Unknown error occurred" },
-        { status: 500 }
-      );
-    }
+    console.error("Error adding driver:", error);
+    return NextResponse.json(
+      {
+        message: "Error adding driver",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 };

@@ -16,7 +16,10 @@ export const GET = async (
     const { id } = params;
     const bus = await Buses.find({
       $or: [{ school_id: id }, { _id: id }],
-    });
+    })
+      .populate("driver")
+      .populate("teacher")
+      .populate("student");
 
     if (!bus) {
       return new Response(JSON.stringify({ message: "Bus not found" }), {
