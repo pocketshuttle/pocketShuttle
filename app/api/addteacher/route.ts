@@ -1,6 +1,7 @@
 import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Teacher from "@/(models)/Teachers";
+import Buses from "@/(models)/Bus";
 import { TeacherSchema } from "@/schemas";
 import bcrypt from "bcryptjs";
 
@@ -43,6 +44,13 @@ export const POST = async (req: NextRequest) => {
     });
 
     await newTeacher.save();
+    if (busId) {
+      await Buses.findByIdAndUpdate(
+        busId,
+        { teacher: newTeacher._id },
+        { new: true, useFindAndModify: false }
+      );
+    }
 
     return Response.json(
       { message: "Teacher added Succesfully " },

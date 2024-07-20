@@ -35,6 +35,7 @@ const busesSchema = new Schema({
     enum: ["enroute", "parked"],
     default: "parked",
   },
+  route: String,
 });
 
 const Buses = models.Buses || model("Buses", busesSchema);

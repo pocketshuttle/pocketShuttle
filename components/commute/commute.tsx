@@ -1,5 +1,5 @@
 import React from 'react'
-import { CommuteTable } from './ui/commut-table'
+import { CommuteTable } from './ui/commute-table'
 
 const CommuteUI = () => {
     return (
