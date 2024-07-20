@@ -2,6 +2,7 @@ import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Driver from "@/(models)/Driver";
 import { DriverSchema } from "@/schemas";
+import Buses from "@/(models)/Bus";
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -43,7 +44,13 @@ export const POST = async (req: NextRequest) => {
     });
 
     await newDriver.save(); 
-
+    if (busId) {
+      await Buses.findByIdAndUpdate(
+        busId,
+        { driver: newDriver._id },
+        { new: true, useFindAndModify: false }
+      );
+    }
     return NextResponse.json(
       { message: "Driver added successfully" },
       { status: 200 }

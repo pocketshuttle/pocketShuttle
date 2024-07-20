@@ -1,6 +1,7 @@
 import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Buses from "@/(models)/Bus";
+import Student from "@/(models)/Student";
 import { BusSchema } from "@/schemas";
 
 export const POST = async (req: NextRequest) => {
@@ -41,6 +42,7 @@ export const POST = async (req: NextRequest) => {
     });
 
     await newBus.save();
+  
 
     return NextResponse.json(
       { message: "Bus added successfully" },

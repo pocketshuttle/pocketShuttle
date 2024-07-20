@@ -2,6 +2,7 @@ import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Student from "@/(models)/Student";
 import { StudentSchema } from "@/schemas";
+import Buses from "@/(models)/Bus";
 
 export const POST = async (req: NextRequest) => {
   console.log("Hello");
@@ -47,6 +48,15 @@ export const POST = async (req: NextRequest) => {
     });
 
     await newStudent.save();
+    if (busId) {
+      await Buses.findByIdAndUpdate(
+        busId,
+        {
+          $push: { students: newStudent._id },
+        },
+        { new: true, useFindAndModify: false }
+      );
+    }
 
     return Response.json(
       { message: "Student added Succesfully " },
