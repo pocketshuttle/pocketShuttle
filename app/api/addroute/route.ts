@@ -10,7 +10,7 @@ export const POST = async (req: NextRequest) => {
     await connectToDB();
     const data = await req.json();
     const validatedData = RouteSchema.safeParse(data);
-    console.log("validate", validatedData);
+
     if (!validatedData.success) {
       return NextResponse.json(
         { message: "Validation error", errors: validatedData.error.errors },
