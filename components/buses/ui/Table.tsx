@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table"
 import { deleteItem } from "@/lib/utils"
 import { ViewStudent } from "@/components/students/ui/view-student-wrapper"
+import RoutesModal from "./routes-modal"
 
 
 type BusProps = {
@@ -38,6 +39,7 @@ type BusProps = {
 
 export const BusData = () => {
     const [isOpenModal, setIsOpenModal] = useState(false)
+    const [isOpenRouteModal, setIsRouteOpenModal] = useState(false)
     const { data: session } = useSession()
     const userId = session?.user?.id
     const { data: busData, isPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
@@ -56,13 +58,24 @@ export const BusData = () => {
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237] mt-2">
             <div className="p-4 flex justify-between items-center ">
                 <Search placeholder="Search for Buses..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
-                <Button variant="secondary" onClick={() => setIsOpenModal(true)}>
-                    add new
-                </Button>
+                <div className="space-x-2">
+
+                    <Button variant="secondary" onClick={() => setIsOpenModal(true)}>
+                        add new
+                    </Button>
+
+                    <Button variant="destructive" onClick={() => setIsRouteOpenModal(true)}>
+                        add bus routes
+                    </Button>
+                </div>
             </div>
             {
                 isOpenModal && <BusModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
             }
+            {
+                isOpenRouteModal && <RoutesModal isOpenModal={isOpenRouteModal} setIsOpenModal={setIsRouteOpenModal} />
+            }
+
 
             <Table>
                 <TableHeader>
