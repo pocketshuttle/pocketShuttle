@@ -13,9 +13,7 @@ const AllStudents = () => {
         <div className="mt-4">
             {isPending && <p>Loading...</p>}
             {errorMessage && <p>{errorMessage}</p>}
-            <div className=" flex gap-4">
-
-
+            <div className=" flex gap-4 flex-wrap">
                 {studentsData && studentsData.map((student) => (
                     <StudentCard data={student} />
                 ))}

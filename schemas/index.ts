@@ -150,3 +150,11 @@ export const BusSchema = z.object({
   color: z.string().optional(),
   bus_product_name: z.string(),
 });
+
+export const RouteSchema = z.object({
+  school_id: z.string(),
+  route_name: z.string().min(1, {
+    message: "Please add A Route in Alphabetical ",
+  }),
+  route_description: z.string(),
+});

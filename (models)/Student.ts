@@ -35,6 +35,11 @@ const studentSchema = new Schema({
     enum: ["dropped", "picked"],
     default: "dropped",
   },
+  attendance: {
+    type: String,
+    enum: ["absent", "present"],
+    default: "absent",
+  },
 });
 
 const Student = models.Student || model("Student", studentSchema);

@@ -55,7 +55,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
             parentId: selectParent || "",
             teacherId: selectTeacher || undefined,
             driverId: selectDriver || "",
-            busId: "",
+            busId: selectBus || "",
             address: "",
             grade: selectGrade || "",
             gender: selectGender || "",
@@ -125,9 +125,12 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
         form.setValue("gender", value); // Update form value
     };
     const handleSelectBus = (value: string) => {
-        setSelectBus(value);
-        form.setValue("busId", value);
+        const parsedValue = JSON.parse(value)
+        setSelectBus(parsedValue.id)
+        form.setValue("busId", parsedValue.id);
     };
+
+    console.log(selectBus)
     const handleSelectParent = (value: string) => {
         setSelectParent(value);
         form.setValue("parentId", value);
