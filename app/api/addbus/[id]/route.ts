@@ -19,7 +19,8 @@ export const GET = async (
     })
       .populate("driver")
       .populate("teacher")
-      .populate("student");
+      .populate("student")
+      .populate("route");
 
     if (!bus) {
       return new Response(JSON.stringify({ message: "Bus not found" }), {

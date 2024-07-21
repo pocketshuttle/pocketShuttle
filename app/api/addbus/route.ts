@@ -19,6 +19,7 @@ export const POST = async (req: NextRequest) => {
         { status: 400 }
       );
     }
+
     const {
       school_id,
       bus_number,
@@ -28,6 +29,7 @@ export const POST = async (req: NextRequest) => {
       student,
       color,
       bus_product_name,
+      route,
     } = validatedData.data;
 
     const newBus = new Buses({
@@ -39,6 +41,7 @@ export const POST = async (req: NextRequest) => {
       student: student || [],
       color,
       bus_product_name,
+      route: route || null,
     });
 
     // console.log(newBus);
@@ -50,7 +53,7 @@ export const POST = async (req: NextRequest) => {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error adding driver:", error);
+    console.error("Error adding Bus:", error);
     return NextResponse.json(
       {
         message: "Error adding driver",
