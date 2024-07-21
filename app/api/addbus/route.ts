@@ -41,8 +41,9 @@ export const POST = async (req: NextRequest) => {
       bus_product_name,
     });
 
+    // console.log(newBus);
+
     await newBus.save();
-  
 
     return NextResponse.json(
       { message: "Bus added successfully" },

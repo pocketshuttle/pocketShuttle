@@ -9,7 +9,6 @@ export const POST = async (req: NextRequest) => {
   try {
     await connectToDB();
     const data = await req.json();
-    console.log(data);
     const validatedData = StudentSchema.safeParse(data);
 
     if (!validatedData.success) {
