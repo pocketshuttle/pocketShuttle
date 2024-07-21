@@ -8,4 +8,4 @@ const Buses = () => {
     )
 }
 
-export default Buses
+export default Buses 
