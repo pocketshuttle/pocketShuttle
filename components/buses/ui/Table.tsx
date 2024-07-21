@@ -35,6 +35,7 @@ type BusProps = {
     bus_number: string,
     student: string
     teacher: string
+    route: string
 }
 
 export const BusData = () => {
@@ -83,10 +84,11 @@ export const BusData = () => {
                         <TableHead className=" text-gray-300">Bus Name</TableHead>
                         <TableHead className=" text-gray-300">Bus Number</TableHead>
                         <TableHead className=" text-gray-300">Bus Color</TableHead>
-                        <TableHead className="text-gray-300">Number of Seats</TableHead>
+                        <TableHead className="text-gray-300">Seats</TableHead>
                         <TableHead className="w-[150px] text-gray-300">Driver</TableHead>
                         <TableHead className="w-[150px] text-gray-300">Teacher</TableHead>
                         <TableHead className="text-gray-300">Students</TableHead>
+                        <TableHead className="text-gray-300">Routes</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody className="text-[0.75rem] text-gray-400 ">
@@ -113,6 +115,11 @@ export const BusData = () => {
                                 </TableCell>
                                 <TableCell className="capitalize">
                                     {bus.student?.length ? <ViewStudent /> : "no kids"}
+                                </TableCell>
+                                <TableCell className="capitalize">
+                                    <Link href="#">
+                                        {bus.route.route_name}
+                                    </Link>
                                 </TableCell>
                                 <TableCell>
                                     <div className="space-x-2">

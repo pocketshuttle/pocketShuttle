@@ -35,7 +35,11 @@ const busesSchema = new Schema({
     enum: ["enroute", "parked"],
     default: "parked",
   },
-  route: String,
+  route: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Route",
+    default: null,
+  },
 });
 
 const Buses = models.Buses || model("Buses", busesSchema);

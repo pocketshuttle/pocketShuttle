@@ -147,6 +147,7 @@ export const BusSchema = z.object({
     .min(1, { message: "Seat number must be a positive number" }),
   teacher: z.string().optional(),
   student: z.string().optional(),
+  route: z.string().optional(),
   color: z.string().optional(),
   bus_product_name: z.string(),
 });

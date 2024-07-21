@@ -13,6 +13,8 @@ import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { SelectProperty } from "@/components/ui/select-wrapper"
 import { useSession } from "next-auth/react"
 import { usePost } from "@/hooks/usePost"
+import { useFetch } from "@/hooks/useFetch"
+import { BusSelectWrapper } from "./bus-select-wrapper"
 
 interface BusModalProps {
     setIsOpenModal: Dispatch<SetStateAction<boolean>>
@@ -20,15 +22,19 @@ interface BusModalProps {
 }
 
 export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
+    const { data: session } = useSession()
+    const userId = session?.user?.id
+
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined)
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState("")
+    const [selectRoute, setSelectedRoute] = useState<string>("")
     const { data, loading, errorMessage, success } = usePost("/api/addbus", submittedData, "POST")
+    const { data: routeData, isPending: routePending, errorMessage: routeError } = useFetch(`/api/addroute/${userId}`, userId);
 
-    const { data: session } = useSession()
-    const userId = session?.user?.id
-    console.log(userId)
+
+    console.log(routeData)
     const form = useForm<z.infer<typeof BusSchema>>({
         resolver: zodResolver(BusSchema),
         defaultValues: {
@@ -39,12 +45,14 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
             teacher: "",
             student: "",
             color: "",
-            bus_product_name: ""
+            bus_product_name: "",
+            route: selectRoute || "",
 
         }
     })
 
     const onSubmit = (values: z.infer<typeof BusSchema>) => {
+        console.log(values)
         startTransition(async () => {
             setSubmittedData(values)
         })
@@ -54,7 +62,12 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
     const handleCloseModal = () => {
         setIsOpenModal(false)
     }
+    const handleSelectChange = (value: string) => {
+        setSelectedRoute(value)
+        form.setValue("route", value)
+    }
 
+    console.log(selectRoute)
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 ">
             <div className="relative bg-gray-900  rounded-md w-3/6 ">
@@ -170,10 +183,8 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                         </div>
                                     </div>
 
-
-
+                                    < BusSelectWrapper placeholder="Select Routes" label="Routes" data={routeData} handleSelectChange={handleSelectChange} />
                                     {/* <div className="flex  justify-between ">
-                                        < SelectProperty placeholder="Grade" label="Bus Grade" item="Grade A" />
                                         < SelectProperty placeholder="Bus" label="Bus Name" item="Bus A" />
                                     </div> */}
                                     {/* <FormError message={isError} /> */}

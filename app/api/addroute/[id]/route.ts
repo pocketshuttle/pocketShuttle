@@ -62,7 +62,6 @@ export const PATCH = async (
         { status: 400 }
       );
     }
-    console.log(data);
 
     const updatedRoute = await Route.findByIdAndUpdate(id, data, {
       new: true, // Return the updated document
