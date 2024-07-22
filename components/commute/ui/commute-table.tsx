@@ -36,12 +36,19 @@ type BusProps = {
     status: string;
 };
 
+
 type StudentProps = {
-    _id: string;
-    name: string;
-    age: number;
-    class: string;
-};
+    _id: string,
+    full_name: string,
+    age: number,
+    gender: string,
+    grade: string,
+    address: string,
+    bus: string
+    , image: string
+    attendance: string,
+    status: string
+}
 
 type RouteProps = {
     route_name: string;
@@ -110,18 +117,34 @@ export const CommuteTable = () => {
                                             <div className="bg-gray-800 p-4 rounded-md">
                                                 <Table>
                                                     <TableHeader>
-                                                        <TableRow>
-                                                            <TableHead>Name</TableHead>
-                                                            <TableHead>Age</TableHead>
-                                                            <TableHead>Class</TableHead>
+                                                        <TableRow className=" uppercase text-[0.7rem]">
+                                                            <TableHead className="w-[250px]">Full Name</TableHead>
+                                                            <TableHead>Gender</TableHead>
+                                                            <TableHead className="">Age</TableHead>
+                                                            <TableHead className="">Grade</TableHead>
+                                                            <TableHead className="w-[250px]">Address</TableHead>
+                                                            <TableHead>Status</TableHead>
                                                         </TableRow>
                                                     </TableHeader>
                                                     <TableBody>
                                                         {bus.student.map((student: StudentProps) => (
                                                             <TableRow key={student._id}>
-                                                                <TableCell>{student.name}</TableCell>
+                                                                <TableCell className="">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Image src={student.image && student.image || dashboard} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
+                                                                        <span className="">{student.full_name}</span>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell>{student.gender}</TableCell>
                                                                 <TableCell>{student.age}</TableCell>
-                                                                <TableCell>{student.class}</TableCell>
+                                                                <TableCell>{student.grade}</TableCell>
+                                                                <TableCell>{student.address}</TableCell>
+
+                                                                <TableCell>
+                                                                    {
+                                                                        student.attendace === "absent" ? "" : student.status
+                                                                    }
+                                                                </TableCell>
                                                             </TableRow>
                                                         ))}
                                                     </TableBody>
