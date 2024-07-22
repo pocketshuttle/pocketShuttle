@@ -1,6 +1,7 @@
 "use client";
 import { Search } from "@/components/dashboard/search/search";
 import { Button } from "@/components/ui/button";
+import dashboard from "@/public/images/dashboard.svg";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -20,7 +21,6 @@ import {
 } from "@/components/ui/table";
 import { ViewStudent } from "@/components/students/ui/view-student-wrapper";
 // import { StudentsData } from "./all-student";
-import React from "react";
 
 type BusProps = {
     _id: string;
@@ -77,11 +77,10 @@ export const CommuteTable = () => {
                 </TableHeader>
                 <TableBody className="text-[0.75rem] text-gray-400">
                     {busData?.map((bus: BusProps) => {
-                        console.log(bus)
                         const isBusOpen = openBusId === bus._id;
                         return (
-                            <React.Fragment key={bus._id}>
-                                <TableRow>
+                            <>
+                                <TableRow key={bus._id}>
                                     <TableCell className="text-[0.7rem] capitalize">
                                         <span>{bus.color} </span>
                                         {bus.bus_product_name || "No Bus"}
@@ -130,7 +129,8 @@ export const CommuteTable = () => {
                                         </TableCell>
                                     </TableRow>
                                 )}
-                            </React.Fragment>
+
+                            </>
                         );
                     })}
                 </TableBody>

@@ -1,11 +1,16 @@
 "use client"
 import { Input } from "@/components/ui/input"
+import { useFetch } from "@/hooks/useFetch"
+import { useSession } from "next-auth/react"
 import { usePathname } from "next/navigation"
 import { BiSearch } from "react-icons/bi"
 import { MdNotifications, MdOutlineChat } from "react-icons/md"
 
 const Navbar = () => {
     const pathname = usePathname()
+    const { data: session } = useSession()
+    const userId = session?.user?.id
+    const { data: routeData, isPending: routePending, errorMessage: routeError } = useFetch(`/api/addroute/${userId}`, userId);
 
     return (
         <div className="w-full h-14 p-2 bg-[#182237] rounded-sm flex justify-between items-center">
