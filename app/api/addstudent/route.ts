@@ -51,7 +51,7 @@ export const POST = async (req: NextRequest) => {
       await Buses.findByIdAndUpdate(
         busId,
         {
-          $push: { students: newStudent._id },
+          $push: { student: newStudent._id },
         },
         { new: true, useFindAndModify: false }
       );

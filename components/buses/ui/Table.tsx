@@ -108,17 +108,19 @@ export const BusData = () => {
                                     {bus.seat_number}
                                 </TableCell>
                                 <TableCell className="capitalize">
-                                    {bus.driver}
+                                    {bus.driver ? bus.driver.full_name : "no bus driver"}
                                 </TableCell>
                                 <TableCell className="capitalize">
-                                    {bus.teacher}
+                                    {
+                                        bus.teacher ? bus.teacher?.full_name : "no bus teacher"
+                                    }
                                 </TableCell>
                                 <TableCell className="capitalize">
                                     {bus.student?.length ? <ViewStudent /> : "no kids"}
                                 </TableCell>
                                 <TableCell className="capitalize">
                                     <Link href="#">
-                                        {bus.route.route_name}
+                                        {bus.route ? bus.route.route_name : "no route added"}
                                     </Link>
                                 </TableCell>
                                 <TableCell>
@@ -144,13 +146,6 @@ export const BusData = () => {
             </Table>
 
             <Pagination />
-
-
-
-
-
-
-
 
         </div >
 

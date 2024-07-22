@@ -13,7 +13,7 @@ import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
 import Link from "next/link"
 
-export const ViewStudent = () => {
+export const ViewStudent = ({ data }) => {
     return (
         <Select>
             <SelectTrigger className="w-[100px] text-[0.7rem]">
