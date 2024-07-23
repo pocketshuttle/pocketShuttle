@@ -40,6 +40,11 @@ const studentSchema = new Schema({
     enum: ["absent", "present"],
     default: "absent",
   },
+  presence: {
+    type: String,
+    enum: ["In bus", "At school"],
+    default: "In bus",
+  },
 });
 
 const Student = models.Student || model("Student", studentSchema);
