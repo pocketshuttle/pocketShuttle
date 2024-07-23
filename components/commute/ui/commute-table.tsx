@@ -142,7 +142,12 @@ export const CommuteTable = () => {
 
                                                                 <TableCell>
                                                                     {
-                                                                        student.attendace === "absent" ? "" : student.status
+                                                                        student.attendance === "absent" ? "" :
+                                                                            <span className="bg-[crimson] rounded-md p-[0.3rem]">
+                                                                                {
+                                                                                    student.status
+                                                                                }
+                                                                            </span>
                                                                     }
                                                                 </TableCell>
                                                             </TableRow>
