@@ -20,10 +20,11 @@ export const AttendaceTab = ({ id, value1, value2, label1, label2, data, SetAtte
     const { updateAtendance, loading, error } = useUpdateAttendance(id);
 
 
+    const url = label1 === "Present" || "Absent" ? `/api/addstudent/markattendance/${id}` : `/api/addstudent/markstatus/${id}`
     const handleAttendanceClick = (value: string) => {
         setLocalAttendance(value);
         SetAttendance(value);
-        updateAtendance(value); 
+        updateAtendance(value, url);
     };
 
     // useEffect(() => {

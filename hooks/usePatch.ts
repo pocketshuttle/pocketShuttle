@@ -5,26 +5,23 @@ const useUpdateAttendance = (studentId: string) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const updateAtendance = async (attendance: string) => {
+  const updateAtendance = async (attendance: string, url: string) => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(
-        `/api/addstudent/markattendance/${studentId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ attendance }),
-        }
-      );
+      const response = await fetch(url, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ attendance }),
+      });
 
       const data = await response.json();
       if (response.ok) {
         toast({
-          title: attendance === "present" ? "Marked Present" : "Marked Absent",
+          title: attendance === "present" ? "Marked " : "Marked ",
         });
       } else {
         toast({
