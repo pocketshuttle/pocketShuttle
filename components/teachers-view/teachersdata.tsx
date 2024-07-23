@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table"
 import { useFetch } from "@/hooks/useFetch"
 import { useSession } from "next-auth/react"
-import { AttendaceTab } from "./ui/attendance-tab"
+import { AttendaceTab } from "./ui/register-tab"
 
 type StudentProps = {
     _id: string,
@@ -38,27 +38,15 @@ export const TeachersViewData = () => {
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
     const { data: studentsData, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}`, userId);
 
-    console.log(studentsData);
+    const [attendance, SetAttendance] = useState("")
 
+    console.log(studentsData)
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
-            <div className="p-4 flex justify-between items-center ">
-                <Search placeholder="Search for students..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
-                <div className="gap-3">
-                    <Link href="/dashboard/students/allstudents">
-                        <Button variant="link" className="ml-2 text-blue-600">View All Students</Button>
-                    </Link>
 
-                    <Button variant="secondary" onClick={() => setIsOpenModal(true)}>
-                        add new
-                    </Button>
-
-
-                </div>
-            </div>
-            {
+            {/* {
                 isOpenModal && <StudentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
-            }
+            } */}
 
             <Table>
                 <TableHeader>
@@ -102,7 +90,10 @@ export const TeachersViewData = () => {
                                         </Button>
                                     </TableCell>
                                     <TableCell>
-                                        <  AttendaceTab />
+                                        <  AttendaceTab label1="Present" label2="Absent" data={student.attendance} value1="present" value2="absent" SetAttendance={SetAttendance} attendance={attendance} id={student._id} />
+                                    </TableCell>
+                                    <TableCell>
+                                        <  AttendaceTab label1="Dropped" label2="Picked" data={student.status} value1="dropped" value2="picked" SetAttendance={SetAttendance} attendance={attendance} id={student._id} />
                                     </TableCell>
 
                                     <TableCell>
