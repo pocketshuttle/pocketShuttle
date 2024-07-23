@@ -24,8 +24,7 @@ const useUpdateAttendance = (studentId: string) => {
       const data = await response.json();
       if (response.ok) {
         toast({
-          title: "Added Successfully",
-          description: data.message,
+          title: attendance === "present" ? "Marked Present" : "Marked Absent",
         });
       } else {
         toast({

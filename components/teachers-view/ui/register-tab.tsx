@@ -23,7 +23,7 @@ export const AttendaceTab = ({ id, value1, value2, label1, label2, data, SetAtte
     const handleAttendanceClick = (value: string) => {
         setLocalAttendance(value);
         SetAttendance(value);
-        updateAtendance(value); // Update attendance in the database
+        updateAtendance(value); 
     };
 
     // useEffect(() => {

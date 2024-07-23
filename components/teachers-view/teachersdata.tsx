@@ -30,7 +30,13 @@ type StudentProps = {
     address: string,
     bus: string
     , image: string
+    attendance: string
+    status: string
+
 }
+
+
+
 export const TeachersViewData = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
@@ -53,11 +59,10 @@ export const TeachersViewData = () => {
                     <TableRow className=" uppercase text-[0.7rem]">
                         <TableHead className="w-[250px]">Full Name</TableHead>
                         <TableHead>Gender</TableHead>
-                        <TableHead className="">Age</TableHead>
                         <TableHead className="">Grade</TableHead>
                         <TableHead className="w-[250px]">Address</TableHead>
-                        <TableHead className="">Bus</TableHead>
-                        {/* <TableHead>Status</TableHead> */}
+                        <TableHead className="">Attendance</TableHead>
+                        <TableHead>Status</TableHead>
                     </TableRow>
 
                 </TableHeader>
@@ -75,9 +80,7 @@ export const TeachersViewData = () => {
                                     <TableCell>
                                         {student.gender}
                                     </TableCell>
-                                    {/* <TableCell>
-                                        {student.age}
-                                    </TableCell> */}
+
                                     <TableCell>
                                         {student.grade}
                                     </TableCell>
@@ -85,15 +88,13 @@ export const TeachersViewData = () => {
                                         {student.address}
                                     </TableCell>
                                     <TableCell>
-                                        <Button>
-                                            {student.attendance}
-                                        </Button>
-                                    </TableCell>
-                                    <TableCell>
                                         <  AttendaceTab label1="Present" label2="Absent" data={student.attendance} value1="present" value2="absent" SetAttendance={SetAttendance} attendance={attendance} id={student._id} />
                                     </TableCell>
                                     <TableCell>
-                                        <  AttendaceTab label1="Dropped" label2="Picked" data={student.status} value1="dropped" value2="picked" SetAttendance={SetAttendance} attendance={attendance} id={student._id} />
+                                        {
+                                            student.attendance === "present" ?
+                                                <  AttendaceTab label1="Dropped" label2="Picked" data={student.status} value1="dropped" value2="picked" SetAttendance={SetAttendance} attendance={attendance} id={student._id} /> : ""
+                                        }
                                     </TableCell>
 
                                     <TableCell>
@@ -101,11 +102,6 @@ export const TeachersViewData = () => {
                                             <Link href={`/dashboard/students/${student._id}`}>
                                                 <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
                                                     view
-                                                </button>
-                                            </Link>
-                                            <Link href="/dashboard">
-                                                <button className="bg-destructive px-2 text-[0.5rem] rounded-sm">
-                                                    delete
                                                 </button>
                                             </Link>
                                         </div>
