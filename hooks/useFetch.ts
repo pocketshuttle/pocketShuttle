@@ -29,28 +29,7 @@ export const useFetch = (url: string, userId: string | undefined) => {
     };
 
     fetchData();
-    //   startTransition(() => {
-    //     fetch(url)
-    //       .then((res) => {
-    //         if (res.ok) {
-    //           return res.json();
-    //         } else {
-    //           return res.json().then((err) => {
-    //             throw new Error(err.message);
-    //           });
-    //         }
-    //       })
-    //       .then((result) => {
-    //         setData(result);
-    //       })
-    //       .catch((error) => {
-    //         if (error instanceof Error) {
-    //           setErrorMessage(error.message);
-    //         } else {
-    //           setErrorMessage("Unknown error occurred");
-    //         }
-    //       });
-    //   });
+    
   }, [url, userId]);
 
   return { data, isPending, errorMessage };
