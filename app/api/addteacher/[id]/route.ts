@@ -18,7 +18,20 @@ export const GET = async (
       $or: [{ school_id: id }, { _id: id }],
     })
       .populate("students")
-      .populate("busId");
+      .populate({
+        path: "busId",
+        model: "Buses",
+        populate: [
+          {
+            path: "route",
+            model: "Route",
+          },
+          {
+            path: "student",
+            model: "Student",
+          },
+        ],
+      });
 
     if (!teacher) {
       return Response.json(
