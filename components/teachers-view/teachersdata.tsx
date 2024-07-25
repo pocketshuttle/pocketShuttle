@@ -3,6 +3,7 @@ import { Pagination } from "@/components/dashboard/pagination/pagination"
 import { Search } from "@/components/dashboard/search/search"
 import { Button } from "@/components/ui/button"
 import dashboard from "@/public/images/dashboard.svg"
+import avatar from "@/public/images/avatar.jpg"
 import Image from "next/image"
 import { useState } from "react"
 import { StudentModal } from "@/components/students/ui/Student-modal"
@@ -43,11 +44,11 @@ export const TeachersViewData = () => {
 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
     const { data: studentsData, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}`, userId);
-    const { data: busData, isPending: busLoading, } = useFetch(`/api/addteacher/${userId}`, userId);
+    const { data: teacherData, isPending: busLoading, } = useFetch(`/api/addteacher/${userId}`, userId);
 
     const [attendance, SetAttendance] = useState("")
 
-    console.log(busData)
+    console.log(teacherData)
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bgSoft)]">
 
@@ -56,18 +57,54 @@ export const TeachersViewData = () => {
             } */}
             {
 
-
             }
 
             <div className="mt-4 bg-[var(--bg)] lg:hidden">
                 <header className=" px-4 py-1 space-y-2 text-lg">
                     <p>
-                        BusName : <span>{ }</span>
+                        BusName : <span className="capitalize">{teacherData?.[0]?.busId.bus_product_name}</span>
                     </p>
                     <p>
                         Driver : <span></span>
                     </p>
                 </header>
+
+
+
+
+                <main className="px-4 space-y-2">
+                    <h2>Students</h2>
+                    {
+                        teacherData?.[0]?.busId.student.map((student: StudentProps) => (
+                            <div className="flex items-center w-5/6 bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md">
+                                <Image src={student.image || avatar} alt={student.full_name} className="rounded-md object-cover w-24 h-24" width={100} height={100} />
+
+                                <div className="py-4 space-y-2">
+                                    <h2 className="space-x-2">{student.full_name}
+                                        <small className="ml-2 text-[var(--textSoft)]">{student.age}</small>
+                                        <small className=" text-[var(--textSoft)]">{student.grade}</small>
+                                    </h2>
+                                    <p className="text-sm text-[var(--textSoft)]">{student.address}</p>
+                                    <div className="flex space-x-3 ">
+                                        <div>
+                                            {
+                                                <  AttendaceTab label1="Present" label2="Absent" data={student.attendance} value1="present" value2="absent" SetAttendance={SetAttendance} attendance={attendance} id={student._id} />
+                                            }
+                                        </div>
+                                        <div>
+                                            {
+                                                student.attendance === "present" ?
+                                                    <  AttendaceTab label1="Dropped" label2="Picked" data={student.status} value1="dropped" value2="picked" SetAttendance={SetAttendance} attendance={attendance} id={student._id} /> : ""
+                                            }
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        ))
+                    }
+
+                </main>
             </div>
 
 
