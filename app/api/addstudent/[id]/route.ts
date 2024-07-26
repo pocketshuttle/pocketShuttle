@@ -12,10 +12,20 @@ export const GET = async (
 ) => {
   try {
     await connectToDB();
+    const url = new URL(req.url).searchParams;
+
+    const searchQuery = url.get("q");
+    // console.log("search", searchFullName);
+
     const { id } = params;
-    const student = await Student.find({
+
+    const query = {
       $or: [{ school_id: id }, { _id: id }],
-    }).populate("bus");
+      ...(searchQuery && { full_name: new RegExp(searchQuery, "i") }),
+    };
+    const student = await Student.find(query).populate("bus");
+
+    console.log(student);
 
     if (!student) {
       return new Response(JSON.stringify({ message: "Student not found" }), {
