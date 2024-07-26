@@ -23,20 +23,11 @@ import {
 import { deleteItem } from "@/lib/utils"
 import { ViewStudent } from "@/components/students/ui/view-student-wrapper"
 import RoutesModal from "./routes-modal"
+import { BusProps } from "@/types"
+import { Spinner } from "@/components/ui/spinner"
 
 
-type BusProps = {
-    _id: string,
-    shchool_id: string,
-    bus_product_name: string,
-    color: string,
-    seat_number: string,
-    driver: string,
-    bus_number: string,
-    student: string
-    teacher: string
-    route: string
-}
+
 
 export const BusData = () => {
     const [isOpenModal, setIsOpenModal] = useState(false)
@@ -46,7 +37,7 @@ export const BusData = () => {
     const { data: busData, isPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
 
     if (isPending) {
-        return <p>Loading...</p>;
+        return <Spinner />
     }
 
     if (errorMessage) {
@@ -57,10 +48,8 @@ export const BusData = () => {
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237] mt-2">
-            <div className="p-4 flex justify-between items-center ">
-                <Search placeholder="Search for Buses..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
+            <div className="p-4 flex justify-end items-center ">
                 <div className="space-x-2">
-
                     <Button variant="secondary" onClick={() => setIsOpenModal(true)}>
                         add new
                     </Button>
@@ -116,7 +105,7 @@ export const BusData = () => {
                                     }
                                 </TableCell>
                                 <TableCell className="capitalize">
-                                    {bus.student?.length ? <ViewStudent /> : "no kids"}
+                                    {bus.student?.length ? <ViewStudent data={bus.student} /> : "no kids"}
                                 </TableCell>
                                 <TableCell className="capitalize">
                                     <Link href="#">

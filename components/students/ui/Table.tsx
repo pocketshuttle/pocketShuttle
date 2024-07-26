@@ -21,6 +21,7 @@ import { useSession } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
 import { SelectProperty } from "@/components/ui/select-wrapper"
 import { grades } from "@/data/schooldata"
+import { Spinner } from "@/components/ui/spinner"
 
 type StudentProps = {
     _id: string,
@@ -40,29 +41,34 @@ type BusProps = {
 export const StudentsData = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
+
     const [filterGrade, setFilterGrade] = useState<string>("")
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
     const searchParams = useSearchParams()
     const search = searchParams.get("q") || ""
-    
+
     const handleGradeChange = (value: string) => {
         setFilterGrade(value)
     }
 
     const { data: studentsData, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}&grade=${filterGrade}`, userId);
 
-    console.log(studentsData)
+
+    if (isPending) {
+        return <Spinner />
+    }
+
+
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
-            <div className="p-4 flex justify-between items-center ">
-                <Search placeholder="Search for students..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
+            <div className="p-4 flex justify-end items-center ">
                 <div className="gap-3">
                     <Link href="/dashboard/students/allstudents">
                         <Button variant="link" className="ml-2 text-blue-600">View All Students</Button>
                     </Link>
 
                     <Button variant="secondary" onClick={() => setIsOpenModal(true)}>
-                        add new
+                        Add new Student
                     </Button>
                 </div>
             </div>

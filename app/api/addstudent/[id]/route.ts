@@ -16,12 +16,12 @@ export const GET = async (
 
     const searchQuery = url.get("q") || "";
     const gradeQuery = url.get("grade") || "";
-    console.log("search", gradeQuery);
 
     const { id } = params;
 
     const query = {
       $or: [{ school_id: id }, { _id: id }],
+      //making the regex case insensitive
       ...(searchQuery && { full_name: new RegExp(searchQuery, "i") }),
       ...(gradeQuery && { grade: gradeQuery }),
     };

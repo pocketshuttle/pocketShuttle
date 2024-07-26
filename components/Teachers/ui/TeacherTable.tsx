@@ -3,7 +3,7 @@ import { Search } from "@/components/dashboard/search/search"
 import { Button } from "@/components/ui/button"
 import dashboard from "@/public/images/dashboard.svg"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { DriverAndTeacherModal } from "./teachers-modal"
 import { Pagination } from "@/components/dashboard/pagination/pagination"
@@ -20,28 +20,28 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { TeacherProps } from "@/types"
+import { Spinner } from "@/components/ui/spinner"
 
-type TeacherProps = {
-    _id: string,
-    id: string,
-    full_name: string,
-    email: string,
-    phoneNumber: string,
-    address: string,
-    image: string,
-    busId: string
-}
+
 export const TeachersTable = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
-    const { data: teachersData, isPending, errorMessage } = useFetch(`/api/addteacher/${userId}`, userId);
+
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
 
+    const searchParams = useSearchParams()
+    const search = searchParams.get("q") || ""
+
+    const { data: teachersData, isPending, errorMessage } = useFetch(`/api/addteacher/${userId}?q=${search}`, userId);
+
+    console.log(search);
     const handleModal = () => {
         setIsOpenModal(!isOpenModal);
     };
     if (isPending) {
-        return <p>Loading...</p>;
+        return <Spinner />
+
     }
 
     if (errorMessage) {
@@ -52,10 +52,9 @@ export const TeachersTable = () => {
             {
                 isOpenModal && <DriverAndTeacherModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
             }
-            <div className="p-4 flex justify-between items-center ">
-                <Search placeholder="Search for teachers..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
+            <div className="p-4 flex justify-end items-center ">
                 <Button variant="secondary" onClick={handleModal}>
-                    add new
+                    Add new Teacher
                 </Button>
             </div>
             <Table>
@@ -69,7 +68,6 @@ export const TeachersTable = () => {
                     </TableRow>
                 </TableHeader>
 
-                {/* <TableCaption>Teachers Table</TableCaption> */}
                 <TableBody className="text-[0.75rem] text-gray-400 ">
                     {
                         // teachersData && teachersData > 0 ? (

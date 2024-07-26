@@ -13,9 +13,13 @@ export const GET = async (
   try {
     await connectToDB();
     const { id } = params;
-    console.log(id);
+
+    const url = new URL(req.url).searchParams;
+    const searchDriver = url.get("q") || "";
+
     const driver = await Driver.find({
       $or: [{ school_id: id }, { _id: id }],
+      ...(searchDriver && { full_name: new RegExp(searchDriver, "i") }),
     }).populate("bus");
 
     if (!driver) {

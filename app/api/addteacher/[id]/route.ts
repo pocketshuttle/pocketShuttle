@@ -13,9 +13,13 @@ export const GET = async (
   try {
     await connectToDB();
 
+    const url = new URL(req.url).searchParams;
+    const searchName = url.get("q") || "";
+
     const { id } = params;
     const teacher = await Teacher.find({
       $or: [{ school_id: id }, { _id: id }],
+      ...(searchName && { full_name: new RegExp(searchName, "i") }),
     })
       .populate("students")
       .populate({
@@ -32,6 +36,8 @@ export const GET = async (
           },
         ],
       });
+
+    console.log(teacher);
 
     if (!teacher) {
       return Response.json(
