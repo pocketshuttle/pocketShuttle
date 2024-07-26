@@ -26,8 +26,8 @@ type StudentProps = {
     gender: string,
     grade: string,
     address: string,
-    bus: string
-    , image: string
+    bus: string,
+    image: string
 }
 export const StudentsData = () => {
     const { data: session } = useSession()
