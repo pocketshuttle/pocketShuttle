@@ -14,18 +14,18 @@ export const GET = async (
     await connectToDB();
     const url = new URL(req.url).searchParams;
 
-    const searchQuery = url.get("q");
-    // console.log("search", searchFullName);
+    const searchQuery = url.get("q") || "";
+    const gradeQuery = url.get("grade") || "";
+    console.log("search", gradeQuery);
 
     const { id } = params;
 
     const query = {
       $or: [{ school_id: id }, { _id: id }],
       ...(searchQuery && { full_name: new RegExp(searchQuery, "i") }),
+      ...(gradeQuery && { grade: gradeQuery }),
     };
     const student = await Student.find(query).populate("bus");
-
-    console.log(student);
 
     if (!student) {
       return new Response(JSON.stringify({ message: "Student not found" }), {

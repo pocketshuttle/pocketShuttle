@@ -19,6 +19,8 @@ import {
 import { useFetch } from "@/hooks/useFetch"
 import { useSession } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
+import { SelectProperty } from "@/components/ui/select-wrapper"
+import { grades } from "@/data/schooldata"
 
 type StudentProps = {
     _id: string,
@@ -38,22 +40,17 @@ type BusProps = {
 export const StudentsData = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
-
+    const [filterGrade, setFilterGrade] = useState<string>("")
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
     const searchParams = useSearchParams()
     const search = searchParams.get("q") || ""
+    const handleGradeChange = (value: string) => {
+        setFilterGrade(value)
+    }
 
-
-    const { data: studentsData, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}`, userId);
-
-
-
-
-    // const [search, setSearch] = useState<string>("");
+    const { data: studentsData, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}&grade=${filterGrade}`, userId);
 
     console.log(studentsData)
-
-
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
             <div className="p-4 flex justify-between items-center ">
@@ -78,10 +75,12 @@ export const StudentsData = () => {
                         <TableHead className="w-[250px]">Full Name</TableHead>
                         <TableHead>Gender</TableHead>
                         <TableHead className="">Age</TableHead>
-                        <TableHead className="">Grade</TableHead>
-                        <TableHead className="w-[250px]">Address</TableHead>
-                        <TableHead className="">Bus</TableHead>
-                        {/* <TableHead>Status</TableHead> */}
+                        <TableHead className="w-[185px]">
+                            < SelectProperty placeholder="Grade" label="Filter by Grade" data={grades} handleSelectChange={handleGradeChange} />
+                        </TableHead>
+                        <TableHead className="w-[300px]">Address</TableHead>
+                        <TableHead className="w-[170px]">Bus</TableHead>
+                        <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
 
                 </TableHeader>
