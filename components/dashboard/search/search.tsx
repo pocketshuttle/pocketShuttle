@@ -2,6 +2,7 @@
 import { Input } from "@/components/ui/input"
 import { usePathname, useSearchParams, useRouter } from "next/navigation"
 import { ChangeEvent } from "react"
+import { useDebouncedCallback } from "use-debounce"
 
 type SearchProps = {
     placeholder: string
@@ -12,17 +13,18 @@ export const Search = ({ placeholder, classname }: SearchProps) => {
     const pathname = usePathname()
     const { replace } = useRouter()
 
-    const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
+    const handleSearch = useDebouncedCallback((e: ChangeEvent<HTMLInputElement>) => {
         const params = new URLSearchParams(searchParams)
         if (e.target.value) {
-            params.set("q", e.target.value)
+            e.target.value.length > 2 &&
+                params.set("q", e.target.value)
         } else {
             params.delete("q")
         }
 
         replace(`${pathname}?${params}`)
 
-    }
+    }, 300)
     return (
         <Input placeholder={placeholder} className={classname} onChange={handleSearch} />
 
