@@ -3,7 +3,7 @@ import { Search } from "@/components/dashboard/search/search"
 import { Button } from "@/components/ui/button"
 import dashboard from "@/public/images/dashboard.svg"
 import Image from "next/image"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { StudentModal } from "@/components/students/ui/Student-modal"
 import Link from "next/link"
 import {
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table"
 import { useFetch } from "@/hooks/useFetch"
 import { useSession } from "next-auth/react"
+import { useSearchParams } from "next/navigation"
 
 type StudentProps = {
     _id: string,
@@ -26,17 +27,32 @@ type StudentProps = {
     gender: string,
     grade: string,
     address: string,
-    bus: string,
+    bus: BusProps,
     image: string
+}
+
+type BusProps = {
+    bus_product_name: string
+    bus_number: string
 }
 export const StudentsData = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-    const { data: studentsData, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}`, userId);
+    const searchParams = useSearchParams()
+    const search = searchParams.get("q") || ""
 
-    console.log(studentsData);
+
+    const { data: studentsData, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}`, userId);
+
+
+
+
+    // const [search, setSearch] = useState<string>("");
+
+    console.log(studentsData)
+
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
@@ -50,8 +66,6 @@ export const StudentsData = () => {
                     <Button variant="secondary" onClick={() => setIsOpenModal(true)}>
                         add new
                     </Button>
-
-
                 </div>
             </div>
             {
@@ -79,7 +93,7 @@ export const StudentsData = () => {
                                     <TableCell className="">
                                         <div className="flex items-center gap-2">
                                             <Image src={student.image && student.image || dashboard} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
-                                            <span className="">{student.full_name}</span>
+                                            <span className="capitalize">{student.full_name}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -103,7 +117,7 @@ export const StudentsData = () => {
                                     </TableCell>
                                     <TableCell>
                                         <div className="space-x-2">
-                                            <Link href={`/dashboard/students/${student._id}`}>
+                                            <Link href={`/ dashboard / students / ${student._id}`}>
                                                 <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
                                                     view
                                                 </button>

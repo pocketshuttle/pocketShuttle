@@ -14,11 +14,9 @@ export const Search = ({ placeholder, classname }: SearchProps) => {
 
     const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
         const params = new URLSearchParams(searchParams)
-        params.set("e", e.target.value)
+        params.set("q", e.target.value)
 
         replace(`${pathname}?${params}`)
-
-
 
     }
     return (
