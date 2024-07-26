@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
     Select,
     SelectContent,
@@ -17,10 +16,9 @@ type SelectProps = {
 };
 
 export const SelectProperty = ({ placeholder, label, data, handleSelectChange }: SelectProps) => {
-    console.log(data)
     return (
         <Select onValueChange={handleSelectChange}>
-            <SelectTrigger className="w-3/6">
+            <SelectTrigger className="w-3/6 text-gray-100">
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
