@@ -59,7 +59,7 @@ export const TeachersViewData = () => {
 
             }
 
-            <div className="mt-4 bg-[var(--bg)] lg:hidden">
+            <div className="mt-4 bg-[var(--bg)] lg:hidden w-full">
                 <header className=" px-4 py-1 space-y-2 text-lg">
                     <p>
                         BusName : <span className="capitalize">{teacherData?.[0]?.busId.bus_product_name}</span>
@@ -72,12 +72,14 @@ export const TeachersViewData = () => {
 
 
 
-                <main className="px-4 space-y-2">
+                <main className="px-4 space-y-2 w-full">
                     <h2>Students</h2>
                     {
                         teacherData?.[0]?.busId.student.map((student: StudentProps) => (
-                            <div className="flex items-center w-5/6 bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md">
-                                <Image src={student.image || avatar} alt={student.full_name} className="rounded-md object-cover w-24 h-24" width={100} height={100} />
+                            <div className="flex items-center  bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md">
+                                <Link href={`teacher/${student._id}`}>
+                                    <Image src={student.image || avatar} alt={student.full_name} className="rounded-md object-cover w-24 h-24" width={100} height={100} />
+                                </Link>
 
                                 <div className="py-4 space-y-2">
                                     <h2 className="space-x-2">{student.full_name}
@@ -103,7 +105,6 @@ export const TeachersViewData = () => {
                             </div>
                         ))
                     }
-
                 </main>
             </div>
 
