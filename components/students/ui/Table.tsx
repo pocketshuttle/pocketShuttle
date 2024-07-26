@@ -44,6 +44,7 @@ export const StudentsData = () => {
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
     const searchParams = useSearchParams()
     const search = searchParams.get("q") || ""
+    
     const handleGradeChange = (value: string) => {
         setFilterGrade(value)
     }
