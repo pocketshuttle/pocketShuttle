@@ -19,6 +19,7 @@ import { useFetch } from "@/hooks/useFetch"
 import { useSession } from "next-auth/react"
 import { ParentModal } from "./parent-modal"
 import { ViewStudent } from "@/components/students/ui/view-student-wrapper"
+import { Spinner } from "@/components/ui/spinner"
 
 type ParentProps = {
     _id: string,
@@ -40,13 +41,13 @@ export const ParentData = () => {
     const { data: parentData, isPending, errorMessage } = useFetch(`/api/addparent/${userId}`, userId);
     const [selectedParent, setSelectedParent] = useState<ParentProps | null>(null);
 
-    console.log(parentData)
-    console.log(userId)
-
     const handleModal = (parentId: ParentProps) => {
         setIsOpenModal(true)
         setSelectedParent(parentId);
+    }
 
+    if (isPending) {
+        return <Spinner />
     }
 
     return (

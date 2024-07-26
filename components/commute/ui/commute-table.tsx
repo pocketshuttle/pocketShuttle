@@ -2,6 +2,7 @@
 import { Search } from "@/components/dashboard/search/search";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import avatar from "@/public/images/avatar.jpg"
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Pagination } from "@/components/dashboard/pagination/pagination";
@@ -21,49 +22,20 @@ import {
 import { ViewStudent } from "@/components/students/ui/view-student-wrapper";
 // import { StudentsData } from "./all-student";
 import React from "react";
-
-type BusProps = {
-    _id: string;
-    school_id: string;
-    bus_product_name: string;
-    color: string;
-    seat_number: number;
-    driver: string;
-    bus_number: string;
-    student: StudentProps[];
-    teacher: string;
-    route: RouteProps;
-    status: string;
-};
+import { Spinner } from "@/components/ui/spinner";
+import { BusProps } from "@/types";
 
 
-type StudentProps = {
-    _id: string,
-    full_name: string,
-    age: number,
-    gender: string,
-    grade: string,
-    address: string,
-    bus: string
-    , image: string
-    attendance: string,
-    status: string
-}
-
-type RouteProps = {
-    route_name: string;
-};
 
 export const CommuteTable = () => {
     const { data: session } = useSession();
     const userId = session?.user?.id;
     const [openBusId, setOpenBusId] = useState<string | null>(null);
 
-    const router = useRouter();
     const { data: busData, isPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
 
     if (isPending) {
-        return <div>Loading...</div>;
+        return <Spinner />
     }
 
     if (errorMessage) {
@@ -131,7 +103,7 @@ export const CommuteTable = () => {
                                                             <TableRow key={student._id}>
                                                                 <TableCell className="">
                                                                     <div className="flex items-center gap-2">
-                                                                        <Image src={student.image && student.image || dashboard} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
+                                                                        <Image src={student.image && student.image || avatar} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
                                                                         <span className="">{student.full_name}</span>
                                                                     </div>
                                                                 </TableCell>

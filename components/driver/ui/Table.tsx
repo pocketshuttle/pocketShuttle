@@ -2,8 +2,9 @@
 import { Search } from "@/components/dashboard/search/search"
 import { Button } from "@/components/ui/button"
 import dashboard from "@/public/images/dashboard.svg"
+
 import Image from "next/image"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { Pagination } from "@/components/dashboard/pagination/pagination"
 import Link from "next/link"
@@ -20,32 +21,33 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { DriversProps } from "@/types"
+import { Spinner } from "@/components/ui/spinner"
 
 
-type DriversProps = {
-    _id: string,
-    id: string,
-    full_name: string,
-    email: string,
-    phoneNumber: string,
-    address: string,
-    image: string,
-    bus: string
-}
+
 
 export const DriverTable = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
 
+    const searchParams = useSearchParams()
+    const searchDriver = searchParams.get("q") || " "
+
     const router = useRouter()
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-    const { data: driversData, isPending: driversPending, errorMessage: driversError } = useFetch(`/api/addriver/${userId}`, userId);
+    const { data: driversData, isPending: driversPending, errorMessage: driversError } = useFetch(`/api/addriver/${userId}?q=${searchDriver}`, userId);
 
     const handleModal = () => {
         setIsOpenModal(!isOpenModal)
     }
+    if (driversPending) {
+        return <Spinner />
+    }
 
-    console.log(driversData)
+    if (driversError) {
+        return <p>Error: {driversError}</p>;
+    }
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
             {
@@ -53,9 +55,8 @@ export const DriverTable = () => {
             }
 
             <div className="p-4 flex justify-between items-center ">
-                <Search placeholder="Search for drivers..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
                 <Button variant="secondary" onClick={handleModal}>
-                    add new
+                    Add new driver
                 </Button>
             </div>
             <Table>

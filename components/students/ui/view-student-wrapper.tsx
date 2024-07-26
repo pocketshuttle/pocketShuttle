@@ -1,5 +1,5 @@
 import * as React from "react"
-
+import { StudentProps } from "@/types"
 import {
     Select,
     SelectContent,
@@ -15,23 +15,27 @@ import Link from "next/link"
 
 export const ViewStudent = ({ data }) => {
     return (
-        <Select>
-            <SelectTrigger className="w-[100px] text-[0.7rem]">
+        <Select >
+            <SelectTrigger className="w-[100px] text-[0.7rem] text-gray-200">
                 <SelectValue placeholder="View Kids" />
             </SelectTrigger>
             <SelectContent>
                 <SelectGroup>
-                    <SelectLabel>Kids</SelectLabel>
-                    <SelectItem value="apple">
-                        <Link href="#">
-                            <div className="flex gap-2 items-center   justify-between">
-                                <Image src={avatar} width={30} height={30} alt="avatar" className="rounded-full" />
-                                <span className="text-[0.8rem]">Full Name</span>
-                                <span className="text-[0.6rem]">status</span>
-                            </div>
-                        </Link>
+                    <SelectLabel >Kids</SelectLabel>
+                    {
+                        data.map((student: StudentProps) => (
+                            <SelectItem value="apple">
+                                <Link href="#">
+                                    <div className="flex gap-2 items-center   justify-between ">
+                                        <Image src={student.image} width={40} height={50} alt="avatar" className="rounded-md" />
+                                        <span className="text-sm">{student.full_name}</span>
+                                        <span className="text-[0.6rem]">{student.status}</span>
+                                    </div>
+                                </Link>
+                            </SelectItem>
+                        ))
+                    }
 
-                    </SelectItem>
 
                 </SelectGroup>
             </SelectContent>
