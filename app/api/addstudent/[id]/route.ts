@@ -12,28 +12,40 @@ export const GET = async (
 ) => {
   try {
     await connectToDB();
+
+    const ITEM_PER_PAGE = 2;
     const url = new URL(req.url).searchParams;
 
     const searchQuery = url.get("q") || "";
     const gradeQuery = url.get("grade") || "";
+    const page = url.get("page") || 1;
+
+    console.log("Page", page);
 
     const { id } = params;
-
     const query = {
       $or: [{ school_id: id }, { _id: id }],
       //making the regex case insensitive
       ...(searchQuery && { full_name: new RegExp(searchQuery, "i") }),
       ...(gradeQuery && { grade: gradeQuery }),
     };
-    const student = await Student.find(query).populate("bus");
 
-    if (!student) {
+    //limit, shows the total number of users per page
+    //skip, shows the next page- 1 then multiplied by the total number that was first displayed
+    //then skip that total number
+    const count = await Student.find(query).countDocuments();
+
+    const students = await Student.find(query)
+      .populate("bus")
+      .limit(ITEM_PER_PAGE)
+      .skip(ITEM_PER_PAGE * (page - 1));
+    if (!students) {
       return new Response(JSON.stringify({ message: "Student not found" }), {
         status: 404,
       });
     }
 
-    return new Response(JSON.stringify(student), {
+    return new Response(JSON.stringify({ students, count }), {
       status: 200,
     });
   } catch (error) {
