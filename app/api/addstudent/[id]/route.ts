@@ -13,7 +13,7 @@ export const GET = async (
   try {
     await connectToDB();
 
-    const ITEM_PER_PAGE = 2;
+    const ITEM_PER_PAGE = 4;
     const url = new URL(req.url).searchParams;
 
     const searchQuery = url.get("q") || "";

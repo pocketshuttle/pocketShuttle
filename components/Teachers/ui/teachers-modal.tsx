@@ -150,7 +150,6 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
 
         form.setValue("busId", parsedValue.id)
     }
-    console.log(selectBus)
     const handleSelectStudent = (value: string) => {
         setSelectedStudent(value)
         form.setValue("studentId", value)

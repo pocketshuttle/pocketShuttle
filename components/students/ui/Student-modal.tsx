@@ -18,9 +18,11 @@ import { usePost } from "@/hooks/usePost"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { useFetch } from "@/hooks/useFetch"
 import { Textarea } from "@/components/ui/textarea"
+import { UploadImage } from "@/components/ui/upload-image"
+import { FormSuccess } from "@/components/ui/form-success"
 
 interface StudentModalProps {
-    setIsOpenModal?: Dispatch<SetStateAction<boolean>>
+    setIsOpenModal: Dispatch<SetStateAction<boolean>>
     isOpenModal: boolean
 }
 
@@ -55,7 +57,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
             parentId: selectParent || "",
             teacherId: selectTeacher || undefined,
             driverId: selectDriver || "",
-            busId: selectBus || "",
+            busId: selectBus || undefined,
             address: "",
             grade: selectGrade || "",
             gender: selectGender || "",
@@ -65,56 +67,13 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
 
 
     const onSubmit = (values: z.infer<typeof StudentSchema>) => {
-        console.log(values)
         startTransition(() => {
             setSubmittedData(values)
+            setNewAvatar("")
         });
+
     }
 
-    const handleCameraClick = () => {
-        const inputElement = document.getElementById("cameraInput")
-        inputElement?.click()
-        // console.log(inputElement)
-    }
-
-    const handleCameraInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files[0]
-        console.log(file)
-        if (file) {
-            const reader = new FileReader()
-            reader.onload = async () => {
-                await uploadFile(file)
-            }
-            if (reader.readyState === FileReader.EMPTY) {
-                reader.readAsDataURL(file);
-            } else {
-                console.error('FileReader is busy reading another file.');
-            }
-        }
-    }
-
-
-    const uploadFile = async (file: any) => {
-        try {
-            const data = new FormData()
-            data.append('file', file)
-            // data.append("upload_preset", 'images')
-
-            const res = await fetch(`/api/upload`, {
-                method: 'POST',
-                body: data,
-            })
-
-            if (res.ok) {
-                const data = await res.json()
-                form.setValue("image", data.url)
-                setNewAvatar(data.url)
-            }
-        }
-        catch (error) {
-            console.log(error);
-        }
-    }
     const handleCloseModal = () => {
         setIsOpenModal(false)
     }
@@ -130,7 +89,6 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
         form.setValue("busId", parsedValue.id);
     };
 
-    console.log(selectBus)
     const handleSelectParent = (value: string) => {
         setSelectParent(value);
         form.setValue("parentId", value);
@@ -141,6 +99,10 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
         form.setValue("grade", value);
     };
 
+    if (success) {
+        return <FormSuccess message={"Successfully added"} setIsOpenModal={setIsOpenModal} />
+    }
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
             <div className="relative bg-gray-900  rounded-md w-5/6 ">
@@ -150,18 +112,8 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                     action={() => handleCloseModal()}
                 >
                     <div className=" flex ">
-                        <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
-                            <input
-                                id="cameraInput"
-                                type="file"
-                                accept="image/*"
-                                capture="environment"
-                                style={{ display: 'none' }}
-                                onChange={handleCameraInputChange}
-                            />
-                            {/* <Image src={isLoadingImage ? spinner : newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} /> */}
-
-                            <Image src={newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full object-fill" onClick={() => handleCameraClick()} />
+                        <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[21.5rem] p-2 rounded-md" >
+                            < UploadImage form={form} newAvatar={newAvatar} setNewAvatar={setNewAvatar} avatar={avatar} />
                         </div>
                         <div className="flex-1 px-5 ">
 

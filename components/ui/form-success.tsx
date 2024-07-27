@@ -14,11 +14,11 @@ export const FormSuccess = ({ message, setIsOpenModal }: FormSuccessProps) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-            <div className="relative bg-gray-900  rounded-md space-y-2 ">
-                <div className="bg-emerald-500/15 rounded-md p-3 flex items-center justify-center flex-col gap-x-2 text-sm text-emerald-500">
-                    <CheckCircledIcon className="w-4 h-4" />
-                    <p>{message}</p>
-                    <Button size="lg" className="mt-3" onClick={() => setIsOpenModal(false)}>Add More</Button>
+            <div className="relative bg-gray-900  rounded-md space-y-2 w-2/6 h-64">
+                <div className="bg-emerald-500/15 rounded-md p-3 flex items-center justify-center flex-col gap-x-2 gap-y-4 text-sm text-emerald-500 w-full h-full">
+                    <CheckCircledIcon className="w-16 h-16" />
+                    <p className="text-2xl">{message}</p>
+                    <Button size="lg" className="mt-3 text-lg px-12 py-4" onClick={() => setIsOpenModal(false)}>Add More</Button>
                 </div>
             </div>
         </div>
