@@ -44,20 +44,26 @@ export const StudentsData = () => {
 
     const [filterGrade, setFilterGrade] = useState<string>("")
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
+
     const searchParams = useSearchParams()
     const search = searchParams.get("q") || ""
+
+    const page = searchParams.get("page") || 1
 
     const handleGradeChange = (value: string) => {
         setFilterGrade(value)
     }
 
-    const { data: studentsData, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}&grade=${filterGrade}`, userId);
+    const { data, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}&grade=${filterGrade}&page=${page}`, userId);
+
+    const studentsData = data?.students || [];
+    const totalCount = data?.count || 0;
 
 
     if (isPending) {
         return <Spinner />
     }
-
+    console.log(totalCount)
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
@@ -142,8 +148,7 @@ export const StudentsData = () => {
                 </TableBody>
             </Table>
 
-
-            <Pagination />
+            <Pagination count={totalCount} />
         </div >
 
     )
