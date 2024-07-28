@@ -23,7 +23,7 @@ import { ViewStudent } from "@/components/students/ui/view-student-wrapper";
 // import { StudentsData } from "./all-student";
 import React from "react";
 import { Spinner } from "@/components/ui/spinner";
-import { BusProps } from "@/types";
+import { BusProps, StudentProps } from "@/types";
 
 
 
@@ -33,6 +33,7 @@ export const CommuteTable = () => {
     const [openBusId, setOpenBusId] = useState<string | null>(null);
 
     const { data: busData, isPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
+    const { data: routeData, isPending: routeLoading, errorMessage: routeError } = useFetch(`/api/addroute/${userId}`, userId);
 
     if (isPending) {
         return <Spinner />

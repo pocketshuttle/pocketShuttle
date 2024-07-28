@@ -50,3 +50,10 @@ export type StudentProps = {
   status: string;
   presence: string;
 };
+
+export type SelectProps = {
+  placeholder: string;
+  label?: string;
+  data: BusProps[];
+  studentId: string;
+};

@@ -33,9 +33,13 @@ const SingleBus = () => {
 
     const { data: teachersData, isPending: loading, errorMessage } = useFetch(`/api/addteacher/${userId}`, userId);
     const { data: driversData, isPending: driverLoading, errorMessage: driversError } = useFetch(`/api/addteacher/${userId}`, userId);
+    const { data: routeData, isPending: routeLoading, errorMessage: routeError } = useFetch(`/api/addroute/${userId}`, userId);
+
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${busId}`, busId);
     const { data: postData, loading: postLoading, errorMessage: postError, success } = usePost(`/api/addbus/${busId}`, submittedData, "PATCH")
 
+
+    console.log(routeData)
     const form = useForm<z.infer<typeof BusSchema>>({
         resolver: zodResolver(BusSchema),
         defaultValues: {

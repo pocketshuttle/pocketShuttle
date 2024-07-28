@@ -43,8 +43,9 @@ export const TeachersViewData = () => {
     const userId = session?.user?.id
 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-    const { data: studentsData, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}`, userId);
+    const { data, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}`, userId);
     const { data: teacherData, isPending: busLoading, } = useFetch(`/api/addteacher/${userId}`, userId);
+    const studentsData = data?.students || [];
 
     const [attendance, SetAttendance] = useState("")
 
