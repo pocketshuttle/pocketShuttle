@@ -27,11 +27,6 @@ export const AttendaceTab = ({ id, value1, value2, label1, label2, data, SetAtte
         updateAtendance(value, url);
     };
 
-    // useEffect(() => {
-    //     setLocalAttendance(attendance);
-    // }, [attendance])
-
-
     return (
         <div className="inline-flex text-[0.7rem] h-9 items-center justify-center rounded-lg bg-[var(--bg)] p-1 text-muted-foreground">
             <button

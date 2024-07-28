@@ -22,6 +22,8 @@ import { useSearchParams } from "next/navigation"
 import { SelectProperty } from "@/components/ui/select-wrapper"
 import { grades } from "@/data/schooldata"
 import { Spinner } from "@/components/ui/spinner"
+import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
+import { SelectBus, SelectPassengerBus } from "@/components/ui/select-bus-wrapper"
 
 type StudentProps = {
     _id: string,
@@ -44,7 +46,7 @@ export const StudentsData = () => {
 
     const [filterGrade, setFilterGrade] = useState<string>("")
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-
+    const [selectBus, setSelectBus] = useState<string>("")
     const searchParams = useSearchParams()
     const search = searchParams.get("q") || ""
 
@@ -54,16 +56,18 @@ export const StudentsData = () => {
         setFilterGrade(value)
     }
 
-    const { data, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}&grade=${filterGrade}&page=${page}`, userId);
+    const gradeQuery = filterGrade !== "All" ? `&grade=${filterGrade}` : "";
+
+    const { data, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}${gradeQuery}&page=${page}`, userId);
+    const { data: busData, isPending: busLoading, errorMessage: busError } = useFetch(`/api/addbus/${userId}?q=${search}&grade=${filterGrade}&page=${page}`, userId);
+
 
     const studentsData = data?.students || [];
     const totalCount = data?.count || 0;
 
-
     if (isPending) {
         return <Spinner />
     }
-    console.log(totalCount)
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
@@ -89,7 +93,7 @@ export const StudentsData = () => {
                         <TableHead>Gender</TableHead>
                         <TableHead className="">Age</TableHead>
                         <TableHead className="w-[185px]">
-                            < SelectProperty placeholder="Grade" label="Filter by Grade" data={grades} handleSelectChange={handleGradeChange} />
+                            < SelectProperty placeholder="Grade" label="Filter by Grade" data={grades} handleSelectChange={handleGradeChange} setFilterGrade={setFilterGrade} />
                         </TableHead>
                         <TableHead className="w-[300px]">Address</TableHead>
                         <TableHead className="w-[170px]">Bus</TableHead>
@@ -121,15 +125,28 @@ export const StudentsData = () => {
                                         {student.address}
                                     </TableCell>
                                     <TableCell className="capitalize">
-                                        <p> {student.bus && student.bus.bus_product_name}
-                                            <span>
-                                                ({student.bus && student.bus.bus_number})
-                                            </span>
-                                        </p>
+                                        {
+                                            student.bus ?
+                                                <p> {student.bus && student.bus.bus_product_name}
+                                                    <span>
+                                                        ({student.bus && student.bus.bus_number})
+                                                    </span>
+                                                </p> : <div className="w-full">
+                                                    {
+                                                        busData &&
+                                                        < SelectPassengerBus
+                                                            placeholder="Select Bus"
+                                                            label="Select Bus"
+                                                            data={busData}
+                                                            studentId={student._id}
+                                                        />
+                                                    }
+                                                </div>
+                                        }
                                     </TableCell>
                                     <TableCell>
                                         <div className="space-x-2">
-                                            <Link href={`/ dashboard / students / ${student._id}`}>
+                                            <Link href={`/dashboard/students/${student._id}`}>
                                                 <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
                                                     view
                                                 </button>

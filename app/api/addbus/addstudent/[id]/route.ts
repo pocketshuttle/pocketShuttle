@@ -6,7 +6,6 @@ import Buses from "@/(models)/Bus";
 type ParamsProps = {
   id: string;
 };
-
 export const PATCH = async (
   req: NextRequest,
   { params }: { params: ParamsProps }
@@ -17,40 +16,35 @@ export const PATCH = async (
     const { id } = params;
     const data = await req.json();
 
-    console.log("bus data", data);
-
     if (!data) {
       return NextResponse.json(
-        { message: "No data provided" },
-        { status: 400 }
-      );
-    }
-
-   
-
-    const updatedStudent = await Student.findByIdAndUpdate(
-      id,
-      { attendance: data.attendance },
-      { new: true, useFindAndModify: false }
-    );
-
-    if (!updatedStudent) {
-      return NextResponse.json(
-        { message: "Student not found" },
+        {
+          message: "Student not found",
+        },
         { status: 404 }
       );
     }
+    const { studentId, busId } = data.attendance;
+
+    if (busId) {
+      // const student = await Buses.find({ student: studentId });
+      await Student.findByIdAndUpdate(
+        studentId,
+        { bus: busId },
+        { new: true, useFindAndModify: false }
+      );
+    }
 
     return NextResponse.json(
-      { message: "Attendance updated successfully", student: updatedStudent },
+      { message: "Student added successfully" },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error updating attendance:", error);
+    console.error("Error adding student", error);
 
     return NextResponse.json(
       {
-        message: "Error updating attendance",
+        message: "Error adding student",
         error: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }

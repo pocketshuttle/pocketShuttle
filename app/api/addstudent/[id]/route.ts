@@ -20,8 +20,6 @@ export const GET = async (
     const gradeQuery = url.get("grade") || "";
     const page = url.get("page") || 1;
 
-    console.log("Page", page);
-
     const { id } = params;
     const query = {
       $or: [{ school_id: id }, { _id: id }],
@@ -30,6 +28,9 @@ export const GET = async (
       ...(gradeQuery && { grade: gradeQuery }),
     };
 
+    if (gradeQuery && gradeQuery !== "All") {
+      query.grade = gradeQuery;
+    }
     //limit, shows the total number of users per page
     //skip, shows the next page- 1 then multiplied by the total number that was first displayed
     //then skip that total number
