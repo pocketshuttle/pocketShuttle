@@ -167,7 +167,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                 >
 
                     <div className=" flex ">
-                        <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
+                        <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[23.5rem] p-2 rounded-md" >
                             <input
                                 id="cameraInput"
                                 type="file"
@@ -176,7 +176,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                 style={{ display: 'none' }}
                                 onChange={handleCameraInputChange}
                             />
-                            <Image src={isLoadingImage ? spinner : newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
+                            <Image src={isLoadingImage ? spinner : newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[22.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
                         </div>
                         <div className="flex-1 px-5 ">
                             <Form {...form}>
@@ -310,17 +310,17 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                         <div className="w-3/6">
                                             {
                                                 busData &&
-                                                < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} />
+                                                < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} classname="hello" />
                                             }
                                         </div>
-                                        <div className="w-3/6">
+                                        {/* <div className="w-3/6">
                                             <div>
                                                 {
                                                     studentData &&
                                                     < SelectDataProperty placeholder="Select Bus Teacher" label="Select Teachers" data={studentData} handleSelectChange={handleSelectStudent} />
                                                 }
                                             </div>
-                                        </div>
+                                        </div> */}
                                     </div>
 
                                     {/* <FormError message={isError} /> */}

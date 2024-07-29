@@ -28,12 +28,13 @@ export const TeachersTable = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
 
-    const [isOpenModal, setIsOpenModal] = useState<boolean>(true);
+    const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
 
     const searchParams = useSearchParams()
     const search = searchParams.get("q") || ""
+    const page = searchParams.get("page") || 1
 
-    const { data, isPending, errorMessage } = useFetch(`/api/addteacher/${userId}?q=${search}`, userId);
+    const { data, isPending, errorMessage } = useFetch(`/api/addteacher/${userId}?q=${search}&page=${page}`, userId);
     const teachersData = data?.teacher
     const totalCount = data?.count
     const handleModal = () => {
@@ -41,7 +42,6 @@ export const TeachersTable = () => {
     };
     if (isPending) {
         return <Spinner />
-
     }
 
     if (errorMessage) {
@@ -78,7 +78,7 @@ export const TeachersTable = () => {
                                     <TableCell className="">
                                         <div className="flex items-center gap-2">
                                             <img src={teacher.image && teacher.image || dashboard} alt={teacher.full_name} className="rounded-md object-cover w-9 h-9" />
-                                            <span className="">{teacher.full_name}</span>
+                                            <span className="capitalize">{teacher.full_name}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -119,7 +119,7 @@ export const TeachersTable = () => {
 
                 </TableBody>
             </Table>
-            <Pagination count={totalCount} />
+            <Pagination count={totalCount} pageCount={2} />
 
         </div>
 
