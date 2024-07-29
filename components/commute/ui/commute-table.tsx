@@ -57,7 +57,6 @@ export const CommuteTable = () => {
                 </TableHeader>
                 <TableBody className="text-[0.75rem] text-gray-400">
                     {busData?.map((bus: BusProps) => {
-                        console.log(bus)
                         const isBusOpen = openBusId === bus._id;
                         return (
                             <React.Fragment key={bus._id}>
@@ -123,6 +122,8 @@ export const CommuteTable = () => {
                                                                             </span>
                                                                     }
                                                                 </TableCell>
+                                                                <Pagination />
+
                                                             </TableRow>
                                                         ))}
                                                     </TableBody>
