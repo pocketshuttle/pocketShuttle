@@ -10,13 +10,17 @@ export const GET = async (
   req: NextRequest,
   { params }: { params: ParamProp }
 ) => {
-  try {  
+  try {
     await connectToDB();
     const { id } = params;
-    console.log(id);
-    const parent = await Parent.find({
+    const query = {
       $or: [{ school_id: id }, { _id: id }],
-    }).populate({ path: "students", model: "Student" });
+    };
+    const parentCount = await Parent.find(`query`);
+    const parent = await Parent.find(query).populate({
+      path: "students",
+      model: "Student",
+    });
 
     console.log("Fetched parent data: ", parent);
 
@@ -26,7 +30,7 @@ export const GET = async (
       });
     }
 
-    return new Response(JSON.stringify(parent), {
+    return new Response(JSON.stringify({ parent, parentCount }), {
       status: 200,
     });
   } catch (error) {

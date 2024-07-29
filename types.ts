@@ -20,6 +20,7 @@ export type BusProps = {
   student: StudentProps;
   teacher: TeacherProps;
   route: RouteTypes;
+  status: string;
 };
 
 export type RouteTypes = {

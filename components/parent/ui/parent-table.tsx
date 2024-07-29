@@ -20,6 +20,7 @@ import { useSession } from "next-auth/react"
 import { ParentModal } from "./parent-modal"
 import { ViewStudent } from "@/components/students/ui/view-student-wrapper"
 import { Spinner } from "@/components/ui/spinner"
+import { useSearchParams } from "next/navigation"
 
 type ParentProps = {
     _id: string,
@@ -35,13 +36,19 @@ type ParentProps = {
 export const ParentData = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
+    const getParams = useSearchParams()
+    const page = getParams.get("page") || ""
 
 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-    const { data: parentData, isPending, errorMessage } = useFetch(`/api/addparent/${userId}`, userId);
-    const [selectedParent, setSelectedParent] = useState<ParentProps | null>(null);
+    const { data, isPending, errorMessage } = useFetch(`/api/addparent/${userId}`, userId);
 
-    const handleModal = (parentId: ParentProps) => {
+    const parentData = data?.parent
+    const totalCount = data?.parentCount || 0;
+
+    const [selectedParent, setSelectedParent] = useState<string | null>(null);
+
+    const handleModal = (parentId: string) => {
         setIsOpenModal(true)
         setSelectedParent(parentId);
     }
@@ -121,7 +128,7 @@ export const ParentData = () => {
             </Table>
 
 
-            <Pagination />
+            <Pagination count={totalCount} pageCount={4} />
         </div >
 
     )
