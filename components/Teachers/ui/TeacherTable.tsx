@@ -28,14 +28,14 @@ export const TeachersTable = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
 
-    const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
+    const [isOpenModal, setIsOpenModal] = useState<boolean>(true);
 
     const searchParams = useSearchParams()
     const search = searchParams.get("q") || ""
 
-    const { data: teachersData, isPending, errorMessage } = useFetch(`/api/addteacher/${userId}?q=${search}`, userId);
-
-    console.log(search);
+    const { data, isPending, errorMessage } = useFetch(`/api/addteacher/${userId}?q=${search}`, userId);
+    const teachersData = data?.teacher
+    const totalCount = data?.count
     const handleModal = () => {
         setIsOpenModal(!isOpenModal);
     };
@@ -119,6 +119,8 @@ export const TeachersTable = () => {
 
                 </TableBody>
             </Table>
+            <Pagination count={totalCount} />
+
         </div>
 
     )

@@ -36,8 +36,9 @@ export const DriverTable = () => {
 
     const router = useRouter()
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-    const { data: driversData, isPending: driversPending, errorMessage: driversError } = useFetch(`/api/addriver/${userId}?q=${searchDriver}`, userId);
-
+    const { data, isPending: driversPending, errorMessage: driversError } = useFetch(`/api/addriver/${userId}?q=${searchDriver}`, userId);
+    const driversData = data?.driver
+    const totalCount = data?.driversCount
     const handleModal = () => {
         setIsOpenModal(!isOpenModal)
     }
@@ -118,7 +119,7 @@ export const DriverTable = () => {
 
             </Table>
 
-            <Pagination />
+            <Pagination count={totalCount} />
         </div >
 
     )

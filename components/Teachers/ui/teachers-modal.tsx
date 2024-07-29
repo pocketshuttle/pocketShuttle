@@ -18,7 +18,7 @@ import { usePost } from "@/hooks/usePost"
 import { FormSuccess } from "@/components/ui/form-success"
 import { useSession } from "next-auth/react"
 import { useFetch } from "@/hooks/useFetch"
-import { SelectBusWrapper } from "./select-bus-wrapper"
+import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 
 
@@ -51,7 +51,6 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
     const { data: studentData, isPending: studentPending, errorMessage: studentError } = useFetch(`/api/addstudent/${userId}`, userId);
 
-    console.log(userId)
 
     const useSchema = mode === "driver" ? DriverSchema : TeacherSchema
 
