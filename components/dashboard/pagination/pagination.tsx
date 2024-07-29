@@ -2,17 +2,19 @@
 
 import { Button } from "@/components/ui/button"
 import { usePathname, useSearchParams, useRouter } from "next/navigation"
+
 type CountProps = {
     count: number
+    pageCount: number
 }
-export const Pagination = ({ count }: CountProps) => {
+export const Pagination = ({ count, pageCount }: CountProps) => {
     const searchParams = useSearchParams()
     const pathname = usePathname()
     const { replace } = useRouter()
     const params = new URLSearchParams(searchParams)
 
-    const page = searchParams.get("page") || 1
-    const ITEM_PER_PAGE = 4
+    const page: number = searchParams.get("page") as unknown as number || 1
+    const ITEM_PER_PAGE = pageCount
 
     //this function returns 0, meaning the back button is disabled for the first page
     //the second page returns 1, so the button is enabled

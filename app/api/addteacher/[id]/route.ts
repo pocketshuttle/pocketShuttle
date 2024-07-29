@@ -12,9 +12,11 @@ export const GET = async (
 ) => {
   try {
     await connectToDB();
+    const ITEM_PER_PAGE = 2;
 
     const url = new URL(req.url).searchParams;
     const searchName = url.get("q") || "";
+    const page: number = (url.get("page") as unknown as number) || 1;
 
     const { id } = params;
     const query = {
@@ -39,7 +41,9 @@ export const GET = async (
             model: "Student",
           },
         ],
-      });
+      })
+      .limit(ITEM_PER_PAGE)
+      .skip(ITEM_PER_PAGE * (page - 1));
 
     if (!teacher) {
       return Response.json(

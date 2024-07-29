@@ -18,7 +18,7 @@ export const GET = async (
 
     const searchQuery = url.get("q") || "";
     const gradeQuery = url.get("grade") || "";
-    const page = url.get("page") || 1;
+    const page: number = (url.get("page") as unknown as number) || 1;
 
     const { id } = params;
     const query = {

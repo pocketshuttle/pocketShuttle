@@ -12,7 +12,7 @@ type SelectProps = {
     placeholder: string;
     label?: string;
     handleSelectChange: (value: string) => void;
-    data: any
+    data: dataProps[]
     classname: string
 };
 
@@ -24,7 +24,6 @@ type dataProps = {
 }
 
 export const SelectBusWrapper = ({ placeholder, label, data, handleSelectChange, classname }: SelectProps) => {
-    console.log("data is from bus model", data)
     return (
         <Select onValueChange={handleSelectChange}>
             <SelectTrigger className={`${classname && classname}w-3/6`}>
@@ -34,7 +33,7 @@ export const SelectBusWrapper = ({ placeholder, label, data, handleSelectChange,
                 <SelectGroup>
                     <SelectLabel>{label}</SelectLabel>
                     {
-                        data.map((item: dataProps, index: number) => (
+                        data && data?.map((item: dataProps, index: number) => (
                             <SelectItem key={item._id} value={JSON.stringify({ id: item._id, bus_product_name: item.bus_product_name })}>
                                 <div className="space-x-1">
 

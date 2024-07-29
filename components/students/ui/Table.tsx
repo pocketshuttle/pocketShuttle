@@ -23,7 +23,7 @@ import { SelectProperty } from "@/components/ui/select-wrapper"
 import { grades } from "@/data/schooldata"
 import { Spinner } from "@/components/ui/spinner"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
-import { SelectBus, SelectPassengerBus } from "@/components/ui/select-bus-wrapper"
+import { SelectPassengerBus } from "@/components/ui/select-bus-wrapper"
 
 type StudentProps = {
     _id: string,
@@ -46,7 +46,6 @@ export const StudentsData = () => {
 
     const [filterGrade, setFilterGrade] = useState<string>("")
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-    const [selectBus, setSelectBus] = useState<string>("")
     const searchParams = useSearchParams()
     const search = searchParams.get("q") || ""
 
@@ -165,7 +164,7 @@ export const StudentsData = () => {
                 </TableBody>
             </Table>
 
-            <Pagination count={totalCount} />
+            <Pagination count={totalCount} pageCount={4} />
         </div >
 
     )
