@@ -28,10 +28,6 @@ export type BusesProps = {
 };
 
 export const grades = [
-  // {
-  //   value: "All",
-  //   label: "",
-  // },
   {
     value: "Grade A",
     label: "Grade A",

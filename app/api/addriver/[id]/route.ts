@@ -16,11 +16,12 @@ export const GET = async (
 
     const url = new URL(req.url).searchParams;
     const searchDriver = url.get("q") || "";
-
-    const driver = await Driver.find({
+    const query = {
       $or: [{ school_id: id }, { _id: id }],
       ...(searchDriver && { full_name: new RegExp(searchDriver, "i") }),
-    }).populate("bus");
+    };
+    const driversCount = await Driver.find(query).countDocuments();
+    const driver = await Driver.find(query).populate("bus");
 
     if (!driver) {
       return new Response(JSON.stringify({ message: "Driver not found" }), {
@@ -28,7 +29,7 @@ export const GET = async (
       });
     }
 
-    return new Response(JSON.stringify(driver), {
+    return new Response(JSON.stringify({ driver, driversCount }), {
       status: 200,
     });
   } catch (error) {

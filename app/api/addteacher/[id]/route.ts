@@ -17,10 +17,14 @@ export const GET = async (
     const searchName = url.get("q") || "";
 
     const { id } = params;
-    const teacher = await Teacher.find({
+    const query = {
       $or: [{ school_id: id }, { _id: id }],
       ...(searchName && { full_name: new RegExp(searchName, "i") }),
-    })
+    };
+
+    const count = await Teacher.find(query).countDocuments();
+    console.log(count);
+    const teacher = await Teacher.find(query)
       .populate("students")
       .populate({
         path: "busId",
@@ -37,8 +41,6 @@ export const GET = async (
         ],
       });
 
-    console.log(teacher);
-
     if (!teacher) {
       return Response.json(
         { message: "Teacher not found!" },
@@ -48,7 +50,7 @@ export const GET = async (
       );
     }
 
-    return new Response(JSON.stringify(teacher), {
+    return new Response(JSON.stringify({ teacher, count }), {
       status: 200,
     });
   } catch (error) {
