@@ -24,6 +24,7 @@ import { grades } from "@/data/schooldata"
 import { Spinner } from "@/components/ui/spinner"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { SelectPassengerBus } from "@/components/ui/select-bus-wrapper"
+import useUpdateAttendance from "@/hooks/usePatch"
 
 type StudentProps = {
     _id: string,
@@ -59,6 +60,7 @@ export const StudentsData = () => {
 
     const { data, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}${gradeQuery}&page=${page}`, userId);
     const { data: busData, isPending: busLoading, errorMessage: busError } = useFetch(`/api/addbus/${userId}?q=${search}&grade=${filterGrade}&page=${page}`, userId);
+    const { updateAtendance, loading, error } = useUpdateAttendance(userId, "DELETE");
 
 
     const studentsData = data?.students || [];
@@ -66,6 +68,10 @@ export const StudentsData = () => {
 
     if (isPending) {
         return <Spinner />
+    }
+
+    const handleDelete = (value: string) => {
+        updateAtendance(JSON.parse(value), `/api/addbus/addstudent/${userId}`)
     }
 
     return (
@@ -126,11 +132,14 @@ export const StudentsData = () => {
                                     <TableCell className="capitalize">
                                         {
                                             student.bus ?
-                                                <p> {student.bus && student.bus.bus_product_name}
+                                                <div className=" space-x-2"> {student.bus && student.bus.bus_product_name}
                                                     <span>
                                                         ({student.bus && student.bus.bus_number})
                                                     </span>
-                                                </p> : <div className="w-full">
+                                                    <button className="bg-destructive px-2 text-[0.5rem] rounded-sm" onClick={() => handleDelete(JSON.stringify({ studentId: student._id, busId: student.bus._id }))}>
+                                                        -
+                                                    </button>
+                                                </div> : <div className="w-full">
                                                     {
                                                         busData &&
                                                         < SelectPassengerBus

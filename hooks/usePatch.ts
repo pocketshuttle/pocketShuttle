@@ -1,17 +1,17 @@
 import { toast } from "@/components/ui/use-toast";
 import { useState } from "react";
 
-const useUpdateAttendance = (studentId: string) => {
+const useUpdateAttendance = (studentId: string, method: string) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const updateAtendance = async (attendance: string, url: string) => {
+  const updateAtendance = async (attendance: string | object, url: string) => {
     setLoading(true);
     setError(null);
 
     try {
       const response = await fetch(url, {
-        method: "PATCH",
+        method: method,
         headers: {
           "Content-Type": "application/json",
         },
