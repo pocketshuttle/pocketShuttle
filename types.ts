@@ -17,7 +17,7 @@ export type BusProps = {
   seat_number: string;
   driver: DriversProps;
   bus_number: string;
-  student: StudentProps;
+  student: StudentProps[];
   teacher: TeacherProps;
   route: RouteTypes;
   status: string;

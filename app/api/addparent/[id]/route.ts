@@ -16,7 +16,7 @@ export const GET = async (
     const query = {
       $or: [{ school_id: id }, { _id: id }],
     };
-    const parentCount = await Parent.find(`query`);
+    const parentCount = await Parent.find(query).countDocuments();
     const parent = await Parent.find(query).populate({
       path: "students",
       model: "Student",
