@@ -55,7 +55,8 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
     const [newData, setNewData] = useState(null)
 
     const { data, loading, errorMessage, success } = usePost(`/api/addteacher/${id}`, submittedData, "PATCH")
-    const { data: teacherData, isPending: isLoading, errorMessage: editMessage } = useFetch(`/api/addteacher/${id}`, userId);
+    const { data: teachersData, isPending: isLoading, errorMessage: editMessage } = useFetch(`/api/addteacher/${id}`, userId);
+    const teacherData = teachersData?.teacher
     const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
 
     const form = useForm<z.infer<typeof TeacherSchema>>({

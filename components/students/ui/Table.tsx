@@ -26,6 +26,18 @@ import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { SelectPassengerBus } from "@/components/ui/select-bus-wrapper"
 import useUpdateAttendance from "@/hooks/usePatch"
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 type StudentProps = {
     _id: string,
     full_name: string,
@@ -47,6 +59,8 @@ export const StudentsData = () => {
 
     const [filterGrade, setFilterGrade] = useState<string>("")
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
+    const [deleteData, setDeleteData] = useState({ schoolId: "", busId: "" })
+
     const searchParams = useSearchParams()
     const search = searchParams.get("q") || ""
 
@@ -62,15 +76,20 @@ export const StudentsData = () => {
     const { data: busData, isPending: busLoading, errorMessage: busError } = useFetch(`/api/addbus/${userId}?q=${search}&grade=${filterGrade}&page=${page}`, userId);
     const { updateAtendance, loading, error } = useUpdateAttendance(userId, "DELETE");
 
-
+    console.log(busData)
     const studentsData = data?.students || [];
+    console.log(studentsData)
     const totalCount = data?.count || 0;
 
     if (isPending) {
         return <Spinner />
     }
+    const removeFromBus = () => {
 
-    const handleDelete = (value: string) => {
+    }
+
+    const handleRemove = (value: string) => {
+        console.log(value)
         updateAtendance(JSON.parse(value), `/api/addbus/addstudent/${userId}`)
     }
 
@@ -136,9 +155,31 @@ export const StudentsData = () => {
                                                     <span>
                                                         ({student.bus && student.bus.bus_number})
                                                     </span>
-                                                    <button className="bg-destructive px-2 text-[0.5rem] rounded-sm" onClick={() => handleDelete(JSON.stringify({ studentId: student._id, busId: student.bus._id }))}>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button variant="destructive" className="px-2 py-1 ">-</Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent className="bg-gray-900 border-none">
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                                <AlertDialogDescription className="text-gray-500 text-md">
+                                                                    {` You're about to remove 
+                                                                 ${student.full_name} 
+                                                                    from ${student.bus.bus_product_name}  with bus Number ${student.bus.bus_number}`}
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    className="bg-destructive"
+                                                                    onClick={() => handleRemove(JSON.stringify({ studentId: student._id, busId: student.bus._id }))}
+                                                                >Continue</AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                    {/* <button className="bg-destructive px-2 text-[0.5rem] rounded-sm" onClick={() => handleDelete(JSON.stringify({ studentId: student._id, busId: student.bus._id }))}>
                                                         -
-                                                    </button>
+                                                    </button> */}
                                                 </div> : <div className="w-full">
                                                     {
                                                         busData &&

@@ -29,9 +29,10 @@ const SingleStudent = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
 
-    const { data: studentData, isPending: studentPending, errorMessage } = useFetch(`/api/addstudent/${id}`, id);
+    const { data, isPending: studentPending, errorMessage } = useFetch(`/api/addstudent/${id}`, id);
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
 
+    const studentData = data?.students
 
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState("")
@@ -224,7 +225,7 @@ const SingleStudent = () => {
                                 <div className="w-full">
                                     {
                                         busData &&
-                                        < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} />
+                                        < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} classname="ks" />
                                     }
                                 </div>
                             </div>
