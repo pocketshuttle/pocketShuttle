@@ -112,7 +112,7 @@ export const CommuteTable = () => {
                                                                 <TableCell>{student.grade}</TableCell>
                                                                 <TableCell>{student.address}</TableCell>
 
-                                                                <TableCell>
+                                                                <TableCell >
                                                                     {
                                                                         student.attendance === "absent" ? "" :
                                                                             <span className="bg-[crimson] rounded-md p-[0.3rem]">
@@ -122,7 +122,6 @@ export const CommuteTable = () => {
                                                                             </span>
                                                                     }
                                                                 </TableCell>
-                                                                <Pagination />
 
                                                             </TableRow>
                                                         ))}
@@ -137,8 +136,6 @@ export const CommuteTable = () => {
                     })}
                 </TableBody>
             </Table>
-
-            <Pagination />
         </div>
     );
 };

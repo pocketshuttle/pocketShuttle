@@ -21,6 +21,8 @@ import {
 import { useFetch } from "@/hooks/useFetch"
 import { useSession } from "next-auth/react"
 import { AttendaceTab } from "./ui/register-tab"
+import { useSearchParams } from "next/navigation"
+import { Spinner } from "../ui/spinner"
 
 type StudentProps = {
     _id: string,
@@ -42,14 +44,25 @@ export const TeachersViewData = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
 
-    const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-    const { data, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}`, userId);
-    const { data: teacherData, isPending: busLoading, } = useFetch(`/api/addteacher/${userId}`, userId);
-    const studentsData = data?.students || [];
+    const searchParams = useSearchParams()
+    const page = searchParams.get("page")
 
+    const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
+    const { data, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?page=${page}`, userId);
+    const { data: teachersData, isPending: isLoading, } = useFetch(`/api/addteacher/${userId}`, userId);
+    const { data: busData, isPending: busLoading, } = useFetch(`/api/addbus/${userId}`, userId);
+
+
+    const teacherData = teachersData?.teacher
+    console.log(teacherData);
+    const studentsData = data?.students || [];
+    const totalCount = data?.count
     const [attendance, SetAttendance] = useState("")
 
-    console.log(teacherData)
+
+    if (isPending) {
+        return <Spinner />
+    }
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bgSoft)]">
 
@@ -171,7 +184,7 @@ export const TeachersViewData = () => {
                 </Table>
 
 
-                <Pagination />
+                <Pagination count={totalCount} pageCount={4} />
             </div >
         </div>
 
