@@ -17,7 +17,7 @@ type RegisterProps = {
 
 export const AttendaceTab = ({ id, value1, value2, label1, label2, data, SetAttendance, attendance }: RegisterProps) => {
     const [localAttendance, setLocalAttendance] = useState(data);
-    const { updateAtendance, loading, error } = useUpdateAttendance(id);
+    const { updateAtendance, loading, error } = useUpdateAttendance(id, "PATCH");
 
 
     const url = label1 === "Present" || "Absent" ? `/api/addstudent/markattendance/${id}` : `/api/addstudent/markstatus/${id}`

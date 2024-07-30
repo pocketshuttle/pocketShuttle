@@ -30,9 +30,9 @@ type dataProps = {
 export const SelectPassengerBus = ({ placeholder, label, data, studentId }: SelectProps) => {
     const [passenger, setPassenger] = useState<object>({ busId: undefined, studentId: undefined })
 
-    const { updateAtendance, loading, error } = useUpdateAttendance(studentId);
+    const { updateAtendance, loading, error } = useUpdateAttendance(studentId, "PATCH");
 
-    const handleSelectBus = (value: string) => {
+    const handleSelectBus = (value: string | object) => {
         updateAtendance({ busId: value, studentId: studentId }, `/api/addbus/addstudent/${studentId}`)
     }
 

@@ -14,8 +14,8 @@ export const PATCH = async (
     await connectToDB();
 
     const { id } = params;
-    const data = await req.json();
 
+    const data = await req.json();
     if (!data) {
       return NextResponse.json(
         {
@@ -81,7 +81,10 @@ export const DELETE = async (
 ) => {
   try {
     await connectToDB();
-    const { studentId, busId } = await req.json();
+    const data = await req.json();
+
+    const { studentId, busId } = data.attendance;
+
     if (!studentId || !busId) {
       return NextResponse.json(
         {
@@ -112,12 +115,15 @@ export const DELETE = async (
       );
     }
 
-    bus.students = bus.students.filter(
-      (student: any) => student.id.toString !== studentId
+    console.log(bus);
+    console.log(student);
+
+    bus.students = bus.student.filter(
+      (id: any) => id._id.toString() !== studentId
     );
     await bus.save();
-      // Remove the bus reference from the student document
-      student.bus = null;
+    // Remove the bus reference from the student document
+    student.bus = null;
     await student.save();
 
     return NextResponse.json(
