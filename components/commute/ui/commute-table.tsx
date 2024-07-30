@@ -35,6 +35,7 @@ export const CommuteTable = () => {
     const { data: busData, isPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
     const { data: routeData, isPending: routeLoading, errorMessage: routeError } = useFetch(`/api/addroute/${userId}`, userId);
 
+    console.log(busData)
     if (isPending) {
         return <Spinner />
     }
@@ -58,6 +59,7 @@ export const CommuteTable = () => {
                 <TableBody className="text-[0.75rem] text-gray-400">
                     {busData?.map((bus: BusProps) => {
                         const isBusOpen = openBusId === bus._id;
+                        console.log(bus)
                         return (
                             <React.Fragment key={bus._id}>
                                 <TableRow>

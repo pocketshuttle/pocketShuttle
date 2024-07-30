@@ -14,7 +14,7 @@ type SelectProps = {
     placeholder: string;
     label?: string;
     handleSelectChange: (value: string) => void;
-    setFilterGrade: Dispatch<SetStateAction<string>>
+    setFilterGrade?: Dispatch<SetStateAction<string>>;
     data: any
 };
 
