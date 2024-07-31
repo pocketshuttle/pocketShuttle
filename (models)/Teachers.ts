@@ -8,6 +8,7 @@ const teacherSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    role: String,
     full_name: String,
     image: String,
     email: { type: String, unique: true, sparse: true },
