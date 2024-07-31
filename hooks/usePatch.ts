@@ -5,7 +5,10 @@ const useUpdateAttendance = (studentId: string, method: string) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const updateAtendance = async (attendance: string | object, url: string) => {
+  const updateAtendance = async (
+    attendance: string | object ,
+    url: string
+  ) => {
     setLoading(true);
     setError(null);
 
