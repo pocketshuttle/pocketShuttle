@@ -44,18 +44,16 @@ export const BusData = () => {
         return <p>Error: {errorMessage}</p>;
     }
 
-    console.log(busData)
-
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237] mt-2">
             <div className="p-4 flex justify-end items-center ">
                 <div className="space-x-2">
                     <Button variant="secondary" onClick={() => setIsOpenModal(true)}>
-                        add new
+                        Add Bus
                     </Button>
 
                     <Button variant="destructive" onClick={() => setIsRouteOpenModal(true)}>
-                        add bus routes
+                        Add bus routes
                     </Button>
                 </div>
             </div>
@@ -134,7 +132,7 @@ export const BusData = () => {
 
             </Table>
 
-            <Pagination />
+            {/* <Pagination /> */}
 
         </div >
 
