@@ -52,10 +52,11 @@ type StudentProps = {
 type BusProps = {
     bus_product_name: string
     bus_number: string
+    _id: string
 }
 export const StudentsData = () => {
     const { data: session } = useSession()
-    const userId = session?.user?.id
+    const userId: string = session?.user?.id
 
     const [filterGrade, setFilterGrade] = useState<string>("")
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
@@ -173,7 +174,9 @@ export const StudentsData = () => {
                                                                 <AlertDialogAction
                                                                     className="bg-destructive"
                                                                     onClick={() => handleRemove(JSON.stringify({ studentId: student._id, busId: student.bus._id }))}
-                                                                >Continue</AlertDialogAction>
+                                                                >
+                                                                    Continue
+                                                                </AlertDialogAction>
                                                             </AlertDialogFooter>
                                                         </AlertDialogContent>
                                                     </AlertDialog>
