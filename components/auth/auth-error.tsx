@@ -9,7 +9,7 @@ const AuthErrorCard = () => {
             </CardHeader>
             <CardFooter
             >
-                <BackButton label="Back to login" href="/auth/login" />
+                <BackButton label="Back to login" href="/auth/login" desc="" />
             </CardFooter>
         </Card>
 

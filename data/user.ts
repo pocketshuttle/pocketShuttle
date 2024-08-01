@@ -9,14 +9,17 @@ export const getUserByEmail = async (email: string) => {
     return null;
   }
 };
+
 export const getUserById = async (id: string) => {
   try {
-    const user = await User.find({
-      where: { id },
-    });
-
+    const user = await User.find({ _id: id });
+    if (!user) {
+      console.error(`User not found with ID: ${id}`);
+      return null;
+    }
     return user;
-  } catch {
+  } catch (error) {
+    console.error(`Error fetching user by ID: ${id}`, error);
     return null;
   }
 };
