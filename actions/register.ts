@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { getUserByEmail } from "@/data/user";
 import User from "@/(models)/User";
 import { connectToDB } from "@/utils/connect-to-db";
-
+import { generateVerificationToken } from "@/lib/token";
 export const register = async (values: z.infer<typeof RegisterSchema>) => {
   await connectToDB();
   const validatedFields = RegisterSchema.safeParse(values);
@@ -31,16 +31,10 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
       password: hashedPassword,
     });
 
-    // await db.user.create({
-    //   data: {
-    //     name: schoolname,
-    //     email,
-    //     password: hashedPassword,
-    //   },
-    // });
+    const verificationToken = await generateVerificationToken(email);
     await user.save();
 
-    return { success: "Successfully Registered" };
+    return { success: "Confirmation Email Sent" };
   } catch (error) {
     console.error("Error during registration:", error);
     return { error: "Registration failed. Please try again." };

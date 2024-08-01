@@ -2,11 +2,6 @@ import mongoose, { model } from "mongoose";
 const { Schema, models } = mongoose;
 
 const VerificationTokenSchema = new Schema({
-  customId: {
-    type: String,
-    unique: true,
-    required: true,
-  },
   email: {
     type: String,
     unique: true,
