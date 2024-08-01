@@ -8,36 +8,14 @@ import { getUserByEmail } from "./data/user";
 export default {
   providers: [
     GoogleProvider({
-      // profile(profile) {
-      //   console.log("profile", profile);
-      //   //   // const points = profile.points || 0;
-      //   //   const { sub, email, name, picture } = profile;
-      //   //   // let userRole = "parent";
-
-      //   return {
-      //     id: sub,
-      //     email,
-      //     name,
-      //     image,
-      //     // points,
-      //     // role: userRole,
-      //   };
-      // },
-
       clientId: process.env.CLIENT_ID || "",
       clientSecret: process.env.CLIENT_SECRET || "",
-      // httpOptions: {
-      //   timeout: 40000,
-      // },
     }),
     Credentials({
       async authorize(credentials) {
-        console.log(credentials, "credentials");
         //     //we validating the fields again
         const validatedFields = LoginSchema.safeParse(credentials);
 
-        console.log(validatedFields);
-        
         if (validatedFields.success) {
           const { email, password } = validatedFields.data;
 
