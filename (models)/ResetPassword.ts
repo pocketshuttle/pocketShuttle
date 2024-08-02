@@ -1,7 +1,7 @@
 import mongoose, { model } from "mongoose";
 const { Schema, models } = mongoose;
 
-const VerificationTokenSchema = new Schema({
+const ResetPasswordSchema = new Schema({
   email: {
     type: String,
     unique: true,
@@ -16,10 +16,10 @@ const VerificationTokenSchema = new Schema({
     type: Date,
   },
 });
-VerificationTokenSchema.index({ email: 1, token: 1 }, { unique: true });
+ResetPasswordSchema.index({ email: 1, token: 1 }, { unique: true });
 
-const VerificationToken =
-  models?.VerificationToken ||
-  model("VerificationToken", VerificationTokenSchema);
 
-export default VerificationToken;
+const ResetPasswordToken =
+  models?.ResetPasswordToken || model("VerificationToken", ResetPasswordSchema);
+
+export default ResetPasswordToken;
