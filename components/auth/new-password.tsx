@@ -35,7 +35,6 @@ export const NewPasswordForm = () => {
         resolver: zodResolver(NewPasswordSchema),
         defaultValues: {
             password: "",
-
         }
     })
     const onSubmit = (values: z.infer<typeof NewPasswordSchema>) => {

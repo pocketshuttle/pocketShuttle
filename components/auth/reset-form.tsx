@@ -32,7 +32,6 @@ export const ResetPasswordForm = () => {
         resolver: zodResolver(ResetPasswordSchema),
         defaultValues: {
             email: "",
-
         }
     })
     const onSubmit = (values: z.infer<typeof ResetPasswordSchema>) => {

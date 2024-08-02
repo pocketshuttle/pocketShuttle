@@ -18,8 +18,8 @@ const ResetPasswordSchema = new Schema({
 });
 ResetPasswordSchema.index({ email: 1, token: 1 }, { unique: true });
 
-
 const ResetPasswordToken =
-  models?.ResetPasswordToken || model("VerificationToken", ResetPasswordSchema);
+  models?.ResetPasswordToken ||
+  model("ResetPasswordToken", ResetPasswordSchema);
 
 export default ResetPasswordToken;
