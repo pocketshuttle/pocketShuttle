@@ -9,6 +9,7 @@ import { connectToDB } from "@/utils/connect-to-db";
 export const newVerification = async (token: string) => {
   await connectToDB();
   const existingToken = await getVerificationTokenByToken(token);
+  console.log("existing token", existingToken);
   if (!existingToken) {
     return { error: "Token not found" };
   }
