@@ -32,5 +32,5 @@ export const newVerification = async (token: string) => {
 
   await VerificationToken.deleteOne({ _id: existingToken._id });
 
-  return { success: "email verified" };
+  return { success: "Email verified!" };
 };
