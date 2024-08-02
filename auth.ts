@@ -22,31 +22,45 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       try {
+        await connectToDB(); // Connect to the database
+        console.log("users", user);
         if (account?.provider !== "credentials") return true;
 
         const existingUser = await getUserById(user?.id);
-        
-        //preventing signin without email verification
-        if (!existingUser?.emailVerified) return false;
 
-        //     await connectToDB(); // Connect to the database
-        //     const userExist = await User.findOne({
-        //       email: profile?.email,
-        //     });
+        console.log("existing users", profile);
 
-        //     if (!userExist) {
-        //       await User.create({
-        //         email: profile?.email,
-        //         // Ensure there's no space in the username and convert to lowercase
-        //         username: profile?.name?.replace(" ", " ").toLowerCase(),
-        //         image: profile?.image,
-        //         role: "admin",
-        //       });
-        //     } else {
-        //       return userExist;
+        if (!existingUser?.[0].emailVerified) return false;
+        // if (account?.provider !== "credentials") {
+        //   const existingUser = await getUserById(user?.id);
+        //   if (existingUser) {
+        //     if (!existingUser?.[0].emailVerified) {
+        //       console.log("Email not verified");
+        //       return false;
         //     }
+        //   }
+        //   return true;
+        // }
+
+        const userExist = await User.findOne({
+          email: profile?.email,
+        });
+
+        console.log(userExist);
+
+        // if (!userExist) {
+        //   await User.create({
+        //     email: profile?.email,
+        //     // Ensure there's no space in the username and convert to lowercase
+        //     username: profile?.name?.replace(" ", " ").toLowerCase(),
+        //     image: profile?.image,
+        //   });
+        // } else {
+        //   return userExist;
+        // }
+
         return true;
       } catch (error) {
         console.error("Error signing in:", error);
@@ -71,7 +85,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (!token.sub) return token;
 
       const existingUser = await getUserById(token.sub);
-      console.log("existing users", existingUser?.[0]?.role);
+      // console.log("existing users", existingUser?.[0]?.role);
 
       if (!existingUser) return token;
 

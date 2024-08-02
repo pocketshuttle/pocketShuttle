@@ -10,10 +10,11 @@ export const getVerificationTokenByEmail = async (email: string) => {
     return null;
   }
 };
+
 export const getVerificationTokenByToken = async (token: string) => {
   try {
     await connectToDB();
-    const verificationToken = VerificationToken.findOne({ token: token });
+    const verificationToken = await VerificationToken.findOne({ token: token });
     return verificationToken;
   } catch (error) {
     console.error(error);
