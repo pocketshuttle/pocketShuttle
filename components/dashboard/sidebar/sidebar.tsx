@@ -92,7 +92,7 @@ const Sidebar = () => {
         <div className="h-screen fixed flex flex-col justify-between bg-[var( --bg-root)] px-2 py-6 border-1 border-r-[1px]  border-gray-600">
             <div className="space-y-7 " >
                 <DashboardHeader />
-                <ul className="w-[250px]  ">
+                <ul className="w-[300px]">
                     {menuItems.map((menuSection, index) => (
                         <li key={index} >
                             {/* <span className="text-[#b7cac1] text-[0.8rem]">{menuSection.title}</span> */}
