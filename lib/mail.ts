@@ -19,6 +19,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
    `,
   });
 };
+
 export const sendResetPasswordEmail = async (email: string, token: string) => {
   const passwordLink = `http://localhost:3000/reset-password?token=${token}`;
 

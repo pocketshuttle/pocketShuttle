@@ -6,14 +6,16 @@ body,
 html,
 :root {
   --bg: #151c2c;
+  --bg-root: #05050a;
   --bgSoft: #182237;
   --text: white;
   --textSoft: #b7cac1;
+  --hoverBg: #16171c;
   height: 100%;
 }
 
 body {
-  background-color: var(--bg);
+  background-color: var(--bg-root);
   color: var(--text);
 }
 * {
