@@ -7,11 +7,11 @@ interface DashboardWrapperProps {
 }
 export const DashboardWrapper = ({ headLabel, total }: DashboardWrapperProps) => {
     return (
-        <div className="p-3 space-y-4 mt-2 bg-[#182237] rounded-xl  shadow hover:bg-blue-950 ">
-            <div className="text-[0.7rem]">
+        <div className="p-3 space-y-4 mt-2 bg-[var(--hoverBg)] border-[1px] border-gray-500  rounded-xl  shadow hover:bg-blue-950 ">
+            <div className="text-[0.8rem] text-center">
                 {headLabel}
             </div>
-            <div className=" font-medium text-2xl">
+            <div className=" font-medium text-3xl text-center">
                 {total}
             </div>
 
