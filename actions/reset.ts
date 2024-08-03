@@ -4,7 +4,10 @@ import * as z from "zod";
 import { ResetPasswordSchema } from "@/schemas";
 
 import { getUserByEmail } from "@/data/user";
-import { generateVerificationToken } from "@/lib/token";
+import {
+  generatePasswordResetToken,
+  generateVerificationToken,
+} from "@/lib/token";
 import { sendResetPasswordEmail, sendVerificationEmail } from "@/lib/mail";
 
 export const reset = async (values: z.infer<typeof ResetPasswordSchema>) => {
@@ -21,12 +24,14 @@ export const reset = async (values: z.infer<typeof ResetPasswordSchema>) => {
   if (!existingUser) {
     return { error: "User not found!" };
   }
-  
-  const verificationToken = await generateVerificationToken(existingUser.email);
+
+  const resetPasswordToken = await generatePasswordResetToken(
+    existingUser.email
+  );
 
   await sendResetPasswordEmail(
-    verificationToken.email,
-    verificationToken.token
+    resetPasswordToken.email,
+    resetPasswordToken.token
   );
 
   return { success: "Reset Email sent!" };

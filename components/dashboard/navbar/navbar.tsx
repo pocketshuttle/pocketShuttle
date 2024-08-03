@@ -13,7 +13,7 @@ const Navbar = () => {
     const userId = session?.user?.id
 
     return (
-        <div className="w-full h-14 p-2 bg-[#182237] rounded-sm flex justify-between items-center">
+        <div className="w-full h-14 py-4 bg-[var(--bgRoot)] rounded-sm flex justify-between items-center border-1 border-b-[1px] border-gray-600">
             <div >
                 <span className="capitalize">
                     {pathname.split('/').pop()}
