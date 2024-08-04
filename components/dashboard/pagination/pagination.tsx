@@ -3,6 +3,10 @@
 import { Button } from "@/components/ui/button"
 import { usePathname, useSearchParams, useRouter } from "next/navigation"
 import { ChevronRightIcon, ChevronLeftIcon } from "@radix-ui/react-icons"
+import { useState } from "react"
+import LottieAnimation from "../sidebar/menuLink/lottie-animation"
+import arrow from "@/public/images/Arrow.json"
+import left from "@/public/images/left.json"
 type CountProps = {
     count: number
     pageCount: number
@@ -12,6 +16,7 @@ export const Pagination = ({ count, pageCount }: CountProps) => {
     const pathname = usePathname()
     const { replace } = useRouter()
     const params = new URLSearchParams(searchParams)
+    const [isHovering, setIsHovering] = useState(false);
 
     const page: number = searchParams.get("page") as unknown as number || 1
     const ITEM_PER_PAGE = pageCount
@@ -38,11 +43,26 @@ export const Pagination = ({ count, pageCount }: CountProps) => {
                 }
             </span>
             <div className="space-x-2 flex justify-between  px-6 py-3 ">
-                <Button variant="outline" disabled={!hasPrev} onClick={() => handlePagination("prev")} className="bg-transparent border-gray-600">
-                    <ChevronLeftIcon />
+                <Button variant="outline" disabled={!hasPrev} onClick={() => handlePagination("prev")} className="bg-transparent border-gray-600 hover:bg-[var(--hoverBg)] "
+                >
+                    <div
+                        className='w-[20px] h-[20px]'
+                        onMouseEnter={() => setIsHovering(true)}
+                        onMouseLeave={() => setIsHovering(false)}
+                    >
+                        <LottieAnimation isHovering={isHovering} animationData={left} />
+                    </div>
                 </Button>
-                <Button variant="outline" disabled={!hasNext} onClick={() => handlePagination("next")} className="bg-transparent border-gray-600">
-                    <ChevronRightIcon />
+                <Button variant="outline" disabled={!hasNext} onClick={() => handlePagination("next")} className="bg-transparent border-gray-600 hover:bg-[var(--hoverBg)] ">
+
+
+                    <div
+                        className='w-[20px] h-[20px]'
+                        onMouseEnter={() => setIsHovering(true)}
+                        onMouseLeave={() => setIsHovering(false)}
+                    >
+                        <LottieAnimation isHovering={isHovering} animationData={arrow} />
+                    </div>
                 </Button>
             </div >
         </div>

@@ -45,7 +45,7 @@ export type StudentProps = {
   gender: string;
   grade: string;
   address: string;
-  bus: string;
+  bus: BusProps;
   image: string;
   attendance: string;
   status: string;

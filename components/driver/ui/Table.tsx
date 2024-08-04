@@ -5,12 +5,14 @@ import dashboard from "@/public/images/dashboard.svg"
 
 import Image from "next/image"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { Pagination } from "@/components/dashboard/pagination/pagination"
 import Link from "next/link"
 import { DriverAndTeacherModal } from "@/components/Teachers/ui/teachers-modal"
 import { useFetch } from "@/hooks/useFetch"
 import { useSession } from "next-auth/react"
+import minus from "@/public/images/minus.json"
+
 import {
     Table,
     TableBody,
@@ -21,10 +23,25 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { DriversProps } from "@/types"
 import { Spinner } from "@/components/ui/spinner"
 import { AddToBus } from "@/components/buses/add-to-bus"
 import { AddData } from "@/components/ui/add-data-button"
+import { EditData } from "@/components/ui/edit-data-link"
+import LottieAnimation from "@/components/dashboard/sidebar/menuLink/lottie-animation"
+import { toast } from "@/components/ui/use-toast"
+import { removeDriverFromBus } from "@/actions/remove-driver"
 
 
 
@@ -36,6 +53,9 @@ export const DriverTable = () => {
     const searchParams = useSearchParams()
     const searchDriver = searchParams.get("q") || " "
 
+    const [isHovering, setIsHovering] = useState(false);
+    const [isPending, startTransition] = useTransition()
+
     const router = useRouter()
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
     const { data, isPending: driversPending, errorMessage: driversError } = useFetch(`/api/addriver/${userId}?q=${searchDriver}`, userId);
@@ -43,9 +63,25 @@ export const DriverTable = () => {
 
     const driversData = data?.driver
     const totalCount = data?.driversCount
-   
+
     const handleModal = () => {
         setIsOpenModal(!isOpenModal)
+    }
+
+    const handleRemove = (driverId: string, busId: string) => {
+        startTransition(() => {
+            removeDriverFromBus(driverId, busId).then((data) => {
+                toast({
+                    description: data.message,
+                });
+                // window.location.reload();
+            }).catch((error) => {
+                console.error("Error:", error);
+                toast({
+                    description: "An error occurred. Please try again.",
+                });
+            });
+        })
     }
     if (driversPending) {
         return <Spinner />
@@ -61,7 +97,7 @@ export const DriverTable = () => {
             }
 
             <div className="p-4 flex justify-end items-center ">
-                < AddData label="add Driver" action={handleModal} />
+                < AddData label="Driver" action={handleModal} />
             </div>
             <Table>
                 <TableHeader>
@@ -96,36 +132,72 @@ export const DriverTable = () => {
                                     </TableCell>
                                     <TableCell className="text-[0.7rem] capitalize">
                                         {
-                                            driver.bus ? <>
-                                                <span>{driver.bus.color} </span>
-                                                {driver.bus.bus_product_name || "No Bus"}
-                                                <span> ({driver.bus.bus_number})</span>
-                                            </> : <div className="w-full">
-                                                {
-                                                    busData &&
-                                                    < AddToBus
-                                                        placeholder="Select Bus"
-                                                        label="Select Bus"
-                                                        data={busData}
-                                                        id={driver._id}
-                                                        mode="driver"
-                                                    />
-                                                }
-                                            </div>
+                                            driver.bus ?
+
+                                                <div className="flex space-x-1">
+                                                    <div>
+                                                        <span>{driver.bus.color} </span>
+                                                        {driver.bus.bus_product_name || "No Bus"}
+                                                        <span> ({driver.bus.bus_number})</span>
+                                                    </div>
+
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <div
+                                                                className='w-[20px] h-[20px] mr-[0.2rem]'
+                                                                onMouseEnter={() => setIsHovering(true)}
+                                                                onMouseLeave={() => setIsHovering(false)}
+                                                            >
+                                                                <LottieAnimation isHovering={isHovering} animationData={minus} />
+                                                            </div>
+
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent className="bg-gray-900 border-none">
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                                <AlertDialogDescription className="text-gray-500 text-md">
+                                                                    {` You're about to remove 
+                                                                 ${driver.full_name} 
+                                                                    from ${driver.bus.bus_product_name}  with bus Number ${driver.bus.bus_number}`}
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    className="bg-destructive"
+                                                                    onClick={() => handleRemove(driver._id, driver.bus._id)}
+                                                                >
+                                                                    Continue
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+
+                                                </div>
+
+
+
+
+
+
+                                                : <div className="w-full">
+                                                    {
+                                                        busData &&
+                                                        < AddToBus
+                                                            placeholder="Select Bus"
+                                                            label="Select Bus"
+                                                            data={busData}
+                                                            id={driver._id}
+                                                            mode="driver"
+                                                        />
+                                                    }
+                                                </div>
                                         }
                                     </TableCell>
                                     <TableCell>
                                         <div className="space-x-2 flex text-gray-200">
-                                            <Link href={`/dashboard/driver/${driver._id}`}>
-                                                <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
-                                                    view
-                                                </button>
-                                            </Link>
-                                            <Link href="/dashboard">
-                                                <button className="bg-destructive px-2 text-[0.5rem] rounded-sm">
-                                                    delete
-                                                </button>
-                                            </Link>
+                                            <EditData link={`/dashboard/driver/${driver._id}`} mode="edit" />
+                                            <EditData link={`/dashboard/`} mode="delete" />
                                         </div>
                                     </TableCell>
                                 </TableRow>

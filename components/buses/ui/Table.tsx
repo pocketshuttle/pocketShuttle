@@ -26,6 +26,8 @@ import RoutesModal from "./routes-modal"
 import { BusProps } from "@/types"
 import { Spinner } from "@/components/ui/spinner"
 import { AddRoute } from "./add-route"
+import { AddData } from "@/components/ui/add-data-button"
+import { EditData } from "@/components/ui/edit-data-link"
 
 
 
@@ -38,6 +40,9 @@ export const BusData = () => {
     const { data: busData, isPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
     const { data: routeData } = useFetch(`/api/addroute/${userId}`, userId);
 
+    const handleModal = () => {
+        setIsOpenModal(true)
+    }
     if (isPending) {
         return <Spinner />
     }
@@ -49,10 +54,8 @@ export const BusData = () => {
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)] mt-2">
             <div className="p-4 flex justify-end items-center ">
-                <div className="space-x-2">
-                    <Button variant="secondary" onClick={() => setIsOpenModal(true)}>
-                        Add Bus
-                    </Button>
+                <div className="space-x-2 flex">
+                    < AddData label="Bus" action={handleModal} />
 
                     <Button variant="destructive" onClick={() => setIsRouteOpenModal(true)}>
                         Add bus routes
@@ -119,16 +122,8 @@ export const BusData = () => {
                                 </TableCell>
                                 <TableCell>
                                     <div className="space-x-2">
-                                        <Link href={`/dashboard/bus/${bus._id}`}>
-                                            <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm text-gray-100">
-                                                view
-                                            </button>
-                                        </Link>
-                                        <button className="bg-destructive px-2 text-[0.5rem] rounded-sm text-gray-100 "
-                                            onClick={() => deleteItem(busData, bus._id)}
-                                        >
-                                            delete
-                                        </button>
+                                        <EditData link={`/dashboard/bus/${bus._id}`} mode="edit" />
+                                        <EditData link={`/dashboard/`} mode="delete" />
                                     </div>
                                 </TableCell>
                             </TableRow>

@@ -25,7 +25,6 @@ import { Spinner } from "@/components/ui/spinner"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { SelectPassengerBus } from "@/components/ui/select-bus-wrapper"
 import useUpdateAttendance from "@/hooks/usePatch"
-
 import {
     AlertDialog,
     AlertDialogAction,
@@ -37,23 +36,12 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { AddData } from "@/components/ui/add-data-button"
+import { EditData } from "@/components/ui/edit-data-link"
+import LottieAnimation from "@/components/dashboard/sidebar/menuLink/lottie-animation"
+import { StudentProps } from "@/types"
+import minus from "@/public/images/minus.json"
 
-type StudentProps = {
-    _id: string,
-    full_name: string,
-    age: number,
-    gender: string,
-    grade: string,
-    address: string,
-    bus: BusProps,
-    image: string
-}
-
-type BusProps = {
-    bus_product_name: string
-    bus_number: string
-    _id: string
-}
 export const StudentsData = () => {
     const { data: session } = useSession()
     const userId: string | undefined = session?.user?.id
@@ -77,10 +65,11 @@ export const StudentsData = () => {
     const { data: busData, isPending: busLoading, errorMessage: busError } = useFetch(`/api/addbus/${userId}?q=${search}&grade=${filterGrade}&page=${page}`, userId);
     const { updateAtendance, loading, error } = useUpdateAttendance(userId, "DELETE");
 
-    console.log(busData)
     const studentsData = data?.students || [];
-    console.log(studentsData)
     const totalCount = data?.count || 0;
+
+    const [isHovering, setIsHovering] = useState(false);
+
 
     if (isPending) {
         return <Spinner />
@@ -93,6 +82,9 @@ export const StudentsData = () => {
         console.log(value)
         updateAtendance(JSON.parse(value), `/api/addbus/addstudent/${userId}`)
     }
+    const handleModal = () => {
+        setIsOpenModal(true)
+    }
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root))]">
@@ -101,10 +93,7 @@ export const StudentsData = () => {
                     <Link href="/dashboard/students/allstudents">
                         <Button variant="link" className="ml-2 text-blue-600">View All Students</Button>
                     </Link>
-
-                    <Button variant="secondary" onClick={() => setIsOpenModal(true)}>
-                        Add new Student
-                    </Button>
+                    < AddData label="Student" action={handleModal} />
                 </div>
             </div>
             {
@@ -121,7 +110,7 @@ export const StudentsData = () => {
                             < SelectProperty placeholder="Grade" label="Filter by Grade" data={grades} handleSelectChange={handleGradeChange} setFilterGrade={setFilterGrade} />
                         </TableHead>
                         <TableHead className="w-[300px]">Address</TableHead>
-                        <TableHead className="w-[170px]">Bus</TableHead>
+                        <TableHead className="w-[200px]">Bus</TableHead>
                         <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
 
@@ -152,13 +141,20 @@ export const StudentsData = () => {
                                     <TableCell className="capitalize">
                                         {
                                             student.bus ?
-                                                <div className=" space-x-2"> {student.bus && student.bus.bus_product_name}
+                                                <div className=" space-x-2 flex"> {student.bus && student.bus.bus_product_name}
                                                     <span>
                                                         ({student.bus && student.bus.bus_number})
                                                     </span>
                                                     <AlertDialog>
                                                         <AlertDialogTrigger asChild>
-                                                            <Button variant="destructive" className="px-2 py-1 ">-</Button>
+                                                            <div
+                                                                className='w-[20px] h-[20px] mr-[0.2rem]'
+                                                                onMouseEnter={() => setIsHovering(true)}
+                                                                onMouseLeave={() => setIsHovering(false)}
+                                                            >
+                                                                <LottieAnimation isHovering={isHovering} animationData={minus} />
+                                                            </div>
+
                                                         </AlertDialogTrigger>
                                                         <AlertDialogContent className="bg-gray-900 border-none">
                                                             <AlertDialogHeader>
@@ -180,9 +176,7 @@ export const StudentsData = () => {
                                                             </AlertDialogFooter>
                                                         </AlertDialogContent>
                                                     </AlertDialog>
-                                                    {/* <button className="bg-destructive px-2 text-[0.5rem] rounded-sm" onClick={() => handleDelete(JSON.stringify({ studentId: student._id, busId: student.bus._id }))}>
-                                                        -
-                                                    </button> */}
+
                                                 </div> : <div className="w-full">
                                                     {
                                                         busData &&
@@ -197,17 +191,9 @@ export const StudentsData = () => {
                                         }
                                     </TableCell>
                                     <TableCell>
-                                        <div className="space-x-2">
-                                            <Link href={`/dashboard/students/${student._id}`}>
-                                                <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
-                                                    view
-                                                </button>
-                                            </Link>
-                                            <Link href="/dashboard">
-                                                <button className="bg-destructive px-2 text-[0.5rem] rounded-sm">
-                                                    delete
-                                                </button>
-                                            </Link>
+                                        <div className="space-x-2 text-gray-200 flex">
+                                            <EditData link={`/dashboard/students/${student._id}`} mode="edit" />
+                                            <EditData link={`/dashboard/`} mode="delete" />
                                         </div>
                                     </TableCell>
                                 </TableRow>
