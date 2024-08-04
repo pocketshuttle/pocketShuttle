@@ -1,34 +1,39 @@
-"use client"
-import { DashboardIcon } from "@radix-ui/react-icons";
-import training from "@/public/images/training.svg";
-import students from "@/public/images/students.svg";
-import commute from "@/public/images/commute.svg";
-import revenue from "@/public/images/revenue.svg";
-// import report from "@/public/images/report.svg";
+"use client";
+
 import settings from "@/public/images/setting.json";
-// import headset from "@/public/images/headset.svg";
-// import dashboard from "@/public/images/dashboard.svg";
-import Image from "next/image";
 import MenuLink from "./menuLink/menuLink";
 import { DashboardHeader } from "../header/header";
 import { BiLogOut } from "react-icons/bi";
-import { signOut, useSession, } from "next-auth/react"
-import classroom from "@/public/images/Classroom.json"
-import parent from "@/public/images/parent.json"
-import student from "@/public/images/student.json"
-import report from "@/public/images/Report.json"
-import support from "@/public/images/Support.json"
-import dashboard from "@/public/images/dashboard.json"
-import car from "@/public/images/Car.json"
-import analytics from "@/public/images/analytics.json"
-import exit from "@/public/images/exit.json"
+import { signOut, useSession } from "next-auth/react";
+import classroom from "@/public/images/Classroom.json";
+import parent from "@/public/images/parent.json";
+import student from "@/public/images/student.json";
+import report from "@/public/images/Report.json";
+import support from "@/public/images/Support.json";
+import dashboard from "@/public/images/dashboard.json";
+import car from "@/public/images/Car.json";
+import analytics from "@/public/images/analytics.json";
+import exit from "@/public/images/exit.json";
 import LottieAnimation from "./menuLink/lottie-animation";
 import { useState } from "react";
+import userprofile from "@/public/images/userProfile.json";
+import {
+    Avatar,
+    AvatarFallback,
+    AvatarImage,
+} from "@/components/ui/avatar";
+
+type ListType = {
+    link: string;
+    icon: any; // Replace 'any' with the correct type if you know it, e.g., object
+    title: string;
+};
 
 const Sidebar = () => {
     const [isHovering, setIsHovering] = useState(false);
+    const { data: session } = useSession();
 
-    const menuItems = [
+    const menuItems: { title: string; list: ListType[] }[] = [
         {
             title: "Pages",
             list: [
@@ -40,7 +45,7 @@ const Sidebar = () => {
                 {
                     title: "Teachers",
                     link: "/dashboard/teachers",
-                    icon: classroom
+                    icon: classroom,
                 },
                 {
                     title: "Students",
@@ -72,7 +77,6 @@ const Sidebar = () => {
                     link: "/dashboard/report",
                     icon: report,
                 },
-
                 {
                     title: "Settings",
                     link: "/settings",
@@ -87,14 +91,13 @@ const Sidebar = () => {
         },
     ];
 
-
     return (
-        <div className="h-screen fixed flex flex-col justify-between bg-[var( --bg-root)] px-2 py-6 border-1 border-r-[1px]  border-gray-600">
-            <div className="space-y-7 " >
+        <div className="h-screen fixed flex flex-col justify-between bg-[var(--bg-root)] px-2 py-6 border-1 border-r-[1px] border-gray-600">
+            <div className="space-y-7">
                 <DashboardHeader />
                 <ul className="w-[300px]">
                     {menuItems.map((menuSection, index) => (
-                        <li key={index} >
+                        <li key={index}>
                             {/* <span className="text-[#b7cac1] text-[0.8rem]">{menuSection.title}</span> */}
                             <MenuLink menu={menuSection.list} />
                         </li>
@@ -108,10 +111,19 @@ const Sidebar = () => {
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
             >
-                <div style={{ width: 25, height: 25 }}>
-                    <LottieAnimation isHovering={isHovering} animationData={exit} />
+                <Avatar>
+                    {session?.user?.image ? (
+                        <AvatarImage src={session?.user?.image} alt="@shadcn" />
+                    ) : (
+                        <div style={{ width: 40, height: 40 }}>
+                            <LottieAnimation isHovering={isHovering} animationData={userprofile} />
+                        </div>
+                    )}
+                </Avatar>
+                <div className="flex flex-col">
+                    <span className="text-[1rem] font-medium capitalize">{session?.user?.name || "admin"}</span>
+                    <span className="text-[0.7rem] text-[#b7cac1]">{(session?.user as any)?.role || "admin"}</span>
                 </div>
-                Logout
             </button>
         </div>
     );

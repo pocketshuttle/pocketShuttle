@@ -24,6 +24,7 @@ import {
 import { DriversProps } from "@/types"
 import { Spinner } from "@/components/ui/spinner"
 import { AddToBus } from "@/components/buses/add-to-bus"
+import { AddData } from "@/components/ui/add-data-button"
 
 
 
@@ -42,6 +43,7 @@ export const DriverTable = () => {
 
     const driversData = data?.driver
     const totalCount = data?.driversCount
+   
     const handleModal = () => {
         setIsOpenModal(!isOpenModal)
     }
@@ -58,10 +60,8 @@ export const DriverTable = () => {
                 isOpenModal && <DriverAndTeacherModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} mode="driver" />
             }
 
-            <div className="p-4 flex justify-between items-center ">
-                <Button variant="secondary" onClick={handleModal}>
-                    Add new driver
-                </Button>
+            <div className="p-4 flex justify-end items-center ">
+                < AddData label="add Driver" action={handleModal} />
             </div>
             <Table>
                 <TableHeader>
