@@ -1,8 +1,10 @@
 "use client"
 import Image, { StaticImageData } from 'next/image'
-import React, { ChangeEvent, Dispatch, SetStateAction } from 'react'
+import React, { ChangeEvent, Dispatch, SetStateAction, useState } from 'react'
 import spinner from "@/public/images/spinner.gif"
 import { UseFormReturn } from 'react-hook-form'
+import LottieAnimation from '../dashboard/sidebar/menuLink/lottie-animation'
+import upload from "@/public/images/upload.json"
 type ImageProps = {
     newAvatar: string,
     avatar: StaticImageData,
@@ -12,6 +14,8 @@ type ImageProps = {
 
 export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }: ImageProps) => {
     const [isLoading, setIsLoading] = React.useState<boolean>(false)
+    const [isHovering, setIsHovering] = useState(false);
+
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
         inputElement?.click()
@@ -74,7 +78,18 @@ export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }: ImageProp
                 style={{ display: 'none' }}
                 onChange={handleCameraInputChange}
             />
-            <Image src={isLoading ? spinner : newAvatar || avatar} alt="avatar" width={100} height={330} className="cursor-pointer rounded-md  w-full  object-fill" onClick={() => handleCameraClick()} />
+            <div>
+                {
+                    // isLoading ?
+                    <div
+                        className='w-[300px] h-[300px] mr-[0.2rem] flex items-center justify-center'
+                    >
+                        <LottieAnimation isHovering={true} animationData={upload} />
+
+                    </div>
+                    // <Image src={newAvatar || avatar} alt="avatar" width={100} height={330} className="cursor-pointer rounded-md  w-full  object-fill" onClick={() => handleCameraClick()} />
+                }
+            </div>
         </div>
     )
 }

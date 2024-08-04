@@ -8,7 +8,7 @@ type LottieProps = {
 }
 const LottieAnimation = ({ isHovering, animationData }: LottieProps) => {
     const defaultOptions = {
-        loop: false,
+        loop: true,
         autoplay: false,
         animationData: animationData && animationData,
         rendererSettings: {
