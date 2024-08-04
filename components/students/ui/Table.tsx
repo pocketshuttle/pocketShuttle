@@ -89,7 +89,7 @@ export const StudentsData = () => {
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root))]">
             <div className="p-4 flex justify-end items-center ">
-                <div className="gap-3">
+                <div className="gap-3 flex">
                     <Link href="/dashboard/students/allstudents">
                         <Button variant="link" className="ml-2 text-blue-600">View All Students</Button>
                     </Link>

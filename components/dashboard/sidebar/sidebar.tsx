@@ -9,7 +9,7 @@ import classroom from "@/public/images/Classroom.json";
 import parent from "@/public/images/parent.json";
 import student from "@/public/images/student.json";
 import report from "@/public/images/Report.json";
-import support from "@/public/images/Support.json";
+import support from "@/public/images/support.json";
 import dashboard from "@/public/images/dashboard.json";
 import car from "@/public/images/Car.json";
 import analytics from "@/public/images/analytics.json";
