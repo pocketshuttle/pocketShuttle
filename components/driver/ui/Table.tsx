@@ -50,7 +50,7 @@ export const DriverTable = () => {
         return <p>Error: {driversError}</p>;
     }
     return (
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
+        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
             {
                 isOpenModal && <DriverAndTeacherModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} mode="driver" />
             }
@@ -62,7 +62,7 @@ export const DriverTable = () => {
             </div>
             <Table>
                 <TableHeader>
-                    <TableRow className=" text-[0.7rem] ">
+                    <TableRow className=" text-[0.7rem]  border-gray-500 bg-[var(--hoverBg)]">
                         <TableHead className="w-[250px] text-gray-300">Full Name</TableHead>
                         <TableHead className="text-gray-300">Email</TableHead>
                         <TableHead className="text-gray-300">Phone Number</TableHead>

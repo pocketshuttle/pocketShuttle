@@ -45,7 +45,7 @@ export const BusData = () => {
     }
 
     return (
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237] mt-2">
+        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)] mt-2">
             <div className="p-4 flex justify-end items-center ">
                 <div className="space-x-2">
                     <Button variant="secondary" onClick={() => setIsOpenModal(true)}>
@@ -65,10 +65,10 @@ export const BusData = () => {
             }
 
 
-            <Table>
-                <TableHeader>
-                    <TableRow className=" text-[0.7rem]">
-                        <TableHead className=" text-gray-300">Bus Name</TableHead>
+            <Table >
+                <TableHeader >
+                    <TableRow className=" text-[0.7rem] bg-[var(--hoverBg)] rounded-md border-none">
+                        <TableHead className=" text-gray-300 border-none">Bus Name</TableHead>
                         <TableHead className=" text-gray-300">Bus Number</TableHead>
                         <TableHead className=" text-gray-300">Bus Color</TableHead>
                         <TableHead className="text-gray-300">Seats</TableHead>
@@ -81,8 +81,8 @@ export const BusData = () => {
                 <TableBody className="text-[0.75rem] text-gray-400 ">
                     {busData?.map((bus: BusProps) => {
                         return (
-                            <TableRow key={bus._id}>
-                                <TableCell className="capitalize">
+                            <TableRow key={bus._id} className="">
+                                <TableCell className="capitalize ">
                                     {bus.bus_product_name}
                                 </TableCell>
                                 <TableCell className="capitalize">
@@ -113,11 +113,11 @@ export const BusData = () => {
                                 <TableCell>
                                     <div className="space-x-2">
                                         <Link href={`/dashboard/bus/${bus._id}`}>
-                                            <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
+                                            <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm text-gray-100">
                                                 view
                                             </button>
                                         </Link>
-                                        <button className="bg-destructive px-2 text-[0.5rem] rounded-sm"
+                                        <button className="bg-destructive px-2 text-[0.5rem] rounded-sm text-gray-100 "
                                             onClick={() => deleteItem(busData, bus._id)}
                                         >
                                             delete

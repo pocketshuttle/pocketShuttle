@@ -22,24 +22,20 @@ const SingleBus = () => {
     const busId = getPathname.split("/").pop()
 
     const [isPending, startTransition] = useTransition()
-    const [isError, setIsError] = useState("")
-    const [isSuccess, setIsSuccess] = useState("")
     const [selectTeacher, setSelectedTeacher] = useState<string>("")
     const [selectBusDriver, setSelectedBusDriver] = useState<string>("")
     const [selectStudent, setSelectedStudent] = useState<string>("")
-    const [newAvatar, setNewAvatar] = useState<string>("")
-    const { toast } = useToast()
 
 
     const { data: teachersData, isPending: loading, errorMessage } = useFetch(`/api/addteacher/${userId}`, userId);
     const { data: driversData, isPending: driverLoading, errorMessage: driversError } = useFetch(`/api/addteacher/${userId}`, userId);
     const { data: routeData, isPending: routeLoading, errorMessage: routeError } = useFetch(`/api/addroute/${userId}`, userId);
-
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${busId}`, busId);
     const { data: postData, loading: postLoading, errorMessage: postError, success } = usePost(`/api/addbus/${busId}`, submittedData, "PATCH")
 
 
-    console.log(routeData)
+    console.log(busData)
+
     const form = useForm<z.infer<typeof BusSchema>>({
         resolver: zodResolver(BusSchema),
         defaultValues: {
@@ -198,13 +194,13 @@ const SingleBus = () => {
                                 <div className="w-3/6">
                                     {
                                         teachersData &&
-                                        < SelectDataProperty placeholder="Select Bus Teacher" label="Select Teachers" data={teachersData} handleSelectChange={handleTeacherChange} />
+                                        < SelectDataProperty placeholder="Select Bus Teacher" label="Select Teachers" data={teachersData.teacher} handleSelectChange={handleTeacherChange} />
                                     }
                                 </div>
                                 <div className="w-3/6">
                                     {
                                         driversData &&
-                                        < SelectDataProperty placeholder="Select Bus Driver" label="Select Teachers" data={driversData} handleSelectChange={handleDriverChange} />
+                                        < SelectDataProperty placeholder="Select Bus Driver" label="Select Teachers" data={driversData.driver} handleSelectChange={handleDriverChange} />
                                     }
                                 </div>
                                 {/* < SelectProperty placeholder="Select Bus Drivers" label="Bus Name" item="Bus A" /> */}

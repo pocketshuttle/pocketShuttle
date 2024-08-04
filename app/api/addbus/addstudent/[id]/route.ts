@@ -115,13 +115,9 @@ export const DELETE = async (
       );
     }
 
-    console.log(bus.student);
-    console.log(bus);
-    console.log(student);
     // bus.student.filter((id: any) => id._id.toString() !== studentId);
     bus.student.pull(studentId);
 
-    console.log(bus.students);
     await bus.save();
 
     // Remove the bus reference from the student document

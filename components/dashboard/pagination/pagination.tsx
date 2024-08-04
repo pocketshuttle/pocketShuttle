@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { usePathname, useSearchParams, useRouter } from "next/navigation"
-
+import { ChevronRightIcon, ChevronLeftIcon } from "@radix-ui/react-icons"
 type CountProps = {
     count: number
     pageCount: number
@@ -28,13 +28,19 @@ export const Pagination = ({ count, pageCount }: CountProps) => {
     }
 
     return (
-        <div className="space-x-2 flex justify-between w-full px-6 py-3 ">
-            <Button variant="secondary" disabled={!hasPrev} onClick={() => handlePagination("prev")}>
-                previous
-            </Button>
-            <Button variant="secondary" disabled={!hasNext} onClick={() => handlePagination("next")}>
-                next
-            </Button>
-        </div >
+        <div className="flex justify-between  items-center w-full">
+            <span className="text-md text-gray-400">
+                Page {parseInt(page)} of {Math.round(count / ITEM_PER_PAGE)}
+            </span>
+            <div className="space-x-2 flex justify-between  px-6 py-3 ">
+                <Button variant="outline" disabled={!hasPrev} onClick={() => handlePagination("prev")} className="bg-transparent border-gray-600">
+                    <ChevronLeftIcon />
+                </Button>
+                <Button variant="outline" disabled={!hasNext} onClick={() => handlePagination("next")} className="bg-transparent border-gray-600">
+                    <ChevronRightIcon />
+                </Button>
+            </div >
+        </div>
+
     )
 }

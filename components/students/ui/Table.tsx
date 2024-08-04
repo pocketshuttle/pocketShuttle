@@ -56,7 +56,7 @@ type BusProps = {
 }
 export const StudentsData = () => {
     const { data: session } = useSession()
-    const userId: string = session?.user?.id
+    const userId: string | undefined = session?.user?.id
 
     const [filterGrade, setFilterGrade] = useState<string>("")
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
@@ -95,7 +95,7 @@ export const StudentsData = () => {
     }
 
     return (
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
+        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root))]">
             <div className="p-4 flex justify-end items-center ">
                 <div className="gap-3">
                     <Link href="/dashboard/students/allstudents">
@@ -112,8 +112,8 @@ export const StudentsData = () => {
             }
 
             <Table>
-                <TableHeader>
-                    <TableRow className=" uppercase text-[0.7rem]">
+                <TableHeader className="bg-[var(--hoverBg)] ">
+                    <TableRow className="capitalize text-[0.7rem] border-[1px] border-gray-500 rounded-md ">
                         <TableHead className="w-[250px]">Full Name</TableHead>
                         <TableHead>Gender</TableHead>
                         <TableHead className="">Age</TableHead>

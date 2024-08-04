@@ -103,12 +103,12 @@ const Sidebar = () => {
             </div>
 
             <button
-                className="flex gap-2 items-center text-[0.75rem] py-3 px-2 hover:bg-[var(--hoverBg)] w-full rounded-md"
+                className="flex gap-2 items-center text-[0.9rem] py-3 px-2 hover:bg-[var(--hoverBg)] w-full rounded-md"
                 onClick={() => signOut()}
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
             >
-                <div style={{ width: 20, height: 20 }}>
+                <div style={{ width: 25, height: 25 }}>
                     <LottieAnimation isHovering={isHovering} animationData={exit} />
                 </div>
                 Logout

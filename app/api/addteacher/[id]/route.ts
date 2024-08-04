@@ -25,7 +25,7 @@ export const GET = async (
     };
 
     const count = await Teacher.find(query).countDocuments();
-    console.log(count);
+
     const teacher = await Teacher.find(query)
       .populate("students")
       .populate({

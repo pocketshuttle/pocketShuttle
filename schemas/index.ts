@@ -142,7 +142,10 @@ export const StudentSchema = z.object({
     .string()
     .transform((value) => (value === "" ? undefined : value))
     .optional(),
-  busId: z.string().optional(),
+  busId: z
+    .string()
+    .transform((value) => (value === "" ? null : value))
+    .optional(),
   gender: z.string(),
   grade: z.string().optional(),
   address: z.string(),
