@@ -72,7 +72,6 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
 
 
     const onSubmit = (values: z.infer<typeof useSchema>) => {
-        console.log(values)
         startTransition(() => {
             setSubmittedData(values)
             window.localStorage.removeItem("new_user_selected_avatar_url")

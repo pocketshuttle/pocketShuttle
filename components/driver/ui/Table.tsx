@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table"
 import { DriversProps } from "@/types"
 import { Spinner } from "@/components/ui/spinner"
+import { AddToBus } from "@/components/buses/add-to-bus"
 
 
 
@@ -37,6 +38,8 @@ export const DriverTable = () => {
     const router = useRouter()
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
     const { data, isPending: driversPending, errorMessage: driversError } = useFetch(`/api/addriver/${userId}?q=${searchDriver}`, userId);
+    const { data: busData, } = useFetch(`/api/addbus/${userId}`, userId);
+
     const driversData = data?.driver
     const totalCount = data?.driversCount
     const handleModal = () => {
@@ -92,12 +95,27 @@ export const DriverTable = () => {
                                         {driver.address}
                                     </TableCell>
                                     <TableCell className="text-[0.7rem] capitalize">
-                                        <span>{driver.bus.color} </span>
-                                        {driver.bus.bus_product_name || "No Bus"}
-                                        <span> ({driver.bus.bus_number})</span>
+                                        {
+                                            driver.bus ? <>
+                                                <span>{driver.bus.color} </span>
+                                                {driver.bus.bus_product_name || "No Bus"}
+                                                <span> ({driver.bus.bus_number})</span>
+                                            </> : <div className="w-full">
+                                                {
+                                                    busData &&
+                                                    < AddToBus
+                                                        placeholder="Select Bus"
+                                                        label="Select Bus"
+                                                        data={busData}
+                                                        id={driver._id}
+                                                        mode="driver"
+                                                    />
+                                                }
+                                            </div>
+                                        }
                                     </TableCell>
                                     <TableCell>
-                                        <div className="space-x-2 flex">
+                                        <div className="space-x-2 flex text-gray-200">
                                             <Link href={`/dashboard/driver/${driver._id}`}>
                                                 <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
                                                     view
@@ -119,7 +137,7 @@ export const DriverTable = () => {
 
             </Table>
 
-            <Pagination count={totalCount} />
+            <Pagination count={totalCount} pageCount={2} />
         </div >
 
     )

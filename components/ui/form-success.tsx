@@ -11,6 +11,10 @@ export const FormSuccess = ({ message, setIsOpenModal }: FormSuccessProps) => {
     if (!message) {
         return null
     }
+    const handleSuccess = () => {
+        setIsOpenModal(false)
+        window.location.reload()
+    }
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
@@ -18,7 +22,7 @@ export const FormSuccess = ({ message, setIsOpenModal }: FormSuccessProps) => {
                 <div className="bg-emerald-500/15 rounded-md p-3 flex items-center justify-center flex-col gap-x-2 gap-y-4 text-sm text-emerald-500 w-full h-full">
                     <CheckCircledIcon className="w-16 h-16" />
                     <p className="text-2xl">{message}</p>
-                    <Button size="lg" className="mt-3 text-lg px-12 py-4" onClick={() => setIsOpenModal(false)}>Add More</Button>
+                    <Button size="lg" className="mt-3 text-lg px-12 py-4" onClick={handleSuccess}>Add More</Button>
                 </div>
             </div>
         </div>

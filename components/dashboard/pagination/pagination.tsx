@@ -30,7 +30,12 @@ export const Pagination = ({ count, pageCount }: CountProps) => {
     return (
         <div className="flex justify-between  items-center w-full">
             <span className="text-md text-gray-400">
-                Page {parseInt(page)} of {Math.round(count / ITEM_PER_PAGE)}
+                Page {parseInt(page)} {Math.round(count / ITEM_PER_PAGE) < 1 ? "" :
+                    <>
+                        of {Math.round(count / ITEM_PER_PAGE)}
+                    </>
+
+                }
             </span>
             <div className="space-x-2 flex justify-between  px-6 py-3 ">
                 <Button variant="outline" disabled={!hasPrev} onClick={() => handlePagination("prev")} className="bg-transparent border-gray-600">
