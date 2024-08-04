@@ -25,6 +25,7 @@ import { ViewStudent } from "@/components/students/ui/view-student-wrapper"
 import RoutesModal from "./routes-modal"
 import { BusProps } from "@/types"
 import { Spinner } from "@/components/ui/spinner"
+import { AddRoute } from "./add-route"
 
 
 
@@ -35,6 +36,7 @@ export const BusData = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
     const { data: busData, isPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
+    const { data: routeData } = useFetch(`/api/addroute/${userId}`, userId);
 
     if (isPending) {
         return <Spinner />
@@ -106,9 +108,14 @@ export const BusData = () => {
                                     {bus.student?.length ? <ViewStudent data={bus.student} /> : "no kids"}
                                 </TableCell>
                                 <TableCell className="capitalize">
-                                    <Link href="#">
+
+                                    {
+                                        bus.route ?
+                                            <span>{bus.route.route_name}</span> : <AddRoute data={routeData} placeholder="Select Route" label="Add Route" busId={bus._id} />
+                                    }
+                                    {/* <Link href="#">
                                         {bus.route ? bus.route.route_name : "no route added"}
-                                    </Link>
+                                    </Link> */}
                                 </TableCell>
                                 <TableCell>
                                     <div className="space-x-2">
