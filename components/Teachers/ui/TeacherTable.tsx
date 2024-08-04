@@ -23,6 +23,7 @@ import {
 import { TeacherProps } from "@/types"
 import { Spinner } from "@/components/ui/spinner"
 import { AddToBus } from "@/components/buses/add-to-bus"
+import { AddData } from "@/components/ui/add-data-button"
 
 
 export const TeachersTable = () => {
@@ -41,13 +42,10 @@ export const TeachersTable = () => {
     const teachersData = data?.teacher
     const totalCount = data?.count
 
-    console.log(teachersData)
+
     const handleModal = () => {
         setIsOpenModal(!isOpenModal);
     };
-    // if (isPending) {
-    //     return <Spinner />
-    // }
 
     if (errorMessage) {
         return <p>Error: {errorMessage}</p>;
@@ -58,9 +56,7 @@ export const TeachersTable = () => {
                 isOpenModal && <DriverAndTeacherModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
             }
             <div className="p-4 flex justify-end items-center ">
-                <Button variant="secondary" onClick={handleModal}>
-                    Add new Teacher
-                </Button>
+                < AddData label="add Teacher" action={handleModal} />
             </div>
             {
                 isPending ? <Spinner /> :

@@ -2,10 +2,13 @@
 import React from 'react';
 import Lottie from 'react-lottie';
 // import animationData from '../path-to-your-animation-file.json';
-
-const LottieAnimation = ({ isHovering, animationData }) => {
+type LottieProps = {
+    animationData: any;
+    isHovering: boolean;
+}
+const LottieAnimation = ({ isHovering, animationData }: LottieProps) => {
     const defaultOptions = {
-        loop: true,
+        loop: false,
         autoplay: false,
         animationData: animationData && animationData,
         rendererSettings: {
