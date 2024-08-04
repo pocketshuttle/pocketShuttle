@@ -26,8 +26,6 @@ export const PATCH = async (
       );
     }
 
-   
-
     const updatedStudent = await Student.findByIdAndUpdate(
       id,
       { attendance: data.attendance },

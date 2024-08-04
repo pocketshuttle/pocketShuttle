@@ -25,7 +25,7 @@ const MenuLink = ({ menu }: { menu: ListType[] }) => {
                         onMouseLeave={() => setHoverIndex(null)}
                     >
                         {/* <Image src={item.icon} alt={item.title} className="w-3" /> */}
-                        <div style={{ width: 20, height: 20 }}>
+                        <div style={{ width: 23, height: 23 }}>
                             <LottieAnimation
                                 isHovering={hoverIndex === index}
                                 animationData={item.icon}

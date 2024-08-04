@@ -14,16 +14,16 @@ const Tab = (props: TabType) => {
 
 
     return (
-        <div>
-            <nav className="flex w-full  items-center justify-center space-x-3 text-sm p-2">
+        <div >
+            <nav className="flex bg-[var(--hoverBg)] m-auto w-[30%] items-center justify-center space-x-3 text-sm p-2 rounded-lg">
 
                 {
                     <>
                         <p
                             onClick={() => handleTab("teachers")}
-                            className={`cursor-pointer p-2 eventTab  px-16 capitalize text-gray-300
+                            className={`cursor-pointer p-2 eventTab  px-16 capitalize text-gray-200
                                 ${activeTab ===
-                                "teachers" && " text-gray-800 inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground active"}`}
+                                "teachers" && " text-gray-900 inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground active"}`}
                         >
                             {tab1}
                         </p>

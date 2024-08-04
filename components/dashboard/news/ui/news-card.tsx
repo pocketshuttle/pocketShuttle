@@ -3,11 +3,11 @@ import { PlayIcon } from "@radix-ui/react-icons"
 
 const NewsCard = () => {
     return (
-        <div className="space-y-2 p-2 bg-[#182237] rounded-md shadow-md">
+        <div className="space-y-4 p-2 bg-[var(--bg-root)] border-[1px] border-gray-500 rounded-md shadow-md">
             <header className="text-sm">
                 🔥 Available now
             </header>
-            <section>
+            <section className="space-y-6">
                 <div>
                     <h1 className="text-sm font-semibold">How to use the new version of the admin dashboard</h1>
                     <span className="text-[0.6rem] text-gray-600">Takes 3min to learn</span>

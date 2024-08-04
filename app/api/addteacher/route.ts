@@ -36,7 +36,7 @@ export const POST = async (req: NextRequest) => {
       full_name,
       email,
       phoneNumber,
-      busId,
+      busId: busId || null,
       address,
       students: studentId ? [studentId] : [],
       image,
