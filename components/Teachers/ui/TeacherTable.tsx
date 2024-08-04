@@ -1,13 +1,8 @@
 "use client"
-import { Search } from "@/components/dashboard/search/search"
-import { Button } from "@/components/ui/button"
+
 import dashboard from "@/public/images/dashboard.svg"
-import Image from "next/image"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
 import { DriverAndTeacherModal } from "./teachers-modal"
 import { Pagination } from "@/components/dashboard/pagination/pagination"
-import Link from "next/link"
 import { useFetch } from "@/hooks/useFetch"
 import { useSession } from "next-auth/react"
 import {
@@ -24,19 +19,41 @@ import { TeacherProps } from "@/types"
 import { Spinner } from "@/components/ui/spinner"
 import { AddToBus } from "@/components/buses/add-to-bus"
 import { AddData } from "@/components/ui/add-data-button"
+import { EditData } from "@/components/ui/edit-data-link"
+import minus from "@/public/images/minus.json"
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import LottieAnimation from "@/components/dashboard/sidebar/menuLink/lottie-animation"
+import { useSearchParams } from "next/navigation"
+import { useState, useTransition } from "react"
+import { removeTeacherFromBus } from "@/actions/remove-teacher-bus"
+import { toast } from "@/components/ui/use-toast"
 
 export const TeachersTable = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
+
+    const [isPending, startTransition] = useTransition()
+
 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
 
     const searchParams = useSearchParams()
     const search = searchParams.get("q") || ""
     const page = searchParams.get("page") || 1
+    const [isHovering, setIsHovering] = useState(false);
 
-    const { data, isPending, errorMessage } = useFetch(`/api/addteacher/${userId}?q=${search}&page=${page}`, userId);
+    const { data, isPending: loading, errorMessage } = useFetch(`/api/addteacher/${userId}?q=${search}&page=${page}`, userId);
     const { data: studentData, } = useFetch(`/api/addstudent/${userId}?q=${search}&page=${page}`, userId);
     const { data: busData, } = useFetch(`/api/addbus/${userId}`, userId);
     const teachersData = data?.teacher
@@ -47,6 +64,22 @@ export const TeachersTable = () => {
         setIsOpenModal(!isOpenModal);
     };
 
+    const handleRemove = (teacherId: string, busId: string) => {
+        startTransition(() => {
+            removeTeacherFromBus(teacherId, busId).then((data) => {
+                toast({
+                    description: data.message,
+                });
+                // window.location.reload();
+            }).catch((error) => {
+                console.error("Error:", error);
+                toast({
+                    description: "An error occurred. Please try again.",
+                });
+            });
+        })
+    }
+
     if (errorMessage) {
         return <p>Error: {errorMessage}</p>;
     }
@@ -56,10 +89,10 @@ export const TeachersTable = () => {
                 isOpenModal && <DriverAndTeacherModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
             }
             <div className="p-4 flex justify-end items-center ">
-                < AddData label="add Teacher" action={handleModal} />
+                < AddData label="Teacher" action={handleModal} />
             </div>
             {
-                isPending ? <Spinner /> :
+                loading ? <Spinner /> :
                     <Table>
                         <TableHeader>
                             <TableRow className=" text-[0.7rem] bg-[var(--hoverBg)]">
@@ -92,14 +125,48 @@ export const TeachersTable = () => {
                                             <TableCell>
                                                 {teacher.address}
                                             </TableCell>
-                                            <TableCell className="text-[0.7rem] capitalize">
+                                            <TableCell className="text-[0.7rem] capitalize ">
                                                 {
-                                                    teacher.busId ? <>
-                                                        <span>{teacher.busId.color}</span>
-                                                        <span>{teacher.busId.bus_product_name}</span>(
-                                                        <span>{teacher.busId.bus_number}</span>
-                                                        )
-                                                    </> : <div className="w-full">
+                                                    teacher.busId ? <div className="flex space-x-1">
+                                                        <div>
+                                                            <span>{teacher.busId.color} </span>
+                                                            <span>{teacher.busId.bus_product_name}</span>(
+                                                            <span>{teacher.busId.bus_number}</span>)
+                                                        </div>
+
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <div
+                                                                    className='w-[20px] h-[20px] mr-[0.2rem]'
+                                                                    onMouseEnter={() => setIsHovering(true)}
+                                                                    onMouseLeave={() => setIsHovering(false)}
+                                                                >
+                                                                    <LottieAnimation isHovering={isHovering} animationData={minus} />
+                                                                </div>
+
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent className="bg-gray-900 border-none">
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                                    <AlertDialogDescription className="text-gray-500 text-md">
+                                                                        {` You're about to remove 
+                                                                 ${teacher.full_name} 
+                                                                    from ${teacher.busId.bus_product_name}  with bus Number ${teacher.busId.bus_number}`}
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
+                                                                    <AlertDialogAction
+                                                                        className="bg-destructive"
+                                                                        onClick={() => handleRemove(teacher._id, teacher.busId._id)}
+                                                                    >
+                                                                        Continue
+                                                                    </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+
+                                                    </div> : <div className="w-full">
                                                         {
                                                             busData &&
                                                             < AddToBus
@@ -115,16 +182,8 @@ export const TeachersTable = () => {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="space-x-2 flex">
-                                                    <Link href={`/dashboard/teachers/${teacher._id}`}>
-                                                        <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm text-gray-100">
-                                                            view
-                                                        </button>
-                                                    </Link>
-                                                    <Link href="/dashboard">
-                                                        <button className="bg-destructive px-2 text-[0.5rem] rounded-sm text-gray-100">
-                                                            delete
-                                                        </button>
-                                                    </Link>
+                                                    <EditData link={`/dashboard/teachers/${teacher._id}`} mode="edit" />
+                                                    <EditData link={`/dashboard/`} mode="delete" />
                                                 </div>
                                             </TableCell>
 
