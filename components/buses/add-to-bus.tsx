@@ -12,12 +12,14 @@ import {
 import useUpdateAttendance from "@/hooks/usePatch";
 import { addTeacher } from "@/actions/add-teacher";
 import { toast } from "@/components/ui/use-toast";
+import { addDriver } from "@/actions/add-driver";
 
 type SelectProps = {
     placeholder: string;
     label?: string;
     data: dataProps[]
     id: string
+    mode: string
 };
 
 type dataProps = {
@@ -29,26 +31,32 @@ type dataProps = {
 
 
 
-export const AddToBus = ({ placeholder, label, data, id }: SelectProps) => {
+export const AddToBus = ({ placeholder, label, data, id, mode }: SelectProps) => {
     const [passenger, setPassenger] = useState<object>({ busId: undefined, studentId: undefined })
     const [isPending, startTransition] = useTransition()
 
 
     const handleSelectBus = (value: string) => {
-        console.log("bus id", value)
+        const handleMode = mode === "driver" ? addDriver(id, value) : addTeacher(id, value)
         startTransition(() => {
-            addTeacher(id, value).then((data) => {
+            handleMode.then((data) => {
                 toast({
                     description: data.message,
                 });
-            })
+                window.location.reload();
+            }).catch((error) => {
+                console.error("Error:", error);
+                toast({
+                    description: "An error occurred. Please try again.",
+                });
+            });
         })
     }
 
 
     return (
         <Select onValueChange={handleSelectBus}>
-            <SelectTrigger className={` text-gray-200`}>
+            <SelectTrigger className={` text-gray-200 `} >
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>

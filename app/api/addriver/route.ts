@@ -39,11 +39,11 @@ export const POST = async (req: NextRequest) => {
       image,
       address,
       email,
-      student: studentId ? [studentId] : [], 
-      bus: busId, 
+      student: studentId ? [studentId] : [],
+      bus: busId || null,
     });
 
-    await newDriver.save(); 
+    await newDriver.save();
     if (busId) {
       await Buses.findByIdAndUpdate(
         busId,

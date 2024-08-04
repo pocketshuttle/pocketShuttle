@@ -111,6 +111,7 @@ export const TeachersTable = () => {
                                                                 label="Select Bus"
                                                                 data={busData}
                                                                 id={teacher._id}
+                                                                mode="teacher"
                                                             />
                                                         }
                                                     </div>
