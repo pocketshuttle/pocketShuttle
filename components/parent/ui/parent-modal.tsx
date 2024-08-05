@@ -19,6 +19,7 @@ import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { useFetch } from "@/hooks/useFetch"
 import { Textarea } from "@/components/ui/textarea"
 import { UploadImage } from "@/components/ui/upload-image"
+import { AddRoles } from "@/components/ui/add-role"
 
 interface StudentModalProps {
     setIsOpenModal: Dispatch<SetStateAction<boolean>>
@@ -38,8 +39,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal, parentId }: StudentMo
     const [selectParent, setSelectParent] = useState<string>("")
     const [selectDriver, setSelectDriver] = useState<string>("")
     const [selectTeacher, setSelectTeacher] = useState<string>("")
-
-    console.log(parentId)
+    const [selectRole, setSelectedRole] = useState<string>("")
 
     const { data: session } = useSession()
     const userId = session?.user?.id
@@ -48,8 +48,6 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal, parentId }: StudentMo
     const { data, loading, errorMessage, success } = usePost("/api/addparent", submittedData, "POST")
     const { data: parentData, isPending: parentPending, errorMessage: parentError } = useFetch(`/api/addparent/${parentId}`, parentId);
 
-
-    console.log(userId);
 
     const form = useForm<z.infer<typeof ParentSchema>>({
         resolver: zodResolver(ParentSchema),
@@ -61,7 +59,8 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal, parentId }: StudentMo
             password: "",
             phoneNumber: "",
             address: "",
-            email: ""
+            email: "",
+            role: selectRole | ""
         }
     })
 
@@ -75,6 +74,10 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal, parentId }: StudentMo
 
     const handleCloseModal = () => {
         setIsOpenModal(false)
+    }
+    const handleSelectRole = (value: string) => {
+        setSelectedRole(value)
+        form.setValue("role", value)
     }
 
     return (
@@ -163,27 +166,32 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal, parentId }: StudentMo
 
 
                                     </div>
-                                    < div className="w-5/6">
-                                        <FormField
-                                            control={form.control}
-                                            name="password"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Password</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            placeholder="johndoe@email.com"
-                                                            type="password"
-                                                            disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                        // onChange={e => field.onChange(Number(e.target.value))}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
+                                    < div className="w-full flex items-center justify-center space-x-2" >
+                                        <div className="w-4/6">
+                                            <FormField
+                                                control={form.control}
+                                                name="password"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Password</FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                {...field}
+                                                                placeholder="johndoe@email.com"
+                                                                type="password"
+                                                                disabled={isPending}
+                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                            // onChange={e => field.onChange(Number(e.target.value))}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+                                        <div className="w-2/6">
+                                            <AddRoles handleSelectChange={handleSelectRole} />
+                                        </div>
                                     </div>
                                     <div className="space-y-4">
                                         <FormField

@@ -20,6 +20,7 @@ import { useSession } from "next-auth/react"
 import { useFetch } from "@/hooks/useFetch"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
+import { AddRoles } from "@/components/ui/add-role"
 
 
 interface DriverModalProps {
@@ -44,7 +45,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
     const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
     const [selectBus, setSelectedBus] = useState<string>("")
     const [selectStudent, setSelectedStudent] = useState<string>("")
-
+    const [selectedRole, setSelectedRole] = useState<string>("")
     const url = mode === "driver" ? "/api/addriver" : "/api/addteacher"
     const { data, loading, errorMessage, success } = usePost(`${url}`, submittedData, "POST")
 
@@ -66,6 +67,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
             studentId: selectStudent || "",
             image: newAvatar,
             password: "",
+            role: selectedRole || ""
         }
     })
 
@@ -147,6 +149,11 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
         setSelectedBus(parsedValue.id)
 
         form.setValue("busId", parsedValue.id)
+    }
+    const handleSelectRole = (value: string) => {
+        setSelectedRole(value)
+        console.log(value)
+        form.setValue("role", value)
     }
     const handleSelectStudent = (value: string) => {
         setSelectedStudent(value)
@@ -305,21 +312,16 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                         </FormField>
                                     </div>
 
-                                    <div className="flex gap-3">
+                                    <div className="flex gap-3 w-full">
                                         <div className="w-3/6">
                                             {
                                                 busData &&
                                                 < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} classname="hello" />
                                             }
                                         </div>
-                                        {/* <div className="w-3/6">
-                                            <div>
-                                                {
-                                                    studentData &&
-                                                    < SelectDataProperty placeholder="Select Bus Teacher" label="Select Teachers" data={studentData} handleSelectChange={handleSelectStudent} />
-                                                }
-                                            </div>
-                                        </div> */}
+                                        <div className="w-3/6" >
+                                            < AddRoles handleSelectChange={handleSelectRole} />
+                                        </div>
                                     </div>
 
                                     {/* <FormError message={isError} /> */}
@@ -334,8 +336,8 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                     </div>
                 </TeacherCardWrapper>
 
-            </div>
-        </div>
+            </div >
+        </div >
     )
 }
 

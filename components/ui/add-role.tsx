@@ -7,7 +7,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Button } from "./button";
 import { Dispatch, SetStateAction } from "react";
 
 type SelectProps = {
@@ -17,26 +16,33 @@ type SelectProps = {
     setFilterGrade: Dispatch<SetStateAction<string>>;
     data: any
 };
+const data = [
+    {
+        value: "parent",
+        label: "Parent",
+    },
+    {
+        value: "teacher",
+        label: "Teacher",
+    },
+];
+export const AddRoles = ({ handleSelectChange }: SelectProps) => {
 
-export const SelectProperty = ({ placeholder, label, data, handleSelectChange, setFilterGrade }: SelectProps) => {
-    const handleAll = () => {
-        setFilterGrade("All")
-    }
     return (
         <Select onValueChange={handleSelectChange}>
             <SelectTrigger className="w-3/6 text-gray-100">
-                <SelectValue placeholder={placeholder} />
+                <SelectValue placeholder="Select Roles" />
             </SelectTrigger>
             <SelectContent>
                 <SelectGroup>
-                    <SelectLabel>{label}</SelectLabel>
                     {
                         data?.map((item: any, index: number) => (
-                            <SelectItem key={index} value={item.label}>{item.value}</SelectItem>
+                            <>
+                                <SelectItem key={index} value={item.value} className="h-9">{item.label}</SelectItem>
+                            </>
                         ))
                     }
                 </SelectGroup>
-                <Button onClick={handleAll} size={"lg"} className="bg-none w-full">All</Button>
             </SelectContent>
 
         </Select>

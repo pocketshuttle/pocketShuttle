@@ -27,6 +27,7 @@ export const POST = async (req: NextRequest) => {
       image,
       busId,
       password,
+      role,
     } = validatedData.data;
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -41,6 +42,7 @@ export const POST = async (req: NextRequest) => {
       students: studentId ? [studentId] : [],
       image,
       password: hashedPassword,
+      role,
     });
 
     await newTeacher.save();

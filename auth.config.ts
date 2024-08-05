@@ -9,7 +9,6 @@ export default {
   providers: [
     GoogleProvider({
       profile(profile) {
-        console.log("profile", profile);
         const { sub, email, name, picture } = profile;
         let userRole = "admin";
 
@@ -26,6 +25,7 @@ export default {
     }),
     Credentials({
       async authorize(credentials) {
+        console.log("credentials", credentials);
         //     //we validating the fields again
         const validatedFields = LoginSchema.safeParse(credentials);
 
