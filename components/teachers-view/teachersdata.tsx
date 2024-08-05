@@ -64,7 +64,7 @@ export const TeachersViewData = () => {
         return <Spinner />
     }
     return (
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bgSoft)]">
+        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
 
             {/* {
                 isOpenModal && <StudentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />

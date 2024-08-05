@@ -63,6 +63,7 @@ export const StudentsData = () => {
 
     const { data, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}${gradeQuery}&page=${page}`, userId);
     const { data: busData, isPending: busLoading, errorMessage: busError } = useFetch(`/api/addbus/${userId}?q=${search}&grade=${filterGrade}&page=${page}`, userId);
+    //@ts-ignore
     const { updateAtendance, loading, error } = useUpdateAttendance(userId, "DELETE");
 
     const studentsData = data?.students || [];

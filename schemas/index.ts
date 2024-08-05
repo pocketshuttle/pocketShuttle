@@ -63,6 +63,9 @@ export const TeacherSchema = z.object({
   }),
   busId: z.string().optional(),
   studentId: z.string().optional(),
+  role: z.string().min(2, {
+    message: "Role is required",
+  }),
 });
 
 export const DriverSchema = z.object({
@@ -108,6 +111,9 @@ export const ParentSchema = z.object({
     .optional(),
   password: z.string().min(6, {
     message: "Password must be more 6 characters!",
+  }),
+  role: z.string().min(2, {
+    message: "Role is required",
   }),
   email: z.string().email({
     message: "Invalid email",

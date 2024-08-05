@@ -21,6 +21,8 @@ import { ParentModal } from "./parent-modal"
 import { ViewStudent } from "@/components/students/ui/view-student-wrapper"
 import { Spinner } from "@/components/ui/spinner"
 import { useSearchParams } from "next/navigation"
+import { EditData } from "@/components/ui/edit-data-link"
+import { AddData } from "@/components/ui/add-data-button"
 
 type ParentProps = {
     _id: string,
@@ -48,9 +50,9 @@ export const ParentData = () => {
 
     const [selectedParent, setSelectedParent] = useState<string | null>(null);
 
-    const handleModal = (parentId: string) => {
+    const handleModal = () => {
         setIsOpenModal(true)
-        setSelectedParent(parentId);
+        // setSelectedParent(parentId);
     }
 
     if (isPending) {
@@ -58,12 +60,16 @@ export const ParentData = () => {
     }
 
     return (
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237]">
-            <div className="p-4 flex justify-between items-center ">
-                <Search placeholder="Search for parents..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
+        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
+            <div className="p-4 flex justify-end items-center ">
+
+                < AddData label="Parent" action={handleModal} />
+
+
+                {/* <Search placeholder="Search for parents..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
                 <Button variant="secondary" onClick={() => handleModal("")}>
                     add new
-                </Button>
+                </Button> */}
             </div>
             {
                 isOpenModal && <ParentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} parentId={selectedParent} />
@@ -107,17 +113,19 @@ export const ParentData = () => {
                                     </TableCell>
 
                                     <TableCell>
-                                        <div className="space-x-2">
+                                        <div className="space-x-2 flex">
+                                            <EditData link={`/dashboard/parent/${parent._id}`} mode="edit" />
+                                            <EditData link={`/dashboard/`} mode="delete" />
                                             {/* <Link href={`/dashboard/parents/${parent._id}`}> */}
-                                            <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm" onClick={() => handleModal(parent._id)}>
+                                            {/* <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm" onClick={() => handleModal(parent._id)}>
                                                 view
-                                            </button>
+                                            </button> */}
                                             {/* </Link> */}
-                                            <Link href="/dashboard">
+                                            {/* <Link href="/dashboard">
                                                 <button className="bg-destructive px-2 text-[0.5rem] rounded-sm">
                                                     delete
                                                 </button>
-                                            </Link>
+                                            </Link> */}
                                         </div>
                                     </TableCell>
                                 </TableRow>

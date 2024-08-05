@@ -122,7 +122,7 @@ const Sidebar = () => {
                 </Avatar>
                 <div className="flex flex-col">
                     <span className="text-[1rem] font-medium capitalize">{session?.user?.name || "admin"}</span>
-                    <span className="text-[0.7rem] text-[#b7cac1]">{(session?.user as any)?.role || "admin"}</span>
+                    <span className="text-[0.7rem] text-[#b7cac1]">{session?.user?.role || "admin"}</span>
                 </div>
             </button>
         </div>

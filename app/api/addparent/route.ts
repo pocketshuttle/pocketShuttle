@@ -8,7 +8,6 @@ export const POST = async (req: NextRequest) => {
   try {
     await connectToDB();
     const data = await req.json();
-    console.log(data);
     const validatedData = ParentSchema.safeParse(data);
 
     if (!validatedData.success) {
@@ -28,6 +27,7 @@ export const POST = async (req: NextRequest) => {
       studentId,
       image,
       password,
+      role,
     } = validatedData.data;
 
     const hashPassword = await bcrypt.hash(password, 10);
@@ -41,6 +41,7 @@ export const POST = async (req: NextRequest) => {
       address,
       students: studentId ? [studentId] : [],
       image,
+      role,
     });
 
     await newParent.save();
