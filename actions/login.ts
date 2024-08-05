@@ -12,13 +12,15 @@ import { sendVerificationEmail } from "@/lib/mail";
 export const Login = async (values: z.infer<typeof LoginSchema>) => {
   //validating the data
   const validatedFields = LoginSchema.safeParse(values);
+
   if (!validatedFields) {
     return { error: "Invalid Fields" };
   }
   //@ts-ignore
-  const { email, password } = validatedFields.data;
+  const { email, password, role } = validatedFields.data;
 
-  const existingUser = await getUserByEmail(email);
+  const existingUser = await getUserByEmail(email, role);
+
 
   if (!existingUser || !existingUser.password || !existingUser.email) {
     return { error: "Invalid Credentials!" };

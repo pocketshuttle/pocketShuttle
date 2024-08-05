@@ -26,8 +26,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       try {
         await connectToDB(); // Connect to the database
         if (account?.provider !== "credentials") return true;
+        console.log(user);
 
         const existingUser = await getUserById(user?.id);
+        console.log("user from authorize", existingUser);
 
         if (!existingUser?.[0].emailVerified) return false;
 

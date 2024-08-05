@@ -106,7 +106,7 @@ const Sidebar = () => {
             </div>
 
             <button
-                className="flex gap-2 items-center text-[0.9rem] py-3 px-2 hover:bg-[var(--hoverBg)] w-full rounded-md"
+                className="flex gap-2 flex-start text-[0.9rem] py-3 px-2 hover:bg-[var(--hoverBg)] w-full rounded-md"
                 onClick={() => signOut()}
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
@@ -120,9 +120,9 @@ const Sidebar = () => {
                         </div>
                     )}
                 </Avatar>
-                <div className="flex flex-col">
+                <div className="flex flex-col items-start ">
                     <span className="text-[1rem] font-medium capitalize">{session?.user?.name || "admin"}</span>
-                    <span className="text-[0.7rem] text-[#b7cac1]">{session?.user?.role || "admin"}</span>
+                    <span className="text-[0.7rem] text-[#b7cac1]">{session?.user?.role || "admffin"}</span>
                 </div>
             </button>
         </div>

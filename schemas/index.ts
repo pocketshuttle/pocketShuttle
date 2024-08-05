@@ -17,6 +17,10 @@ export const LoginSchema = z.object({
   password: z.string().min(1, {
     message: "Password is Required!",
   }),
+  role: z
+    .string()
+    .transform((value) => (value === "" ? undefined : value))
+    .optional(),
 });
 export const ResetPasswordSchema = z.object({
   email: z.string().email({
@@ -61,7 +65,10 @@ export const TeacherSchema = z.object({
   address: z.string().min(1, {
     message: "Please add the teacher's address",
   }),
-  busId: z.string().optional(),
+  busId: z
+    .string()
+    .transform((value) => (value === "" ? undefined : value))
+    .optional(),
   studentId: z.string().optional(),
   role: z.string().min(2, {
     message: "Role is required",

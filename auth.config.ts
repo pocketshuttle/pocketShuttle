@@ -30,10 +30,12 @@ export default {
         const validatedFields = LoginSchema.safeParse(credentials);
 
         if (validatedFields.success) {
-          const { email, password } = validatedFields.data;
+          const { email, password, role } = validatedFields.data;
 
           const user = await getUserByEmail(email);
-          //       console.log(user);
+
+          console.log("user from authorize", validatedFields.data);
+
           if (!user || !user.password) {
             return null;
           }

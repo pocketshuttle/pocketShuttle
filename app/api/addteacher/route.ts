@@ -4,6 +4,7 @@ import Teacher from "@/(models)/Teachers";
 import Buses from "@/(models)/Bus";
 import { TeacherSchema } from "@/schemas";
 import bcrypt from "bcryptjs";
+import NewUser from "@/(models)/NewUser";
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -17,6 +18,7 @@ export const POST = async (req: NextRequest) => {
         { status: 400 }
       );
     }
+
     const {
       school_id,
       full_name,
@@ -43,9 +45,21 @@ export const POST = async (req: NextRequest) => {
       image,
       password: hashedPassword,
       role,
+      user: school_id,
     });
 
     await newTeacher.save();
+
+    const user = new NewUser({
+      school_id,
+      email,
+      password: hashedPassword,
+      role,
+      teacher: newTeacher._id,
+    });
+
+    await user.save();
+
     if (busId) {
       await Buses.findByIdAndUpdate(
         busId,
@@ -59,7 +73,7 @@ export const POST = async (req: NextRequest) => {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error adding driver:", error);
+    console.error("Error adding Teacher:", error);
     return NextResponse.json(
       {
         message: "Error adding Teacher",
