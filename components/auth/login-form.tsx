@@ -12,12 +12,14 @@ import { useState, useTransition } from "react"
 import { FormError } from "@/components/errorsandsuccess/form-error"
 import { FormSuccess } from "@/components/errorsandsuccess/form-success"
 import Link from "next/link"
+import { AddRoles } from "../ui/add-role"
 
 
 export const LoginForm = () => {
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState<string | undefined>("")
     const [isSuccess, setIsSuccess] = useState<string | undefined>("")
+    const [selectedRole, setSelectedRole] = useState<string>("")
     {/**
      Initialize the form with react-hook-form, integrating Zod for validation
  - The form's validation schema is defined using Zod's `LoginSchema`
@@ -32,6 +34,7 @@ export const LoginForm = () => {
         defaultValues: {
             email: "",
             password: "",
+            role: selectedRole || ""
         }
     })
     const onSubmit = (values: z.infer<typeof LoginSchema>) => {
@@ -44,6 +47,11 @@ export const LoginForm = () => {
                 setIsSuccess(data?.success)
             })
         })
+    }
+    const handleSelectRole = (value: string) => {
+        setSelectedRole(value)
+        console.log(value)
+        form.setValue("role", value)
     }
 
     return (
@@ -95,11 +103,15 @@ export const LoginForm = () => {
 
                                         />
                                     </FormControl>
-                                    <Button variant="link" size="sm" asChild className="px-0 font-normal">
-                                        <Link href="/reset">
-                                            Forgot Password?
-                                        </Link>
-                                    </Button>
+                                    <div className="flex justify-between items-center">
+
+                                        <Button variant="link" size="sm" asChild className="px-0 font-normal">
+                                            <Link href="/reset">
+                                                Forgot Password?
+                                            </Link>
+                                        </Button>
+                                        <AddRoles handleSelectChange={handleSelectRole} />
+                                    </div>
                                     <FormMessage />
 
                                     {/* <Image src={eye} alt="eye" /> */}

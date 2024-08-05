@@ -64,8 +64,6 @@ export const ParentData = () => {
             <div className="p-4 flex justify-end items-center ">
 
                 < AddData label="Parent" action={handleModal} />
-
-
                 {/* <Search placeholder="Search for parents..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
                 <Button variant="secondary" onClick={() => handleModal("")}>
                     add new

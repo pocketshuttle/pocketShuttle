@@ -37,9 +37,7 @@ export const AddRoles = ({ handleSelectChange }: SelectProps) => {
                 <SelectGroup>
                     {
                         data?.map((item: any, index: number) => (
-                            <>
-                                <SelectItem key={index} value={item.value} className="h-9">{item.label}</SelectItem>
-                            </>
+                            <SelectItem key={index} value={item.value} className="h-9">{item.label}</SelectItem>
                         ))
                     }
                 </SelectGroup>

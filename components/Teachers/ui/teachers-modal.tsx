@@ -63,7 +63,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
             email: "",
             phoneNumber: "",
             address: "",
-            busId: selectBus,
+            busId: selectBus || "",
             studentId: selectStudent || "",
             image: newAvatar,
             password: "",

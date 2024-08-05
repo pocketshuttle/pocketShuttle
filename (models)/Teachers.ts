@@ -18,6 +18,7 @@ const teacherSchema = new Schema(
     phoneNumber: String,
     students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
     busId: { type: mongoose.Schema.Types.ObjectId, ref: "Buses" },
+    user: { type: Schema.Types.ObjectId, ref: "NewUser", required: true },
   },
   { collection: "teachers" }
 );
