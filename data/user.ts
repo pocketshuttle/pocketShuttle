@@ -44,3 +44,16 @@ export const getUserById = async (id: string, role?: string) => {
     return null;
   }
 };
+
+export const getCreatedUser = async (email: string) => {
+  try {
+    const user = await NewUser.findOne({ email: email })
+      .populate("teacher")
+      .populate("parent");
+
+    return user;
+  } catch (error) {
+    console.error("Error fetching user by email:", error);
+    return null;
+  }
+};

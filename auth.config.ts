@@ -8,18 +8,6 @@ import { getUserByEmail } from "./data/user";
 export default {
   providers: [
     GoogleProvider({
-      // profile(profile) {
-      //   const { sub, email, name, picture } = profile;
-      //   let userRole = "admin";
-
-      //   return {
-      //     id: sub,
-      //     email,
-      //     name,
-      //     image: picture,
-      //     role: userRole,
-      //   };
-      // },
       clientId: process.env.CLIENT_ID || "",
       clientSecret: process.env.CLIENT_SECRET || "",
     }),
