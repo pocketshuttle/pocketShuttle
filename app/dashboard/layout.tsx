@@ -1,12 +1,16 @@
 import Navbar from "@/components/dashboard/navbar/navbar"
 import Sidebar from "@/components/dashboard/sidebar/sidebar"
+import { getUserSession } from "@/lib/session"
 import { Poppins } from "next/font/google"
 const poppins = Poppins({ weight: "500", subsets: ["latin"] })
-const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
+    const user = await getUserSession()
+    console.log(user)
+
     return (
         <div className={`flex h-screen ${poppins.className}`}>
             <div className="w-1/5 max-h-screen">
-                <Sidebar />
+                <Sidebar data={user} />
             </div>
 
             <div className="flex-1 p-3 ml-1/5">

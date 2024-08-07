@@ -1,4 +1,4 @@
-import { useEffect, useState, useTransition } from "react";
+import { cache, useEffect, useState, useTransition } from "react";
 
 export const useFetch = (url: string, userId: string | undefined) => {
   const [data, setData] = useState<any>(null);
@@ -29,7 +29,6 @@ export const useFetch = (url: string, userId: string | undefined) => {
     };
 
     fetchData();
-    
   }, [url, userId]);
 
   return { data, isPending, errorMessage };

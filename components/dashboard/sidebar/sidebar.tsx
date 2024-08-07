@@ -29,9 +29,11 @@ type ListType = {
     title: string;
 };
 
-const Sidebar = () => {
+const Sidebar = ({ data }) => {
     const [isHovering, setIsHovering] = useState(false);
     const { data: session } = useSession();
+
+
 
     const menuItems: { title: string; list: ListType[] }[] = [
         {
@@ -112,8 +114,8 @@ const Sidebar = () => {
                 onMouseLeave={() => setIsHovering(false)}
             >
                 <Avatar>
-                    {session?.user?.image ? (
-                        <AvatarImage src={session?.user?.image} alt="@shadcn" />
+                    {data.image ? (
+                        <AvatarImage src={data.image} alt="@shadcn" />
                     ) : (
                         <div style={{ width: 40, height: 40 }}>
                             <LottieAnimation isHovering={isHovering} animationData={userprofile} />
@@ -121,8 +123,8 @@ const Sidebar = () => {
                     )}
                 </Avatar>
                 <div className="flex flex-col items-start ">
-                    <span className="text-[1rem] font-medium capitalize">{session?.user?.name || "admin"}</span>
-                    <span className="text-[0.7rem] text-[#b7cac1]">{session?.user?.role || "admffin"}</span>
+                    <span className="text-[1rem] font-medium capitalize">{data.name || "admin"}</span>
+                    <span className="text-[0.7rem] text-[#b7cac1]">{data.role || "admffin"}</span>
                 </div>
             </button>
         </div>

@@ -8,33 +8,28 @@ import { getUserByEmail } from "./data/user";
 export default {
   providers: [
     GoogleProvider({
-      profile(profile) {
-        const { sub, email, name, picture } = profile;
-        let userRole = "admin";
+      // profile(profile) {
+      //   const { sub, email, name, picture } = profile;
+      //   let userRole = "admin";
 
-        return {
-          id: sub,
-          email,
-          name,
-          image: picture,
-          role: userRole,
-        };
-      },
+      //   return {
+      //     id: sub,
+      //     email,
+      //     name,
+      //     image: picture,
+      //     role: userRole,
+      //   };
+      // },
       clientId: process.env.CLIENT_ID || "",
       clientSecret: process.env.CLIENT_SECRET || "",
     }),
     Credentials({
       async authorize(credentials) {
-        console.log("credentials", credentials);
         //     //we validating the fields again
         const validatedFields = LoginSchema.safeParse(credentials);
-
         if (validatedFields.success) {
           const { email, password, role } = validatedFields.data;
-
-          const user = await getUserByEmail(email);
-
-          console.log("user from authorize", validatedFields.data);
+          const user = await getUserByEmail(email, role);
 
           if (!user || !user.password) {
             return null;

@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import authConfig from "./auth.config";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
-import { getUserById } from "@/data/user";
+import { getUserByEmail, getUserById } from "@/data/user";
 import clientPromise from "@/utils/db-promise";
 import User from "./(models)/User";
 import { connectToDB } from "./utils/connect-to-db";
@@ -26,16 +26,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       try {
         await connectToDB(); // Connect to the database
         if (account?.provider !== "credentials") return true;
-        console.log(user);
+        console.log(user, "sign in user");
 
-        const existingUser = await getUserById(user?.id);
-        console.log("user from authorize", existingUser);
+        const existingUser = await getUserByEmail(user?.email, user?.role);
+        console.log("existing user", existingUser);
+        // console.log("user from authorize", existingUser);
 
-        if (!existingUser?.[0].emailVerified) return false;
+        // if (!existingUser?.[0].emailVerified) return false;
 
-        const userExist = await User.findOne({
-          email: profile?.email,
-        });
+        // const userExist = await User.findOne({
+        //   email: profile?.email,
+        // });
+        console.log("User found:", user);
 
         return true;
       } catch (error) {
@@ -43,30 +45,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         throw error;
       }
     },
-    async session({ token, session }) {
-      // console.log("token", token.role);
+
+    async jwt({ token, user, profile }) {
+      if (!token.sub) return token;
+
+      if (user?.role) {
+        token.role = user?.role;
+        token.name = user?.full_name;
+      } else if (token.sub) {
+        const existingUser = await getUserById(token.sub);
+        if (existingUser) {
+          token.role = existingUser?.[0]?.role;
+          token.name = existingUser?.[0]?.name;
+        }
+      }
+
+      return token;
+    },
+    async session({ token, session, user }) {
+      console.log("session token", token);
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }
 
       if (token.role && session.user) {
-        session.user.role = token.role as "admin" | "parent" | "teacher";
+        session.user.role = token.role;
+        session.user.name = token.name;
       }
+
       return session;
-    },
-
-    async jwt({ token }) {
-      // console.log(token);
-      if (!token.sub) return token;
-
-      const existingUser = await getUserById(token.sub);
-      // console.log("existing users", existingUser?.[0]?.role);
-
-      if (!existingUser) return token;
-
-      token.role = existingUser?.[0]?.role;
-
-      return token;
     },
   },
   adapter: MongoDBAdapter(clientPromise),

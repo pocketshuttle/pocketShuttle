@@ -1,13 +1,19 @@
 import NewUser from "@/(models)/NewUser";
+import Parent from "@/(models)/Parent";
+import Teacher from "@/(models)/Teachers";
 import User from "@/(models)/User";
 
 export const getUserByEmail = async (email: string, role?: string) => {
   try {
     let user;
 
-    if (role === "teacher" || role === "parent") {
-      user = await NewUser.findOne({ email: email });
-      console.log("teacher", user);
+    if (role) {
+      if (role === "parent") {
+        user = await Parent.findOne({ email: email });
+      } else if (role === "teacher") {
+        user = await Teacher.findOne({ email: email });
+        console.log(user, "user from teacher");
+      }
     } else {
       user = await User.findOne({ email: email });
     }
@@ -21,13 +27,17 @@ export const getUserByEmail = async (email: string, role?: string) => {
 
 export const getUserById = async (id: string, role?: string) => {
   try {
-    console.log(id);
-
-    const user = await User.find({ _id: id });
-    if (!user) {
-      console.error(`User not found with ID: ${id}`);
-      return null;
+    let user;
+    if (role) {
+      if (role === "parent") {
+        user = await Parent.find({ _id: id });
+      } else if (role === "teacher") {
+        user = await Teacher.find({ _id: id });
+      }
+    } else {
+      user = await User.find({ _id: id });
     }
+
     return user;
   } catch (error) {
     console.error(`Error fetching user by ID: ${id}`, error);

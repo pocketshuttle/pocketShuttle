@@ -48,5 +48,5 @@ const parentSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: "NewUser", required: true },
 });
 
-const Parent = models.Parent || model("Parent", parentSchema);
+const Parent = models?.Parent || model("Parent", parentSchema);
 export default Parent;
