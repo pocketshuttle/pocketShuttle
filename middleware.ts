@@ -7,11 +7,13 @@ import {
   authRoutes,
   publicRoutes,
 } from "@/routes";
+import { getToken } from "next-auth/jwt";
 
 const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
   const { nextUrl } = req;
+
   const isLoggedIn = !!req.auth;
 
   const isAPIAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);

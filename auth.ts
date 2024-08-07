@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import authConfig from "./auth.config";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
-import { getUserByEmail, getUserById } from "@/data/user";
+import { getCreatedUser, getUserByEmail, getUserById } from "@/data/user";
 import clientPromise from "@/utils/db-promise";
 import User from "./(models)/User";
 import { connectToDB } from "./utils/connect-to-db";
@@ -26,10 +26,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       try {
         await connectToDB(); // Connect to the database
         if (account?.provider !== "credentials") return true;
-        console.log(user, "sign in user");
 
         const existingUser = await getUserByEmail(user?.email, user?.role);
-        console.log("existing user", existingUser);
         // console.log("user from authorize", existingUser);
 
         // if (!existingUser?.[0].emailVerified) return false;
@@ -48,10 +46,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     async jwt({ token, user, profile }) {
       if (!token.sub) return token;
-
-      if (user?.role) {
-        token.role = user?.role;
-        token.name = user?.full_name;
+    
+      if (token.role === "teacher" || token.role === "parent") {
+        token.role = token.role;
+        token.name = token.name;
       } else if (token.sub) {
         const existingUser = await getUserById(token.sub);
         if (existingUser) {
@@ -63,14 +61,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async session({ token, session, user }) {
-      console.log("session token", token);
+      await connectToDB();
       if (token.sub && session.user) {
         session.user.id = token.sub;
+      }
+      const createdUser = await getCreatedUser(token?.email);
+
+      if (createdUser) {
+        if (createdUser.teacher) {
+          session.user.name = createdUser.teacher.full_name;
+          session.user.role = createdUser.teacher.role;
+        } else if (createdUser.parent) {
+          session.user.name = createdUser.parent.full_name;
+          session.user.role = createdUser.parent.role;
+        }
       }
 
       if (token.role && session.user) {
         session.user.role = token.role;
-        session.user.name = token.name;
+        // session.user.name = token.name;
       }
 
       return session;
