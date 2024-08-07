@@ -17,7 +17,7 @@ const MenuLink = ({ menu }: { menu: ListType[] }) => {
     return (
         <div className="w-full">
             {menu.map((item: ListType, index: number) => (
-                <Link href={item.link} key={index}>
+                <Link href={item.link} key={index} prefetch>
                     <div
                         className={`flex items-center space-x-2 px-2 py-3 hover:bg-[var(--hoverBg)] mb-1 rounded-md ${pathname === item.link && "bg-[var(--hoverBg)]"
                             }`}

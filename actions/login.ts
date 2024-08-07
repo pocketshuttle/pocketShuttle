@@ -21,29 +21,36 @@ export const Login = async (values: z.infer<typeof LoginSchema>) => {
 
   const existingUser = await getUserByEmail(email, role);
 
-
   if (!existingUser || !existingUser.password || !existingUser.email) {
     return { error: "Invalid Credentials!" };
   }
 
-  if (!existingUser.emailVerified) {
-    const verificationToken = await generateVerificationToken(
-      existingUser.email
-    );
+  // if (!existingUser.emailVerified) {
+  //   const verificationToken = await generateVerificationToken(
+  //     existingUser.email
+  //   );
 
-    await sendVerificationEmail(
-      verificationToken.email,
-      verificationToken.token
-    );
+  //   await sendVerificationEmail(
+  //     verificationToken.email,
+  //     verificationToken.token
+  //   );
 
-    return { success: "Confirmation email sent, please verify your account!" };
-  }
+  //   return { success: "Confirmation email sent, please verify your account!" };
+  // }
 
   try {
-    await signIn("credentials", {
+    const signInParams = {
       email,
       password,
       redirectTo: DEFAULT_LOGIN_REDIRECT,
+    };
+
+    if (role) {
+      signInParams.role = role;
+    }
+
+    await signIn("credentials", {
+      ...signInParams,
     });
   } catch (error) {
     if (error instanceof AuthError) {

@@ -1,6 +1,14 @@
+import { auth } from '@/auth'
 import CommuteUI from '@/components/commute/commute'
+import { Metadata } from 'next'
 
-const Commute = () => {
+export const metadata: Metadata = {
+  title: "Commute page",
+  description: "Shows the details of of the passengers in the buses  "
+}
+
+const page = async () => {
+
   return (
     <div>
       <CommuteUI />
@@ -8,4 +16,4 @@ const Commute = () => {
   )
 }
 
-export default Commute
+export default page
