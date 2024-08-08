@@ -60,7 +60,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal, parentId }: StudentMo
             phoneNumber: "",
             address: "",
             email: "",
-            role: selectRole | ""
+            role: selectRole || ""
         }
     })
 

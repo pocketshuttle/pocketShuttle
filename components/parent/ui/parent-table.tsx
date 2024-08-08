@@ -97,8 +97,6 @@ export const ParentData = () => {
                                     </TableCell>
                                     <TableCell>
                                         {parent.students.length ? <ViewStudent /> : "no kids"}
-
-
                                     </TableCell>
                                     <TableCell>
                                         {parent.address}

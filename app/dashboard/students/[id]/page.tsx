@@ -19,6 +19,7 @@ import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { useSession } from "next-auth/react"
 import { grades, buses, gender } from "@/data/schooldata"
 import spinner from "@/public/images/spinner.gif"
+import { usePost } from "@/hooks/usePost"
 
 
 
@@ -29,10 +30,12 @@ const SingleStudent = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
 
-    const { data, isPending: studentPending, errorMessage } = useFetch(`/api/addstudent/${id}`, id);
+    const { data, isPending: studentPending, errorMessage: studentError } = useFetch(`/api/addstudent/${id}`, id);
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
 
     const studentData = data?.students
+
+    console.log(studentData)
 
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState("")
@@ -49,6 +52,10 @@ const SingleStudent = () => {
     const [selectParent, setSelectParent] = useState<string>("")
     const [selectDriver, setSelectDriver] = useState<string>("")
     const [selectTeacher, setSelectTeacher] = useState<string>("")
+    const [filterGrade, setFilterGrade] = useState<string>("")
+    const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
+
+    const { data: postData, loading, errorMessage, success } = usePost(`/api/addstudent/${id}`, submittedData, "PATCH")
 
     const form = useForm<z.infer<typeof StudentSchema>>({
         resolver: zodResolver(StudentSchema),
@@ -74,13 +81,17 @@ const SingleStudent = () => {
                 full_name: studentData[0]?.full_name,
                 address: studentData[0]?.address,
                 age: studentData[0]?.age,
-                image: newAvatar,
+                image: newAvatar || studentData[0]?.image,
+                gender: studentData?.[0]?.gender,
+                grade: studentData?.[0]?.grade
             });
         }
     }, [studentData, form, userId]);
 
-    const onSubmit = () => {
-        startTransition(() => { })
+    const onSubmit = (values: z.infer<typeof StudentSchema>) => {
+        startTransition(() => {
+            setSubmittedData(values)
+        })
     }
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
@@ -89,8 +100,9 @@ const SingleStudent = () => {
     }
 
     const handleCameraInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files[0]
-        console.log(file)
+
+        const file = event?.target?.files[0]
+
         if (file) {
             const reader = new FileReader()
             reader.onload = async () => {
@@ -216,12 +228,16 @@ const SingleStudent = () => {
                                 </div>
 
                                 <div className="w-full">
-                                    < SelectProperty placeholder="Gender" label="Student Grade" data={gender} handleSelectChange={handleGenderChange} />
+                                    < SelectProperty placeholder="Gender" label="Student Grade" data={gender} handleSelectChange={handleGenderChange} mode="edit"
+                                        edit={studentData?.[0]?.gender}
+                                    />
                                 </div>
                             </div>
 
                             <div className="flex space-x-3 justify-between w-full ">
-                                < SelectProperty placeholder="Grade" label="Select Grade" data={grades} handleSelectChange={handleGradeChange} />
+                                < SelectProperty placeholder="Grade" label="Select Grade" data={grades} handleSelectChange={handleGradeChange} mode="edit"
+                                    edit={studentData?.[0]?.grade}
+                                />
                                 <div className="w-full">
                                     {
                                         busData &&
