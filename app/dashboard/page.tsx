@@ -17,7 +17,6 @@ const Dashboard = () => {
     const { data: driversData, } = useFetch(`/api/adddriver/${userId}`, userId);
     const { data: routeData, } = useFetch(`/api/addroute/${userId}`, userId);
 
-    console.log(routeData);
 
     return (
         <div className="flex w-full" >
