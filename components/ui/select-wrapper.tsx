@@ -14,12 +14,15 @@ type SelectProps = {
     placeholder: string;
     label?: string;
     handleSelectChange: (value: string) => void;
-    setFilterGrade: Dispatch<SetStateAction<string>>;
+    setFilterGrade?: Dispatch<SetStateAction<string>>;
     data: any
+    mode?: string
+    edit?: string
 };
 
-export const SelectProperty = ({ placeholder, label, data, handleSelectChange, setFilterGrade }: SelectProps) => {
+export const SelectProperty = ({ placeholder, label, data, handleSelectChange, setFilterGrade, mode, edit }: SelectProps) => {
     const handleAll = () => {
+        //@ts-ignore
         setFilterGrade("All")
     }
     return (
@@ -29,14 +32,17 @@ export const SelectProperty = ({ placeholder, label, data, handleSelectChange, s
             </SelectTrigger>
             <SelectContent>
                 <SelectGroup>
-                    <SelectLabel>{label}</SelectLabel>
+                    <SelectLabel>{edit ? edit : label}</SelectLabel>
                     {
                         data?.map((item: any, index: number) => (
                             <SelectItem key={index} value={item.label}>{item.value}</SelectItem>
                         ))
                     }
                 </SelectGroup>
-                <Button onClick={handleAll} size={"lg"} className="bg-none w-full">All</Button>
+                {
+                    mode !== "edit" &&
+                    <Button onClick={handleAll} size={"lg"} className="bg-none w-full">All</Button>
+                }
             </SelectContent>
 
         </Select>

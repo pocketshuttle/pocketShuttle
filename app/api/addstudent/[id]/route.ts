@@ -70,6 +70,7 @@ export const PATCH = async (
     await connectToDB();
     const { id } = params;
     const data = await req.json();
+    console.log(data);
 
     const updatedStudent = await Student.findByIdAndUpdate(id, data, {
       new: true, // Return the updated document
