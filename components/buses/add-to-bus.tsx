@@ -34,7 +34,7 @@ type dataProps = {
 export const AddToBus = ({ placeholder, label, data, id, mode }: SelectProps) => {
     const [passenger, setPassenger] = useState<object>({ busId: undefined, studentId: undefined })
     const [isPending, startTransition] = useTransition()
-
+    console.log(data)
 
     const handleSelectBus = (value: string) => {
         const handleMode = mode === "driver" ? addDriver(id, value) : addTeacher(id, value)

@@ -23,6 +23,9 @@ import { useSession } from "next-auth/react"
 import { AttendaceTab } from "./ui/register-tab"
 import { useSearchParams } from "next/navigation"
 import { Spinner } from "../ui/spinner"
+import { getUserSession } from "@/lib/session"
+
+
 
 type StudentProps = {
     _id: string,
@@ -38,24 +41,29 @@ type StudentProps = {
 
 }
 
+type SessionProps = {
+    id: string | undefined
+}
 
 
-export const TeachersViewData = () => {
+
+export const TeachersViewData = ({ id }: SessionProps) => {
     const { data: session } = useSession()
     const userId = session?.user?.id
+
+
 
     const searchParams = useSearchParams()
     const page = searchParams.get("page")
 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
     const { data, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?page=${page}`, userId);
-    const { data: teachersData, isPending: isLoading, } = useFetch(`/api/addteacher/${userId}`, userId);
+    const { data: teachersData, isPending: isLoading, } = useFetch(`/api/addteacher/${id}`, id);
     const { data: busData, isPending: busLoading, } = useFetch(`/api/addbus/${userId}`, userId);
 
-
     const teacherData = teachersData?.teacher
-    console.log(teacherData);
     const studentsData = data?.students || [];
+
     const totalCount = data?.count
     const [attendance, SetAttendance] = useState("")
 
@@ -76,7 +84,11 @@ export const TeachersViewData = () => {
             <div className="mt-4 bg-[var(--bg)] lg:hidden w-full">
                 <header className=" px-4 py-1 space-y-2 text-lg">
                     <p>
-                        BusName : <span className="capitalize">{teacherData?.[0]?.busId.bus_product_name}</span>
+                        BusName : <span className="capitalize">{
+
+                            teacherData?.[0]?.busId.bus_product_name
+                        }
+                        </span>
                     </p>
                     <p>
                         Driver : <span></span>
@@ -190,3 +202,5 @@ export const TeachersViewData = () => {
 
     )
 }
+
+
