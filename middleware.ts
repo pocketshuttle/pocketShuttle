@@ -1,3 +1,7 @@
+// export const config = {
+
+// };
+
 import NextAuth from "next-auth";
 import authConfig from "@/auth.config";
 
@@ -7,7 +11,6 @@ import {
   authRoutes,
   publicRoutes,
 } from "@/routes";
-import { getToken } from "next-auth/jwt";
 
 const { auth } = NextAuth(authConfig);
 
@@ -45,4 +48,9 @@ export default auth((req) => {
 // Optionally, don't invoke Middleware on some paths
 export const config = {
   matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+  unstable_allowDynamic: [
+    "mongoose/dist/browser.umd.js",
+    "./(models)/Parent.ts",
+    "/node_modules/function-bind/**", // use a glob to allow anything in the function-bind 3rd party module
+  ],
 };

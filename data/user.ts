@@ -45,6 +45,7 @@ export const getUserById = async (id: string, role?: string) => {
   }
 };
 
+
 export const getCreatedUser = async (email: string) => {
   try {
     const user = await NewUser.findOne({ email: email })

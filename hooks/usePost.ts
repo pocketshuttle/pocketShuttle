@@ -38,6 +38,7 @@ export const usePost = (
             description: data.message,
           });
           setIsSuccess(false);
+          setLoading(false);
         }
       } catch (error) {
         if (error instanceof Error) {

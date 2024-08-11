@@ -14,6 +14,7 @@ type SelectProps = {
     handleSelectChange: (value: string) => void;
     data: dataProps[]
     classname: string
+    edit?: EditProps
 };
 
 type dataProps = {
@@ -22,12 +23,17 @@ type dataProps = {
     bus_number: string
     classname?: string
 }
+type EditProps = {
+    bus_product_name: string
+    bus_number: string
+}
 
-export const SelectBusWrapper = ({ placeholder, label, data, handleSelectChange, classname }: SelectProps) => {
+export const SelectBusWrapper = ({ placeholder, label, data, handleSelectChange, classname, edit }: SelectProps) => {
     return (
         <Select onValueChange={handleSelectChange}>
             <SelectTrigger className={`${classname && classname}w-3/6`}>
-                <SelectValue placeholder={placeholder} />
+                <SelectValue placeholder={placeholder}
+                />
             </SelectTrigger>
             <SelectContent>
                 <SelectGroup>
@@ -36,7 +42,6 @@ export const SelectBusWrapper = ({ placeholder, label, data, handleSelectChange,
                         data && data?.map((item: dataProps, index: number) => (
                             <SelectItem key={item._id} value={JSON.stringify({ id: item._id, bus_product_name: item.bus_product_name })}>
                                 <div className="space-x-1">
-
                                     <span>
                                         {item.bus_product_name}
                                     </span>
