@@ -5,7 +5,8 @@ import { getCreatedUser, getUserByEmail, getUserById } from "@/data/user";
 import clientPromise from "@/utils/db-promise";
 import User from "./(models)/User";
 import { connectToDB } from "./utils/connect-to-db";
-
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { db } from "./lib/db";
 export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: "/auth/login",
@@ -46,7 +47,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     async jwt({ token, user, profile }) {
       if (!token.sub) return token;
-    
+
       if (token.role === "teacher" || token.role === "parent") {
         token.role = token.role;
         token.name = token.name;
@@ -85,7 +86,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
   },
-  adapter: MongoDBAdapter(clientPromise),
+  adapter: PrismaAdapter(db),
   session: { strategy: "jwt" },
   ...authConfig,
 });

@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.4.1",
-    "@auth/prisma-adapter": "^2.4.1",
+    "@auth/prisma-adapter": "^2.4.2",
     "@hookform/resolvers": "^3.7.0",
     "@prisma/client": "^5.16.1",
     "@radix-ui/react-alert-dialog": "^1.1.1",

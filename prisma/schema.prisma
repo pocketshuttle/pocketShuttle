@@ -23,30 +23,38 @@ enum StudentAttendance {
   PRESENT
 }
 
+enum StudentPresence {
+  IN_BUS
+  AT_SCHOOL
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
   email         String?   @unique
   emailVerified DateTime? @map("email_verified")
   image         String?
-  role          String
+  role          String?
   password      String?
   accounts      Account[]
   teachers      Teacher[]
   NewUser       NewUser[]
+  Parent        Parent[]
+  Student       Student[]
 
   @@map("users")
 }
 
 model NewUser {
   id        String   @id @default(cuid())
-  email     String
+  email     String   @unique
   password  String
-  // parentId  String?
   teacherId String?
   teacher   Teacher? @relation(fields: [teacherId], references: [id])
   schoolId  String
   school    User     @relation(fields: [schoolId], references: [id])
+  Parent    Parent?  @relation(fields: [parentId], references: [id])
+  parentId  String?
 }
 
 model Account {
@@ -84,4 +92,43 @@ model Teacher {
   school        User      @relation(fields: [schoolId], references: [id])
   busId         String?
   NewUser       NewUser[]
+  Student       Student[]
+}
+
+model Parent {
+  id            String    @id @default(cuid())
+  parentId      String    @map("parent_id")
+  role          String
+  full_name     String?
+  image         String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  password      String?
+  phoneNumber   String?
+  address       String?
+  schoolId      String
+  school        User      @relation(fields: [schoolId], references: [id])
+  busId         String?
+  NewUser       NewUser[]
+  Student       Student[]
+}
+
+model Student {
+  id         String            @id @default(cuid())
+  parentId   String?           @map("parent_id")
+  full_name  String?
+  image      String?
+  grade      String?
+  gender     String?
+  age        String?
+  address    String?
+  attendance StudentAttendance @default(ABSENT)
+  status     StudentStatus     @default(DROPPED)
+  presence   StudentPresence   @default(IN_BUS)
+  parent     Parent?           @relation(fields: [parentId], references: [id])
+  schoolId   String
+  teacherId  String?
+  teacher    Teacher?          @relation(fields: [teacherId], references: [id])
+  school     User              @relation(fields: [schoolId], references: [id])
+  busId      String?
 }

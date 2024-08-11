@@ -3,7 +3,7 @@ import Sidebar from "@/components/dashboard/sidebar/sidebar"
 import { getUserSession } from "@/lib/session"
 import { Poppins } from "next/font/google"
 import TeacherView from "../teacher/page"
-import { db } from "@/lib/db"
+
 const poppins = Poppins({ weight: "500", subsets: ["latin"] })
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
     const user = await getUserSession()
