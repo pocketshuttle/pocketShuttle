@@ -21,6 +21,7 @@ import { SelectProperty } from "@/components/ui/select-wrapper"
 import spinner from "@/public/images/spinner.gif"
 import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
+import { Spinner } from "@/components/ui/spinner"
 
 
 interface SingledriverlProps {
@@ -56,10 +57,12 @@ const SingleDriverPage = ({ isOpenModal, setIsOpenModal, mode, route }: Singledr
     const [newData, setNewData] = useState(null)
 
     const { data, loading, errorMessage, success } = usePost(`/api/addriver/${id}`, submittedData, "PATCH")
-    const { data: driverData, isPending: isLoading, errorMessage: editMessage } = useFetch(`/api/addriver/${id}`, userId);
+    const { data: driversData, isPending: isLoading, errorMessage: editMessage } = useFetch(`/api/addriver/${id}`, userId);
+    const driverData = driversData?.driver
     const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
 
-    console.log(driverData)
+    console.log(driverData?.[0])
+    
     const form = useForm<z.infer<typeof DriverSchema>>({
         resolver: zodResolver(DriverSchema),
         defaultValues: {
@@ -68,9 +71,9 @@ const SingleDriverPage = ({ isOpenModal, setIsOpenModal, mode, route }: Singledr
             email: "",
             phoneNumber: "",
             address: "",
-            busId: selectBus || "",
+            busId: selectBus || driverData?.[0].bus,
             studentId: selectStudent || "",
-            image: newAvatar,
+            image: newAvatar || driverData?.[0].image,
             password: "",
         }
     })
@@ -82,7 +85,8 @@ const SingleDriverPage = ({ isOpenModal, setIsOpenModal, mode, route }: Singledr
                 email: driverData[0]?.email,
                 phoneNumber: driverData[0]?.phoneNumber,
                 address: driverData[0]?.address,
-                image: newAvatar,
+                image: newAvatar || driverData?.[0].image,
+                busId: selectBus || driverData?.[0].bus
             });
         }
     }, [driverData, form, userId]);
@@ -175,9 +179,7 @@ const SingleDriverPage = ({ isOpenModal, setIsOpenModal, mode, route }: Singledr
     //     window.localStorage.setItem('user_selected_avatar_url', newAvatar)
     // }, [newAvatar])
 
-    if (isLoading) {
-        return <p>Loading...</p>;
-    }
+
     // if (isSuccess) {
     //     return <FormSuccess message={dataMessage} setIsOpenModal={setIsOpenModal} />
     // }
@@ -189,141 +191,145 @@ const SingleDriverPage = ({ isOpenModal, setIsOpenModal, mode, route }: Singledr
                 <div>
                     <h1 className="text-center p-3 text-xl">Update driver</h1>
                 </div>
-                <div className=" flex ">
-                    <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
-                        <input
-                            id="cameraInput"
-                            type="file"
-                            accept="image/*"
-                            capture="environment"
-                            style={{ display: 'none' }}
-                            onChange={handleCameraInputChange}
-                        />
+                {
+                    isLoading ? <Spinner /> :
+                        (<div className=" flex ">
+                            <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
+                                <input
+                                    id="cameraInput"
+                                    type="file"
+                                    accept="image/*"
+                                    capture="environment"
+                                    style={{ display: 'none' }}
+                                    onChange={handleCameraInputChange}
+                                />
 
-                        <Image src={
-                            newAvatar ? isLoadingImage ? spinner : newAvatar :
-                                driverData && driverData[0]?.image ?
-                                    driverData[0]?.image : avatar
-                        } alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
-                    </div>
-                    <div className="flex-1 px-5 ">
-                        <Form {...form}>
-                            {/* the handle submit comes from the form constant */}
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                                <div className="space-y-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="full_name"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Full Name</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        {...field}
-                                                        placeholder="ciroma@email.com"
-                                                        type="text"
-                                                        disabled={isPending}
-                                                        className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    >
+                                <Image src={
+                                    newAvatar ? isLoadingImage ? spinner : newAvatar :
+                                        driverData && driverData[0]?.image ?
+                                            driverData[0]?.image : avatar
+                                } alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
+                            </div>
+                            <div className="flex-1 px-5 ">
+                                <Form {...form}>
+                                    {/* the handle submit comes from the form constant */}
+                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                        <div className="space-y-4">
+                                            <FormField
+                                                control={form.control}
+                                                name="full_name"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Full Name</FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                {...field}
+                                                                placeholder="ciroma@email.com"
+                                                                type="text"
+                                                                disabled={isPending}
+                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            >
 
-                                    </FormField>
-                                </div>
-                                <div className="space-x-4 flex items-center w-full justify-between">
-                                    <div className="w-3/6">
-                                        <FormField
-                                            control={form.control}
-                                            name="email"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Email</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            placeholder="ciroma@email.com"
-                                                            type="email"
-                                                            disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
+                                            </FormField>
+                                        </div>
+                                        <div className="space-x-4 flex items-center w-full justify-between">
+                                            <div className="w-3/6">
+                                                <FormField
+                                                    control={form.control}
+                                                    name="email"
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Email</FormLabel>
+                                                            <FormControl>
+                                                                <Input
+                                                                    {...field}
+                                                                    placeholder="ciroma@email.com"
+                                                                    type="email"
+                                                                    disabled={isPending}
+                                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                />
+                                                            </FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            </div>
 
-                                    <div className="w-3/6">
-                                        <FormField
-                                            control={form.control}
-                                            name="phoneNumber"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Phone Number</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            placeholder="08012345678"
-                                                            type="number"
-                                                            disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
+                                            <div className="w-3/6">
+                                                <FormField
+                                                    control={form.control}
+                                                    name="phoneNumber"
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Phone Number</FormLabel>
+                                                            <FormControl>
+                                                                <Input
+                                                                    {...field}
+                                                                    placeholder="08012345678"
+                                                                    type="number"
+                                                                    disabled={isPending}
+                                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                />
+                                                            </FormControl>
+                                                            <FormMessage />
 
-                                                    {/* <Image src={eye} alt="eye" /> */}
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
+                                                            {/* <Image src={eye} alt="eye" /> */}
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            </div>
 
-                                </div>
+                                        </div>
 
 
-                                <div className="space-y-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="address"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Address</FormLabel>
-                                                <FormControl>
-                                                    <Textarea
-                                                        {...field}
-                                                        className="py-3 border-none bg-[var(--bgSoft)] outline-none "
-                                                        placeholder="drivers Address..."
-                                                        disabled={isPending}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
+                                        <div className="space-y-4">
+                                            <FormField
+                                                control={form.control}
+                                                name="address"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Address</FormLabel>
+                                                        <FormControl>
+                                                            <Textarea
+                                                                {...field}
+                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none "
+                                                                placeholder="drivers Address..."
+                                                                disabled={isPending}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
 
-                                                {/* <Image src={eye} alt="eye" /> */}
-                                            </FormItem>
-                                        )}
-                                    >
-                                    </FormField>
-                                </div>
-                                <div className="flex gap-3">
-                                    <div className="w-3/6">
-                                        {
-                                            busData &&
-                                            < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} />
-                                        }
-                                    </div>
-                                </div>
-                                {/* <FormError message={isError} /> */}
-                                {/* <FormSuccess message={isSuccess} /> */}
-                                <Button
-                                    // disabled={isPending}
-                                    size="lg" className="w-full" type="submit">Update driver
-                                </Button>
-                            </form>
-                        </Form>
-                    </div>
-                </div>
+                                                        {/* <Image src={eye} alt="eye" /> */}
+                                                    </FormItem>
+                                                )}
+                                            >
+                                            </FormField>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <div className="w-3/6">
+                                                {
+                                                    busData &&
+                                                    < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} classname="" edit={driverData[0]?.bus} />
+                                                }
+                                            </div>
+                                        </div>
+                                        {/* <FormError message={isError} /> */}
+                                        {/* <FormSuccess message={isSuccess} /> */}
+                                        <Button
+                                            // disabled={isPending}
+                                            size="lg" className="w-full" type="submit">Update driver
+                                        </Button>
+                                    </form>
+                                </Form>
+                            </div>
+                        </div>)
+
+                }
             </div>
         </div>
     )

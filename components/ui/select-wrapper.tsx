@@ -21,6 +21,7 @@ type SelectProps = {
 };
 
 export const SelectProperty = ({ placeholder, label, data, handleSelectChange, setFilterGrade, mode, edit }: SelectProps) => {
+    console.log(edit)
     const handleAll = () => {
         //@ts-ignore
         setFilterGrade("All")

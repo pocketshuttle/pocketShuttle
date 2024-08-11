@@ -20,6 +20,8 @@ import { useSession } from "next-auth/react"
 import { grades, buses, gender } from "@/data/schooldata"
 import spinner from "@/public/images/spinner.gif"
 import { usePost } from "@/hooks/usePost"
+import { BeatLoader } from "react-spinners"
+import { Spinner } from "@/components/ui/spinner"
 
 
 
@@ -155,131 +157,136 @@ const SingleStudent = () => {
         form.setValue("grade", value);
     };
 
+
     return (
         <div className="">
             <h2 className="text-center font-semibold text-2xl p-4">Edit Student</h2>
-            <div className=" flex ">
-                <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[15.8rem] p-2 rounded-md" >
-                    <input
-                        id="cameraInput"
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        style={{ display: 'none' }}
-                        onChange={handleCameraInputChange}
-                    />
-                    <Image src={
+            {
+                studentPending ? <Spinner /> :
+                    (<div className=" flex ">
+                        <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[15.8rem] p-2 rounded-md" >
+                            <input
+                                id="cameraInput"
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                style={{ display: 'none' }}
+                                onChange={handleCameraInputChange}
+                            />
+                            <Image src={
 
-                        newAvatar ? isLoadingImage ? spinner : newAvatar :
-                            studentData && studentData[0]?.image ?
-                                studentData[0]?.image : avatar
+                                newAvatar ? isLoadingImage ? spinner : newAvatar :
+                                    studentData && studentData[0]?.image ?
+                                        studentData[0]?.image : avatar
 
-                    } alt="avatar" className="cursor-pointer rounded-md object-fill object-center w-full " width={300} height={100} onClick={() => handleCameraClick()} />
-                </div>
-                <div className="flex-1 px-5 ">
+                            } alt="avatar" className="cursor-pointer rounded-md object-fill object-center w-full " width={300} height={100} onClick={() => handleCameraClick()} />
+                        </div>   
+                        <div className="flex-1 px-5 ">
 
-                    <Form {...form}>
-                        {/* the handle submit comes from the form constant */}
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                            <div className="space-y-4">
-                                <FormField
-                                    control={form.control}
-                                    name="full_name"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Full Name</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    placeholder="John Doe"
-                                                    type="text"
-                                                    disabled={isPending}
-                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                >
-                                </FormField>
-                            </div>
-                            <div className="space-x-4 flex items-center w-full justify-center">
-                                <div className="w-5/6">
-                                    <FormField
-                                        control={form.control}
-                                        name="age"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Age</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        {...field}
-                                                        placeholder="mm/dd/yyyy"
-                                                        type="number"
-                                                        disabled={isPending}
-                                                        className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                        onChange={e => field.onChange(Number(e.target.value))}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
+                            <Form {...form}>
+                                {/* the handle submit comes from the form constant */}
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                    <div className="space-y-4">
+                                        <FormField
+                                            control={form.control}
+                                            name="full_name"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Full Name</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            {...field}
+                                                            placeholder="John Doe"
+                                                            type="text"
+                                                            disabled={isPending}
+                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        >
+                                        </FormField>
+                                    </div>
+                                    <div className="space-x-4 flex items-center w-full justify-center">
+                                        <div className="w-5/6">
+                                            <FormField
+                                                control={form.control}
+                                                name="age"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Age</FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                {...field}
+                                                                placeholder="mm/dd/yyyy"
+                                                                type="number"
+                                                                disabled={isPending}
+                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                onChange={e => field.onChange(Number(e.target.value))}
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
 
-                                <div className="w-full">
-                                    < SelectProperty placeholder="Gender" label="Student Grade" data={gender} handleSelectChange={handleGenderChange} mode="edit"
-                                        edit={studentData?.[0]?.gender}
-                                    />
-                                </div>
-                            </div>
+                                        <div className="w-full">
+                                            < SelectProperty placeholder="Gender" label="Student Grade" data={gender} handleSelectChange={handleGenderChange} mode="edit"
+                                                edit={studentData?.[0]?.gender}
+                                            />
+                                        </div>
+                                    </div>
 
-                            <div className="flex space-x-3 justify-between w-full ">
-                                < SelectProperty placeholder="Grade" label="Select Grade" data={grades} handleSelectChange={handleGradeChange} mode="edit"
-                                    edit={studentData?.[0]?.grade}
-                                />
-                                <div className="w-full">
-                                    {
-                                        busData &&
-                                        < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} classname="ks" />
-                                    }
-                                </div>
-                            </div>
-                            <div className="space-y-4">
-                                <FormField
-                                    control={form.control}
-                                    name="address"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Student Address</FormLabel>
-                                            <FormControl>
-                                                <Textarea
-                                                    {...field}
-                                                    placeholder="Student Address..."
-                                                    disabled={isPending}
-                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none "
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
+                                    <div className="flex space-x-3 justify-between w-full ">
+                                        < SelectProperty placeholder="Grade" label="Select Grade" data={grades} handleSelectChange={handleGradeChange} mode="edit"
+                                            edit={studentData?.[0]?.grade}
+                                        />
+                                        <div className="w-full">
+                                            {
+                                                busData &&
+                                                < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} classname="ks" />
+                                            }
+                                        </div>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <FormField
+                                            control={form.control}
+                                            name="address"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Student Address</FormLabel>
+                                                    <FormControl>
+                                                        <Textarea
+                                                            {...field}
+                                                            placeholder="Student Address..."
+                                                            disabled={isPending}
+                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none "
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
 
-                                            {/* <Image src={eye} alt="eye" /> */}
-                                        </FormItem>
-                                    )}
-                                >
+                                                    {/* <Image src={eye} alt="eye" /> */}
+                                                </FormItem>
+                                            )}
+                                        >
 
-                                </FormField>
-                            </div>
+                                        </FormField>
+                                    </div>
 
-                            {/* <FormError message={isError} /> */}
-                            {/* <FormSuccess message={isSuccess} /> */}
-                            <Button
-                                disabled={isPending}
-                                size="lg" className="w-full bg-[teal] p-5" type="submit">Update Student
-                            </Button>
-                        </form>
-                    </Form>
-                </div>
-            </div>
+                                    {/* <FormError message={isError} /> */}
+                                    {/* <FormSuccess message={isSuccess} /> */}
+                                    <Button
+                                        disabled={isPending}
+                                        size="lg" className="w-full bg-[teal] p-5" type="submit">
+                                        Update Student
+                                    </Button>
+                                </form>
+                            </Form>
+                        </div>
+                    </div>)
+            }
         </div>
     )
 }

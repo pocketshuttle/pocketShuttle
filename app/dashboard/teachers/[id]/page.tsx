@@ -21,6 +21,7 @@ import { SelectProperty } from "@/components/ui/select-wrapper"
 import spinner from "@/public/images/spinner.gif"
 import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
+import { Spinner } from "@/components/ui/spinner"
 
 
 interface SingleTeacherlProps {
@@ -63,12 +64,12 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
         resolver: zodResolver(TeacherSchema),
         defaultValues: {
             school_id: userId,
-            full_name: teacherData && teacherData[0].full_name,
+            full_name: teacherData && teacherData?.[0].full_name,
             email: "",
             password: "",
             phoneNumber: "",
             address: "",
-            image: newAvatar,
+            image: newAvatar || teacherData?.[0]?.image,
             busId: ""
         }
     })
@@ -76,10 +77,10 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
         if (teacherData) {
             form.reset({
                 school_id: userId,
-                full_name: teacherData[0]?.full_name,
-                email: teacherData[0]?.email,
-                phoneNumber: teacherData[0]?.phoneNumber,
-                address: teacherData[0]?.address,
+                full_name: teacherData?.[0]?.full_name,
+                email: teacherData?.[0]?.email,
+                phoneNumber: teacherData?.[0]?.phoneNumber,
+                address: teacherData?.[0]?.address,
                 image: newAvatar,
             });
         }
@@ -172,9 +173,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
     //     window.localStorage.setItem('user_selected_avatar_url', newAvatar)
     // }, [newAvatar])
 
-    if (isLoading) {
-        return <p>Loading...</p>;
-    }
+
     // if (isSuccess) {
     //     return <FormSuccess message={dataMessage} setIsOpenModal={setIsOpenModal} />
     // }
@@ -186,7 +185,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
                 <div>
                     <h1 className="text-center p-3 text-xl">Update Teacher</h1>
                 </div>
-                <div className=" flex ">
+                {isLoading ? <Spinner /> : (<div className=" flex ">
                     <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
                         <input
                             id="cameraInput"
@@ -334,7 +333,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
                                     <div className="w-3/6">
                                         {
                                             busData &&
-                                            < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} />
+                                            < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} classname="" />
                                         }
                                     </div>
                                 </div>
@@ -347,7 +346,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
                             </form>
                         </Form>
                     </div>
-                </div>
+                </div>)}
             </div>
         </div>
     )

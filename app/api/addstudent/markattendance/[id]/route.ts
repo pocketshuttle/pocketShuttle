@@ -2,6 +2,7 @@ import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Student from "@/(models)/Student";
 import Buses from "@/(models)/Bus";
+import { revalidatePath } from "next/cache";
 
 type ParamsProps = {
   id: string;
@@ -19,9 +20,9 @@ export const PATCH = async (
 
     console.log("bus data", data);
 
-    if (!data) {
+    if (!data || !data.attendance) {
       return NextResponse.json(
-        { message: "No data provided" },
+        { message: "Invalid data provided" },
         { status: 400 }
       );
     }
@@ -38,6 +39,7 @@ export const PATCH = async (
         { status: 404 }
       );
     }
+    revalidatePath("/dashboard", "page");
 
     return NextResponse.json(
       { message: "Attendance updated successfully", student: updatedStudent },

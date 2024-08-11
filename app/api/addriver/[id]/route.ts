@@ -59,7 +59,7 @@ export const PATCH = async (
     await connectToDB();
     const { id } = params;
     const data = await req.json();
-
+    console.log(data);
     const updatedDriver = await Driver.findByIdAndUpdate(id, data, {
       new: true, // Return the updated document
       runValidators: true, // Ensure the update adheres to the schema validation
