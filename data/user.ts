@@ -2,6 +2,7 @@ import NewUser from "@/(models)/NewUser";
 import Parent from "@/(models)/Parent";
 import Teacher from "@/(models)/Teachers";
 import User from "@/(models)/User";
+import { db } from "@/lib/db";
 
 export const getUserByEmail = async (email: string, role?: string) => {
   try {
@@ -9,13 +10,26 @@ export const getUserByEmail = async (email: string, role?: string) => {
 
     if (role) {
       if (role === "parent") {
-        user = await Parent.findOne({ email: email });
+        // user = await Parent.findOne({ email: email });
+        user = await db.parent.findUnique({
+          where: {
+            email,
+          },
+        });
       } else if (role === "teacher") {
-        user = await Teacher.findOne({ email: email });
-        console.log(user, "user from teacher");
+        user = await db.teacher.findUnique({
+          where: {
+            email,
+          },
+        });
       }
     } else {
-      user = await User.findOne({ email: email });
+      // user = await User.findOne({ email: email });
+      user = await db.user.findUnique({
+        where: {
+          email,
+        },
+      });
     }
 
     return user;
@@ -30,12 +44,24 @@ export const getUserById = async (id: string, role?: string) => {
     let user;
     if (role) {
       if (role === "parent") {
-        user = await Parent.find({ _id: id });
+        user = await db.parent.findUnique({
+          where: {
+            id,
+          },
+        });
       } else if (role === "teacher") {
-        user = await Teacher.find({ _id: id });
+        user = await db.teacher.findUnique({
+          where: {
+            id,
+          },
+        });
       }
     } else {
-      user = await User.find({ _id: id });
+      user = await db.user.findUnique({
+        where: {
+          id,
+        },
+      });
     }
 
     return user;
@@ -45,12 +71,15 @@ export const getUserById = async (id: string, role?: string) => {
   }
 };
 
-
 export const getCreatedUser = async (email: string) => {
   try {
-    const user = await NewUser.findOne({ email: email })
-      .populate("teacher")
-      .populate("parent");
+    const user = await db.newUser.findUnique({
+      where: {
+        email,
+      },
+    });
+    // .populate("teacher")
+    // .populate("parent");
 
     return user;
   } catch (error) {

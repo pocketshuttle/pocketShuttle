@@ -1,7 +1,3 @@
-// export const config = {
-
-// };
-
 import NextAuth from "next-auth";
 import authConfig from "@/auth.config";
 
@@ -18,6 +14,7 @@ export default auth((req) => {
   const { nextUrl } = req;
 
   const isLoggedIn = !!req.auth;
+  console.log(isLoggedIn);
 
   const isAPIAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
   //   //if the nexturl.pathname is included in the publicroutes array, then it requires no auth
