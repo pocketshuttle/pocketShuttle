@@ -80,9 +80,9 @@ export const TeachersTable = () => {
         })
     }
 
-    if (errorMessage) {
-        return <p>Error: {errorMessage}</p>;
-    }
+    // if (errorMessage) {
+    //     return <p>Error: {errorMessage}</p>;
+    // }
     return (
         <div>
             {
