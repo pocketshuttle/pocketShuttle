@@ -28,13 +28,18 @@ enum StudentPresence {
   AT_SCHOOL
 }
 
+enum UserRole {
+  ADMIN
+  USER
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
   email         String?   @unique
   emailVerified DateTime? @map("email_verified")
   image         String?
-  role          String?
+  role          UserRole  @default(ADMIN)
   password      String?
   accounts      Account[]
   teachers      Teacher[]
@@ -53,7 +58,7 @@ model NewUser {
   teacher   Teacher? @relation(fields: [teacherId], references: [id])
   schoolId  String
   school    User     @relation(fields: [schoolId], references: [id])
-  Parent    Parent?  @relation(fields: [parentId], references: [id])
+  parent    Parent?  @relation(fields: [parentId], references: [id])
   parentId  String?
 }
 

@@ -77,9 +77,11 @@ export const getCreatedUser = async (email: string) => {
       where: {
         email,
       },
+      include: {
+        teacher: true, // Include related teacher data
+        parent: true, // Include related parent data
+      },
     });
-    // .populate("teacher")
-    // .populate("parent");
 
     return user;
   } catch (error) {
