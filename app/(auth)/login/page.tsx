@@ -1,9 +1,9 @@
 import { LoginForm } from '@/components/auth/login-form'
 import React from 'react'
 const LoginPage = () => {
-    
+
     return (
-        <div >
+        <div className='flex items-center justify-center h-screen' >
             < LoginForm />
         </div>
     )

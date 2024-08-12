@@ -53,16 +53,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.name = token.name;
       } else if (token.sub) {
         const existingUser = await getUserById(token.sub);
-        console.log(existingUser);
         if (existingUser) {
           token.role = existingUser?.role;
-          token.name = existingUser?.name;
         }
       }
 
       return token;
     },
     async session({ token, session, user }) {
+      console.log("session", token);
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }
