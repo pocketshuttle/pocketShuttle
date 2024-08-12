@@ -5,7 +5,7 @@ import { BeatLoader } from "react-spinners"
 import { useSearchParams } from 'next/navigation'
 import { newVerification } from '@/actions/new-verification'
 import { FormError } from '../errorsandsuccess/form-error'
-import { FormSuccess } from '../ui/form-success'
+import { FormSuccess } from '../errorsandsuccess/form-success'
 const NewVerificationForm = () => {
     const searchParams = useSearchParams()
     const token = searchParams.get("token")
@@ -30,6 +30,7 @@ const NewVerificationForm = () => {
     useEffect(() => {
         onSubmit()
     }, [token])
+
     return (
         <CardWrapper
             headLabel='Confirming Your account'
