@@ -46,6 +46,7 @@ model User {
   NewUser       NewUser[]
   Parent        Parent[]
   Student       Student[]
+  Route         Route[]
 
   @@map("users")
 }
@@ -84,7 +85,7 @@ model Account {
 
 model Teacher {
   id            String    @id @default(cuid())
-  teacherId     String    @map("teacher_id")
+  teacherId     String?   @map("teacher_id")
   role          String
   full_name     String?
   image         String?
@@ -93,8 +94,8 @@ model Teacher {
   password      String?
   phoneNumber   String?
   address       String
-  schoolId      String
-  school        User      @relation(fields: [schoolId], references: [id])
+  schoolId      String?
+  school        User?     @relation(fields: [schoolId], references: [id])
   busId         String?
   NewUser       NewUser[]
   Student       Student[]
@@ -138,9 +139,17 @@ model Student {
   busId      String?
 }
 
+model Route {
+  id                String @id @default(cuid())
+  route_name        String
+  schoolId          String
+  route_description String
+  school            User   @relation(fields: [schoolId], references: [id])
+}
+
 model verificationToken {
   id      String   @id @default(cuid())
-  email   String 
+  email   String
   token   String   @unique
   expires DateTime
 

@@ -4,6 +4,7 @@ import Buses from "@/(models)/Bus";
 import Student from "@/(models)/Student";
 import Route from "@/(models)/Route";
 import { RouteSchema } from "@/schemas";
+import { db } from "@/lib/db";
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -20,13 +21,21 @@ export const POST = async (req: NextRequest) => {
 
     const { school_id, route_description, route_name } = validatedData.data;
 
-    const newRoute = new Route({
-      school_id,
-      route_description,
-      route_name,
+    await db.route.create({
+      data: {
+        schoolId: school_id,
+        route_name,
+        route_description,
+      },
     });
 
-    await newRoute.save();
+    // const newRoute = new Route({
+    //   school_id,
+    //   route_description,
+    //   route_name,
+    // });
+
+    // await newRoute.save();
     return Response.json(
       { message: "Route added Succesfully " },
       { status: 200 }

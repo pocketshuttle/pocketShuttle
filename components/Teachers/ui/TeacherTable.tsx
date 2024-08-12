@@ -166,18 +166,25 @@ export const TeachersTable = () => {
                                                             </AlertDialogContent>
                                                         </AlertDialog>
 
-                                                    </div> : <div className="w-full">
-                                                        {
-                                                            busData &&
-                                                            < AddToBus
-                                                                placeholder="Select Bus"
-                                                                label="Select Bus"
-                                                                data={busData}
-                                                                id={teacher._id}
-                                                                mode="teacher"
-                                                            />
-                                                        }
-                                                    </div>
+                                                    </div> :
+
+                                                        teacher.busId === null ?
+                                                            <p>
+                                                                No Bus
+                                                            </p> :
+
+                                                            <div className="w-full">
+                                                                {
+                                                                    busData &&
+                                                                    < AddToBus
+                                                                        placeholder="Select Bus"
+                                                                        label="Select Bus"
+                                                                        data={busData}
+                                                                        id={teacher._id}
+                                                                        mode="teacher"
+                                                                    />
+                                                                }
+                                                            </div>
                                                 }
                                             </TableCell>
                                             <TableCell>
