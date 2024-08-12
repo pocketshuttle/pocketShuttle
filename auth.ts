@@ -36,7 +36,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // const userExist = await User.findOne({
         //   email: profile?.email,
         // });
-        console.log("User found:", user);
 
         return true;
       } catch (error) {
@@ -46,6 +45,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     async jwt({ token, user, profile }) {
+      console.log("token", token);
       if (!token.sub) return token;
 
       if (token.role === "teacher" || token.role === "parent") {
@@ -53,16 +53,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.name = token.name;
       } else if (token.sub) {
         const existingUser = await getUserById(token.sub);
+        console.log(existingUser);
         if (existingUser) {
-          token.role = existingUser?.[0]?.role;
-          token.name = existingUser?.[0]?.name;
+          token.role = existingUser?.role;
+          token.name = existingUser?.name;
         }
       }
 
       return token;
     },
     async session({ token, session, user }) {
-      await connectToDB();
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }
