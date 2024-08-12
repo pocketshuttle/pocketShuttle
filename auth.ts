@@ -49,7 +49,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     async jwt({ token, user, profile }) {
-      console.log("token", token);
       if (!token.sub) return token;
 
       if (token.role === "teacher" || token.role === "parent") {
@@ -65,7 +64,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async session({ token, session, user }) {
-      console.log("session", token);
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }

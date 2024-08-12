@@ -69,7 +69,10 @@ export const TeacherSchema = z.object({
     .string()
     .transform((value) => (value === "" ? undefined : value))
     .optional(),
-  studentId: z.string().optional(),
+  studentId: z
+    .string()
+    .transform((value) => (value === "" ? undefined : value))
+    .optional(),
   role: z.string().min(2, {
     message: "Role is required",
   }),

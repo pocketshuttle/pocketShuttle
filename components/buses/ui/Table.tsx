@@ -43,13 +43,11 @@ export const BusData = () => {
     const handleModal = () => {
         setIsOpenModal(true)
     }
-    if (isPending) {
-        return <Spinner />
-    }
 
-    if (errorMessage) {
-        return <p>Error: {errorMessage}</p>;
-    }
+
+    // if (errorMessage) {
+    //     return <p>Error: {errorMessage}</p>;
+    // }
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)] mt-2">
@@ -70,69 +68,70 @@ export const BusData = () => {
             }
 
 
-            <Table >
-                <TableHeader >
-                    <TableRow className=" text-[0.7rem] bg-[var(--hoverBg)] rounded-md border-none">
-                        <TableHead className=" text-gray-300 border-none">Bus Name</TableHead>
-                        <TableHead className=" text-gray-300">Bus Number</TableHead>
-                        <TableHead className=" text-gray-300">Bus Color</TableHead>
-                        <TableHead className="text-gray-300">Seats</TableHead>
-                        <TableHead className="w-[150px] text-gray-300">Driver</TableHead>
-                        <TableHead className="w-[150px] text-gray-300">Teacher</TableHead>
-                        <TableHead className="text-gray-300">Students</TableHead>
-                        <TableHead className="text-gray-300">Routes</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody className="text-[0.75rem] text-gray-400 ">
-                    {busData?.map((bus: BusProps) => {
-                        return (
-                            <TableRow key={bus._id} className="">
-                                <TableCell className="capitalize ">
-                                    {bus.bus_product_name}
-                                </TableCell>
-                                <TableCell className="capitalize">
-                                    {bus.bus_number}
-                                </TableCell>
-                                <TableCell className="capitalize">
-                                    {bus.color}
-                                </TableCell>
-                                <TableCell className="capitalize">
-                                    {bus.seat_number}
-                                </TableCell>
-                                <TableCell className="capitalize">
-                                    {bus.driver ? bus.driver.full_name : "no bus driver"}
-                                </TableCell>
-                                <TableCell className="capitalize">
-                                    {
-                                        bus.teacher ? bus.teacher?.full_name : "no bus teacher"
-                                    }
-                                </TableCell>
-                                <TableCell className="capitalize">
-                                    {bus.student?.length ? <ViewStudent data={bus.student} /> : "no kids"}
-                                </TableCell>
-                                <TableCell className="capitalize">
+            {isPending ? <Spinner /> :
+                <Table >
+                    <TableHeader >
+                        <TableRow className=" text-[0.7rem] bg-[var(--hoverBg)] rounded-md border-none">
+                            <TableHead className=" text-gray-300 border-none">Bus Name</TableHead>
+                            <TableHead className=" text-gray-300">Bus Number</TableHead>
+                            <TableHead className=" text-gray-300">Bus Color</TableHead>
+                            <TableHead className="text-gray-300">Seats</TableHead>
+                            <TableHead className="w-[150px] text-gray-300">Driver</TableHead>
+                            <TableHead className="w-[150px] text-gray-300">Teacher</TableHead>
+                            <TableHead className="text-gray-300">Students</TableHead>
+                            <TableHead className="text-gray-300">Routes</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody className="text-[0.75rem] text-gray-400 ">
+                        {busData?.map((bus: BusProps) => {
+                            return (
+                                <TableRow key={bus._id} className="">
+                                    <TableCell className="capitalize ">
+                                        {bus.bus_product_name}
+                                    </TableCell>
+                                    <TableCell className="capitalize">
+                                        {bus.bus_number}
+                                    </TableCell>
+                                    <TableCell className="capitalize">
+                                        {bus.color}
+                                    </TableCell>
+                                    <TableCell className="capitalize">
+                                        {bus.seat_number}
+                                    </TableCell>
+                                    <TableCell className="capitalize">
+                                        {bus.driver ? bus.driver.full_name : "no bus driver"}
+                                    </TableCell>
+                                    <TableCell className="capitalize">
+                                        {
+                                            bus.teacher ? bus.teacher?.full_name : "no bus teacher"
+                                        }
+                                    </TableCell>
+                                    <TableCell className="capitalize">
+                                        {bus.student?.length ? <ViewStudent data={bus.student} /> : "no kids"}
+                                    </TableCell>
+                                    <TableCell className="capitalize">
 
-                                    {
-                                        bus.route ?
-                                            <span>{bus.route.route_name}</span> : <AddRoute data={routeData} placeholder="Select Route" label="Add Route" busId={bus._id} />
-                                    }
-                                    {/* <Link href="#">
+                                        {
+                                            bus.route ?
+                                                <span>{bus.route.route_name}</span> : <AddRoute data={routeData} placeholder="Select Route" label="Add Route" busId={bus._id} />
+                                        }
+                                        {/* <Link href="#">
                                         {bus.route ? bus.route.route_name : "no route added"}
                                     </Link> */}
-                                </TableCell>
-                                <TableCell>
-                                    <div className="space-x-2">
-                                        <EditData link={`/dashboard/bus/${bus._id}`} mode="edit" />
-                                        <EditData link={`/dashboard/`} mode="delete" />
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        )
-                    })}
-                </TableBody>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="space-x-2">
+                                            <EditData link={`/dashboard/bus/${bus._id}`} mode="edit" />
+                                            <EditData link={`/dashboard/`} mode="delete" />
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        })}
+                    </TableBody>
 
 
-            </Table>
+                </Table>}
 
             {/* <Pagination /> */}
 

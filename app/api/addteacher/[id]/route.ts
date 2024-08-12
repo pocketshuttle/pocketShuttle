@@ -1,6 +1,7 @@
 import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Teacher from "@/(models)/Teachers";
+import { db } from "@/lib/db";
 
 type ParamProp = {
   id: string;
@@ -11,68 +12,77 @@ export const GET = async (
   { params }: { params: ParamProp }
 ) => {
   try {
-    await connectToDB();
     const ITEM_PER_PAGE = 2;
 
     const url = new URL(req.url).searchParams;
     const searchName = url.get("q") || "";
-    const page: number = (url.get("page") as unknown as number) || 1;
-
+    const page: number = parseInt(url.get("page") || "1", 10);
     const { id } = params;
-    const query = {
-      $or: [{ school_id: id }, { _id: id }],
-      ...(searchName && { full_name: new RegExp(searchName, "i") }),
+
+    const whereClause = {
+      OR: [
+        {
+          schoolId: id,
+        },
+        {
+          id: id,
+        },
+      ],
+
+      ...(searchName && {
+        full_name: {
+          contains: searchName,
+          mode: "insensitive",
+        },
+      }),
     };
 
-    const count = await Teacher.find(query).countDocuments();
+    // const count = await db.teacher.count({
+    //   where: whereClause,
+    // });
 
-    const teacher = await Teacher.find(query)
-      .populate("students")
-      .populate({
-        path: "busId",
-        model: "Buses",
-        populate: [
-          {
-            path: "route",
-            model: "Route",
-          },
-          {
-            path: "student",
-            model: "Student",
-          },
-        ],
-      })
-      .limit(ITEM_PER_PAGE)
-      .skip(ITEM_PER_PAGE * (page - 1));
+    const count = await db.teacher.count({
+      where: whereClause,
+    });
+
+    const teacher = await db.teacher.findMany({
+      where: whereClause,
+      include: {
+        Student: true,
+        // busId: {
+        //   include: {
+        //     route: true,
+        //     students: true,
+        //   },
+        // },
+      },
+      take: ITEM_PER_PAGE,
+      skip: ITEM_PER_PAGE * (page - 1),
+    });
+
+    console.log(teacher);
 
     if (!teacher) {
-      return Response.json(
-        { message: "Teacher not found!" },
+      return new NextResponse(
+        JSON.stringify({ message: "Teacher not found!" }),
         {
           status: 404,
         }
       );
     }
 
-    return new Response(JSON.stringify({ teacher, count }), {
+    return new NextResponse(JSON.stringify({ teacher, count }), {
       status: 200,
     });
   } catch (error) {
     console.error(error);
-    if (error instanceof Error) {
-      return new Response(
-        JSON.stringify({
-          message: "Error fetching teacher",
-          error: error.message,
-        }),
-        { status: 500 }
-      );
-    } else {
-      return new Response(
-        JSON.stringify({ message: "Unknown error occurred" }),
-        { status: 500 }
-      );
-    }
+    return new NextResponse(
+      JSON.stringify({
+        message: "Error fetching teacher",
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      { status: 500 }
+    );
   }
 };
 
