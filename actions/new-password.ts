@@ -7,6 +7,7 @@ import { getUserByEmail } from "@/data/user";
 import bcrypt from "bcryptjs";
 import User from "@/(models)/User";
 import ResetPasswordToken from "@/(models)/ResetPassword";
+import { db } from "@/lib/db";
 
 export const newPassword = async (
   values: z.infer<typeof NewPasswordSchema>,
@@ -44,13 +45,16 @@ export const newPassword = async (
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  await User.findByIdAndUpdate(
-    existingUser._id,
-    { password: hashedPassword },
-    { new: true, useFindAndModify: false }
-  );
-
-  await ResetPasswordToken.deleteOne({ _id: existingToken._id });
+  await db.user.update({
+    where: {
+      id: existingUser.id,
+    },
+    data: {
+      emailVerified: new Date(),
+      email: existingToken.email,
+    },
+  });
+  await db.resetPasswordToken.delete({ where: { id: existingToken.id } });
 
   return { success: "Password reset successfully!" };
 };
