@@ -7,6 +7,7 @@ import User from "./(models)/User";
 import { connectToDB } from "./utils/connect-to-db";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "./lib/db";
+import { UserRole } from "@prisma/client";
 export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: "/auth/login",
@@ -14,11 +15,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   events: {
     async linkAccount({ user }) {
-      await User.findByIdAndUpdate(
-        user.id,
-        { emailVerified: new Date() },
-        { new: true, useFindAndModify: false }
-      );
+      await db.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          emailVerified: new Date(),
+        },
+      });
     },
   },
 
@@ -31,7 +35,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const existingUser = await getUserByEmail(user?.email, user?.role);
         // console.log("user from authorize", existingUser);
 
-        // if (!existingUser?.[0].emailVerified) return false;
+        // if (!existingUser?.emailVerified) return false;
 
         // const userExist = await User.findOne({
         //   email: profile?.email,
@@ -78,7 +82,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       if (token.role && session.user) {
-        session.user.role = token.role;
+        session.user.role = token.role as UserRole;
         // session.user.name = token.name;
       }
 

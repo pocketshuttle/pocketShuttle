@@ -1,9 +1,13 @@
-import VerificationToken from "@/(models)/VerificationToken";
+import { db } from "@/lib/db";
 import { connectToDB } from "@/utils/connect-to-db";
 export const getVerificationTokenByEmail = async (email: string) => {
   try {
     await connectToDB();
-    const verificationToken = VerificationToken.find({ email: email });
+    const verificationToken = await db.verificationToken.findFirst({
+      where: {
+        email,
+      },
+    });
     return verificationToken;
   } catch (error) {
     console.error(error);
@@ -14,7 +18,11 @@ export const getVerificationTokenByEmail = async (email: string) => {
 export const getVerificationTokenByToken = async (token: string) => {
   try {
     await connectToDB();
-    const verificationToken = await VerificationToken.findOne({ token: token });
+    const verificationToken = await db.verificationToken.findUnique({
+      where: {
+        token: token,
+      },
+    });
     return verificationToken;
   } catch (error) {
     console.error(error);

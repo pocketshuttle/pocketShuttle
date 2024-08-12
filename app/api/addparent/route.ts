@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Parent from "@/(models)/Parent";
 import bcrypt from "bcryptjs";
 import { ParentSchema } from "@/schemas";
+import { db } from "@/lib/db";
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -17,7 +18,6 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    console.log(validatedData.data);
     const {
       school_id,
       full_name,
@@ -32,19 +32,33 @@ export const POST = async (req: NextRequest) => {
 
     const hashPassword = await bcrypt.hash(password, 10);
 
-    const newParent = new Parent({
-      school_id,
-      full_name,
-      email,
-      phoneNumber,
-      password: hashPassword,
-      address,
-      students: studentId ? [studentId] : [],
-      image,
-      role,
+    await db.parent.create({
+      data: {
+        schoolId: school_id,
+        full_name,
+        email,
+        phoneNumber,
+        password: hashPassword,
+        address,
+        Student: studentId ? [studentId] : [],
+        image,
+        role,
+      },
     });
 
-    await newParent.save();
+    // const newParent = new Parent({
+    //   school_id,
+    //   full_name,
+    //   email,
+    //   phoneNumber,
+    //   password: hashPassword,
+    //   address,
+    //   students: studentId ? [studentId] : [],
+    //   image,
+    //   role,
+    // });
+
+    // await newParent.save();
 
     return Response.json(
       { message: "Parent added Succesfully " },
