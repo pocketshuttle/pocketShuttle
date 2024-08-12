@@ -3,7 +3,7 @@ import React from 'react'
 
 const NewVerification = () => {
     return (
-        <div className='flex items-center justify-center m-auto'>
+        <div className='flex items-center justify-center h-screen'>
             < NewVerificationForm />
         </div>
     )
