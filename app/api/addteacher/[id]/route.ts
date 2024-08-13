@@ -2,6 +2,7 @@ import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Teacher from "@/(models)/Teachers";
 import { db } from "@/lib/db";
+import bcrypt from "bcryptjs";
 
 type ParamProp = {
   id: string;
@@ -46,12 +47,6 @@ export const GET = async (
       include: {
         Student: true,
         Buses: true,
-        // busId: {
-        //   include: {
-        //     route: true,
-        //     students: true,
-        //   },
-        // },
       },
       take: ITEM_PER_PAGE,
       skip: ITEM_PER_PAGE * (page - 1),
@@ -88,14 +83,35 @@ export const PATCH = async (
   { params }: { params: ParamProp }
 ) => {
   try {
-    await connectToDB();
     const { id } = params;
     const data = await req.json();
 
-    const updatedTeacher = await Teacher.findByIdAndUpdate(id, data, {
-      new: true, // Return the updated document
-      runValidators: true, // Ensure the update adheres to the schema validation
+    console.log("datas", data);
+    // const hashedPassword = a
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    const updatedTeacher = await db.teacher.update({
+      where: { id: id },
+      data: {
+        // school: {
+        //   connect: { id: data.school_id },
+        // },
+        schoolId: data.school_id,
+        busId: data.busId || undefined,
+        teacherId: data.teacherId || undefined,
+        full_name: data.full_name,
+        address: data.address,
+        image: data.image,
+        email: data.email,
+        password: hashedPassword,
+        role: data.role,
+      },
     });
+
+    // const updatedTeacher = await Teacher.findByIdAndUpdate(id, data, {
+    //   new: true, // Return the updated document
+    //   runValidators: true, // Ensure the update adheres to the schema validation
+    // });
 
     if (!updatedTeacher) {
       return Response.json(
@@ -113,6 +129,7 @@ export const PATCH = async (
     );
   } catch (error) {
     if (error instanceof Error) {
+      console.log(error);
       return Response.json(
         {
           message: "Error updating Student",

@@ -60,6 +60,8 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
     const teacherData = teachersData?.teacher
     const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
 
+    console.log(teacherData)
+
     const form = useForm<z.infer<typeof TeacherSchema>>({
         resolver: zodResolver(TeacherSchema),
         defaultValues: {
@@ -70,7 +72,8 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
             phoneNumber: "",
             address: "",
             image: newAvatar || teacherData?.[0]?.image,
-            busId: ""
+            busId: selectBus || "",
+
         }
     })
     useEffect(() => {
@@ -81,7 +84,8 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
                 email: teacherData?.[0]?.email,
                 phoneNumber: teacherData?.[0]?.phoneNumber,
                 address: teacherData?.[0]?.address,
-                image: newAvatar,
+                image: newAvatar || teacherData?.[0]?.image,
+                role: teacherData?.[0].role
             });
         }
     }, [teacherData, form, userId]);
@@ -91,6 +95,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
     }, [id, teacherData])
 
     const onSubmit = (values: z.infer<typeof TeacherSchema>) => {
+        console.log(values)
         startTransition(() => {
             setSubmittedData(values)
         });
@@ -162,7 +167,7 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
 
     const handleSelectBus = (value: string) => {
         setSelectedBus(value)
-        form.setValue("busId", value)
+        form.setValue("busId", value.id)
     }
     const handleSelectStudent = (value: string) => {
         setSelectedStudent(value)

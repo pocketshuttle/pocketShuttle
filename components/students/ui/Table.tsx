@@ -44,6 +44,7 @@ import { StudentProps } from "@/types"
 import minus from "@/public/images/minus.json"
 import { handleDelete } from "@/actions/delete-student"
 import { toast } from "@/components/ui/use-toast"
+import deleted from "@/public/images/delete.json"
 
 type IdProps = {
     userId: string
@@ -54,7 +55,6 @@ export const StudentsData = ({ userId }: IdProps) => {
     const [isPending, startTransition] = useTransition()
     const [filterGrade, setFilterGrade] = useState<string>("")
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-    const [deleteData, setDeleteData] = useState({ schoolId: "", busId: "" })
 
     const searchParams = useSearchParams()
     const search = searchParams.get("q") || ""
@@ -77,12 +77,6 @@ export const StudentsData = ({ userId }: IdProps) => {
 
     const [isHovering, setIsHovering] = useState(false);
 
-
-
-    const removeFromBus = () => {
-
-    }
-
     const handleRemove = (value: string) => {
         console.log(value)
         updateAtendance(JSON.parse(value), `/api/addbus/addstudent/${userId}`)
@@ -92,9 +86,9 @@ export const StudentsData = ({ userId }: IdProps) => {
     }
 
 
-    const handleStudentDelete = (id: string) => {
+    const handleStudentDelete = (id: string, mode: string) => {
         startTransition(() => {
-            handleDelete(id).then((data) => {
+            handleDelete(id, mode).then((data) => {
                 toast({
                     description: data.message,
                 });
@@ -107,13 +101,7 @@ export const StudentsData = ({ userId }: IdProps) => {
             });
         })
     }
-    // const handleStudentDelete = (id: string) => {
-    //     console.log("student Id", id)
-    //     handleDelete(id)
-    //     // startTransition(async () => {
-    //     //     await handleDelete(id)
-    //     // })
-    // }
+
 
     // if (studentLoading) {
     //     return <Spinner />
@@ -240,7 +228,7 @@ export const StudentsData = ({ userId }: IdProps) => {
                                                             onMouseEnter={() => setIsHovering(true)}
                                                             onMouseLeave={() => setIsHovering(false)}
                                                         >
-                                                            <LottieAnimation isHovering={isHovering} animationData={minus} />
+                                                            <LottieAnimation isHovering={isHovering} animationData={deleted} />
                                                         </div>
 
                                                     </AlertDialogTrigger>
@@ -249,7 +237,7 @@ export const StudentsData = ({ userId }: IdProps) => {
                                                             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                                                             <AlertDialogDescription className="text-gray-500 text-md">
                                                                 {` You're about to delete 
-                                                                 ${student.full_name} 
+                                                                 ${student.full_name}?
                                                                     `}
                                                             </AlertDialogDescription>
                                                         </AlertDialogHeader>
@@ -257,7 +245,7 @@ export const StudentsData = ({ userId }: IdProps) => {
                                                             <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
                                                             <AlertDialogAction
                                                                 className="bg-destructive"
-                                                                onClick={() => handleStudentDelete(student.id)}
+                                                                onClick={() => handleStudentDelete(student.id, "student")}
                                                             >
                                                                 Continue
                                                             </AlertDialogAction>
@@ -265,10 +253,6 @@ export const StudentsData = ({ userId }: IdProps) => {
                                                     </AlertDialogContent>
                                                 </AlertDialog>
 
-
-                                                <span onClick={() => { handleStudentDelete(student.id) }}>
-                                                    <EditData link={``} mode="delete" />
-                                                </span>
                                             </div>
                                         </TableCell>
                                     </TableRow>

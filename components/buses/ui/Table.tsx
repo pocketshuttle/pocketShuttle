@@ -121,7 +121,7 @@ export const BusData = () => {
                                     </Link> */}
                                     </TableCell>
                                     <TableCell>
-                                        <div className="space-x-2">
+                                        <div className="space-x-2 flex">
                                             <EditData link={`/dashboard/bus/${bus.id}`} mode="edit" />
                                             <EditData link={`/dashboard/`} mode="delete" />
                                         </div>

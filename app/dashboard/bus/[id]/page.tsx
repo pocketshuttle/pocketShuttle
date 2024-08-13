@@ -58,7 +58,8 @@ const SingleBus = () => {
                 bus_number: busData[0]?.bus_number,
                 color: busData[0]?.color,
                 seat_number: busData[0]?.seat_number,
-                teacher: selectTeacher
+                teacher: selectTeacher,
+                driver: selectBusDriver,
             });
         }
     }, [busData, form, userId]);
@@ -72,7 +73,6 @@ const SingleBus = () => {
 
     const handleTeacherChange = (value: string) => {
         setSelectedTeacher(value);
-
         form.setValue("teacher", value);
     };
     const handleDriverChange = (value: string) => {
@@ -200,7 +200,7 @@ const SingleBus = () => {
                                 <div className="w-3/6">
                                     {
                                         driversData &&
-                                        < SelectDataProperty placeholder="Select Bus Driver" label="Select Teachers" data={driversData.driver} handleSelectChange={handleDriverChange} />
+                                        < SelectDataProperty placeholder="Select Bus Driver" label="Select Drivers" data={driversData.driver} handleSelectChange={handleDriverChange} />
                                     }
                                 </div>
                                 {/* < SelectProperty placeholder="Select Bus Drivers" label="Bus Name" item="Bus A" /> */}
