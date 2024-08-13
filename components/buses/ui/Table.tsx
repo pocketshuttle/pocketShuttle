@@ -4,7 +4,7 @@ import { Search } from "@/components/dashboard/search/search"
 import { Button } from "@/components/ui/button"
 import dashboard from "@/public/images/dashboard.svg"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { StudentModal } from "@/components/students/ui/Student-modal"
 import Link from "next/link"
 import { BusModal } from "./bus-modal"
@@ -20,6 +20,17 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { deleteItem } from "@/lib/utils"
 import { ViewStudent } from "@/components/students/ui/view-student-wrapper"
 import RoutesModal from "./routes-modal"
@@ -28,6 +39,10 @@ import { Spinner } from "@/components/ui/spinner"
 import { AddRoute } from "./add-route"
 import { AddData } from "@/components/ui/add-data-button"
 import { EditData } from "@/components/ui/edit-data-link"
+import deleted from "@/public/images/delete.json"
+import LottieAnimation from "@/components/dashboard/sidebar/menuLink/lottie-animation"
+import { handleDelete } from "@/actions/delete-student"
+import { toast } from "@/components/ui/use-toast"
 
 
 
@@ -35,14 +50,35 @@ import { EditData } from "@/components/ui/edit-data-link"
 export const BusData = () => {
     const [isOpenModal, setIsOpenModal] = useState(false)
     const [isOpenRouteModal, setIsRouteOpenModal] = useState(false)
+
     const { data: session } = useSession()
     const userId = session?.user?.id
-    const { data: busData, isPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
+
+    const { data: busData, isPending: busPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
     const { data: routeData } = useFetch(`/api/addroute/${userId}`, userId);
+    const [isHovering, setIsHovering] = useState(false);
+
+    const [isPending, startTransition] = useTransition()
 
     console.log(busData)
     const handleModal = () => {
         setIsOpenModal(true)
+    }
+
+    const handleTeacherDelete = (id: string, mode: string) => {
+        startTransition(() => {
+            handleDelete(id, mode).then((data) => {
+                toast({
+                    description: data.message,
+                });
+                // window.location.reload();
+            }).catch((error) => {
+                console.error("Error:", error);
+                toast({
+                    description: "An error occurred. Please try again.",
+                });
+            });
+        })
     }
 
 
@@ -69,7 +105,7 @@ export const BusData = () => {
             }
 
 
-            {isPending ? <Spinner /> :
+            {busPending ? <Spinner /> :
                 <Table >
                     <TableHeader >
                         <TableRow className=" text-[0.7rem] bg-[var(--hoverBg)] rounded-md border-none">
@@ -123,7 +159,38 @@ export const BusData = () => {
                                     <TableCell>
                                         <div className="space-x-2 flex">
                                             <EditData link={`/dashboard/bus/${bus.id}`} mode="edit" />
-                                            <EditData link={`/dashboard/`} mode="delete" />
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <div
+                                                        className='w-[20px] h-[20px] mr-[0.2rem]'
+                                                        onMouseEnter={() => setIsHovering(true)}
+                                                        onMouseLeave={() => setIsHovering(false)}
+                                                    >
+                                                        <LottieAnimation isHovering={isHovering} animationData={deleted} />
+                                                    </div>
+
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent className="bg-gray-900 border-none">
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription className="text-gray-500 text-md capitalize">
+                                                            {` You're about to delete 
+                                                                 ${bus.bus_product_name}?, this will delete all its data.
+                                                                    `}
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction
+                                                            className="bg-destructive"
+                                                            onClick={() => handleTeacherDelete(bus.id, "bus")}
+                                                        >
+                                                            Continue
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                            {/* <EditData link={`/dashboard/`} mode="delete" /> */}
                                         </div>
                                     </TableCell>
                                 </TableRow>
