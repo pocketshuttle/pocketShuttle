@@ -59,6 +59,7 @@ export const TeachersTable = () => {
     const teachersData = data?.teacher
     const totalCount = data?.count
 
+    console.log(busData)
 
     const handleModal = () => {
         setIsOpenModal(!isOpenModal);
@@ -167,24 +168,18 @@ export const TeachersTable = () => {
                                                         </AlertDialog>
 
                                                     </div> :
-
-                                                        teacher.busId === null ?
-                                                            <p>
-                                                                No Bus
-                                                            </p> :
-
-                                                            <div className="w-full">
-                                                                {
-                                                                    busData &&
-                                                                    < AddToBus
-                                                                        placeholder="Select Bus"
-                                                                        label="Select Bus"
-                                                                        data={busData}
-                                                                        id={teacher._id}
-                                                                        mode="teacher"
-                                                                    />
-                                                                }
-                                                            </div>
+                                                        <div className="w-full">
+                                                            {
+                                                                busData &&
+                                                                < AddToBus
+                                                                    placeholder="Select Bus"
+                                                                    label="Select Bus"
+                                                                    data={busData}
+                                                                    id={teacher.id}
+                                                                    mode="teacher"
+                                                                />
+                                                            }
+                                                        </div>
                                                 }
                                             </TableCell>
                                             <TableCell>

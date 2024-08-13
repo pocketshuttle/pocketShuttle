@@ -120,7 +120,7 @@ export const StudentsData = () => {
                     {
                         studentsData && studentsData?.map((student: StudentProps) => {
                             return (
-                                <TableRow key={student._id}>
+                                <TableRow key={student.id}>
                                     <TableCell className="">
                                         <div className="flex items-center gap-2">
                                             <Image src={student.image && student.image || dashboard} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
@@ -170,7 +170,7 @@ export const StudentsData = () => {
                                                                 <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
                                                                 <AlertDialogAction
                                                                     className="bg-destructive"
-                                                                    onClick={() => handleRemove(JSON.stringify({ studentId: student._id, busId: student.bus._id }))}
+                                                                    onClick={() => handleRemove(JSON.stringify({ studentId: student.id, busId: student.bus.id }))}
                                                                 >
                                                                     Continue
                                                                 </AlertDialogAction>
@@ -185,7 +185,7 @@ export const StudentsData = () => {
                                                             placeholder="Select Bus"
                                                             label="Select Bus"
                                                             data={busData}
-                                                            studentId={student._id}
+                                                            studentId={student.id}
                                                         />
                                                     }
                                                 </div>
@@ -193,8 +193,8 @@ export const StudentsData = () => {
                                     </TableCell>
                                     <TableCell>
                                         <div className="space-x-2 text-gray-200 flex">
-                                            <EditData link={`/dashboard/students/${student._id}`} mode="edit" />
-                                            <EditData link={`/dashboard/`} mode="delete" />
+                                            <EditData link={`/dashboard/students/${student.id}`} mode="edit" />
+                                            <EditData link={`api/addstudent/`} mode="delete" />
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -204,7 +204,7 @@ export const StudentsData = () => {
                 </TableBody>
             </Table>
 
-            <Pagination count={totalCount} pageCount={4} />
+            <Pagination count={totalCount} pageCount={2} />
         </div >
 
     )

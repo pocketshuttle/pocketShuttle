@@ -1,6 +1,7 @@
 import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Student from "@/(models)/Student";
+import { db } from "@/lib/db";
 
 type ParamProp = {
   id: string;
@@ -21,8 +22,32 @@ export const GET = async (
     const page: number = (url.get("page") as unknown as number) || 1;
 
     const { id } = params;
+    // const whereClause = {
+    //   OR: [
+    //     {
+    //       schoolId: id,
+    //     },
+    //     {
+    //       id: id,
+    //     },
+    //   ],
+
+    //   ...(searchName && {
+    //     full_name: {
+    //       contains: searchName,
+    //       mode: "insensitive",
+    //     },
+    //   }),
+    // };
     const query = {
-      $or: [{ school_id: id }, { _id: id }],
+      OR: [
+        {
+          schoolId: id,
+        },
+        {
+          id: id,
+        },
+      ],
       //making the regex case insensitive
       ...(searchQuery && { full_name: new RegExp(searchQuery, "i") }),
       ...(gradeQuery && { grade: gradeQuery }),
@@ -34,12 +59,20 @@ export const GET = async (
     //limit, shows the total number of users per page
     //skip, shows the next page- 1 then multiplied by the total number that was first displayed
     //then skip that total number
-    const count = await Student.find(query).countDocuments();
+    // const count = await Student.find(query).countDocuments();
+    const count = await db.student.count({
+      where: query,
+    });
 
-    const students = await Student.find(query)
-      .populate("bus")
-      .limit(ITEM_PER_PAGE)
-      .skip(ITEM_PER_PAGE * (page - 1));
+    const students = await db.student.findMany({
+      where: query,
+      include: {
+        bus: true,
+      },
+      take: ITEM_PER_PAGE,
+      skip: ITEM_PER_PAGE * (page - 1),
+    });
+
     if (!students) {
       return new Response(JSON.stringify({ message: "Student not found" }), {
         status: 404,
@@ -111,7 +144,9 @@ export const DELETE = async (
   try {
     await connectToDB();
     const { id } = params;
-    const deletedStudent = await Student.findByIdAndDelete(id);
+    const deletedStudent = await db.student.delete({
+      where: { id: id },
+    });
 
     if (!deletedStudent) {
       return new Response(JSON.stringify({ message: "Student not found" }), {

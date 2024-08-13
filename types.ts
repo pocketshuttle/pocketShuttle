@@ -10,14 +10,14 @@ export type DriversProps = {
 };
 
 export type BusProps = {
-  _id: string;
+  id: string;
   shchool_id: string;
   bus_product_name: string;
   color: string;
   seat_number: string;
   driver: DriversProps;
   bus_number: string;
-  student: StudentProps[];
+  students: StudentProps[];
   teacher: TeacherProps;
   route: RouteTypes;
   status: string;
@@ -28,7 +28,6 @@ export type RouteTypes = {
 };
 
 export type TeacherProps = {
-  _id: string;
   id: string;
   full_name: string;
   email: string;
@@ -39,7 +38,7 @@ export type TeacherProps = {
 };
 
 export type StudentProps = {
-  _id: string;
+  id: string;
   full_name: string;
   age: number;
   gender: string;

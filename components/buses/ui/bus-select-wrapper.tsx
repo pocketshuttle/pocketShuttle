@@ -28,7 +28,7 @@ export const BusSelectWrapper = ({ placeholder, label, data, handleSelectChange 
                     <SelectLabel>{label}</SelectLabel>
                     {
                         data?.map((item: any, index: number) => (
-                            <SelectItem key={index} value={item._id}>{item.route_name}</SelectItem>
+                            <SelectItem key={index} value={item.id}>{item.route_name}</SelectItem>
                         ))
                     }
                 </SelectGroup>
