@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Student from "@/(models)/Student";
 import Buses from "@/(models)/Bus";
 import { db } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
 type ParamsProps = {
   id: string;
@@ -60,6 +61,12 @@ export const PATCH = async (
       where: { id },
       data: { busId },
     });
+
+    const path = req.nextUrl.pathname;
+
+    console.log(path, "apth");
+
+    // revalidatePath(path);
 
     return NextResponse.json(
       { message: "Student added successfully" },

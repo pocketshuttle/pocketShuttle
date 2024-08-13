@@ -13,12 +13,8 @@ export const PATCH = async (
   { params }: { params: ParamsProps }
 ) => {
   try {
-    await connectToDB();
-
     const { id } = params;
     const data = await req.json();
-
-    console.log("bus data", data);
 
     if (!data || !data.attendance) {
       return NextResponse.json(
@@ -39,7 +35,9 @@ export const PATCH = async (
         { status: 404 }
       );
     }
-    revalidatePath("/dashboard", "page");
+
+    
+    // revalidatePath(path);
 
     return NextResponse.json(
       { message: "Attendance updated successfully", student: updatedStudent },

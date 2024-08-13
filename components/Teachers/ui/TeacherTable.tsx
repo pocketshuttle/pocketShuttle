@@ -22,7 +22,6 @@ import { AddData } from "@/components/ui/add-data-button"
 import { EditData } from "@/components/ui/edit-data-link"
 import minus from "@/public/images/minus.json"
 import deleted from "@/public/images/delete.json"
-
 import {
     AlertDialog,
     AlertDialogAction,
