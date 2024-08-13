@@ -1,9 +1,10 @@
+"use client"
 import { Pagination } from "@/components/dashboard/pagination/pagination"
 import { Search } from "@/components/dashboard/search/search"
 import { Button } from "@/components/ui/button"
 import dashboard from "@/public/images/dashboard.svg"
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { StudentModal } from "@/components/students/ui/Student-modal"
 import Link from "next/link"
 import {
@@ -41,11 +42,15 @@ import { EditData } from "@/components/ui/edit-data-link"
 import LottieAnimation from "@/components/dashboard/sidebar/menuLink/lottie-animation"
 import { StudentProps } from "@/types"
 import minus from "@/public/images/minus.json"
+import { handleDelete } from "@/actions/delete-student"
 
-export const StudentsData = () => {
-    const { data: session } = useSession()
-    const userId: string | undefined = session?.user?.id
+type IdProps = {
+    userId: string
+}
 
+export const StudentsData = ({ userId }: IdProps) => {
+
+    const [isPending, startTransition] = useTransition()
     const [filterGrade, setFilterGrade] = useState<string>("")
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
     const [deleteData, setDeleteData] = useState({ schoolId: "", busId: "" })
@@ -61,7 +66,7 @@ export const StudentsData = () => {
 
     const gradeQuery = filterGrade !== "All" ? `&grade=${filterGrade}` : "";
 
-    const { data, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}${gradeQuery}&page=${page}`, userId);
+    const { data, studentLoading, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}${gradeQuery}&page=${page}`, userId);
     const { data: busData, isPending: busLoading, errorMessage: busError } = useFetch(`/api/addbus/${userId}?q=${search}&grade=${filterGrade}&page=${page}`, userId);
     //@ts-ignore
     const { updateAtendance, loading, error } = useUpdateAttendance(userId, "DELETE");
@@ -72,7 +77,7 @@ export const StudentsData = () => {
     const [isHovering, setIsHovering] = useState(false);
 
 
-    if (isPending) {
+    if (studentLoading) {
         return <Spinner />
     }
     const removeFromBus = () => {
@@ -86,6 +91,14 @@ export const StudentsData = () => {
     const handleModal = () => {
         setIsOpenModal(true)
     }
+
+
+    const handleStudentDelete = (id: string) => {
+        startTransition(
+            handleDelete(id)
+        )
+    }
+
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root))]">
@@ -194,7 +207,9 @@ export const StudentsData = () => {
                                     <TableCell>
                                         <div className="space-x-2 text-gray-200 flex">
                                             <EditData link={`/dashboard/students/${student.id}`} mode="edit" />
-                                            <EditData link={`api/addstudent/`} mode="delete" />
+                                            <span onClick={() => { handleStudentDelete(student.id) }}>
+                                                <EditData link={``} mode="delete" />
+                                            </span>
                                         </div>
                                     </TableCell>
                                 </TableRow>

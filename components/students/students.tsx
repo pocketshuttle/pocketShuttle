@@ -1,10 +1,11 @@
-"use client"
 import { StudentsData } from "@/components/students/ui/Table"
-import { useState } from "react"
-export const Student = () => {
+import { getUserSession } from "@/lib/session"
+
+export const Student = async () => {
+    const user = await getUserSession()
     return (
         <div className="mt-2">
-            <StudentsData />
+            <StudentsData userId={user?.id} />
         </div>
     )
 }

@@ -100,14 +100,26 @@ export const PATCH = async (
   { params }: { params: ParamProp }
 ) => {
   try {
-    await connectToDB();
     const { id } = params;
     const data = await req.json();
-    console.log(data);
 
-    const updatedStudent = await Student.findByIdAndUpdate(id, data, {
-      new: true, // Return the updated document
-      runValidators: true, // Ensure the update adheres to the schema validation
+
+    const updatedStudent = await db.student.update({
+      where: { id: id },
+      data: {
+        school: {
+          connect: { id: data.school_id },
+        },
+        busId: data.busId || undefined,
+        teacherId: data.teacherId || undefined,
+        full_name: data.full_name,
+        address: data.address,
+        image: data.image,
+        grade: data.grade,
+        gender: data.gender,
+        age: data.age,
+        // ...data,
+      },
     });
 
     if (!updatedStudent) {
@@ -121,6 +133,7 @@ export const PATCH = async (
     });
   } catch (error) {
     if (error instanceof Error) {
+      console.log(error);
       return new Response(
         JSON.stringify({
           message: "Error updating Student",

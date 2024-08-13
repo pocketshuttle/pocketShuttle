@@ -123,24 +123,24 @@ model Parent {
 }
 
 model Student {
-  id         String            @id @default(cuid())
-  parentId   String?           @map("parent_id")
+  id         String             @id @default(cuid())
+  parentId   String?            @map("parent_id")
   full_name  String?
   image      String?
   grade      String?
   gender     String?
   age        Int?
   address    String?
-  attendance StudentAttendance @default(ABSENT)
-  status     StudentStatus     @default(DROPPED)
-  presence   StudentPresence   @default(IN_BUS)
-  parent     Parent?           @relation(fields: [parentId], references: [id])
+  attendance StudentAttendance? @default(ABSENT)
+  status     StudentStatus?     @default(DROPPED)
+  presence   StudentPresence?   @default(IN_BUS)
+  parent     Parent?            @relation(fields: [parentId], references: [id])
   schoolId   String
   teacherId  String?
-  teacher    Teacher?          @relation(fields: [teacherId], references: [id])
-  school     User              @relation(fields: [schoolId], references: [id])
+  teacher    Teacher?           @relation(fields: [teacherId], references: [id])
+  school     User               @relation(fields: [schoolId], references: [id])
   busId      String?
-  bus        Buses?            @relation("BusStudents", fields: [busId], references: [id])
+  bus        Buses?             @relation("BusStudents", fields: [busId], references: [id])
   Buses      Buses[]
 }
 
