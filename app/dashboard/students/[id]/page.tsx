@@ -37,8 +37,6 @@ const SingleStudent = () => {
 
     const studentData = data?.students
 
-    console.log(studentData)
-
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState("")
@@ -144,8 +142,9 @@ const SingleStudent = () => {
         form.setValue("gender", value); // Update form value
     };
     const handleSelectBus = (value: string) => {
+        console.log(value)
         setSelectBus(value);
-        form.setValue("busId", value);
+        form.setValue("busId", value.id);
     };
     const handleSelectParent = (value: string) => {
         setSelectParent(value);
@@ -180,7 +179,7 @@ const SingleStudent = () => {
                                         studentData[0]?.image : avatar
 
                             } alt="avatar" className="cursor-pointer rounded-md object-fill object-center w-full " width={300} height={100} onClick={() => handleCameraClick()} />
-                        </div>   
+                        </div>
                         <div className="flex-1 px-5 ">
 
                             <Form {...form}>

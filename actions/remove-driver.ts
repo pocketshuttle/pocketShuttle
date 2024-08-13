@@ -12,8 +12,6 @@ export const removeDriverFromBus = async (driverId: string, busId: string) => {
     const driver = await Driver.findById(driverId).populate("bus");
 
     const bus = await Buses.findById(busId);
-    console.log(bus);
-    console.log(driver);
 
     if (!driver) {
       return { message: "Teacher not found" };

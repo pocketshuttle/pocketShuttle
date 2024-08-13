@@ -12,8 +12,6 @@ export const PATCH = async (
   { params }: { params: ParamsProps }
 ) => {
   try {
-    await connectToDB();
-
     const { id } = params;
 
     const data = await req.json();
@@ -85,7 +83,6 @@ export const DELETE = async (
   { params }: { params: ParamsProps }
 ) => {
   try {
-    await connectToDB();
     const data = await req.json();
 
     const { studentId, busId } = data.attendance;
@@ -99,8 +96,12 @@ export const DELETE = async (
       );
     }
 
-    const bus = await Buses.findById(busId);
-    const student = await Student.findById(studentId);
+    const bus = await db.buses.findUnique({
+      where: { id: busId },
+    });
+    const student = await db.student.findUnique({
+      where: { id: studentId },
+    });
 
     if (!bus) {
       return NextResponse.json(
@@ -120,14 +121,19 @@ export const DELETE = async (
       );
     }
 
-    // bus.student.filter((id: any) => id._id.toString() !== studentId);
-    bus.student.pull(studentId);
-
-    await bus.save();
-
     // Remove the bus reference from the student document
-    student.bus = null;
-    await student.save();
+    await db.buses.update({
+      where: { id: busId },
+      data: {
+        students: {
+          disconnect: { id: studentId },
+        },
+      },
+    });
+    await db.student.update({
+      where: { id: studentId },
+      data: { busId: null },
+    });
 
     return NextResponse.json(
       { message: "Student removed from bus successfully" },
