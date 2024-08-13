@@ -17,7 +17,7 @@ type SelectProps = {
 };
 
 type dataProps = {
-    _id: string
+    id: string
     full_name: string
 }
 
@@ -33,7 +33,7 @@ export const SelectDataProperty = ({ placeholder, label, data, handleSelectChang
                     <SelectLabel>{label}</SelectLabel>
                     {
                         data && data?.map((item: dataProps, index: number) => (
-                            <SelectItem key={index} value={item._id}>{item.full_name}</SelectItem>
+                            <SelectItem key={index} value={item.id}>{item.full_name}</SelectItem>
                         ))
                     }
                 </SelectGroup>

@@ -80,9 +80,17 @@ export const PATCH = async (
     }
     console.log(data);
 
-    const updatedBus = await Buses.findByIdAndUpdate(id, data, {
-      new: true, // Return the updated document
-      runValidators: true, // Ensure the update adheres to the schema validation
+    const updatedBus = await db.buses.update({
+      where: {
+        id: id,
+      },
+      data: {
+        schoolId: data.school_id,
+        bus_product_name: data.bus_product_name,
+        bus_number: data.bus_number,
+        color: data.color,
+        seat_number: data.seat_number,
+      },
     });
 
     if (!updatedBus) {

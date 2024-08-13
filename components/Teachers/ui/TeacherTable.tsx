@@ -21,6 +21,7 @@ import { AddToBus } from "@/components/buses/add-to-bus"
 import { AddData } from "@/components/ui/add-data-button"
 import { EditData } from "@/components/ui/edit-data-link"
 import minus from "@/public/images/minus.json"
+import deleted from "@/public/images/delete.json"
 
 import {
     AlertDialog,
@@ -38,6 +39,7 @@ import { useSearchParams } from "next/navigation"
 import { useState, useTransition } from "react"
 import { removeTeacherFromBus } from "@/actions/remove-teacher-bus"
 import { toast } from "@/components/ui/use-toast"
+import { handleDelete } from "@/actions/delete-student"
 
 export const TeachersTable = () => {
     const { data: session } = useSession()
@@ -66,6 +68,21 @@ export const TeachersTable = () => {
     const handleRemove = (teacherId: string, busId: string) => {
         startTransition(() => {
             removeTeacherFromBus(teacherId, busId).then((data) => {
+                toast({
+                    description: data.message,
+                });
+                // window.location.reload();
+            }).catch((error) => {
+                console.error("Error:", error);
+                toast({
+                    description: "An error occurred. Please try again.",
+                });
+            });
+        })
+    }
+    const handleTeacherDelete = (id: string, mode: string) => {
+        startTransition(() => {
+            handleDelete(id, mode).then((data) => {
                 toast({
                     description: data.message,
                 });
@@ -182,18 +199,44 @@ export const TeachersTable = () => {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="space-x-2 flex">
-                                                    <EditData link={`/dashboard/teachers/${teacher._id}`} mode="edit" />
-                                                    <EditData link={`/dashboard/`} mode="delete" />
+                                                    <EditData link={`/dashboard/teachers/${teacher.id}`} mode="edit" />
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <div
+                                                                className='w-[20px] h-[20px] mr-[0.2rem]'
+                                                                onMouseEnter={() => setIsHovering(true)}
+                                                                onMouseLeave={() => setIsHovering(false)}
+                                                            >
+                                                                <LottieAnimation isHovering={isHovering} animationData={deleted} />
+                                                            </div>
+
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent className="bg-gray-900 border-none">
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                                <AlertDialogDescription className="text-gray-500 text-md capitalize">
+                                                                    {` You're about to delete 
+                                                                 ${teacher.full_name}?
+                                                                    `}
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    className="bg-destructive"
+                                                                    onClick={() => handleTeacherDelete(teacher.id, "teacher")}
+                                                                >
+                                                                    Continue
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
                                                 </div>
                                             </TableCell>
-
                                         </TableRow>
                                     )
-
                                 })
-                                // ) : ""
                             }
-
                         </TableBody>
                     </Table>}
             <Pagination count={totalCount} pageCount={2} />
