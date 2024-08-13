@@ -1,13 +1,16 @@
+"use server";
 import { db } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
-export const handleDelete = async ({ id }: string) => {
-  console.log(id);
+export const handleDelete = async (id: string) => {
+  console.log("deleted ID", id);
   try {
-    const deletedStudent = await db.student.delete({
+    await db.student.delete({
       where: {
         id: id,
       },
     });
+    revalidatePath(`/dashboard/student/${id}`);
     // Return success message if the student is deleted
     return { message: "Student deleted successfully" };
   } catch (error) {
