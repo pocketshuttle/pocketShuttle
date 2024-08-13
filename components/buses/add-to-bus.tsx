@@ -23,7 +23,7 @@ type SelectProps = {
 };
 
 type dataProps = {
-    _id: string
+    id: string
     bus_product_name: string | null
     bus_number: string
     classname?: string
@@ -34,7 +34,7 @@ type dataProps = {
 export const AddToBus = ({ placeholder, label, data, id, mode }: SelectProps) => {
     const [passenger, setPassenger] = useState<object>({ busId: undefined, studentId: undefined })
     const [isPending, startTransition] = useTransition()
-    console.log(data)
+    console.log(data, id)
 
     const handleSelectBus = (value: string) => {
         const handleMode = mode === "driver" ? addDriver(id, value) : addTeacher(id, value)
@@ -64,7 +64,7 @@ export const AddToBus = ({ placeholder, label, data, id, mode }: SelectProps) =>
                     <SelectLabel>{label}</SelectLabel>
                     {
                         data && data?.map((item: dataProps, index: number) => (
-                            <SelectItem key={item._id} value={item._id}>
+                            <SelectItem key={item.id} value={item.id}>
                                 <div className="space-x-1">
                                     <span>
                                         {item.bus_product_name}

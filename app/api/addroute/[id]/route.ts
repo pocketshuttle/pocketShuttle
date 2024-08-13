@@ -2,6 +2,7 @@ import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Route from "@/(models)/Route";
 import { RouteSchema } from "@/schemas";
+import { db } from "@/lib/db";
 
 type ParamProp = {
   id: string;
@@ -14,9 +15,15 @@ export const GET = async (
   try {
     await connectToDB();
     const { id } = params;
-    const route = await Route.find({
-      $or: [{ school_id: id }, { _id: id }],
+    const route = await db.route.findMany({
+      where: {
+        OR: [{ id: id }, { schoolId: id }],
+      },
     });
+
+    // const route = await Route.find({
+    //   $or: [{ school_id: id }, { _id: id }],
+    // });
 
     if (!route) {
       return new Response(JSON.stringify({ message: "Route not found" }), {
@@ -101,9 +108,10 @@ export const DELETE = async (
   { params }: { params: ParamProp }
 ) => {
   try {
-    await connectToDB();
     const { id } = params;
-    const deletedRoute = await Route.findByIdAndDelete(id);
+    const deletedRoute = await db.route.delete({
+      where: { id: id },
+    });
 
     if (!deletedRoute) {
       return new Response(JSON.stringify({ message: "Route not found" }), {

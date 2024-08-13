@@ -47,6 +47,7 @@ model User {
   Parent        Parent[]
   Student       Student[]
   Route         Route[]
+  Buses         Buses[]
 
   @@map("users")
 }
@@ -97,8 +98,10 @@ model Teacher {
   schoolId      String?
   school        User?     @relation(fields: [schoolId], references: [id])
   busId         String?
+  // bus           Bus?      @relation(fields: [busId], references: [id])
   NewUser       NewUser[]
   Student       Student[]
+  Buses         Buses[]
 }
 
 model Parent {
@@ -126,7 +129,7 @@ model Student {
   image      String?
   grade      String?
   gender     String?
-  age        String?
+  age        Int?
   address    String?
   attendance StudentAttendance @default(ABSENT)
   status     StudentStatus     @default(DROPPED)
@@ -137,14 +140,36 @@ model Student {
   teacher    Teacher?          @relation(fields: [teacherId], references: [id])
   school     User              @relation(fields: [schoolId], references: [id])
   busId      String?
+  bus        Buses?            @relation("BusStudents", fields: [busId], references: [id])
+  Buses      Buses[]
 }
 
 model Route {
-  id                String @id @default(cuid())
+  id                String  @id @default(cuid())
   route_name        String
   schoolId          String
   route_description String
-  school            User   @relation(fields: [schoolId], references: [id])
+  school            User    @relation(fields: [schoolId], references: [id])
+  Buses             Buses[]
+}
+
+model Buses {
+  id               String    @id @default(cuid())
+  bus_product_name String
+  bus_number       String
+  seat_number      Int
+  color            String?
+  schoolId         String
+  school           User      @relation(fields: [schoolId], references: [id])
+  teacherId        String?
+  routeId          String
+  studentId        String?
+  students         Student[] @relation("BusStudents")
+  route            Route?    @relation(fields: [routeId], references: [id])
+  teacher          Teacher?  @relation(fields: [teacherId], references: [id])
+  Student          Student[]
+
+  @@map("buses")
 }
 
 model verificationToken {

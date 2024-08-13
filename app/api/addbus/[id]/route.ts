@@ -2,6 +2,7 @@ import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Buses from "@/(models)/Bus";
 import { BusSchema } from "@/schemas";
+import { db } from "@/lib/db";
 
 type ParamProp = {
   id: string;
@@ -14,13 +15,24 @@ export const GET = async (
   try {
     await connectToDB();
     const { id } = params;
-    const bus = await Buses.find({
-      $or: [{ school_id: id }, { _id: id }],
-    })
-      .populate("driver")
-      .populate("teacher")
-      .populate("student")
-      .populate("route");
+    const bus = await db.buses.findMany({
+      where: {
+        OR: [{ id: id }, { schoolId: id }],
+      },
+      include: {
+        route: true,
+        teacher: true,
+        students: true,
+      },
+    });
+
+    // const bus = await Buses.find({
+    //   $or: [{ school_id: id }, { _id: id }],
+    // })
+    //   .populate("driver")
+    //   .populate("teacher")
+    //   .populate("student")
+    //   .populate("route");
 
     if (!bus) {
       return new Response(JSON.stringify({ message: "Bus not found" }), {
@@ -108,7 +120,9 @@ export const DELETE = async (
   try {
     await connectToDB();
     const { id } = params;
-    const deletedBus = await Buses.findByIdAndDelete(id);
+    const deletedBus = await db.buses.delete({
+      where: { id: id },
+    });
 
     if (!deletedBus) {
       return new Response(JSON.stringify({ message: "Bus not found" }), {

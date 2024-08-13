@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Student from "@/(models)/Student";
 import { StudentSchema } from "@/schemas";
 import Buses from "@/(models)/Bus";
+import { db } from "@/lib/db";
 
 export const POST = async (req: NextRequest) => {
   console.log("Hello");
@@ -32,35 +33,49 @@ export const POST = async (req: NextRequest) => {
       gender,
     } = validatedData.data;
 
-    const newStudent = new Student({
-      school_id,
-      full_name,
-      age,
-      bus: busId,
-      parent: parentId,
-      teacher: teacherId,
-      driver: driverId,
-      grade,
-      address,
-      image,
-      gender,
+    const newStudent = await db.student.create({
+      data: {
+        schoolId: school_id,
+        full_name,
+        age,
+        image,
+        grade,
+        gender,
+        busId: busId || undefined,
+        teacherId: teacherId || undefined,
+        // driverId: driverId || undefined,
+        // parentId: parentId || undefined,
+        address,
+      },
     });
 
-    await newStudent.save();
+    // await newStudent.save();
     if (busId) {
-      await Buses.findByIdAndUpdate(
-        busId,
-        {
-          $push: { student: newStudent._id },
+      await db.buses.update({
+        where: { id: busId },
+        data: {
+          students: {
+            connect: { id: newStudent.id },
+          },
         },
-        { new: true, useFindAndModify: false }
-      );
-    }
+      });
 
-    return Response.json(
-      { message: "Student added Succesfully " },
-      { status: 200 }
-    );
+      //   await Buses.findByIdAndUpdate(
+      //     busId,
+      //     {
+      //       $push: { student: newStudent._id },
+      //     },
+      //     { new: true, useFindAndModify: false }
+      //   );
+      // }
+
+      if (newStudent) {
+        return Response.json(
+          { message: "Student added Succesfully " },
+          { status: 200 }
+        );
+      }
+    }
   } catch (error) {
     // Handle errors
     console.error("Error adding Student:", error);

@@ -2,6 +2,7 @@ import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Student from "@/(models)/Student";
 import Buses from "@/(models)/Bus";
+import { db } from "@/lib/db";
 
 type ParamsProps = {
   id: string;
@@ -34,10 +35,16 @@ export const PATCH = async (
         { status: 400 }
       );
     }
+    const student = await db.student.findUnique({
+      where: { id },
+      include: {
+        bus: true,
+      },
+    });
 
-    const student = await Student.findById(studentId).populate("bus");
+    // const student = await Student.findById(studentId).populate("bus");
 
-    if (student.bus && student.bus._id.toString() === busId) {
+    if (student?.bus && student?.bus.id.toString() === busId) {
       return NextResponse.json(
         {
           message: "Student is already in this bus",
@@ -45,18 +52,16 @@ export const PATCH = async (
         { status: 400 }
       );
     }
-    // const student = await Buses.find({ student: studentId });
-    await Buses.findByIdAndUpdate(
-      busId,
-      {
-        $push: { student: studentId },
-      },
-      { new: true, useFindAndModify: false }
-    );
 
-    // Update student's bus assignment
-    student.bus = busId;
-    await student.save();
+    await db.buses.update({
+      where: { id: busId },
+      data: { studentId: id },
+    });
+
+    await db.student.update({
+      where: { id },
+      data: { busId },
+    });
 
     return NextResponse.json(
       { message: "Student added successfully" },

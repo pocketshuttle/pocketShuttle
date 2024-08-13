@@ -37,10 +37,6 @@ export const GET = async (
       }),
     };
 
-    // const count = await db.teacher.count({
-    //   where: whereClause,
-    // });
-
     const count = await db.teacher.count({
       where: whereClause,
     });
@@ -49,6 +45,7 @@ export const GET = async (
       where: whereClause,
       include: {
         Student: true,
+        Buses: true,
         // busId: {
         //   include: {
         //     route: true,

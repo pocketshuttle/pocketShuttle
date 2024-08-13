@@ -40,6 +40,7 @@ export const BusData = () => {
     const { data: busData, isPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
     const { data: routeData } = useFetch(`/api/addroute/${userId}`, userId);
 
+    console.log(busData)
     const handleModal = () => {
         setIsOpenModal(true)
     }
@@ -85,7 +86,7 @@ export const BusData = () => {
                     <TableBody className="text-[0.75rem] text-gray-400 ">
                         {busData?.map((bus: BusProps) => {
                             return (
-                                <TableRow key={bus._id} className="">
+                                <TableRow key={bus.id} className="">
                                     <TableCell className="capitalize ">
                                         {bus.bus_product_name}
                                     </TableCell>
@@ -107,13 +108,13 @@ export const BusData = () => {
                                         }
                                     </TableCell>
                                     <TableCell className="capitalize">
-                                        {bus.student?.length ? <ViewStudent data={bus.student} /> : "no kids"}
+                                        {bus.students?.length ? <ViewStudent data={bus.students} /> : "no kids"}
                                     </TableCell>
                                     <TableCell className="capitalize">
 
                                         {
                                             bus.route ?
-                                                <span>{bus.route.route_name}</span> : <AddRoute data={routeData} placeholder="Select Route" label="Add Route" busId={bus._id} />
+                                                <span>{bus.route.route_name}</span> : <AddRoute data={routeData} placeholder="Select Route" label="Add Route" busId={bus.id} />
                                         }
                                         {/* <Link href="#">
                                         {bus.route ? bus.route.route_name : "no route added"}
@@ -121,7 +122,7 @@ export const BusData = () => {
                                     </TableCell>
                                     <TableCell>
                                         <div className="space-x-2">
-                                            <EditData link={`/dashboard/bus/${bus._id}`} mode="edit" />
+                                            <EditData link={`/dashboard/bus/${bus.id}`} mode="edit" />
                                             <EditData link={`/dashboard/`} mode="delete" />
                                         </div>
                                     </TableCell>
