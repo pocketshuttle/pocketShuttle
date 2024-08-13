@@ -59,8 +59,6 @@ export const TeachersTable = () => {
     const teachersData = data?.teacher
     const totalCount = data?.count
 
-    console.log(busData)
-
     const handleModal = () => {
         setIsOpenModal(!isOpenModal);
     };

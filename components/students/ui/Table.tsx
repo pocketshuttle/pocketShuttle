@@ -43,6 +43,7 @@ import LottieAnimation from "@/components/dashboard/sidebar/menuLink/lottie-anim
 import { StudentProps } from "@/types"
 import minus from "@/public/images/minus.json"
 import { handleDelete } from "@/actions/delete-student"
+import { toast } from "@/components/ui/use-toast"
 
 type IdProps = {
     userId: string
@@ -66,7 +67,7 @@ export const StudentsData = ({ userId }: IdProps) => {
 
     const gradeQuery = filterGrade !== "All" ? `&grade=${filterGrade}` : "";
 
-    const { data, studentLoading, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}${gradeQuery}&page=${page}`, userId);
+    const { data, isPending: studentLoading, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}${gradeQuery}&page=${page}`, userId);
     const { data: busData, isPending: busLoading, errorMessage: busError } = useFetch(`/api/addbus/${userId}?q=${search}&grade=${filterGrade}&page=${page}`, userId);
     //@ts-ignore
     const { updateAtendance, loading, error } = useUpdateAttendance(userId, "DELETE");
@@ -77,9 +78,7 @@ export const StudentsData = ({ userId }: IdProps) => {
     const [isHovering, setIsHovering] = useState(false);
 
 
-    if (studentLoading) {
-        return <Spinner />
-    }
+
     const removeFromBus = () => {
 
     }
@@ -94,11 +93,31 @@ export const StudentsData = ({ userId }: IdProps) => {
 
 
     const handleStudentDelete = (id: string) => {
-        startTransition(
-            handleDelete(id)
-        )
+        startTransition(() => {
+            handleDelete(id).then((data) => {
+                toast({
+                    description: data.message,
+                });
+                // window.location.reload();
+            }).catch((error) => {
+                console.error("Error:", error);
+                toast({
+                    description: "An error occurred. Please try again.",
+                });
+            });
+        })
     }
+    // const handleStudentDelete = (id: string) => {
+    //     console.log("student Id", id)
+    //     handleDelete(id)
+    //     // startTransition(async () => {
+    //     //     await handleDelete(id)
+    //     // })
+    // }
 
+    // if (studentLoading) {
+    //     return <Spinner />
+    // }
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root))]">
@@ -129,94 +148,134 @@ export const StudentsData = ({ userId }: IdProps) => {
                     </TableRow>
 
                 </TableHeader>
-                <TableBody className="text-[0.8rem] text-[var(--textSoft)]">
-                    {
-                        studentsData && studentsData?.map((student: StudentProps) => {
-                            return (
-                                <TableRow key={student.id}>
-                                    <TableCell className="">
-                                        <div className="flex items-center gap-2">
-                                            <Image src={student.image && student.image || dashboard} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
-                                            <span className="capitalize">{student.full_name}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        {student.gender}
-                                    </TableCell>
-                                    <TableCell>
-                                        {student.age}
-                                    </TableCell>
-                                    <TableCell>
-                                        {student.grade}
-                                    </TableCell>
-                                    <TableCell>
-                                        {student.address}
-                                    </TableCell>
-                                    <TableCell className="capitalize">
-                                        {
-                                            student.bus ?
-                                                <div className=" space-x-2 flex"> {student.bus && student.bus.bus_product_name}
-                                                    <span>
-                                                        ({student.bus && student.bus.bus_number})
-                                                    </span>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <div
-                                                                className='w-[20px] h-[20px] mr-[0.2rem]'
-                                                                onMouseEnter={() => setIsHovering(true)}
-                                                                onMouseLeave={() => setIsHovering(false)}
-                                                            >
-                                                                <LottieAnimation isHovering={isHovering} animationData={minus} />
-                                                            </div>
+                {studentLoading ?
 
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent className="bg-gray-900 border-none">
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                                                <AlertDialogDescription className="text-gray-500 text-md">
-                                                                    {` You're about to remove 
+                    <div className="flex items-center justify-center">
+                        <Spinner />
+                    </div>
+
+                    : <TableBody className="text-[0.8rem] text-[var(--textSoft)]">
+                        {
+                            studentsData && studentsData?.map((student: StudentProps) => {
+                                return (
+                                    <TableRow key={student.id}>
+                                        <TableCell className="">
+                                            <div className="flex items-center gap-2">
+                                                <Image src={student.image && student.image || dashboard} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
+                                                <span className="capitalize">{student.full_name}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {student.gender}
+                                        </TableCell>
+                                        <TableCell>
+                                            {student.age}
+                                        </TableCell>
+                                        <TableCell>
+                                            {student.grade}
+                                        </TableCell>
+                                        <TableCell>
+                                            {student.address}
+                                        </TableCell>
+                                        <TableCell className="capitalize">
+                                            {
+                                                student.bus ?
+                                                    <div className=" space-x-2 flex"> {student.bus && student.bus.bus_product_name}
+                                                        <span>
+                                                            ({student.bus && student.bus.bus_number})
+                                                        </span>
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <div
+                                                                    className='w-[20px] h-[20px] mr-[0.2rem]'
+                                                                    onMouseEnter={() => setIsHovering(true)}
+                                                                    onMouseLeave={() => setIsHovering(false)}
+                                                                >
+                                                                    <LottieAnimation isHovering={isHovering} animationData={minus} />
+                                                                </div>
+
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent className="bg-gray-900 border-none">
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                                    <AlertDialogDescription className="text-gray-500 text-md">
+                                                                        {` You're about to remove 
                                                                  ${student.full_name} 
                                                                     from ${student.bus.bus_product_name}  with bus Number ${student.bus.bus_number}`}
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
-                                                                <AlertDialogAction
-                                                                    className="bg-destructive"
-                                                                    onClick={() => handleRemove(JSON.stringify({ studentId: student.id, busId: student.bus.id }))}
-                                                                >
-                                                                    Continue
-                                                                </AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
+                                                                    <AlertDialogAction
+                                                                        className="bg-destructive"
+                                                                        onClick={() => handleRemove(JSON.stringify({ studentId: student.id, busId: student.bus.id }))}
+                                                                    >
+                                                                        Continue
+                                                                    </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
 
-                                                </div> : <div className="w-full">
-                                                    {
-                                                        busData &&
-                                                        < SelectPassengerBus
-                                                            placeholder="Select Bus"
-                                                            label="Select Bus"
-                                                            data={busData}
-                                                            studentId={student.id}
-                                                        />
-                                                    }
-                                                </div>
-                                        }
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="space-x-2 text-gray-200 flex">
-                                            <EditData link={`/dashboard/students/${student.id}`} mode="edit" />
-                                            <span onClick={() => { handleStudentDelete(student.id) }}>
-                                                <EditData link={``} mode="delete" />
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            )
-                        })
-                    }
-                </TableBody>
+                                                    </div> : <div className="w-full">
+                                                        {
+                                                            busData &&
+                                                            < SelectPassengerBus
+                                                                placeholder="Select Bus"
+                                                                label="Select Bus"
+                                                                data={busData}
+                                                                studentId={student.id}
+                                                            />
+                                                        }
+                                                    </div>
+                                            }
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="space-x-2 text-gray-200 flex">
+                                                <EditData link={`/dashboard/students/${student.id}`} mode="edit" />
+
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <div
+                                                            className='w-[20px] h-[20px] mr-[0.2rem]'
+                                                            onMouseEnter={() => setIsHovering(true)}
+                                                            onMouseLeave={() => setIsHovering(false)}
+                                                        >
+                                                            <LottieAnimation isHovering={isHovering} animationData={minus} />
+                                                        </div>
+
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent className="bg-gray-900 border-none">
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                            <AlertDialogDescription className="text-gray-500 text-md">
+                                                                {` You're about to delete 
+                                                                 ${student.full_name} 
+                                                                    `}
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction
+                                                                className="bg-destructive"
+                                                                onClick={() => handleStudentDelete(student.id)}
+                                                            >
+                                                                Continue
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+
+
+                                                <span onClick={() => { handleStudentDelete(student.id) }}>
+                                                    <EditData link={``} mode="delete" />
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            })
+                        }
+                    </TableBody>}
             </Table>
 
             <Pagination count={totalCount} pageCount={2} />
