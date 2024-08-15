@@ -83,13 +83,11 @@ export const DriverTable = () => {
             });
         })
     }
-    if (driversPending) {
-        return <Spinner />
-    }
 
-    if (driversError) {
-        return <p>Error: {driversError}</p>;
-    }
+
+    // if (driversError) {
+    //     return <p>Error: {driversError}</p>;
+    // }
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
             {
@@ -109,7 +107,7 @@ export const DriverTable = () => {
                         <TableHead className="text-gray-300">Bus</TableHead>
                     </TableRow>
                 </TableHeader>
-                <TableBody className="text-[0.75rem] text-gray-400 ">
+                {driversPending ? <Spinner /> : <TableBody className="text-[0.75rem] text-gray-400 ">
                     {
                         driversData && driversData?.map((driver: DriversProps, index: any) => {
                             console.log(driver)
@@ -205,7 +203,7 @@ export const DriverTable = () => {
                         })
                     }
                 </TableBody>
-
+                }
 
             </Table>
 

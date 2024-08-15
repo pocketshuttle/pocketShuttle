@@ -11,7 +11,7 @@ export const useFetch = (url: string, userId: string | undefined) => {
     const fetchData = async () => {
       setIsPending(true);
       try {
-        const res = await fetch(url);
+        const res = await fetch(url, { next: { tags: ["students"] } });
         if (!res.ok) {
           throw new Error("Something went wrong");
         }

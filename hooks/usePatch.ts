@@ -27,6 +27,7 @@ const useUpdateAttendance = (studentId: string, method: string) => {
           title: "Marked",
           description: data.message,
         });
+        
       } else {
         toast({
           title: "Marked",

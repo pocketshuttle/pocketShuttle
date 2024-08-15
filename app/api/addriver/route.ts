@@ -1,8 +1,7 @@
 import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
-import Driver from "@/(models)/Driver";
 import { DriverSchema } from "@/schemas";
-import Buses from "@/(models)/Bus";
+import { db } from "@/lib/db";
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -20,36 +19,36 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    const {
-      school_id,
-      full_name,
-      phoneNumber,
-      image,
-      address,
-      email,
-      studentId,
-      busId,
-    } = validatedData.data;
+    const { school_id, full_name, phoneNumber, image, address, email, busId } =
+      validatedData.data;
 
-    // Creating a new Driver instance with validated data
-    const newDriver = new Driver({
-      school_id,
-      full_name,
-      phoneNumber,
-      image,
-      address,
-      email,
-      student: studentId ? [studentId] : [],
-      bus: busId || null,
+    const newDriver = await db.driver.create({
+      data: {
+        school: {
+          connect: { id: school_id },
+        },
+        full_name,
+        phoneNumber,
+        image,
+        address,
+        email,
+        ...(busId && {
+          bus: {
+            connect: { id: busId },
+          },
+        }),
+      },
     });
 
-    await newDriver.save();
     if (busId) {
-      await Buses.findByIdAndUpdate(
-        busId,
-        { driver: newDriver._id },
-        { new: true, useFindAndModify: false }
-      );
+      await db.buses.update({
+        where: { id: busId },
+        data: {
+          driver: {
+            connect: { id: newDriver.id },
+          },
+        },
+      });
     }
     return NextResponse.json(
       { message: "Driver added successfully" },

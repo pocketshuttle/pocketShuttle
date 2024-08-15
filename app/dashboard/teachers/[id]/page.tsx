@@ -24,14 +24,9 @@ import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { Spinner } from "@/components/ui/spinner"
 
 
-interface SingleTeacherlProps {
-    setIsOpenModal: Dispatch<SetStateAction<boolean>>
-    isOpenModal?: boolean
-    mode?: string
-    route?: string
-}
 
-const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleTeacherlProps) => {
+
+const SingleTeacherPage = (mode: String) => {
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
@@ -173,15 +168,6 @@ const SingleTeacherPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingleT
         setSelectedStudent(value)
         form.setValue("studentId", value)
     }
-
-    // useEffect(() => {
-    //     window.localStorage.setItem('user_selected_avatar_url', newAvatar)
-    // }, [newAvatar])
-
-
-    // if (isSuccess) {
-    //     return <FormSuccess message={dataMessage} setIsOpenModal={setIsOpenModal} />
-    // }
 
 
     return (

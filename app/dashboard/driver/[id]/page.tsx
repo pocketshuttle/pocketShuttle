@@ -24,14 +24,7 @@ import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { Spinner } from "@/components/ui/spinner"
 
 
-interface SingledriverlProps {
-    setIsOpenModal: Dispatch<SetStateAction<boolean>>
-    isOpenModal?: boolean
-    mode?: string
-    route?: string
-}
-
-const SingleDriverPage = ({ isOpenModal, setIsOpenModal, mode, route }: SingledriverlProps) => {
+const SingleDriverPage = () => {
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
@@ -62,7 +55,7 @@ const SingleDriverPage = ({ isOpenModal, setIsOpenModal, mode, route }: Singledr
     const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
 
     console.log(driverData?.[0])
-    
+
     const form = useForm<z.infer<typeof DriverSchema>>({
         resolver: zodResolver(DriverSchema),
         defaultValues: {

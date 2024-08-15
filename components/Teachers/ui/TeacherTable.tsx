@@ -101,7 +101,7 @@ export const TeachersTable = () => {
     return (
         <div>
             {
-                isOpenModal && <DriverAndTeacherModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
+                isOpenModal && <DriverAndTeacherModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} mode="teacher" />
             }
             <div className="p-4 flex justify-end items-center ">
                 < AddData label="Teacher" action={handleModal} />

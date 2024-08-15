@@ -299,7 +299,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                                         <Textarea
                                                             {...field}
                                                             className="py-3 border-none bg-[var(--bgSoft)] outline-none "
-                                                            placeholder="Teachers Address..."
+                                                            placeholder={mode === "teacher" ? "Teachers Address..." : "Drivers Address..."}
                                                             disabled={isPending}
                                                         />
                                                     </FormControl>
@@ -319,9 +319,12 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                                 < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} classname="hello" />
                                             }
                                         </div>
-                                        <div className="w-3/6" >
-                                            < AddRoles handleSelectChange={handleSelectRole} />
-                                        </div>
+                                        {
+                                            mode === "teacher" &&
+                                            <div className="w-3/6" >
+                                                < AddRoles handleSelectChange={handleSelectRole} />
+                                            </div>
+                                        }
                                     </div>
 
                                     {/* <FormError message={isError} /> */}
