@@ -2,18 +2,17 @@ import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Student from "@/(models)/Student";
 import { db } from "@/lib/db";
-
+import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 type ParamProp = {
   id: string;
 };
-
+export const revalidate = true;
 export const GET = async (
   req: NextRequest,
   { params }: { params: ParamProp }
 ) => {
   try {
-    await connectToDB();
-
     const ITEM_PER_PAGE = 4;
     const url = new URL(req.url).searchParams;
 
@@ -22,23 +21,6 @@ export const GET = async (
     const page: number = (url.get("page") as unknown as number) || 1;
 
     const { id } = params;
-    // const whereClause = {
-    //   OR: [
-    //     {
-    //       schoolId: id,
-    //     },
-    //     {
-    //       id: id,
-    //     },
-    //   ],
-
-    //   ...(searchName && {
-    //     full_name: {
-    //       contains: searchName,
-    //       mode: "insensitive",
-    //     },
-    //   }),
-    // };
     const query = {
       OR: [
         {
@@ -49,13 +31,15 @@ export const GET = async (
         },
       ],
       //making the regex case insensitive
-      ...(searchQuery && { full_name: new RegExp(searchQuery, "i") }),
-      ...(gradeQuery && { grade: gradeQuery }),
+      ...(searchQuery && {
+        full_name: { contains: searchQuery, mode: "insensitive" },
+      }),
+      ...(gradeQuery && gradeQuery !== "All" && { grade: gradeQuery }),
     };
 
-    if (gradeQuery && gradeQuery !== "All") {
-      query.grade = gradeQuery;
-    }
+    // if (gradeQuery && gradeQuery !== "All") {
+    //   query.grade = gradeQuery;
+    // }
     //limit, shows the total number of users per page
     //skip, shows the next page- 1 then multiplied by the total number that was first displayed
     //then skip that total number
@@ -78,6 +62,7 @@ export const GET = async (
         status: 404,
       });
     }
+    revalidateTag("collection");
 
     return new Response(JSON.stringify({ students, count }), {
       status: 200,
@@ -102,7 +87,6 @@ export const PATCH = async (
   try {
     const { id } = params;
     const data = await req.json();
-
 
     const updatedStudent = await db.student.update({
       where: { id: id },

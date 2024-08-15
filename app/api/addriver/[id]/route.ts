@@ -1,6 +1,7 @@
 import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Driver from "@/(models)/Driver";
+import { db } from "@/lib/db";
 
 type ParamProp = {
   id: string;
@@ -17,11 +18,20 @@ export const GET = async (
     const url = new URL(req.url).searchParams;
     const searchDriver = url.get("q") || "";
     const query = {
-      $or: [{ school_id: id }, { _id: id }],
-      ...(searchDriver && { full_name: new RegExp(searchDriver, "i") }),
+      OR: [{ schoolId: id }, { id: id }],
+      ...(searchDriver && {
+        full_name: { contains: searchDriver, mode: "insensitive" },
+      }),
     };
-    const driversCount = await Driver.find(query).countDocuments();
-    const driver = await Driver.find(query).populate("bus");
+    const driversCount = await db.driver.count({
+      where: query,
+    });
+    const driver = await db.driver.findMany({
+      where: query,
+      include: {
+        bus: true,
+      },
+    });
 
     if (!driver) {
       return new Response(JSON.stringify({ message: "Driver not found" }), {

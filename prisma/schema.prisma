@@ -48,6 +48,7 @@ model User {
   Student       Student[]
   Route         Route[]
   Buses         Buses[]
+  Driver        Driver[]
 
   @@map("users")
 }
@@ -97,11 +98,25 @@ model Teacher {
   address       String
   schoolId      String?
   school        User?     @relation(fields: [schoolId], references: [id])
-  busId         String?
-  // bus           Bus?      @relation(fields: [busId], references: [id])
+  busId         String?   @unique
+  bus           Buses?    @relation(fields: [busId], references: [id])
   NewUser       NewUser[]
   Student       Student[]
-  Buses         Buses[]
+}
+
+model Driver {
+  id            String    @id @default(cuid())
+  driverId      String?   @map("driver_id")
+  full_name     String
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  phoneNumber   String?
+  image         String?
+  address       String
+  schoolId      String?
+  busId         String?   @unique
+  bus           Buses?    @relation(fields: [busId], references: [id])
+  school        User?     @relation(fields: [schoolId], references: [id])
 }
 
 model Parent {
@@ -161,13 +176,13 @@ model Buses {
   color            String?
   schoolId         String
   school           User      @relation(fields: [schoolId], references: [id])
-  teacherId        String?
   routeId          String
   studentId        String?
   students         Student[] @relation("BusStudents")
   route            Route?    @relation(fields: [routeId], references: [id])
-  teacher          Teacher?  @relation(fields: [teacherId], references: [id])
+  teacher          Teacher?
   Student          Student[]
+  driver           Driver?
 
   @@map("buses")
 }

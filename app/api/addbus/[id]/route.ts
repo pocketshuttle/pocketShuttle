@@ -23,6 +23,7 @@ export const GET = async (
         route: true,
         teacher: true,
         students: true,
+        driver: true,
       },
     });
 

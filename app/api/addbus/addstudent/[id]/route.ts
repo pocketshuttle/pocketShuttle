@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import Student from "@/(models)/Student";
 import Buses from "@/(models)/Bus";
 import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 type ParamsProps = {
   id: string;
 };
+export const revalidate = true;
 export const PATCH = async (
   req: NextRequest,
   { params }: { params: ParamsProps }
@@ -62,11 +63,8 @@ export const PATCH = async (
       data: { busId },
     });
 
-    const path = req.nextUrl.pathname;
+    revalidateTag("collection");
 
-    console.log(path, "apth");
-
-    // revalidatePath(path);
 
     return NextResponse.json(
       { message: "Student added successfully" },

@@ -45,6 +45,7 @@ import minus from "@/public/images/minus.json"
 import { handleDelete } from "@/actions/delete-student"
 import { toast } from "@/components/ui/use-toast"
 import deleted from "@/public/images/delete.json"
+import { revalidateStudent } from "@/actions/validation/revalidate-student"
 
 type IdProps = {
     userId: string
@@ -120,7 +121,10 @@ export const StudentsData = ({ userId }: IdProps) => {
             {
                 isOpenModal && <StudentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
             }
-
+            ;
+            <button onClick={() =>
+                revalidateStudent()
+            }>revalidate</button>
             <Table>
                 <TableHeader className="bg-[var(--hoverBg)] ">
                     <TableRow className="capitalize text-[0.7rem] border-[1px] border-gray-500 rounded-md ">

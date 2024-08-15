@@ -92,15 +92,16 @@ export const DriverSchema = z.object({
       message: "Invalid email",
     })
     .optional(),
-  password: z.string().optional(),
   phoneNumber: z.string().min(11, {
     message: "Phone number must be 11 numbers",
   }),
   address: z.string().min(1, {
     message: "Please add the teacher's address",
   }),
-  busId: z.string().optional(),
-  studentId: z.string().optional(),
+  busId: z
+    .string()
+    .transform((value) => (value === "" ? undefined : value))
+    .optional(),
 });
 
 export const ParentSchema = z.object({

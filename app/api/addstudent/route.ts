@@ -60,14 +60,6 @@ export const POST = async (req: NextRequest) => {
         },
       });
 
-      //   await Buses.findByIdAndUpdate(
-      //     busId,
-      //     {
-      //       $push: { student: newStudent._id },
-      //     },
-      //     { new: true, useFindAndModify: false }
-      //   );
-      // }
 
       if (newStudent) {
         return Response.json(

@@ -9,7 +9,6 @@ import { db } from "@/lib/db";
 
 export const POST = async (req: NextRequest) => {
   try {
-    await connectToDB();
     const data = await req.json();
     const validatedData = TeacherSchema.safeParse(data);
 
@@ -35,20 +34,6 @@ export const POST = async (req: NextRequest) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // const newTeacher = new Teacher({
-    //   school_id,
-    //   full_name,
-    //   email,
-    //   phoneNumber,
-    //   busId: busId || null,
-    //   address,
-    //   students: studentId ? [studentId] : [],
-    //   image,
-    //   password: hashedPassword,
-    //   role,
-    //   user: school_id,
-    // });
-
     const newTeacher = await db.teacher.create({
       data: {
         schoolId: school_id,
@@ -65,7 +50,6 @@ export const POST = async (req: NextRequest) => {
       },
     });
 
-    // await newTeacher.save();
     await db.newUser.create({
       data: {
         schoolId: school_id,
@@ -74,16 +58,6 @@ export const POST = async (req: NextRequest) => {
         teacherId: newTeacher.id,
       },
     });
-
-    // const user = new NewUser({
-    //   school_id,
-    //   email,
-    //   password: hashedPassword,
-    //   role,
-    //   teacher: newTeacher._id,
-    // });
-
-    // await user.save();
 
     // if (busId) {
     //   await Buses.findByIdAndUpdate(
