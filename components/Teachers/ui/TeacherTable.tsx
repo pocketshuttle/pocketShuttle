@@ -60,6 +60,8 @@ export const TeachersTable = () => {
     const teachersData = data?.teacher
     const totalCount = data?.count
 
+    console.log(data)
+
     const handleModal = () => {
         setIsOpenModal(!isOpenModal);
     };
@@ -142,11 +144,11 @@ export const TeachersTable = () => {
                                             </TableCell>
                                             <TableCell className="text-[0.7rem] capitalize ">
                                                 {
-                                                    teacher.busId ? <div className="flex space-x-1">
+                                                    teacher.bus ? <div className="flex space-x-1">
                                                         <div>
-                                                            <span>{teacher.busId.color} </span>
-                                                            <span>{teacher.busId.bus_product_name}</span>(
-                                                            <span>{teacher.busId.bus_number}</span>)
+                                                            <span>{teacher.bus.color} </span>
+                                                            <span>{teacher.bus.bus_product_name}</span>(
+                                                            <span>{teacher.bus.bus_number}</span>)
                                                         </div>
 
                                                         <AlertDialog>
@@ -166,14 +168,14 @@ export const TeachersTable = () => {
                                                                     <AlertDialogDescription className="text-gray-500 text-md">
                                                                         {` You're about to remove 
                                                                  ${teacher.full_name} 
-                                                                    from ${teacher.busId.bus_product_name}  with bus Number ${teacher.busId.bus_number}`}
+                                                                    from ${teacher.bus.bus_product_name}  with bus Number ${teacher.bus.bus_number}`}
                                                                     </AlertDialogDescription>
                                                                 </AlertDialogHeader>
                                                                 <AlertDialogFooter>
                                                                     <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
                                                                     <AlertDialogAction
                                                                         className="bg-destructive"
-                                                                        onClick={() => handleRemove(teacher._id, teacher.busId._id)}
+                                                                        onClick={() => handleRemove(teacher.id, teacher.bus.id)}
                                                                     >
                                                                         Continue
                                                                     </AlertDialogAction>

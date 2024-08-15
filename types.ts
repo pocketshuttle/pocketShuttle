@@ -34,7 +34,7 @@ export type TeacherProps = {
   phoneNumber: string;
   address: string;
   image: string;
-  busId: BusProps;
+  bus: BusProps;
 };
 
 export type StudentProps = {
