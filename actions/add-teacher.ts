@@ -9,14 +9,13 @@ import { NextResponse } from "next/server";
 
 export const addTeacher = async (id: string, busId: string) => {
   try {
-    console.log(id, busId);
     // const teacher = await Teacher.findById(id).populate("busId");
     const teacher = await db.teacher.findUnique({
       where: {
         id,
       },
       include: {
-        Buses: true,
+        bus: true,
       },
     });
 
@@ -27,23 +26,17 @@ export const addTeacher = async (id: string, busId: string) => {
 
     await db.buses.update({
       where: { id: busId },
-      data: { teacherId: id },
+      data: {
+        teacher: {
+          connect: { id: id },
+        },
+      },
     });
 
     await db.teacher.update({
       where: { id },
       data: { busId },
     });
-    // await Buses.findByIdAndUpdate(
-    //   busId,
-    //   {
-    //     teacher: id,
-    //   },
-    //   { new: true, useFindAndModify: false }
-    // );
-    // teacher.busId = busId;
-
-    // await teacher.save();
 
     return { message: "Teacher added to bus" };
   } catch (error) {

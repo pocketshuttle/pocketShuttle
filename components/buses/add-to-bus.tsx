@@ -34,7 +34,7 @@ type dataProps = {
 export const AddToBus = ({ placeholder, label, data, id, mode }: SelectProps) => {
     const [passenger, setPassenger] = useState<object>({ busId: undefined, studentId: undefined })
     const [isPending, startTransition] = useTransition()
-    console.log(data, id)
+    console.log(data)
 
     const handleSelectBus = (value: string) => {
         const handleMode = mode === "driver" ? addDriver(id, value) : addTeacher(id, value)
@@ -43,7 +43,7 @@ export const AddToBus = ({ placeholder, label, data, id, mode }: SelectProps) =>
                 toast({
                     description: data.message,
                 });
-                window.location.reload();
+                // window.location.reload();
             }).catch((error) => {
                 console.error("Error:", error);
                 toast({

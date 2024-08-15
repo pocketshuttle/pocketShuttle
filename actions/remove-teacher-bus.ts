@@ -1,36 +1,49 @@
 "use server";
 
-import Buses from "@/(models)/Bus";
-import Teacher from "@/(models)/Teachers";
-import { connectToDB } from "@/utils/connect-to-db";
+import { db } from "@/lib/db";
 
 export const removeTeacherFromBus = async (
   teacherId: string,
   busId: string
 ) => {
   try {
-    await connectToDB();
-    console.log(teacherId, busId);
-
-    const teacher = await Teacher.findById(teacherId).populate("busId");
-
-    const bus = await Buses.findById(busId);
-
-    if (!teacher) {
-      return { message: "Teacher not found" };
+    if (!teacherId || !busId) {
+      return {
+        message: "Both studentId and busId are required",
+      };
     }
-    if (!bus) {
-      return { message: "Bus not found" };
-    }
-    if (!teacher) {
-      return { message: "Teacher not found" };
+    //found teacher
+    const teacher = await db.teacher.findUnique({
+      where: { id: teacherId },
+      include: {
+        bus: true,
+      },
+    });
+
+    //found bus
+    const bus = await db.buses.findUnique({
+      where: { id: busId },
+    });
+
+    if (!teacher || !bus) {
+      return { message: "Teacher or Bus not found" };
     }
 
-    teacher.busId = null;
-    bus.teachher = null;
+    // Remove the bus reference from the teacher document
+    await db.buses.update({
+      where: { id: busId },
+      data: {
+        teacher: {
+          disconnect: { id: teacherId },
+        },
+      },
+    });
 
-    await teacher.save();
-    await bus.save();
+    await db.teacher.update({
+      where: { id: teacherId },
+      data: { busId: undefined },
+    });
+
     return { message: "Teacher removed from bus" };
   } catch (error) {
     console.error("Error updating Bus:", error);

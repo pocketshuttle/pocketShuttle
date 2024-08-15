@@ -1,7 +1,4 @@
-import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
-import Student from "@/(models)/Student";
-import Buses from "@/(models)/Bus";
 import { db } from "@/lib/db";
 import { revalidatePath, revalidateTag } from "next/cache";
 
@@ -64,7 +61,6 @@ export const PATCH = async (
     });
 
     revalidateTag("collection");
-
 
     return NextResponse.json(
       { message: "Student added successfully" },

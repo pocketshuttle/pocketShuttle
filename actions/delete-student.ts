@@ -18,6 +18,12 @@ export const handleDelete = async (id: string, mode: string) => {
           id: id,
         },
       });
+    } else if (mode === "driver") {
+      await db.driver.delete({
+        where: {
+          id: id,
+        },
+      });
     }
 
     // revalidatePath(`/dashboard/student/${id}`);
