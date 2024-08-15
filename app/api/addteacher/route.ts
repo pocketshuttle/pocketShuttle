@@ -36,11 +36,17 @@ export const POST = async (req: NextRequest) => {
 
     const newTeacher = await db.teacher.create({
       data: {
-        schoolId: school_id,
+        school: {
+          connect: { id: school_id },
+        },
         full_name,
         email,
         phoneNumber,
-        busId: busId || null,
+        ...(busId && {
+          bus: {
+            connect: { id: busId },
+          },
+        }),
         address,
         // students: studentId ? [studentId] : [],
         image,
@@ -59,13 +65,16 @@ export const POST = async (req: NextRequest) => {
       },
     });
 
-    // if (busId) {
-    //   await Buses.findByIdAndUpdate(
-    //     busId,
-    //     { teacher: newTeacher._id },
-    //     { new: true, useFindAndModify: false }
-    //   );
-    // }
+    if (busId) {
+      await db.buses.update({
+        where: { id: busId },
+        data: {
+          teacher: {
+            connect: { id: newTeacher.id },
+          },
+        },
+      });
+    }
 
     return Response.json(
       { message: "Teacher added Succesfully " },

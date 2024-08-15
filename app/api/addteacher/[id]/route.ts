@@ -46,7 +46,7 @@ export const GET = async (
       where: whereClause,
       include: {
         Student: true,
-        Buses: true,
+        bus: true,
       },
       take: ITEM_PER_PAGE,
       skip: ITEM_PER_PAGE * (page - 1),
