@@ -30,6 +30,7 @@ export const POST = async (req: NextRequest) => {
         if (error) {
           reject(error);
         } else {
+          //@ts-ignore
           resolve(result.secure_url);
         }
       });

@@ -27,14 +27,6 @@ export const GET = async (
       },
     });
 
-    // const bus = await Buses.find({
-    //   $or: [{ school_id: id }, { _id: id }],
-    // })
-    //   .populate("driver")
-    //   .populate("teacher")
-    //   .populate("student")
-    //   .populate("route");
-
     if (!bus) {
       return new Response(JSON.stringify({ message: "Bus not found" }), {
         status: 404,

@@ -1,8 +1,6 @@
-import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
-import Student from "@/(models)/Student";
-import Buses from "@/(models)/Bus";
 import { revalidatePath } from "next/cache";
+import { db } from "@/lib/db";
 
 type ParamsProps = {
   id: string;
@@ -16,6 +14,8 @@ export const PATCH = async (
     const { id } = params;
     const data = await req.json();
 
+    console.log(data, "data");
+
     if (!data || !data.attendance) {
       return NextResponse.json(
         { message: "Invalid data provided" },
@@ -23,12 +23,13 @@ export const PATCH = async (
       );
     }
 
-    const updatedStudent = await Student.findByIdAndUpdate(
-      id,
-      { attendance: data.attendance },
-      { new: true, useFindAndModify: false }
-    );
-
+    const updatedStudent = await db.student.update({
+      where: { id: id },
+      data: {
+        attendance: data.attendance,
+        ...data,
+      },
+    });
     if (!updatedStudent) {
       return NextResponse.json(
         { message: "Student not found" },
@@ -36,7 +37,6 @@ export const PATCH = async (
       );
     }
 
-    
     // revalidatePath(path);
 
     return NextResponse.json(

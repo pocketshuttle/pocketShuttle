@@ -100,6 +100,7 @@ const SingleStudent = () => {
     }
 
     const handleCameraInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
+        //@ts-ignore
 
         const file = event?.target?.files[0]
 
@@ -143,7 +144,9 @@ const SingleStudent = () => {
     };
     const handleSelectBus = (value: string) => {
         console.log(value)
-        setSelectBus(value);
+        setSelectBus(value)
+                //@ts-ignore
+
         form.setValue("busId", value.id);
     };
     const handleSelectParent = (value: string) => {

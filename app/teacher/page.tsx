@@ -8,7 +8,7 @@ const TeacherView = async () => {
     console.log(user)
     return (
         <div>
-            <TeachersViewData id={user?.id} />
+            <TeachersViewData userId={user?.id} />
         </div>
     )
 }
