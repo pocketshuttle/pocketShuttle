@@ -23,18 +23,19 @@ type SelectProps = {
 };
 
 type dataProps = {
-    id: string
-    bus_product_name: string | null
-    bus_number: string
-    classname?: string
-}
+    id: string;
+    bus_product_name: string | null;
+    bus_number: string;
+    driver?: string | null;
+    teacher?: string | null;
+};
 
 
 
 export const AddToBus = ({ placeholder, label, data, id, mode }: SelectProps) => {
     const [passenger, setPassenger] = useState<object>({ busId: undefined, studentId: undefined })
     const [isPending, startTransition] = useTransition()
-    console.log(id)
+    console.log(data, "data")
 
     const handleSelectBus = (value: string) => {
         const handleMode = mode === "driver" ? addDriver(id, value) : addTeacher(id, value)
@@ -63,18 +64,28 @@ export const AddToBus = ({ placeholder, label, data, id, mode }: SelectProps) =>
                 <SelectGroup>
                     <SelectLabel>{label}</SelectLabel>
                     {
-                        data && data?.map((item: dataProps, index: number) => (
-                            <SelectItem key={item.id} value={item.id}>
-                                <div className="space-x-1">
-                                    <span>
-                                        {item.bus_product_name}
-                                    </span>
-                                    <span>
-                                        ({item.bus_number})
-                                    </span>
-                                </div>
-                            </SelectItem>
-                        ))
+                        data && data?.map((item: dataProps, index: number) => {
+
+                            // Render based on mode and if the bus is available
+                            const isDriverMode = mode === "driver" && !item.driver;
+                            const isTeacherMode = mode === "teacher" && !item.teacher;
+
+                            return (
+                                (isDriverMode || isTeacherMode) && (
+                                    <SelectItem key={item.id} value={item.id}>
+                                        <div className="space-x-1">
+                                            <span>
+                                                {item.bus_product_name}
+                                            </span>
+                                            <span>
+                                                ({item.bus_number})
+                                            </span>
+                                        </div>
+                                    </SelectItem>
+
+                                )
+                            )
+                        })
                     }
                 </SelectGroup>
             </SelectContent>
