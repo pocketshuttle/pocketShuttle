@@ -38,7 +38,6 @@ export const PATCH = async (
         bus: true,
       },
     });
-
     // const student = await Student.findById(studentId).populate("bus");
 
     if (student?.bus && student?.bus.id.toString() === busId) {
@@ -49,10 +48,25 @@ export const PATCH = async (
         { status: 400 }
       );
     }
-
+    // if (busId) {
+    //   await db.buses.update({
+    //     where: { id: busId },
+    //     data: {
+    //       driver: {
+    //         connect: { id: newDriver.id },
+    //       },
+    //     },
+    //   });
+    // }
     await db.buses.update({
       where: { id: busId },
-      data: { studentId: id },
+      data: {
+        students: {
+          connect: {
+            id: id,
+          },
+        },
+      },
     });
 
     await db.student.update({

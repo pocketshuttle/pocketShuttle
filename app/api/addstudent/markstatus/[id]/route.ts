@@ -1,6 +1,5 @@
-import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
-import Student from "@/(models)/Student";
+import { db } from "@/lib/db";
 
 type ParamsProps = {
   id: string;
@@ -11,10 +10,10 @@ export const PATCH = async (
   { params }: { params: ParamsProps }
 ) => {
   try {
-    await connectToDB();
     const { id } = params;
     const data = await req.json();
 
+    console.log(data.attendance, "status");
     if (!data) {
       return NextResponse.json(
         { message: "No data provided" },
@@ -22,13 +21,12 @@ export const PATCH = async (
       );
     }
 
-    const updatedStudent = await Student.findByIdAndUpdate(
-      id,
-      {
+    const updatedStudent = await db.student.update({
+      where: { id: id },
+      data: {
         status: data.attendance,
       },
-      { new: true, useFindAndModify: false }
-    );
+    });
 
     if (updatedStudent) {
       return NextResponse.json(

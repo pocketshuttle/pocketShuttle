@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table"
 import { useFetch } from "@/hooks/useFetch"
 import { useSession } from "next-auth/react"
-import { AttendaceTab } from "./ui/register-tab"
+import { AttendanceTab } from "./ui/register-tab"
 import { useSearchParams } from "next/navigation"
 import { Spinner } from "../ui/spinner"
 import { getUserSession } from "@/lib/session"
@@ -28,7 +28,7 @@ import { getUserSession } from "@/lib/session"
 
 
 type StudentProps = {
-    _id: string,
+    id: string,
     full_name: string,
     age: number,
     gender: string,
@@ -42,23 +42,19 @@ type StudentProps = {
 }
 
 type SessionProps = {
-    id: string | undefined
+    userId: string | undefined
 }
 
 
 
-export const TeachersViewData = ({ id }: SessionProps) => {
-    const { data: session } = useSession()
-    const userId = session?.user?.id
-
-
+export const TeachersViewData = ({ userId }: SessionProps) => {
 
     const searchParams = useSearchParams()
     const page = searchParams.get("page")
 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
     const { data, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?page=${page}`, userId);
-    const { data: teachersData, isPending: isLoading, } = useFetch(`/api/addteacher/${id}`, id);
+    const { data: teachersData, isPending: isLoading, } = useFetch(`/api/addteacher/${userId}`, userId);
     const { data: busData, isPending: busLoading, } = useFetch(`/api/addbus/${userId}`, userId);
 
     const teacherData = teachersData?.teacher
@@ -66,7 +62,6 @@ export const TeachersViewData = ({ id }: SessionProps) => {
 
     const totalCount = data?.count
     const [attendance, SetAttendance] = useState("")
-
 
     if (isPending) {
         return <Spinner />
@@ -85,8 +80,7 @@ export const TeachersViewData = ({ id }: SessionProps) => {
                 <header className=" px-4 py-1 space-y-2 text-lg">
                     <p>
                         BusName : <span className="capitalize">{
-
-                            teacherData?.[0]?.busId.bus_product_name
+                            teacherData?.[0]?.bus.bus_product_name
                         }
                         </span>
                     </p>
@@ -101,9 +95,10 @@ export const TeachersViewData = ({ id }: SessionProps) => {
                 <main className="px-4 space-y-2 w-full">
                     <h2>Students</h2>
                     {
-                        teacherData?.[0]?.busId.student.map((student: StudentProps) => (
+                        teacherData?.[0]?.bus.students &&
+                        teacherData?.[0]?.bus.students?.map((student: StudentProps) => (
                             <div className="flex items-center  bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md">
-                                <Link href={`teacher/${student._id}`}>
+                                <Link href={`teacher/${student.id}`}>
                                     <Image src={student.image || avatar} alt={student.full_name} className="rounded-md object-cover w-24 h-24" width={100} height={100} />
                                 </Link>
 
@@ -116,13 +111,13 @@ export const TeachersViewData = ({ id }: SessionProps) => {
                                     <div className="flex space-x-3 ">
                                         <div>
                                             {
-                                                <  AttendaceTab label1="Present" label2="Absent" data={student.attendance} value1="present" value2="absent" SetAttendance={SetAttendance} attendance={attendance} id={student._id} />
+                                                <  AttendanceTab label1="Present" label2="Absent" data={student.attendance} value1="PRESENT" value2="ABSENT" SetAttendance={SetAttendance} attendance={attendance} id={student.id} />
                                             }
                                         </div>
                                         <div>
                                             {
-                                                student.attendance === "present" ?
-                                                    <  AttendaceTab label1="Dropped" label2="Picked" data={student.status} value1="dropped" value2="picked" SetAttendance={SetAttendance} attendance={attendance} id={student._id} /> : ""
+                                                student.attendance === "PRESENT" ?
+                                                    <  AttendanceTab label1="Dropped" label2="Picked" data={student.status} value1="DROPPED" value2="PICKED" SetAttendance={SetAttendance} attendance={attendance} id={student.id} /> : ""
                                             }
                                         </div>
                                     </div>
