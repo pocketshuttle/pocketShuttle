@@ -121,7 +121,6 @@ model Driver {
 
 model Parent {
   id            String    @id @default(cuid())
-  parentId      String    @map("parent_id")
   role          String
   full_name     String?
   image         String?

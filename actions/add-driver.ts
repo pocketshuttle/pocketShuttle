@@ -4,27 +4,36 @@ import Buses from "@/(models)/Bus";
 import Driver from "@/(models)/Driver";
 import Teacher from "@/(models)/Teachers";
 import User from "@/(models)/User";
+import { db } from "@/lib/db";
 import { connectToDB } from "@/utils/connect-to-db";
 import { NextResponse } from "next/server";
 
 export const addDriver = async (id: string, busId: string) => {
   try {
-    await connectToDB();
-    const driver = await Driver.findById(id).populate("bus");
-    console.log(driver);
-    if (!driver) {
-      return { message: "Teacher not found" };
+    if (!id || !busId) {
+      return {
+        message: "Both studentId and busId are required",
+      };
     }
-    await Buses.findByIdAndUpdate(
-      busId,
-      {
-        driver: id,
+    await db.driver.update({
+      where: {
+        id: id,
       },
-      { new: true, useFindAndModify: false }
-    );
-    driver.bus = busId;
+      data: {
+        bus: {
+          connect: { id: busId },
+        },
+      },
+    });
 
-    await driver.save();
+    await db.buses.update({
+      where: { id: busId },
+      data: {
+        driver: {
+          connect: { id: id },
+        },
+      },
+    });
 
     return { message: "Driver added to bus" };
   } catch (error) {

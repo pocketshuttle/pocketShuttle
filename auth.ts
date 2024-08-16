@@ -31,6 +31,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       try {
         await connectToDB(); // Connect to the database
         if (account?.provider !== "credentials") return true;
+        //@ts-ignore
 
         const existingUser = await getUserByEmail(user?.email, user?.role);
         // console.log("user from authorize", existingUser);
@@ -67,19 +68,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }
+      //@ts-ignore
+
       const createdUser = await getCreatedUser(token?.email);
 
       if (createdUser) {
         if (createdUser.teacher) {
           session.user.name = createdUser.teacher.full_name;
+          //@ts-ignore
+
           session.user.role = createdUser.teacher.role;
         } else if (createdUser.parent) {
           session.user.name = createdUser.parent.full_name;
+          //@ts-ignore
+
           session.user.role = createdUser.parent.role;
         }
       }
 
       if (token.role && session.user) {
+        //@ts-ignore
+
         session.user.role = token.role as UserRole;
         // session.user.name = token.name;
       }

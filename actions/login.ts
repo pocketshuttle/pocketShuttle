@@ -46,6 +46,7 @@ export const Login = async (values: z.infer<typeof LoginSchema>) => {
     };
 
     if (role) {
+      //@ts-ignore
       signInParams.role = role;
     }
 

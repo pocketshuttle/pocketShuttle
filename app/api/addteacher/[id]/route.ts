@@ -39,10 +39,12 @@ export const GET = async (
     };
 
     const count = await db.teacher.count({
+      //@ts-ignore
       where: whereClause,
     });
 
     const teacher = await db.teacher.findMany({
+      //@ts-ignore
       where: whereClause,
       include: {
         Student: true,
@@ -86,7 +88,6 @@ export const PATCH = async (
     const { id } = params;
     const data = await req.json();
 
-    console.log("datas", data);
     // const hashedPassword = a
     const hashedPassword = await bcrypt.hash(data.password, 10);
 

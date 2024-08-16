@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 export const handleDelete = async (id: string, mode: string) => {
-  console.log("deleted ID", id, mode);
+ 
 
   try {
     if (mode === "student") {

@@ -42,6 +42,8 @@ import { EditData } from "@/components/ui/edit-data-link"
 import LottieAnimation from "@/components/dashboard/sidebar/menuLink/lottie-animation"
 import { toast } from "@/components/ui/use-toast"
 import { removeDriverFromBus } from "@/actions/remove-driver"
+import deleted from "@/public/images/delete.json"
+import { handleDelete } from "@/actions/delete-student"
 
 
 
@@ -83,7 +85,21 @@ export const DriverTable = () => {
             });
         })
     }
-
+    const handleTeacherDelete = (id: string, mode: string) => {
+        startTransition(() => {
+            handleDelete(id, mode).then((data) => {
+                toast({
+                    description: data.message,
+                });
+                // window.location.reload();
+            }).catch((error) => {
+                console.error("Error:", error);
+                toast({
+                    description: "An error occurred. Please try again.",
+                });
+            });
+        })
+    }
 
     // if (driversError) {
     //     return <p>Error: {driversError}</p>;
@@ -110,9 +126,8 @@ export const DriverTable = () => {
                 {driversPending ? <Spinner /> : <TableBody className="text-[0.75rem] text-gray-400 ">
                     {
                         driversData && driversData?.map((driver: DriversProps, index: any) => {
-                            console.log(driver)
                             return (
-                                <TableRow key={driver._id}>
+                                <TableRow key={driver.id}>
                                     <TableCell className="">
                                         <div className="flex items-center gap-2">
                                             <img src={driver.image && driver.image || dashboard} alt={driver.full_name} className="rounded-md object-cover w-9 h-9" />
@@ -131,7 +146,6 @@ export const DriverTable = () => {
                                     <TableCell className="text-[0.7rem] capitalize">
                                         {
                                             driver.bus ?
-
                                                 <div className="flex space-x-1">
                                                     <div>
                                                         <span>{driver.bus.color} </span>
@@ -163,7 +177,7 @@ export const DriverTable = () => {
                                                                 <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
                                                                 <AlertDialogAction
                                                                     className="bg-destructive"
-                                                                    onClick={() => handleRemove(driver._id, driver.bus._id)}
+                                                                    onClick={() => handleRemove(driver.id, driver.bus.id)}
                                                                 >
                                                                     Continue
                                                                 </AlertDialogAction>
@@ -185,7 +199,7 @@ export const DriverTable = () => {
                                                             placeholder="Select Bus"
                                                             label="Select Bus"
                                                             data={busData}
-                                                            id={driver._id}
+                                                            id={driver.id}
                                                             mode="driver"
                                                         />
                                                     }
@@ -194,8 +208,38 @@ export const DriverTable = () => {
                                     </TableCell>
                                     <TableCell>
                                         <div className="space-x-2 flex text-gray-200">
-                                            <EditData link={`/dashboard/driver/${driver._id}`} mode="edit" />
-                                            <EditData link={`/dashboard/`} mode="delete" />
+                                            <EditData link={`/dashboard/driver/${driver.id}`} mode="edit" />
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <div
+                                                        className='w-[20px] h-[20px] mr-[0.2rem]'
+                                                        onMouseEnter={() => setIsHovering(true)}
+                                                        onMouseLeave={() => setIsHovering(false)}
+                                                    >
+                                                        <LottieAnimation isHovering={isHovering} animationData={deleted} />
+                                                    </div>
+
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent className="bg-gray-900 border-none">
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription className="text-gray-500 text-md capitalize">
+                                                            {` You're about to delete 
+                                                                 ${driver.full_name}?
+                                                                    `}
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction
+                                                            className="bg-destructive"
+                                                            onClick={() => handleTeacherDelete(driver.id, "driver")}
+                                                        >
+                                                            Continue
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
                                         </div>
                                     </TableCell>
                                 </TableRow>

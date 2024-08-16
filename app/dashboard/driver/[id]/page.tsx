@@ -39,7 +39,6 @@ const SingleDriverPage = () => {
 
     const pathname = usePathname()
     const id = pathname.split('/').pop()
-    console.log(id)
 
     const { data: session } = useSession()
     const userId = session?.user?.id
@@ -54,7 +53,6 @@ const SingleDriverPage = () => {
     const driverData = driversData?.driver
     const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
 
-    console.log(driverData?.[0])
 
     const form = useForm<z.infer<typeof DriverSchema>>({
         resolver: zodResolver(DriverSchema),
@@ -64,10 +62,9 @@ const SingleDriverPage = () => {
             email: "",
             phoneNumber: "",
             address: "",
-            busId: selectBus || driverData?.[0].bus,
-            studentId: selectStudent || "",
+            busId: selectBus || driverData?.[0].busId,
+            // studentId: selectStudent || "",
             image: newAvatar || driverData?.[0].image,
-            password: "",
         }
     })
     useEffect(() => {
@@ -79,10 +76,11 @@ const SingleDriverPage = () => {
                 phoneNumber: driverData[0]?.phoneNumber,
                 address: driverData[0]?.address,
                 image: newAvatar || driverData?.[0].image,
-                busId: selectBus || driverData?.[0].bus
+                busId: selectBus || driverData?.[0].busId
             });
         }
     }, [driverData, form, userId]);
+
 
     useEffect(() => {
         setNewData(driverData && driverData[0].full_name)
@@ -98,6 +96,7 @@ const SingleDriverPage = () => {
     useEffect(() => {
         if (success && data) {
             setIsSuccess(success);
+            //@ts-ignore
             setDataMessage(data.message);
         }
     }, [success]);
@@ -161,11 +160,8 @@ const SingleDriverPage = () => {
 
     const handleSelectBus = (value: string) => {
         setSelectedBus(value)
-        form.setValue("busId", value)
-    }
-    const handleSelectStudent = (value: string) => {
-        setSelectedStudent(value)
-        form.setValue("studentId", value)
+        //@ts-ignore
+        form.setValue("busId", value.id)
     }
 
     // useEffect(() => {

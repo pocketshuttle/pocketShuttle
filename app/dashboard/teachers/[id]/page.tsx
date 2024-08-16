@@ -26,7 +26,7 @@ import { Spinner } from "@/components/ui/spinner"
 
 
 
-const SingleTeacherPage = (mode: String) => {
+const SingleTeacherPage = () => {
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
@@ -99,6 +99,8 @@ const SingleTeacherPage = (mode: String) => {
     useEffect(() => {
         if (success && data) {
             setIsSuccess(success);
+
+            //@ts-ignore
             setDataMessage(data.message);
         }
     }, [success]);
@@ -162,6 +164,7 @@ const SingleTeacherPage = (mode: String) => {
 
     const handleSelectBus = (value: string) => {
         setSelectedBus(value)
+        //@ts-ignore
         form.setValue("busId", value.id)
     }
     const handleSelectStudent = (value: string) => {
@@ -268,33 +271,30 @@ const SingleTeacherPage = (mode: String) => {
                                     </div>
 
                                 </div>
-                                {
-                                    mode === "driver" ? "" :
-                                        <div className="space-y-4">
-                                            <FormField
-                                                control={form.control}
-                                                name="password"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Password</FormLabel>
-                                                        <FormControl>
-                                                            <Input
-                                                                {...field}
-                                                                placeholder="******"
-                                                                type="password"
-                                                                disabled={isPending}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
+                                <div className="space-y-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="password"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Password</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        {...field}
+                                                        placeholder="******"
+                                                        type="password"
+                                                        disabled={isPending}
+                                                        className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
 
-                                                        {/* <Image src={eye} alt="eye" /> */}
-                                                    </FormItem>
-                                                )}
-                                            >
-                                            </FormField>
-                                        </div>
-                                }
+                                                {/* <Image src={eye} alt="eye" /> */}
+                                            </FormItem>
+                                        )}
+                                    >
+                                    </FormField>
+                                </div>
 
 
                                 <div className="space-y-4">
