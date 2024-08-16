@@ -2,32 +2,42 @@
 
 import Buses from "@/(models)/Bus";
 import Driver from "@/(models)/Driver";
+import { db } from "@/lib/db";
 import { connectToDB } from "@/utils/connect-to-db";
 
 export const removeDriverFromBus = async (driverId: string, busId: string) => {
+  console.log(driverId, busId, "ids ");
   try {
-    await connectToDB();
-    console.log(driverId, busId);
-
-    const driver = await Driver.findById(driverId).populate("bus");
-
-    const bus = await Buses.findById(busId);
-
-    if (!driver) {
-      return { message: "Teacher not found" };
+    if (!driverId || !busId) {
+      return {
+        message: "Both studentId and busId are required",
+      };
     }
-    if (!bus) {
-      return { message: "Bus not found" };
-    }
-    if (!driver) {
-      return { message: "Teacher not found" };
+    const driver = await db.driver.findUnique({
+      where: { id: driverId },
+    });
+    const bus = await db.buses.findUnique({
+      where: { id: busId },
+    });
+
+    if (!driver || !bus) {
+      return { message: "Teacher or Bus not found" };
     }
 
-    driver.busId = null;
-    bus.teachher = null;
+    await db.driver.update({
+      where: { id: driverId },
+      data: { busId: null },
+    });
 
-    await driver.save();
-    await bus.save();
+    await db.buses.update({
+      where: { id: busId },
+      data: {
+        driver: {
+          disconnect: { id: driverId },
+        },
+      },
+    });
+
     return { message: "Driver removed from bus" };
   } catch (error) {
     console.error("Error updating Bus:", error);

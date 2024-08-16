@@ -9,7 +9,6 @@ import { NextResponse } from "next/server";
 
 export const addTeacher = async (id: string, busId: string) => {
   try {
-    // const teacher = await Teacher.findById(id).populate("busId");
     const teacher = await db.teacher.findUnique({
       where: {
         id,

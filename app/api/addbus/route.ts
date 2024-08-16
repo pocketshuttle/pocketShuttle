@@ -33,31 +33,29 @@ export const POST = async (req: NextRequest) => {
       route,
     } = validatedData.data;
 
-    // const newBus = new Buses({
-    //   school_id,
-    //   bus_number,
-    //   driver: driver || null,
-    //   seat_number,
-    //   teacher: teacher || null,
-    //   student: student || [],
-    //   color,
-    //   bus_product_name,
-    //   route: route || null,
-    // });
-
-    // console.log(newBus);
-
-    // await newBus.save();
     await db.buses.create({
       data: {
-        schoolId: school_id,
+        school: {
+          connect: { id: school_id },
+        },
+        // schoolId: school_id,
         bus_number,
         bus_product_name,
         seat_number,
         color,
-        routeId: route,
-        teacherId: teacher || undefined,
-        studentId: student || undefined,
+        route: {
+          connect: { id: route },
+        },
+        teacher: {
+          connect: { id: teacher || undefined },
+        },
+        ...(student && {
+          students: {
+            connect: { id: student },
+          },
+        }),
+        // teacherId: teacher || undefined,
+        // studentId: student || undefined,
       },
     });
 

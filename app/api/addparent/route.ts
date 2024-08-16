@@ -34,13 +34,19 @@ export const POST = async (req: NextRequest) => {
 
     await db.parent.create({
       data: {
-        schoolId: school_id,
+        school: {
+          connect: { id: school_id },
+        },
         full_name,
         email,
         phoneNumber,
         password: hashPassword,
         address,
-        Student: studentId ? [studentId] : [],
+        ...(studentId && {
+          Student: {
+            connect: { id: studentId },
+          },
+        }),
         image,
         role,
       },

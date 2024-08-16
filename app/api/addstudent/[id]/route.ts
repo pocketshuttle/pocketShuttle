@@ -45,10 +45,14 @@ export const GET = async (
     //then skip that total number
     // const count = await Student.find(query).countDocuments();
     const count = await db.student.count({
+      //@ts-ignore
+
       where: query,
     });
 
     const students = await db.student.findMany({
+      //@ts-ignore
+
       where: query,
       include: {
         bus: true,
