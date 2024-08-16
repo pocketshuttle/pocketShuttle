@@ -3,7 +3,7 @@ import { Search } from "@/components/dashboard/search/search"
 import { Button } from "@/components/ui/button"
 import dashboard from "@/public/images/dashboard.svg"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import Link from "next/link"
 import {
     Table,
@@ -23,13 +23,28 @@ import { Spinner } from "@/components/ui/spinner"
 import { useSearchParams } from "next/navigation"
 import { EditData } from "@/components/ui/edit-data-link"
 import { AddData } from "@/components/ui/add-data-button"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import deleted from "@/public/images/delete.json"
+import LottieAnimation from "@/components/dashboard/sidebar/menuLink/lottie-animation"
+import { handleDelete } from "@/actions/delete-student"
+import { toast } from "@/components/ui/use-toast"
 
 type ParentProps = {
-    _id: string,
+    id: string,
     full_name: string,
     phoneNumber: number,
     email: string,
-    students: string,
+    Student: string,
     address: string,
     image: string
     student?: string
@@ -43,19 +58,36 @@ export const ParentData = () => {
 
 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-    const { data, isPending, errorMessage } = useFetch(`/api/addparent/${userId}`, userId);
+    const { data, isPending: parentPending, errorMessage } = useFetch(`/api/addparent/${userId}`, userId);
 
     const parentData = data?.parent
     const totalCount = data?.parentCount || 0;
-
+    const [isHovering, setIsHovering] = useState(false);
+    const [isPending, startTransition] = useTransition()
     const [selectedParent, setSelectedParent] = useState<string | null>(null);
 
     const handleModal = () => {
         setIsOpenModal(true)
         // setSelectedParent(parentId);
     }
+    const handleParentDelete = (id: string, mode: string) => {
+        startTransition(() => {
+            handleDelete(id, mode).then((data) => {
+                toast({
+                    description: data.message,
+                });
+                // window.location.reload();
+            }).catch((error) => {
+                console.error("Error:", error);
+                toast({
+                    description: "An error occurred. Please try again.",
+                });
+            });
+        })
+    }
+    console.log(parentData)
 
-    if (isPending) {
+    if (parentPending) {
         return <Spinner />
     }
 
@@ -64,10 +96,7 @@ export const ParentData = () => {
             <div className="p-4 flex justify-end items-center ">
 
                 < AddData label="Parent" action={handleModal} />
-                {/* <Search placeholder="Search for parents..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
-                <Button variant="secondary" onClick={() => handleModal("")}>
-                    add new
-                </Button> */}
+
             </div>
             {
                 isOpenModal && <ParentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} parentId={selectedParent} />
@@ -88,7 +117,7 @@ export const ParentData = () => {
                     {
                         parentData && parentData?.map((parent: ParentProps) => {
                             return (
-                                <TableRow key={parent._id}>
+                                <TableRow key={parent.id}>
                                     <TableCell className="">
                                         <div className="flex items-center gap-2">
                                             <Image src={parent.image && parent.image || dashboard} alt={parent.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
@@ -96,7 +125,8 @@ export const ParentData = () => {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        {parent.students.length ? <ViewStudent /> : "no kids"}
+                                        {parent.Student.length ? <ViewStudent /> : "no kids"}
+                                        {/* "hello" */}
                                     </TableCell>
                                     <TableCell>
                                         {parent.address}
@@ -110,8 +140,38 @@ export const ParentData = () => {
 
                                     <TableCell>
                                         <div className="space-x-2 flex">
-                                            <EditData link={`/dashboard/parent/${parent._id}`} mode="edit" />
-                                            <EditData link={`/dashboard/`} mode="delete" />
+                                            <EditData link={`/dashboard/parent/${parent.id}`} mode="edit" />
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <div
+                                                        className='w-[20px] h-[20px] mr-[0.2rem]'
+                                                        onMouseEnter={() => setIsHovering(true)}
+                                                        onMouseLeave={() => setIsHovering(false)}
+                                                    >
+                                                        <LottieAnimation isHovering={isHovering} animationData={deleted} />
+                                                    </div>
+
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent className="bg-gray-900 border-none">
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription className="text-gray-500 text-md capitalize">
+                                                            {` You're about to delete 
+                                                                 ${parent.full_name}?
+                                                                    `}
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction
+                                                            className="bg-destructive"
+                                                            onClick={() => handleParentDelete(parent.id, "parent")}
+                                                        >
+                                                            Continue
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
                                             {/* <Link href={`/dashboard/parents/${parent._id}`}> */}
                                             {/* <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm" onClick={() => handleModal(parent._id)}>
                                                 view

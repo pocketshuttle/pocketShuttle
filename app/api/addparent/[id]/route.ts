@@ -2,6 +2,7 @@ import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Parent from "@/(models)/Parent";
 import Student from "@/(models)/Student";
+import { db } from "@/lib/db";
 type ParamProp = {
   id: string;
 };
@@ -11,16 +12,40 @@ export const GET = async (
   { params }: { params: ParamProp }
 ) => {
   try {
-    await connectToDB();
     const { id } = params;
-    const query = {
-      $or: [{ school_id: id }, { _id: id }],
+    const whereClause = {
+      OR: [
+        {
+          schoolId: id,
+        },
+        {
+          id: id,
+        },
+      ],
+
+      // ...(searchName && {
+      //   full_name: {
+      //     contains: searchName,
+      //     mode: "insensitive",
+      //   },
+      // }),
     };
-    const parentCount = await Parent.find(query).countDocuments();
-    const parent = await Parent.find(query).populate({
-      path: "students",
-      model: "Student",
+
+    const parentCount = await db.parent.count({
+      //@ts-ignore
+      where: whereClause,
     });
+
+    const parent = await db.parent.findMany({
+      where: whereClause,
+      include: {
+        Student: true,
+      },
+    });
+    // const parent = await Parent.find(query).populate({
+    //   path: "students",
+    //   model: "Student",
+    // });
 
     console.log("Fetched parent data: ", parent);
 

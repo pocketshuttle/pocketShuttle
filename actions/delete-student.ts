@@ -3,8 +3,6 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 export const handleDelete = async (id: string, mode: string) => {
- 
-
   try {
     if (mode === "student") {
       await db.student.delete({
@@ -20,6 +18,12 @@ export const handleDelete = async (id: string, mode: string) => {
       });
     } else if (mode === "driver") {
       await db.driver.delete({
+        where: {
+          id: id,
+        },
+      });
+    } else if (mode === "parent") {
+      await db.parent.delete({
         where: {
           id: id,
         },
