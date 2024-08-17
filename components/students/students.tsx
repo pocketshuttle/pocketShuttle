@@ -8,7 +8,7 @@ export const Student = async () => {
     if (!userId) {
         return null;
     }
-
+  
     return (
         <div className="mt-2">
             <StudentsData userId={userId} />

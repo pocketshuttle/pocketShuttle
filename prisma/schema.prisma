@@ -26,6 +26,7 @@ enum StudentAttendance {
 enum StudentPresence {
   IN_BUS
   AT_SCHOOL
+  NONE
 }
 
 enum UserRole {
@@ -147,7 +148,7 @@ model Student {
   address    String?
   attendance StudentAttendance? @default(ABSENT)
   status     StudentStatus?     @default(DROPPED)
-  presence   StudentPresence?   @default(IN_BUS)
+  presence   StudentPresence?   @default(NONE)
   parent     Parent?            @relation(fields: [parentId], references: [id])
   schoolId   String
   teacherId  String?
