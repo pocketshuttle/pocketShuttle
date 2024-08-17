@@ -19,11 +19,9 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { useFetch } from "@/hooks/useFetch"
-import { useSession } from "next-auth/react"
 import { AttendanceTab } from "./ui/register-tab"
 import { useSearchParams } from "next/navigation"
 import { Spinner } from "../ui/spinner"
-import { getUserSession } from "@/lib/session"
 
 
 
@@ -60,8 +58,7 @@ export const TeachersViewData = ({ userId }: SessionProps) => {
     const teacherData = teachersData?.teacher
     const studentsData = data?.students || [];
 
-    console.log(teacherData)
-
+    console.log(teacherData?.[0]?.bus.students)
     const totalCount = data?.count
     const [attendance, SetAttendance] = useState("")
 
