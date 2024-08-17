@@ -35,7 +35,6 @@ type dataProps = {
 export const AddToBus = ({ placeholder, label, data, id, mode }: SelectProps) => {
     const [passenger, setPassenger] = useState<object>({ busId: undefined, studentId: undefined })
     const [isPending, startTransition] = useTransition()
-    console.log(data, "data")
 
     const handleSelectBus = (value: string) => {
         const handleMode = mode === "driver" ? addDriver(id, value) : addTeacher(id, value)
@@ -53,8 +52,6 @@ export const AddToBus = ({ placeholder, label, data, id, mode }: SelectProps) =>
             });
         })
     }
-
-
     return (
         <Select onValueChange={handleSelectBus}>
             <SelectTrigger className={` text-gray-200 `} >
@@ -67,8 +64,8 @@ export const AddToBus = ({ placeholder, label, data, id, mode }: SelectProps) =>
                         data && data?.map((item: dataProps, index: number) => {
 
                             // Render based on mode and if the bus is available
-                            const isDriverMode = mode === "driver" && !item.driver;
-                            const isTeacherMode = mode === "teacher" && !item.teacher;
+                            const isDriverMode = mode === "driver" && !item.driver; //Only shows buses that do not have a driver assigned.
+                            const isTeacherMode = mode === "teacher" && !item.teacher; //Only shows buses that do not have a teacher assigned.
 
                             return (
                                 (isDriverMode || isTeacherMode) && (

@@ -11,9 +11,9 @@ export const PATCH = async (
 ) => {
   try {
     const { id } = params;
+
     const data = await req.json();
 
-    console.log(data.attendance, "status");
     if (!data) {
       return NextResponse.json(
         { message: "No data provided" },
@@ -28,6 +28,30 @@ export const PATCH = async (
       },
     });
 
+    if (updatedStudent.status === "PICKED" && updatedStudent.busId) {
+      await db.buses.update({
+        where: { id: updatedStudent.busId },
+        data: {
+          seat_number: {
+            decrement: 1,
+          },
+        },
+      });
+    } else if (updatedStudent.status === "DROPPED" && updatedStudent.busId) {
+      await db.buses.update({
+        where: { id: updatedStudent.busId },
+        data: {
+          seat_number: {
+            increment: 1,
+          },
+        },
+      });
+    }
+
+
+
+
+    
     if (updatedStudent) {
       return NextResponse.json(
         { message: "Student updated successfully" },

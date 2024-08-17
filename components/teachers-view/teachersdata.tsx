@@ -60,6 +60,8 @@ export const TeachersViewData = ({ userId }: SessionProps) => {
     const teacherData = teachersData?.teacher
     const studentsData = data?.students || [];
 
+    console.log(teacherData)
+
     const totalCount = data?.count
     const [attendance, SetAttendance] = useState("")
 
@@ -78,12 +80,13 @@ export const TeachersViewData = ({ userId }: SessionProps) => {
 
             <div className="mt-4 bg-[var(--bg)] lg:hidden w-full">
                 <header className=" px-4 py-1 space-y-2 text-lg">
-                    <p>
+                    {<p>
                         BusName : <span className="capitalize">{
+                            teacherData?.[0]?.bus &&
                             teacherData?.[0]?.bus.bus_product_name
                         }
                         </span>
-                    </p>
+                    </p>}
                     <p>
                         Driver : <span></span>
                     </p>
@@ -95,6 +98,8 @@ export const TeachersViewData = ({ userId }: SessionProps) => {
                 <main className="px-4 space-y-2 w-full">
                     <h2>Students</h2>
                     {
+                        teacherData?.[0]?.bus &&
+
                         teacherData?.[0]?.bus.students &&
                         teacherData?.[0]?.bus.students?.map((student: StudentProps) => (
                             <div className="flex items-center  bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md">
@@ -117,7 +122,8 @@ export const TeachersViewData = ({ userId }: SessionProps) => {
                                         <div>
                                             {
                                                 student.attendance === "PRESENT" ?
-                                                    <  AttendanceTab label1="Dropped" label2="Picked" data={student.status} value1="DROPPED" value2="PICKED" SetAttendance={SetAttendance} attendance={attendance} id={student.id} /> : ""
+                                                    <  AttendanceTab label1="Dropped" label2="Picked" data={student.status} value1="DROPPED" value2="PICKED"
+                                                        SetAttendance={SetAttendance} attendance={attendance} id={student.id} /> : ""
                                             }
                                         </div>
                                     </div>
@@ -145,9 +151,9 @@ export const TeachersViewData = ({ userId }: SessionProps) => {
                     </TableHeader>
                     <TableBody className="text-[0.8rem] text-[var(--textSoft)]">
                         {
-                            studentsData && studentsData?.map((student: StudentProps) => {
+                            teacherData?.[0]?.bus.students?.map((student: StudentProps) => {
                                 return (
-                                    <TableRow key={student._id}>
+                                    <TableRow key={student.id}>
                                         <TableCell className="">
                                             <div className="flex items-center gap-2">
                                                 <Image src={student.image && student.image || dashboard} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
@@ -165,18 +171,19 @@ export const TeachersViewData = ({ userId }: SessionProps) => {
                                             {student.address}
                                         </TableCell>
                                         <TableCell>
-                                            <  AttendaceTab label1="Present" label2="Absent" data={student.attendance} value1="present" value2="absent" SetAttendance={SetAttendance} attendance={attendance} id={student._id} />
+                                            <  AttendanceTab label1="Present" label2="Absent" data={student.attendance} value1="PRESENT" value2="ABSENT" SetAttendance={SetAttendance} attendance={attendance} id={student.id} />
                                         </TableCell>
                                         <TableCell>
                                             {
-                                                student.attendance === "present" ?
-                                                    <  AttendaceTab label1="Dropped" label2="Picked" data={student.status} value1="dropped" value2="picked" SetAttendance={SetAttendance} attendance={attendance} id={student._id} /> : ""
+                                                student.attendance === "PRESENT" ?
+                                                    <  AttendanceTab label1="Dropped"
+                                                        label2="Picked" data={student.status} value1="DROPPED" value2="PICKED" SetAttendance={SetAttendance} attendance={attendance} id={student.id} /> : ""
                                             }
                                         </TableCell>
 
                                         <TableCell>
                                             <div className="space-x-2">
-                                                <Link href={`/dashboard/students/${student._id}`}>
+                                                <Link href={`/dashboard/students/${student.id}`}>
                                                     <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
                                                         view
                                                     </button>

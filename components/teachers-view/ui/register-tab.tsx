@@ -19,6 +19,7 @@ export const AttendanceTab = ({
     const [localAttendance, setLocalAttendance] = useState(data);
     const { updateAtendance, loading, error } = useUpdateAttendance(id, "PATCH");
 
+
     const url =
         label1 === "Present" || label1 === "Absent"
             ? `/api/addstudent/markattendance/${id}`
@@ -49,6 +50,7 @@ export const AttendanceTab = ({
             >
                 {label2}
             </button>
+            {/* @ts-ignore */}
             {error && <span className="text-red-500">{error.message}</span>}
         </div>
     );
