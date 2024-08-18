@@ -46,7 +46,13 @@ import { handleDelete } from "@/actions/delete-student"
 import { toast } from "@/components/ui/use-toast"
 import deleted from "@/public/images/delete.json"
 import { revalidateStudent } from "@/actions/validation/revalidate-student"
-
+import { StudentPresence } from "./presence"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 type IdProps = {
     userId: string
 }
@@ -121,10 +127,10 @@ export const StudentsData = ({ userId }: IdProps) => {
             {
                 isOpenModal && <StudentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
             }
-            ;
-            <button onClick={() =>
+
+            {/* <button onClick={() =>
                 revalidateStudent()
-            }>revalidate</button>
+            }>revalidate</button> */}
             <Table>
                 <TableHeader className="bg-[var(--hoverBg)] ">
                     <TableRow className="capitalize text-[0.7rem] border-[1px] border-gray-500 rounded-md ">
@@ -151,11 +157,26 @@ export const StudentsData = ({ userId }: IdProps) => {
                             studentsData && studentsData?.map((student: StudentProps) => {
                                 return (
                                     <TableRow key={student.id}>
-                                        <TableCell className="">
-                                            <div className="flex items-center gap-2">
-                                                <Image src={student.image && student.image || dashboard} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
-                                                <span className="capitalize">{student.full_name}</span>
-                                            </div>
+                                        <TableCell className=" ">
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger>
+                                                        <div className="flex items-center gap-2">
+                                                            <Image src={student.image && student.image || dashboard} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
+                                                            <span className="capitalize">{student.full_name}</span>
+                                                            <StudentPresence data={student.presence} />
+                                                        </div>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>{
+                                                            student.presence === "NONE" ? `${student.full_name} is not in school` :
+                                                                student.presence === "IN_BUS" ? `${student.full_name} is currently in Bus`
+                                                                    : `${student.full_name} is currently in School`
+                                                        }</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+
                                         </TableCell>
                                         <TableCell>
                                             {student.gender}

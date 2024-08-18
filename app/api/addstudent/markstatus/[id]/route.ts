@@ -7,7 +7,7 @@ type ParamsProps = {
 
 function getCurrentHourInTimeZone(timezone: string): number {
   const date = new Date();
-  const tz = new Date(date.toLocaleString("en-US", { timezone: timezone }));
+  const tz = new Date(date.toLocaleString("en-US", { timeZone: timezone }));
   return tz.getHours();
 }
 
@@ -17,7 +17,6 @@ export const PATCH = async (
 ) => {
   try {
     const { id } = params;
-
     const data = await req.json();
 
     if (!data) {
