@@ -142,7 +142,7 @@ export const ParentData = () => {
                                         {parent.phoneNumber}
                                     </TableCell>
                                     <TableCell>
-                                        <AddStudents data={studentData && studentData.students} />
+                                        <AddStudents data={studentData && studentData.students} parentId={parent.id} />
                                     </TableCell>
 
                                     <TableCell>

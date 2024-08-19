@@ -1,15 +1,25 @@
 "use server";
 import { db } from "@/lib/db";
 
-export const addParent = async (studentId: string, userId: string) => {
+export const addParent = async (
+  studentId: string,
+  parentId: string,
+  confirmation?: string
+) => {
   try {
-    // const student = await db.student.findUnique({
-    //   where: {
-    //     id: studentId,
-    //   },
-    // });
+    const available = await db.student.findUnique({
+      where: { id: studentId },
+    });
+
+    console.log(available);
+    // const addedStudent = available?.Student?.map((student) => student.id);
+
+    if (available?.parentId !== null) {
+      return { message: "Student already belong to a parent", status: 100 };
+    }
+
     const parent = await db.parent.update({
-      where: { id: userId },
+      where: { id: parentId },
       data: {
         Student: {
           connect: { id: studentId },
@@ -17,14 +27,13 @@ export const addParent = async (studentId: string, userId: string) => {
       },
     });
 
-    // console.log("busID", busId);
     if (!parent) {
       return { message: "Student could be not found" };
     }
 
     await db.student.update({
       where: {
-        id: userId,
+        id: studentId,
       },
       data: {
         parent: {
