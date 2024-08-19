@@ -56,6 +56,7 @@ export const GET = async (
       where: query,
       include: {
         bus: true,
+        parent: true,
       },
       take: ITEM_PER_PAGE,
       skip: ITEM_PER_PAGE * (page - 1),
