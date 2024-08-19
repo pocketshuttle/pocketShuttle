@@ -87,7 +87,7 @@ export const PATCH = async (
           presence: "NONE",
         },
       });
-    } else if (hours > 19) {
+    } else if (updatedStudent.status === "DROPPED" && hours > 19) {
       await db.student.update({
         where: { id: id },
         data: {

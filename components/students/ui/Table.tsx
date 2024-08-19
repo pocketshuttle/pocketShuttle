@@ -53,6 +53,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { ComboboxDemo } from "@/components/parent/ui/add-to-parent"
 type IdProps = {
     userId: string
 }
@@ -81,11 +82,11 @@ export const StudentsData = ({ userId }: IdProps) => {
 
     const studentsData = data?.students || [];
     const totalCount = data?.count || 0;
+    console.log(studentsData)
 
     const [isHovering, setIsHovering] = useState(false);
 
     const handleRemove = (value: string) => {
-        console.log(value)
         updateAtendance(JSON.parse(value), `/api/addbus/addstudent/${userId}`)
     }
     const handleModal = () => {
@@ -142,7 +143,8 @@ export const StudentsData = ({ userId }: IdProps) => {
                         </TableHead>
                         <TableHead className="w-[300px]">Address</TableHead>
                         <TableHead className="w-[200px]">Bus</TableHead>
-                        <TableHead className="w-[100px]">Actions</TableHead>
+                        <TableHead>Actions</TableHead>
+
                     </TableRow>
 
                 </TableHeader>
@@ -178,7 +180,7 @@ export const StudentsData = ({ userId }: IdProps) => {
                                             </TooltipProvider>
 
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="text-[0.6rem]">
                                             {student.gender}
                                         </TableCell>
                                         <TableCell>
@@ -242,6 +244,7 @@ export const StudentsData = ({ userId }: IdProps) => {
                                                     </div>
                                             }
                                         </TableCell>
+
                                         <TableCell>
                                             <div className="space-x-2 text-gray-200 flex">
                                                 <EditData link={`/dashboard/students/${student.id}`} mode="edit" />

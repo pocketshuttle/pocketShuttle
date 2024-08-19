@@ -26,7 +26,7 @@ interface StudentModalProps {
     isOpenModal: boolean
 }
 
-export const ParentModal = ({ isOpenModal, setIsOpenModal, parentId }: StudentModalProps) => {
+export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) => {
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState("")
@@ -46,7 +46,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal, parentId }: StudentMo
 
 
     const { data, loading, errorMessage, success } = usePost("/api/addparent", submittedData, "POST")
-    const { data: parentData, isPending: parentPending, errorMessage: parentError } = useFetch(`/api/addparent/${parentId}`, parentId);
+    // const { data: parentData, isPending: parentPending, errorMessage: parentError } = useFetch(`/api/addparent/${parentId}`, parentId);
 
 
     const form = useForm<z.infer<typeof ParentSchema>>({
