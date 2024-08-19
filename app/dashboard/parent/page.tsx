@@ -3,7 +3,9 @@ import React from 'react'
 
 const Parents = () => {
     return (
-        <div><Parent /></div>
+        <div>
+            <Parent />
+        </div>
     )
 }
 

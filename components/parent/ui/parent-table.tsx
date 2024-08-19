@@ -38,6 +38,7 @@ import deleted from "@/public/images/delete.json"
 import LottieAnimation from "@/components/dashboard/sidebar/menuLink/lottie-animation"
 import { handleDelete } from "@/actions/delete-student"
 import { toast } from "@/components/ui/use-toast"
+import { AddStudents } from "./add-to-parent"
 
 type ParentProps = {
     id: string,
@@ -59,8 +60,9 @@ export const ParentData = () => {
 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
     const { data, isPending: parentPending, errorMessage } = useFetch(`/api/addparent/${userId}`, userId);
-
+    const { data: studentData, isPending: studentLoading, errorMessage: studentError } = useFetch(`/api/addstudent/${userId}`, userId);
     const parentData = data?.parent
+    console.log(studentData, "parent")
     const totalCount = data?.parentCount || 0;
     const [isHovering, setIsHovering] = useState(false);
     const [isPending, startTransition] = useTransition()
@@ -99,17 +101,20 @@ export const ParentData = () => {
 
             </div>
             {
-                isOpenModal && <ParentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} parentId={selectedParent} />
+                isOpenModal && <ParentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
             }
 
             <Table>
                 <TableHeader>
                     <TableRow className=" uppercase text-[0.7rem]">
                         <TableHead className="w-[250px]">Full Name</TableHead>
-                        <TableHead className="">No of kids</TableHead>
+                        <TableHead className="">
+                            kids
+                        </TableHead>
                         <TableHead className="w-[250px]">Address</TableHead>
                         <TableHead className="">Email</TableHead>
                         <TableHead className="">Phone Number</TableHead>
+                        <TableHead>Add Kids</TableHead>
                     </TableRow>
 
                 </TableHeader>
@@ -125,8 +130,7 @@ export const ParentData = () => {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        {parent.Student.length ? <ViewStudent /> : "no kids"}
-                                        {/* "hello" */}
+                                        {parent.Student.length ? <ViewStudent data={parent.Student} /> : "no kids"}
                                     </TableCell>
                                     <TableCell>
                                         {parent.address}
@@ -136,6 +140,9 @@ export const ParentData = () => {
                                     </TableCell>
                                     <TableCell>
                                         {parent.phoneNumber}
+                                    </TableCell>
+                                    <TableCell>
+                                        <AddStudents data={studentData && studentData.students} />
                                     </TableCell>
 
                                     <TableCell>
@@ -157,8 +164,8 @@ export const ParentData = () => {
                                                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                                                         <AlertDialogDescription className="text-gray-500 text-md capitalize">
                                                             {` You're about to delete 
-                                                                 ${parent.full_name}?
-                                                                    `}
+                                                                 ${parent.full_name} ?
+        `}
                                                         </AlertDialogDescription>
                                                     </AlertDialogHeader>
                                                     <AlertDialogFooter>
@@ -172,18 +179,10 @@ export const ParentData = () => {
                                                     </AlertDialogFooter>
                                                 </AlertDialogContent>
                                             </AlertDialog>
-                                            {/* <Link href={`/dashboard/parents/${parent._id}`}> */}
-                                            {/* <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm" onClick={() => handleModal(parent._id)}>
-                                                view
-                                            </button> */}
-                                            {/* </Link> */}
-                                            {/* <Link href="/dashboard">
-                                                <button className="bg-destructive px-2 text-[0.5rem] rounded-sm">
-                                                    delete
-                                                </button>
-                                            </Link> */}
                                         </div>
                                     </TableCell>
+
+
                                 </TableRow>
                             )
                         })
