@@ -18,11 +18,14 @@ import { usePathname, useSearchParams } from "next/navigation"
 import spinner from "@/public/images/spinner.gif"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { Spinner } from "@/components/ui/spinner"
+import { updateParent } from "@/actions/update-parent"
+import { toast } from "@/components/ui/use-toast"
 
 
 
 
 const SingleTeacherPage = () => {
+
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
@@ -46,12 +49,10 @@ const SingleTeacherPage = () => {
     const [newData, setNewData] = useState(null)
 
     const { data, loading, errorMessage: ParentError, success } = usePost(`/api/addteacher/${id}`, submittedData, "PATCH")
-    const { data: parentsData, isPending: parentPending, errorMessage } = useFetch(`/api/addparent/${userId}`, userId);
+    const { data: parentsData, isPending: parentPending, errorMessage } = useFetch(`/api/addparent/${id}`, userId);
 
     const parentData = parentsData?.parent
     const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
-
-    console.log(parentData)
 
     const form = useForm<z.infer<typeof TeacherSchema>>({
         resolver: zodResolver(TeacherSchema),
@@ -86,10 +87,20 @@ const SingleTeacherPage = () => {
     }, [id, parentData])
 
     const onSubmit = (values: z.infer<typeof TeacherSchema>) => {
-        console.log(values)
+        // console.log(values)
         startTransition(() => {
-            setSubmittedData(values)
+            updateParent(id, values).then((response) => {
+                toast({
+                    description: response.message,
+                });
+            }).catch((error) => {
+                console.error("Error:", error);
+                toast({
+                    description: "An error occurred. Please try again.",
+                });
+            });
         });
+
     };
 
     useEffect(() => {
