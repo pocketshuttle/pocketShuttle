@@ -10,7 +10,6 @@ const updateStudentsStatus = async () => {
     // Fetch all students that need to be updated
     const students = await db.student.findMany({
       where: {
-        status: "DROPPED",
         presence: {
           not: "NONE",
         },
@@ -39,7 +38,11 @@ const updateStudentsStatus = async () => {
 };
 
 // Schedule the task to run daily at midnight
-cron.schedule("0 0 * * *", () => {
-  console.log("Running scheduled task...");
+// cron.schedule("0 0 * * *", () => {
+//   console.log("Running scheduled task...");
+//   updateStudentsStatus();
+// });
+cron.schedule("50 2 * * *", () => {
+  console.log("Running scheduled task at 2:45 AM...");
   updateStudentsStatus();
 });
