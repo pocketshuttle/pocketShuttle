@@ -1,8 +1,23 @@
 /** @type {import('next').NextConfig} */
-
+import withPWAInit from "@ducanh2912/next-pwa";
 import { exec } from "child_process";
+// import withPWA  from ('next-pwa')({
+//   dest: 'public'
+// })
 
-/** @type {import('next').NextConfig} */
+const withPWA = withPWAInit({
+  dest: "public",
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: true,
+  swcMinify: true,
+  disable: process.env.NODE_ENV === "development",
+  workboxOptions: {
+    disableDevLogs: true,
+  },
+  // ... other options you like
+});
+
 const nextConfig = {
   images: {
     remotePatterns: [
@@ -33,4 +48,6 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withPWA({
+  nextConfig,
+});
