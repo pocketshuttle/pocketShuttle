@@ -1,9 +1,6 @@
 import NextAuth from "next-auth";
 import authConfig from "./auth.config";
-import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import { getCreatedUser, getUserByEmail, getUserById } from "@/data/user";
-import clientPromise from "@/utils/db-promise";
-import User from "./(models)/User";
 import { connectToDB } from "./utils/connect-to-db";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "./lib/db";
