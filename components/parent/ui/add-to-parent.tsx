@@ -66,6 +66,12 @@ export function AddStudents({ data, parentId }: { data: StudentProps[], parentId
         });
     }
 
+    const handleCancel = () => {
+        setIsOpenModal(false)
+        setOpen(false)
+
+    }
+
 
     // Filter students based on the search term
     const filteredData = data?.filter(student =>
@@ -88,7 +94,8 @@ export function AddStudents({ data, parentId }: { data: StudentProps[], parentId
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            {openModal && <ConfirmationModal handleYes={handleConfirmation} />}
+            {openModal && <ConfirmationModal
+                handleYes={handleConfirmation} isPending={isPending} handleCancel={handleCancel} />}
 
             <PopoverContent className="w-[200px] p-0">
                 <Command className="bg-black hover:bg-[var--(bgSoft)] border-gray-950">
