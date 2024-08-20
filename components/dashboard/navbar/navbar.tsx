@@ -23,9 +23,9 @@ const Navbar = () => {
     return (
         <div className="w-full h-14 py-8 bg-[var(--bgRoot)] rounded-sm flex justify-between items-center border-1 border-b-[1px] border-gray-600">
             <div >
-                <span className="capitalize text-2xl">
+                {/* <span className="capitalize text-2xl">
                     {pathname.split('/').pop()}
-                </span>
+                </span> */}
             </div>
             <div className="flex items-center gap-2 w-3/6">
                 <div className="flex justify-center items-center border border-gray-600 gap-2 focus-visible:ring-ring rounded-md w-full"

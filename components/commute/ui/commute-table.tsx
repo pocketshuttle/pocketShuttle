@@ -24,7 +24,13 @@ import { ViewStudent } from "@/components/students/ui/view-student-wrapper";
 import React from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { BusProps, StudentProps } from "@/types";
-
+import { StudentPresence } from "@/components/students/ui/presence";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 
 export const CommuteTable = () => {
@@ -35,7 +41,6 @@ export const CommuteTable = () => {
     const { data: busData, isPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
     const { data: routeData, isPending: routeLoading, errorMessage: routeError } = useFetch(`/api/addroute/${userId}`, userId);
 
-    console.log(busData)
     if (isPending) {
         return <Spinner />
     }
@@ -58,9 +63,9 @@ export const CommuteTable = () => {
                 </TableHeader>
                 <TableBody className="text-[0.75rem] text-gray-400">
                     {busData?.map((bus: BusProps) => {
-                        const isBusOpen = openBusId === bus._id;
+                        const isBusOpen = openBusId === bus.id;
                         return (
-                            <React.Fragment key={bus._id}>
+                            <React.Fragment key={bus.id}>
                                 <TableRow>
                                     <TableCell className="text-[0.7rem] capitalize">
                                         <span>{bus.color} </span>
@@ -76,10 +81,10 @@ export const CommuteTable = () => {
                                         </span>
                                     </TableCell>
                                     <TableCell className="capitalize">
-                                        {bus.student?.length ? bus.student.length : "no kids"}
+                                        {bus.students?.length ? bus.students.length : "no kids"}
                                     </TableCell>
                                     <TableCell>
-                                        <Button variant="outline" onClick={() => setOpenBusId(isBusOpen ? null : bus._id)}>
+                                        <Button variant="outline" onClick={() => setOpenBusId(isBusOpen ? null : bus.id)}>
                                             {isBusOpen ? "Hide Bus Details" : "View Bus Details"}
                                         </Button>
                                     </TableCell>
@@ -100,13 +105,27 @@ export const CommuteTable = () => {
                                                         </TableRow>
                                                     </TableHeader>
                                                     <TableBody>
-                                                        {bus.student.map((student: StudentProps) => (
-                                                            <TableRow key={student._id}>
+                                                        {bus.students.map((student: StudentProps) => (
+                                                            <TableRow key={student.id}>
                                                                 <TableCell className="">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <Image src={student.image && student.image || avatar} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
-                                                                        <span className="">{student.full_name}</span>
-                                                                    </div>
+                                                                    <TooltipProvider>
+                                                                        <Tooltip>
+                                                                            <TooltipTrigger>
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <Image src={student.image && student.image || avatar} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
+                                                                                    <span className="capitalize">{student.full_name}</span>
+                                                                                    <StudentPresence data={student.presence} />
+                                                                                </div>
+                                                                            </TooltipTrigger>
+                                                                            <TooltipContent>
+                                                                                <p>{
+                                                                                    student.presence === "NONE" ? `${student.full_name} is not in school` :
+                                                                                        student.presence === "IN_BUS" ? `${student.full_name} is currently in Bus`
+                                                                                            : `${student.full_name} is currently in School`
+                                                                                }</p>
+                                                                            </TooltipContent>
+                                                                        </Tooltip>
+                                                                    </TooltipProvider>
                                                                 </TableCell>
                                                                 <TableCell>{student.gender}</TableCell>
                                                                 <TableCell>{student.age}</TableCell>
@@ -116,7 +135,7 @@ export const CommuteTable = () => {
                                                                 <TableCell >
                                                                     {
                                                                         student.attendance === "absent" ? "" :
-                                                                            <span className="bg-[crimson] rounded-md p-[0.3rem]">
+                                                                            <span className="bg-[crimson] rounded-md p-[0.3rem] text-gray-200">
                                                                                 {
                                                                                     student.status
                                                                                 }
