@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 import withPWAInit from "@ducanh2912/next-pwa";
 import { exec } from "child_process";
-// import withPWA  from ('next-pwa')({
-//   dest: 'public'
-// })
 
 const withPWA = withPWAInit({
   dest: "public",
@@ -15,7 +12,7 @@ const withPWA = withPWAInit({
   workboxOptions: {
     disableDevLogs: true,
   },
-  // ... other options you like
+  // other options...
 });
 
 const nextConfig = {
@@ -28,26 +25,29 @@ const nextConfig = {
     ],
   },
   async rewrites() {
-    exec(
-      "node backgroundtask/background-worker.js",
-      (error, stdout, stderr) => {
-        if (error) {
-          console.error(
-            `Error executing background-worker.js: ${error.message}`
-          );
-          return;
-        }
-        if (stderr) {
-          console.error(`stderr: ${stderr}`);
-          return;
-        }
-        console.log(`stdout: ${stdout}`);
-      }
-    );
     return [];
+  },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      exec(
+        "node backgroundtask/background-worker.js",
+        (error, stdout, stderr) => {
+          if (error) {
+            console.error(
+              `Error executing background-worker.js: ${error.message}`
+            );
+            return;
+          }
+          if (stderr) {
+            console.error(`stderr: ${stderr}`);
+            return;
+          }
+          console.log(`stdout: ${stdout}`);
+        }
+      );
+    }
+    return config;
   },
 };
 
-export default withPWA({
-  nextConfig,
-});
+export default withPWA(nextConfig);
