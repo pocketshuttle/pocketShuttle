@@ -35,3 +35,10 @@ export const apiAuthPrefix = "/api/auth";
  */
 
 export const DEFAULT_LOGIN_REDIRECT = "/dashboard";
+
+/**
+ *  the default redirect path for specific user roles
+ * @type {string}
+ *
+ */
+export const DEFAULT_USER_ROLE = "/teacher";

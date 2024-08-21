@@ -7,7 +7,6 @@ import TeacherView from "../teacher/page"
 const poppins = Poppins({ weight: "500", subsets: ["latin"] })
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
     const user = await getUserSession()
-
     return (
         <div>
             {

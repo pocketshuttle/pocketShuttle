@@ -89,3 +89,29 @@ export const getCreatedUser = async (email: string) => {
     return null;
   }
 };
+
+export const getCreatedById = async (id: string) => {
+  try {
+    const user = await db.newUser.findFirst({
+      where: {
+        OR: [
+          {
+            parentId: id,
+          },
+          {
+            teacherId: id,
+          },
+        ],
+      },
+      include: {
+        teacher: true, // Include related teacher data
+        parent: true, // Include related parent data
+      },
+    });
+
+    return user;
+  } catch (error) {
+    console.error("Error fetching user by email:", error);
+    return null;
+  }
+};
