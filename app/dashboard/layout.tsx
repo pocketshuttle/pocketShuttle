@@ -12,7 +12,7 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
         <div>
             {
                 //@ts-ignore
-                user?.role === "teacher" ? (
+                user?.role === "teacher" || user?.role === "parent" ? (
                     <div className="w-full">
 
                         <TeacherView />

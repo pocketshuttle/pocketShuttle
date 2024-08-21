@@ -5,10 +5,9 @@ import React from 'react'
 const TeacherView = async () => {
     const user = await getUserSession()
 
-    console.log(user)
     return (
         <div>
-            <TeachersViewData userId={user?.id} />
+            <TeachersViewData userId={user?.id} user={user} />
         </div>
     )
 }

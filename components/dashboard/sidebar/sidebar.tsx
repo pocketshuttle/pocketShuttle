@@ -29,7 +29,7 @@ type ListType = {
     title: string;
 };
 
-const Sidebar = ({ data }) => {
+const Sidebar = ({ data }: any) => {
     const [isHovering, setIsHovering] = useState(false);
     const { data: session } = useSession();
 
