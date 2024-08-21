@@ -22,6 +22,7 @@ import { useFetch } from "@/hooks/useFetch"
 import { AttendanceTab } from "./ui/register-tab"
 import { useSearchParams } from "next/navigation"
 import { Spinner } from "../ui/spinner"
+import Navbar from "./navbar"
 
 
 
@@ -41,11 +42,14 @@ type StudentProps = {
 
 type SessionProps = {
     userId: string | undefined
+    user: any
 }
 
 
 
-export const TeachersViewData = ({ userId }: SessionProps) => {
+export const TeachersViewData = ({ userId, user }: SessionProps) => {
+    console.log(user)
+
 
     const searchParams = useSearchParams()
     const page = searchParams.get("page")
@@ -58,7 +62,6 @@ export const TeachersViewData = ({ userId }: SessionProps) => {
     const teacherData = teachersData?.teacher
     const studentsData = data?.students || [];
 
-    console.log(teacherData?.[0]?.bus.students)
     const totalCount = data?.count
     const [attendance, SetAttendance] = useState("")
 
@@ -75,20 +78,24 @@ export const TeachersViewData = ({ userId }: SessionProps) => {
 
             }
 
-            <div className="mt-4 bg-[var(--bg)] lg:hidden w-full">
-                <header className=" px-4 py-1 space-y-2 text-lg">
-                    {<p>
-                        BusName : <span className="capitalize">{
-                            teacherData?.[0]?.bus &&
-                            teacherData?.[0]?.bus.bus_product_name
-                        }
-                        </span>
-                    </p>}
-                    <p>
-                        Driver : <span></span>
-                    </p>
-                </header>
+            <div className=" lg:hidden w-full">
+                <Navbar data={user} />
+                <header className=" px-4  space-y-4 text-lg text-gray-400">
+                    {
+                        teacherData?.bus === null ? <span>Teacher hasnt been assigned a bus, please contact admin</span> :
+                            <p className="flex flex-col">
 
+                                Bus Name : <span className="capitalize">{
+                                    teacherData?.[0]?.bus &&
+                                    teacherData?.[0]?.bus.bus_product_name
+                                }
+                                </span>
+
+                                Driver : <span></span>
+                            </p>
+
+                    }
+                </header>
 
 
 
@@ -148,48 +155,49 @@ export const TeachersViewData = ({ userId }: SessionProps) => {
                     </TableHeader>
                     <TableBody className="text-[0.8rem] text-[var(--textSoft)]">
                         {
-                            teacherData?.[0]?.bus.students?.map((student: StudentProps) => {
-                                return (
-                                    <TableRow key={student.id}>
-                                        <TableCell className="">
-                                            <div className="flex items-center gap-2">
-                                                <Image src={student.image && student.image || dashboard} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
-                                                <span className="">{student.full_name}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            {student.gender}
-                                        </TableCell>
+                            teacherData?.bus === null ? <p>Teacher hasnt been assigned a bus yet, please contact admin</p> :
+                                teacherData?.[0]?.bus?.student?.map((student: StudentProps) => {
+                                    return (
+                                        <TableRow key={student.id}>
+                                            <TableCell className="">
+                                                <div className="flex items-center gap-2">
+                                                    <Image src={student.image && student.image || dashboard} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
+                                                    <span className="">{student.full_name}</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                {student.gender}
+                                            </TableCell>
 
-                                        <TableCell>
-                                            {student.grade}
-                                        </TableCell>
-                                        <TableCell>
-                                            {student.address}
-                                        </TableCell>
-                                        <TableCell>
-                                            <  AttendanceTab label1="Present" label2="Absent" data={student.attendance} value1="PRESENT" value2="ABSENT" SetAttendance={SetAttendance} attendance={attendance} id={student.id} />
-                                        </TableCell>
-                                        <TableCell>
-                                            {
-                                                student.attendance === "PRESENT" ?
-                                                    <  AttendanceTab label1="Dropped"
-                                                        label2="Picked" data={student.status} value1="DROPPED" value2="PICKED" SetAttendance={SetAttendance} attendance={attendance} id={student.id} /> : ""
-                                            }
-                                        </TableCell>
+                                            <TableCell>
+                                                {student.grade}
+                                            </TableCell>
+                                            <TableCell>
+                                                {student.address}
+                                            </TableCell>
+                                            <TableCell>
+                                                <  AttendanceTab label1="Present" label2="Absent" data={student.attendance} value1="PRESENT" value2="ABSENT" SetAttendance={SetAttendance} attendance={attendance} id={student.id} />
+                                            </TableCell>
+                                            <TableCell>
+                                                {
+                                                    student.attendance === "PRESENT" ?
+                                                        <  AttendanceTab label1="Dropped"
+                                                            label2="Picked" data={student.status} value1="DROPPED" value2="PICKED" SetAttendance={SetAttendance} attendance={attendance} id={student.id} /> : ""
+                                                }
+                                            </TableCell>
 
-                                        <TableCell>
-                                            <div className="space-x-2">
-                                                <Link href={`/dashboard/students/${student.id}`}>
-                                                    <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
-                                                        view
-                                                    </button>
-                                                </Link>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                )
-                            })
+                                            <TableCell>
+                                                <div className="space-x-2">
+                                                    <Link href={`/dashboard/students/${student.id}`}>
+                                                        <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
+                                                            view
+                                                        </button>
+                                                    </Link>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })
                         }
                     </TableBody>
                 </Table>

@@ -26,7 +26,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async signIn({ user, account, profile }) {
       try {
-        await connectToDB(); // Connect to the database
         if (account?.provider !== "credentials") return true;
         //@ts-ignore
 
@@ -47,6 +46,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     async jwt({ token, user, profile }) {
+      console.log(token, "token");
       if (!token.sub) return token;
 
       if (token.role === "teacher" || token.role === "parent") {

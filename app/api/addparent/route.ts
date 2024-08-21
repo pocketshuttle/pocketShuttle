@@ -32,7 +32,7 @@ export const POST = async (req: NextRequest) => {
 
     const hashPassword = await bcrypt.hash(password, 10);
 
-    await db.parent.create({
+    const newParent = await db.parent.create({
       data: {
         school: {
           connect: { id: school_id },
@@ -49,6 +49,19 @@ export const POST = async (req: NextRequest) => {
         }),
         image,
         role,
+      },
+    });
+
+    await db.newUser.create({
+      data: {
+        school: {
+          connect: { id: school_id },
+        },
+        email,
+        password: hashPassword,
+        parent: {
+          connect: { id: newParent.id },
+        },
       },
     });
 
