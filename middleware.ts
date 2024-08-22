@@ -15,46 +15,64 @@ const { auth } = NextAuth(authConfig);
 
 export default auth(async (req) => {
   const { nextUrl } = req;
-  const token = await getToken({
-    req,
-    //@ts-ignore
-    secret: process.env.NEXTAUTH_SECRET,
-  });
-  const userRole = token?.role;
+  try {
+    const token = await getToken({
+      req,
+      //@ts-ignore
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+    const userRole = token?.role;
+    console.log(userRole);
+    const isLoggedIn = !!token;
 
-  const isLoggedIn = !!req.auth;
-  console.log(isLoggedIn, "loggin in");
+    console.log(userRole, "user role");
 
-  const isAPIAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
-  //   //if the nexturl.pathname is included in the publicroutes array, then it requires no auth
-  const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
+    const isAPIAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
 
-  //   //if the nexturl.pathname is included in the authroutes array, then it requires auth
-  const isAuthRoute = authRoutes.includes(nextUrl.pathname);
-  console.log(isAuthRoute, "auth in", nextUrl.pathname);
-  if (isAPIAuthRoute) {
-    return null;
-  }
+    //   //if the nexturl.pathname is included in the publicroutes array, then it requires no auth
+    const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
 
-  if (isAuthRoute) {
-    if (isLoggedIn) {
-      if (userRole && userRole === "teacher") {
-        console.log("Redirecting to parent page");
-        return Response.redirect(new URL(DEFAULT_USER_ROLE, nextUrl));
+    //   //if the nexturl.pathname is included in the authroutes array, then it requires auth
+    // const isAuthRoute = authRoutes.includes(nextUrl.pathname);
+    if (isAPIAuthRoute) {
+      return null;
+    }
+
+    // Matching for both static and dynamic routes
+    const isAuthRoute = authRoutes.some((route) =>
+      nextUrl.pathname.startsWith(route)
+    );
+
+    console.log(isAuthRoute, "auth in", nextUrl.pathname);
+
+    if (isAuthRoute) {
+      console.log(isAuthRoute, "auth route");
+      if (isLoggedIn) {
+        console.log(isLoggedIn, "login boolean");
+
+        if (userRole === "parent") {
+          console.log("Redirecting to parent page");
+          return Response.redirect(new URL(DEFAULT_USER_ROLE, nextUrl));
+        }
+
+        return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
       }
 
-      return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+      return null;
+    }
+
+    console.log(userRole, "user role 2");
+
+    if (!isLoggedIn && !isPublicRoute) {
+      return Response.redirect(new URL("/login", nextUrl));
     }
 
     return null;
-  }
-  console.log(userRole, "user role 2");
-
-  if (!isLoggedIn && !isPublicRoute) {
+  } catch (error) {
+    console.error("Error fetching token:", error);
+    // Handle error, e.g., redirect to login or display an error message
     return Response.redirect(new URL("/login", nextUrl));
   }
-
-  return null;
 });
 
 export const config = {
