@@ -39,7 +39,16 @@ export const GET = async (
     const parent = await db.parent.findMany({
       where: whereClause,
       include: {
-        Student: true,
+        Student: {
+          include: {
+            bus: {
+              include: {
+                teacher: true,
+                driver: true,
+              },
+            },
+          },
+        },
       },
     });
     // const parent = await Parent.find(query).populate({
