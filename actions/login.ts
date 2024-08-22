@@ -13,13 +13,10 @@ export const Login = async (values: z.infer<typeof LoginSchema>) => {
   //validating the data
   const validatedFields = LoginSchema.safeParse(values);
 
-  if (!validatedFields) {
+  if (!validatedFields.success) {
     return { error: "Invalid Fields" };
   }
-  //@ts-ignore
   const { email, password, role } = validatedFields.data;
-
-  console.log("this is a new role", role);
 
   const existingUser = await getUserByEmail(email, role);
 
@@ -45,7 +42,7 @@ export const Login = async (values: z.infer<typeof LoginSchema>) => {
       email,
       password,
       redirectTo:
-        role === "parent" || "teacher"
+        role === "parent" || role === "teacher"
           ? DEFAULT_USER_ROLE
           : DEFAULT_LOGIN_REDIRECT,
     };
@@ -58,9 +55,8 @@ export const Login = async (values: z.infer<typeof LoginSchema>) => {
     await signIn("credentials", {
       ...signInParams,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof AuthError) {
-      console.log(error);
       switch (error.type) {
         case "CredentialsSignin":
           return { error: "Invalid Credentials!" };
