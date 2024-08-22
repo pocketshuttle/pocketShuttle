@@ -51,6 +51,7 @@ export const GET = async (
         bus: {
           include: {
             students: true,
+            driver: true,
           },
         },
       },
