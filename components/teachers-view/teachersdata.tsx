@@ -79,7 +79,6 @@ export const TeachersViewData = ({ userId, user }: SessionProps) => {
             }
 
             <div className=" lg:hidden w-full">
-                <Navbar data={user} />
                 <header className=" px-4  space-y-4 text-lg text-gray-400">
                     {
                         teacherData?.bus === null ? <span>Teacher hasnt been assigned a bus, please contact admin</span> :

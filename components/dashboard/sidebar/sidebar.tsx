@@ -114,8 +114,8 @@ const Sidebar = ({ data }: any) => {
                 onMouseLeave={() => setIsHovering(false)}
             >
                 <Avatar>
-                    {data.image ? (
-                        <AvatarImage src={data.image} alt="@shadcn" />
+                    {data?.image ? (
+                        <AvatarImage src={data?.image} alt="@shadcn" />
                     ) : (
                         <div style={{ width: 40, height: 40 }}>
                             <LottieAnimation isHovering={isHovering} animationData={userprofile} />
@@ -123,8 +123,8 @@ const Sidebar = ({ data }: any) => {
                     )}
                 </Avatar>
                 <div className="flex flex-col items-start ">
-                    <span className="text-[1rem] font-medium capitalize">{data.name || "admin"}</span>
-                    <span className="text-[0.7rem] text-[#b7cac1]">{data.role || "admffin"}</span>
+                    <span className="text-[1rem] font-medium capitalize">{data?.name || "admin"}</span>
+                    <span className="text-[0.7rem] text-[#b7cac1]">{data?.role || "admffin"}</span>
                 </div>
             </button>
         </div>
