@@ -48,8 +48,6 @@ type SessionProps = {
 
 
 export const TeachersViewData = ({ userId, user }: SessionProps) => {
-    console.log(user)
-
 
     const searchParams = useSearchParams()
     const page = searchParams.get("page")
@@ -57,10 +55,9 @@ export const TeachersViewData = ({ userId, user }: SessionProps) => {
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
     const { data, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?page=${page}`, userId);
     const { data: teachersData, isPending: isLoading, } = useFetch(`/api/addteacher/${userId}`, userId);
-    const { data: busData, isPending: busLoading, } = useFetch(`/api/addbus/${userId}`, userId);
 
     const teacherData = teachersData?.teacher
-    const studentsData = data?.students || [];
+
 
     const totalCount = data?.count
     const [attendance, SetAttendance] = useState("")
@@ -82,16 +79,31 @@ export const TeachersViewData = ({ userId, user }: SessionProps) => {
                 <header className=" px-4  space-y-4 text-lg text-gray-400">
                     {
                         teacherData?.bus === null ? <span>Teacher hasnt been assigned a bus, please contact admin</span> :
-                            <p className="flex flex-col">
+                            <div className="flex flex-col">
+                                <p>
+                                    Bus Name :
+                                    <span className="capitalize">{
+                                        teacherData?.[0]?.bus &&
+                                        teacherData?.[0]?.bus.bus_product_name
+                                    }
+                                    </span>
+                                </p>
+                                <p>
+                                    Driver : <span className="capitalize">
+                                        {
+                                            teacherData?.[0]?.bus?.driver &&
+                                            teacherData?.[0]?.bus?.driver?.full_name}
+                                    </span>
+                                </p>
+                                <p>
+                                    Driver Contact : <span className="capitalize">
+                                        {
+                                            teacherData?.[0]?.bus?.driver &&
+                                            teacherData?.[0]?.bus?.driver?.phoneNumber}
+                                    </span>
+                                </p>
 
-                                Bus Name : <span className="capitalize">{
-                                    teacherData?.[0]?.bus &&
-                                    teacherData?.[0]?.bus.bus_product_name
-                                }
-                                </span>
-
-                                Driver : <span></span>
-                            </p>
+                            </div>
 
                     }
                 </header>
@@ -136,7 +148,7 @@ export const TeachersViewData = ({ userId, user }: SessionProps) => {
                         ))
                     }
                 </main>
-            </div>
+            </div >
 
 
             <div className="hidden lg:flex lg:flex-col">
@@ -204,7 +216,7 @@ export const TeachersViewData = ({ userId, user }: SessionProps) => {
 
                 <Pagination count={totalCount} pageCount={4} />
             </div >
-        </div>
+        </div >
 
     )
 }

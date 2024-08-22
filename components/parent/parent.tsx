@@ -1,9 +1,13 @@
-"use client"
+import { getUserSession } from "@/lib/session"
 import { ParentData } from "./ui/parent-table"
 
-const Parent = () => {
+const Parent = async () => {
+    const user = await getUserSession()
+
     return (
-        <div><ParentData /></div>
+        <div>
+            <ParentData userId={user?.id} />
+        </div>
     )
 }
 

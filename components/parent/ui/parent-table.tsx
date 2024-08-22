@@ -1,3 +1,4 @@
+"use client"
 import { Pagination } from "@/components/dashboard/pagination/pagination"
 import { Search } from "@/components/dashboard/search/search"
 import { Button } from "@/components/ui/button"
@@ -51,9 +52,12 @@ type ParentProps = {
     student?: string
 }
 
-export const ParentData = () => {
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+type SessionProps = {
+    userId: string
+}
+
+export const ParentData = ({ userId }: SessionProps) => {
+
     const getParams = useSearchParams()
     const page = getParams.get("page") || ""
 
@@ -66,7 +70,7 @@ export const ParentData = () => {
     const totalCount = data?.parentCount || 0;
     const [isHovering, setIsHovering] = useState(false);
     const [isPending, startTransition] = useTransition()
-    const [selectedParent, setSelectedParent] = useState<string | null>(null);
+    // const [selectedParent, setSelectedParent] = useState<string | null>(null);
 
     const handleModal = () => {
         setIsOpenModal(true)

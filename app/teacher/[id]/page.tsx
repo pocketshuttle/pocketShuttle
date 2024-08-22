@@ -1,5 +1,6 @@
 "use client"
 import { GuardianPage } from '@/components/teachers-view/student-view/guardian'
+import { Spinner } from '@/components/ui/spinner'
 import { useFetch } from '@/hooks/useFetch'
 import { usePathname } from 'next/navigation'
 
@@ -10,11 +11,9 @@ const StudentView = () => {
 
     return (
         <div>
-
-
             <div>
                 {
-                    isPending ? <p>Loading</p> :
+                    isPending ? <Spinner /> :
                         <GuardianPage data={studentsData} />
                 }
             </div>

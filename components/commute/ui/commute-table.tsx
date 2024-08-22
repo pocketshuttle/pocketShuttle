@@ -31,16 +31,17 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
+type SessionProps = {
+    userId: string
+}
 
-
-export const CommuteTable = () => {
-    const { data: session } = useSession();
-    const userId = session?.user?.id;
+export const CommuteTable = ({ userId }: SessionProps) => {
     const [openBusId, setOpenBusId] = useState<string | null>(null);
 
     const { data: busData, isPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
     const { data: routeData, isPending: routeLoading, errorMessage: routeError } = useFetch(`/api/addroute/${userId}`, userId);
 
+    console.log(busData)
     if (isPending) {
         return <Spinner />
     }
@@ -134,8 +135,8 @@ export const CommuteTable = () => {
 
                                                                 <TableCell >
                                                                     {
-                                                                        student.attendance === "absent" ? "" :
-                                                                            <span className="bg-[crimson] rounded-md p-[0.3rem] text-gray-200">
+                                                                        student.attendance === "ABSENT" ? "" :
+                                                                            <span className={`${student.status === "PICKED" ? "bg-[teal]" : "bg-[crimson]"} rounded-md p-[0.3rem] text-gray-200`}>
                                                                                 {
                                                                                     student.status
                                                                                 }
