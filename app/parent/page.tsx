@@ -1,4 +1,4 @@
-import { ParentViewData } from '@/components/parent-view/parentdata'
+import ParentViewData from '@/components/parent-view/parentdata'
 import { getUserSession } from '@/lib/session'
 import React from 'react'
 

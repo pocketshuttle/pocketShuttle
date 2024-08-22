@@ -23,22 +23,11 @@ import { AttendanceTab } from "./ui/register-tab"
 import { useSearchParams } from "next/navigation"
 import { Spinner } from "../ui/spinner"
 import Navbar from "./navbar"
+import { StudentProps } from "@/types"
 
 
 
-type StudentProps = {
-    id: string,
-    full_name: string,
-    age: number,
-    gender: string,
-    grade: string,
-    address: string,
-    bus: string
-    , image: string
-    attendance: string
-    status: string
 
-}
 
 type SessionProps = {
     userId: string | undefined
