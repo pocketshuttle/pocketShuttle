@@ -1,18 +1,23 @@
-"use client"
-import Image from 'next/image'
-import React from 'react'
-import avatar from "@/public/images/avatar.jpg"
+"use client";
+import Image from "next/image";
+import React from "react";
+import avatar from "@/public/images/avatar.jpg";
+import { Button } from "@/components/ui/button";
+import { AttendanceTab } from "../ui/register-tab";
+
 type StudentProps = {
-    _id: string,
-    full_name: string,
-    age: number,
-    gender: string,
-    grade: string,
-    address: string,
-    bus: string,
-    image: string
-    parent: ParentProps
-}
+    id: string;
+    full_name: string;
+    age: number;
+    gender: string;
+    grade: string;
+    address: string;
+    bus: string;
+    image: string;
+    parent: ParentProps;
+    attendance: string
+    status: string
+};
 
 type ParentProps = {
     id: string;
@@ -21,38 +26,92 @@ type ParentProps = {
     phoneNumber: string;
     address: string;
     image: string;
+    Student: StudentProps[];
 };
 
 /**
  * 
  * @param Data,  StudentProps
- * This component shows the parent of the child, the oarent is fetched from the students data
+ * This component shows the parent of the child, the parent is fetched from the student's data
  * each child can have just one parent, but parents can have multiple kids
- * @returns 
+ * @returns JSX.Element
  */
-export const GuardianPage = ({ data }: any) => {
-    console.log(data?.students)
+export const GuardianPage = ({ data }: { data: { students: StudentProps[] } }) => {
+    console.log(data?.students);
+    const [attendance, SetAttendance] = React.useState("")
+
     return (
         <main className="px-4 space-y-2 w-full">
             <h2>Guardian Profile</h2>
-            {
-                data?.students?.map((student: StudentProps) => (
-                    <div className="flex items-center  bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md">
-                        <Image src={student?.parent?.image || avatar} alt={student?.parent?.full_name} className="rounded-md object-cover w-24 h-24 shadow-lg" width={100} height={100} />
-
-                        <div className="py-4 space-y-2">
-                            <h2 className='capitalize'> {student?.parent?.full_name}
-                            </h2>
-                            <p className="text-lg text-[var(--textSoft)]">{student.parent.phoneNumber}</p>
-                            <p className="text-sm text-[var(--textSoft)]">{student.parent.email}</p>
-                            <p className="text-sm text-[var(--textSoft)]">{student.parent.address}</p>
-                        </div>
+            {data?.students?.map((student: StudentProps) => (
+                <div
+                    key={student.id}
+                    className="flex items-center bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md"
+                >
+                    <Image
+                        src={student?.parent?.image || avatar}
+                        alt={student?.parent?.full_name}
+                        className="rounded-md object-cover w-24 h-24 shadow-lg"
+                        width={100}
+                        height={100}
+                    />
+                    <div className="py-4 space-y-2">
+                        <h2 className="capitalize">{student?.parent?.full_name}</h2>
+                        <p className="text-lg text-[var(--textSoft)]">
+                            {student.parent.phoneNumber}
+                        </p>
+                        <p className="text-sm text-[var(--textSoft)]">
+                            {student.parent.email}
+                        </p>
+                        <p className="text-sm text-[var(--textSoft)]">
+                            {student.parent.address}
+                        </p>
                     </div>
-                ))
-            }
+                </div>
+            ))}
 
+            <div>
+                <h3 className="text-center p-5">All kids</h3>
+                {data?.students?.map((student: StudentProps) => {
+                    const parentKids = student?.parent?.Student;
 
-        </main >
-    )
-}
-
+                    return parentKids.map((sibling: StudentProps) => {
+                        return (
+                            <div
+                                key={sibling.id}
+                                className="flex items-center bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md mb-2"
+                            >
+                                <Image
+                                    src={sibling?.image || avatar}
+                                    alt={sibling?.full_name}
+                                    className="rounded-md object-cover w-24 h-24 shadow-lg"
+                                    width={100}
+                                    height={100}
+                                />
+                                <div className="py-4 space-y-2">
+                                    <h2 className="capitalize text-gray-200">
+                                        {sibling?.full_name}
+                                    </h2>
+                                </div>
+                                <div className="flex space-x-3 ">
+                                    <div>
+                                        {
+                                            <  AttendanceTab label1="Present" label2="Absent" data={sibling.attendance} value1="PRESENT" value2="ABSENT" SetAttendance={SetAttendance} attendance={attendance} id={sibling.id} />
+                                        }
+                                    </div>
+                                    <div>
+                                        {
+                                            sibling.attendance === "PRESENT" ?
+                                                <  AttendanceTab label1="Dropped" label2="Picked" data={sibling.status} value1="DROPPED" value2="PICKED"
+                                                    SetAttendance={SetAttendance} attendance={attendance} id={sibling.id} /> : ""
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    });
+                })}
+            </div>
+        </main>
+    );
+};
