@@ -3,7 +3,11 @@
 import { LoginSchema } from "@/schemas";
 import * as z from "zod";
 import { signIn } from "@/auth";
-import { DEFAULT_LOGIN_REDIRECT, DEFAULT_USER_ROLE } from "@/routes";
+import {
+  DEFAULT_LOGIN_REDIRECT,
+  DEFAULT_USER_ROLE,
+  DEFAULT_PARENT_ROLE,
+} from "@/routes";
 import { AuthError } from "next-auth";
 import { getUserByEmail } from "@/data/user";
 import { generateVerificationToken } from "@/lib/token";
@@ -42,7 +46,9 @@ export const Login = async (values: z.infer<typeof LoginSchema>) => {
       email,
       password,
       redirectTo:
-        role === "parent" || role === "teacher"
+        role === "parent"
+          ? DEFAULT_PARENT_ROLE
+          : role === "teacher"
           ? DEFAULT_USER_ROLE
           : DEFAULT_LOGIN_REDIRECT,
     };

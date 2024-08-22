@@ -27,7 +27,9 @@ const ParentViewData = ({ userId, user }: SessionProps) => {
 
                         parentData?.Student?.map((sibling: StudentProps) => {
 
-
+                            const bus = sibling?.bus
+                            const driver = sibling?.bus?.driver
+                            const teacher = sibling?.bus?.teacher
                             return (
                                 <div
                                     key={sibling.id}
@@ -47,13 +49,40 @@ const ParentViewData = ({ userId, user }: SessionProps) => {
                                         <span>
                                             {sibling.status}
                                         </span>
+                                        <div>
+                                            <p>
+                                                <span>
+                                                    {bus.color}
+                                                </span>
+
+                                                <span className="ml-2">
+                                                    {bus.bus_product_name}
+                                                </span>
+                                                <span className="ml-2">
+                                                    {bus.bus_number}
+                                                </span>
+                                            </p>
+                                            <p className="space-x-2 capitalize">
+                                                {driver.full_name}
+                                                <small className="ml-2">
+                                                    {driver.phoneNumber}
+                                                </small>
+                                            </p>
+                                            <p className="space-x-2 capitalize">
+                                                {teacher.full_name}
+                                                <small className="ml-2">
+                                                    {teacher.phoneNumber}
+                                                </small>
+                                            </p>
+
+                                        </div>
                                     </div>
                                 </div>
                             );
                         })
                 }
             </div>
-        </main>
+        </main >
     )
 }
 

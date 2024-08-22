@@ -43,3 +43,4 @@ export const DEFAULT_LOGIN_REDIRECT = "/dashboard";
  *
  */
 export const DEFAULT_USER_ROLE = "/teacher";
+export const DEFAULT_PARENT_ROLE = "/parent";
