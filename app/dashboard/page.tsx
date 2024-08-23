@@ -14,9 +14,6 @@ const Dashboard = () => {
     const { data: busData, isPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
     const { data: studentsData, } = useFetch(`/api/addstudent/${userId}`, userId);
     const { data: teachersData, } = useFetch(`/api/addteacher/${userId}`, userId);
-    const { data: driversData, } = useFetch(`/api/adddriver/${userId}`, userId);
-    const { data: routeData, } = useFetch(`/api/addroute/${userId}`, userId);
-
 
     return (
         <div className="flex w-full" >
@@ -32,7 +29,7 @@ const Dashboard = () => {
                         <DashboardWrapper headLabel="Total Number of Teachers" total={teachersData?.count} />
                     </div>
                 </div>
-                <CommuteTable />
+                <CommuteTable userId={userId} />
                 {/* <Charts /> */}
             </div>
 

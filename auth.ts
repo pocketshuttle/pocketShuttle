@@ -50,11 +50,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     async jwt({ token, user, profile }) {
-      // console.log(token, "token");
+      console.log(token, "token");
       if (!token.sub) return token;
 
       if (token.sub) {
         const createdUser = await getCreatedById(token.sub);
+        console.log(createdUser, "fethced user");
         if (createdUser) {
           if (createdUser.teacher) {
             token.name = createdUser.teacher.full_name;

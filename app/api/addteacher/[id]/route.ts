@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Teacher from "@/(models)/Teachers";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { revalidatePath } from "next/cache";
 
 type ParamProp = {
   id: string;
@@ -59,8 +60,6 @@ export const GET = async (
       skip: ITEM_PER_PAGE * (page - 1),
     });
 
-    console.log(teacher);
-
     if (!teacher) {
       return new NextResponse(
         JSON.stringify({ message: "Teacher not found!" }),
@@ -69,10 +68,17 @@ export const GET = async (
         }
       );
     }
+    const path = "/dashboard/teachers";
 
-    return new NextResponse(JSON.stringify({ teacher, count }), {
-      status: 200,
-    });
+    revalidatePath("/dashboard/teachers");
+
+    return new Response(
+      JSON.stringify({ teacher, count }),
+      {
+        status: 200,
+      },
+    
+    );
   } catch (error) {
     console.error(error);
     return new NextResponse(

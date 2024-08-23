@@ -37,7 +37,7 @@ export const PATCH = async (
       );
     }
 
-    // revalidatePath(path);
+    revalidatePath("/teacher");
 
     return NextResponse.json(
       { message: "Attendance updated successfully", student: updatedStudent },

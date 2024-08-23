@@ -6,7 +6,6 @@ import Buses from "@/(models)/Bus";
 import { db } from "@/lib/db";
 
 export const POST = async (req: NextRequest) => {
-  console.log("Hello");
   try {
     await connectToDB();
     const data = await req.json();

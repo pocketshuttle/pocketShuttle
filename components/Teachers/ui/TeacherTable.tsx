@@ -40,6 +40,7 @@ import { removeTeacherFromBus } from "@/actions/remove-teacher-bus"
 import { toast } from "@/components/ui/use-toast"
 import { handleDelete } from "@/actions/delete-student"
 
+
 export const TeachersTable = () => {
     const { data: session } = useSession()
     const userId = session?.user?.id
@@ -59,7 +60,6 @@ export const TeachersTable = () => {
     const { data: busData, } = useFetch(`/api/addbus/${userId}`, userId);
     const teachersData = data?.teacher
     const totalCount = data?.count
-
     const handleModal = () => {
         setIsOpenModal(!isOpenModal);
     };
