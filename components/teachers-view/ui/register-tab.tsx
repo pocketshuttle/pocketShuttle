@@ -1,6 +1,11 @@
 "use client";
+import { updateStudentStatus } from "@/actions/mark-status";
+import { updateStudentAttendance } from "@/actions/mart-attendance";
+import revalidateStudent from "@/actions/validation/revalidate-student";
+import { toast } from "@/components/ui/use-toast";
 import useUpdateAttendance from "@/hooks/usePatch";
-import { Dispatch, SetStateAction, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Dispatch, SetStateAction, useState, useTransition } from "react";
 
 type RegisterProps = {
     value1: string;
@@ -17,21 +22,37 @@ export const AttendanceTab = ({
     id, value1, value2, label1, label2, data, SetAttendance, attendance
 }: RegisterProps) => {
     const [localAttendance, setLocalAttendance] = useState(data);
+    const [isPending, startTransition] = useTransition()
     const { updateAtendance, loading, error } = useUpdateAttendance(id, "PATCH");
 
 
-    const url =
-        label1 === "Present" || label1 === "Absent"
-            ? `/api/addstudent/markattendance/${id}`
-            : label1 === "Dropped" || label1 === "Picked"
-                ? `/api/addstudent/markstatus/${id}`
-                : "";
+
+    // const url =
+    //     label1 === "Present" || label1 === "Absent"
+    //         ? `/api/addstudent/markattendance/${id}`
+    //         : label1 === "Dropped" || label1 === "Picked"
+    //             ? `/api/addstudent/markstatus/${id}`
+    //             : "";
 
     const handleAttendanceClick = async (value: string) => {
+        const handleMode = label1 === "Present" || label1 === "Absent" ? updateStudentStatus(id, value) : updateStudentAttendance(id, value)
         setLocalAttendance(value);
         SetAttendance(value);
 
-        await updateAtendance(value, url);
+        startTransition(() => {
+            handleMode.then((data) => {
+                toast({
+                    description: data.message,
+                });
+                revalidateStudent("collection")
+                // window.location.reload();
+            }).catch((error) => {
+                console.error("Error:", error);
+                toast({
+                    description: "An error occurred. Please try again.",
+                });
+            });
+        })
     };
 
     return (

@@ -60,10 +60,6 @@ export const TeachersViewData = ({ userId, user }: SessionProps) => {
             {/* {
                 isOpenModal && <StudentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
             } */}
-            {
-
-            }
-
             <div className=" lg:hidden w-full">
                 <header className=" px-4  space-y-4 text-lg text-gray-400">
                     {
@@ -91,9 +87,7 @@ export const TeachersViewData = ({ userId, user }: SessionProps) => {
                                             teacherData?.[0]?.bus?.driver?.phoneNumber}
                                     </span>
                                 </p>
-
                             </div>
-
                     }
                 </header>
 

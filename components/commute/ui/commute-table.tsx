@@ -32,7 +32,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 type SessionProps = {
-    userId: string
+    userId: string | undefined
 }
 
 export const CommuteTable = ({ userId }: SessionProps) => {

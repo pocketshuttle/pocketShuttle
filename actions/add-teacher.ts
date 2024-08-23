@@ -1,11 +1,8 @@
 "use server";
 
-import Buses from "@/(models)/Bus";
-import Teacher from "@/(models)/Teachers";
-import User from "@/(models)/User";
+import { revalidate } from "@/app/api/addstudent/[id]/route";
 import { db } from "@/lib/db";
-import { connectToDB } from "@/utils/connect-to-db";
-import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 export const addTeacher = async (id: string, busId: string) => {
   try {
@@ -36,6 +33,8 @@ export const addTeacher = async (id: string, busId: string) => {
       where: { id },
       data: { busId },
     });
+
+    revalidatePath("/teacher");
 
     return { message: "Teacher added to bus" };
   } catch (error) {
