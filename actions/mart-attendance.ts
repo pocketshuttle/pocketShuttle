@@ -12,7 +12,7 @@ export const updateStudentAttendance = async (
   data: { attendance: string }
 ) => {
   try {
-    console.log(data, "data");
+    console.log(data, " this new data");
 
     if (!data || !data.attendance) {
       return { message: "Invalid data provided", status: 400 };
@@ -21,7 +21,7 @@ export const updateStudentAttendance = async (
     const updatedStudent = await db.student.update({
       where: { id: id },
       data: {
-        attendance: data.attendance,
+        attendance: data,
       },
     });
 
