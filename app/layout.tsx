@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster"
 import Provider from "@/components/Provider";
+import { MagicBell, FloatingNotificationInbox } from '@magicbell/magicbell-react';
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
