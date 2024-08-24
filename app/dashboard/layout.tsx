@@ -3,7 +3,7 @@ import Sidebar from "@/components/dashboard/sidebar/sidebar";
 import { getUserSession } from "@/lib/session";
 import { Poppins } from "next/font/google";
 import { redirect } from "next/navigation";
-
+import { NextResponse } from "next/server";
 const poppins = Poppins({ weight: "500", subsets: ["latin"] });
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
@@ -14,10 +14,10 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
 
     //@ts-ignore
     if (user?.role === "teacher") {
-        redirect("/teacher");
+        NextResponse.redirect("/teacher");
         //@ts-ignore
     } else if (user?.role === "parent") {
-        redirect("/parent");
+        NextResponse.redirect("/parent");
     }
 
     return (
