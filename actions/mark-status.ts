@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { sendMagicBellNotification } from "@/magicbell/notification";
 
 type ParamsProps = {
   id: string;
@@ -28,6 +29,8 @@ export const updateStudentStatus = async (
         status: data.attendance,
       },
     });
+
+    console.log(updatedStudent);
 
     if (updatedStudent.status === "PICKED" && updatedStudent.busId) {
       await db.buses.update({
@@ -58,6 +61,11 @@ export const updateStudentStatus = async (
           presence: "IN_BUS",
         },
       });
+      // await sendMagicBellNotification(
+      //   updatedStudent.parentEmail,
+      //   "Child Status Update",
+      //   "Your child is now in the bus."
+      // );
     } else if (updatedStudent.status === "PICKED" && hours >= 9 && hours < 16) {
       await db.student.update({
         where: { id: id },
