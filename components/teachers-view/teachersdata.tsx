@@ -36,24 +36,24 @@ type SessionProps = {
 
 
 
-export const TeachersViewData = ({ userId, user }: SessionProps) => {
-
+export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
     const searchParams = useSearchParams()
     const page = searchParams.get("page")
+    console.log(data)
 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-    const { data, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?page=${page}`, userId);
-    const { data: teachersData, isPending: isLoading, } = useFetch(`/api/addteacher/${userId}`, userId);
+    // const { data, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?page=${page}`, userId);
+    // const { data: teachersData, isPending: isLoading, } = useFetch(`/api/addteacher/${userId}`, userId);
 
-    const teacherData = teachersData?.teacher
+    const teacherData = data
 
 
-    const totalCount = data?.count
+    // const totalCount = data?.count
     const [attendance, SetAttendance] = useState("")
 
-    if (isPending) {
-        return <Spinner />
-    }
+    // if (isLoading) {
+    //     return <Spinner />
+    // }
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
 
@@ -63,28 +63,28 @@ export const TeachersViewData = ({ userId, user }: SessionProps) => {
             <div className=" lg:hidden w-full">
                 <header className=" px-4  space-y-4 text-lg text-gray-400">
                     {
-                        teacherData?.bus === null ? <span>Teacher hasnt been assigned a bus, please contact admin</span> :
+                        data?.bus === null ? <span>Teacher hasnt been assigned a bus, please contact admin</span> :
                             <div className="flex flex-col">
                                 <p>
                                     Bus Name :
                                     <span className="capitalize">{
-                                        teacherData?.[0]?.bus &&
-                                        teacherData?.[0]?.bus.bus_product_name
+                                        data?.bus &&
+                                        data?.bus.bus_product_name
                                     }
                                     </span>
                                 </p>
                                 <p>
                                     Driver : <span className="capitalize">
                                         {
-                                            teacherData?.[0]?.bus?.driver &&
-                                            teacherData?.[0]?.bus?.driver?.full_name}
+                                            data?.bus?.driver &&
+                                            data?.bus?.driver?.full_name}
                                     </span>
                                 </p>
                                 <p>
                                     Driver Contact : <span className="capitalize">
                                         {
-                                            teacherData?.[0]?.bus?.driver &&
-                                            teacherData?.[0]?.bus?.driver?.phoneNumber}
+                                            data?.bus?.driver &&
+                                            data?.bus?.driver?.phoneNumber}
                                     </span>
                                 </p>
                             </div>
@@ -96,10 +96,10 @@ export const TeachersViewData = ({ userId, user }: SessionProps) => {
                 <main className="px-4 space-y-2 w-full">
                     <h2>Students</h2>
                     {
-                        teacherData?.[0]?.bus &&
+                        data?.bus &&
 
-                        teacherData?.[0]?.bus.students &&
-                        teacherData?.[0]?.bus.students?.map((student: StudentProps) => (
+                        data?.bus.students &&
+                        data?.bus.students?.map((student: StudentProps) => (
                             <div className="flex items-center  bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md">
                                 <Link href={`teacher/${student.id}`}>
                                     <Image src={student.image || avatar} alt={student.full_name} className="rounded-md object-cover w-24 h-24" width={100} height={100} />
@@ -150,7 +150,7 @@ export const TeachersViewData = ({ userId, user }: SessionProps) => {
                     <TableBody className="text-[0.8rem] text-[var(--textSoft)]">
                         {
                             teacherData?.bus === null ? <p>Teacher hasnt been assigned a bus yet, please contact admin</p> :
-                                teacherData?.[0]?.bus?.student?.map((student: StudentProps) => {
+                                data?.bus?.student?.map((student: StudentProps) => {
                                     return (
                                         <TableRow key={student.id}>
                                             <TableCell className="">
@@ -197,7 +197,7 @@ export const TeachersViewData = ({ userId, user }: SessionProps) => {
                 </Table>
 
 
-                <Pagination count={totalCount} pageCount={4} />
+                {/* <Pagination count={totalCount} pageCount={4} /> */}
             </div >
         </div >
 

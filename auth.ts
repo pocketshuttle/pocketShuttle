@@ -54,7 +54,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       if (token.sub) {
         const createdUser = await getCreatedById(token.sub);
-        console.log(createdUser, "fethced user");
+        // console.log(createdUser, "fethced user");
         if (createdUser) {
           if (createdUser.teacher) {
             token.name = createdUser.teacher.full_name;
