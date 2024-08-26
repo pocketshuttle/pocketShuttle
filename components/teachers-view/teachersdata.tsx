@@ -23,7 +23,7 @@ import { AttendanceTab } from "./ui/register-tab"
 import { useSearchParams } from "next/navigation"
 import { Spinner } from "../ui/spinner"
 import Navbar from "./navbar"
-import { StudentProps } from "@/types"
+import { StudentProps, TeacherProps } from "@/types"
 
 
 
@@ -32,6 +32,7 @@ import { StudentProps } from "@/types"
 type SessionProps = {
     userId: string | undefined
     user: any
+    data: TeacherProps
 }
 
 
@@ -39,14 +40,11 @@ type SessionProps = {
 export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
     const searchParams = useSearchParams()
     const page = searchParams.get("page")
-    console.log(data)
 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-    // const { data, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?page=${page}`, userId);
-    // const { data: teachersData, isPending: isLoading, } = useFetch(`/api/addteacher/${userId}`, userId);
+
 
     const teacherData = data
-
 
     // const totalCount = data?.count
     const [attendance, SetAttendance] = useState("")
@@ -97,7 +95,6 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                     <h2>Students</h2>
                     {
                         data?.bus &&
-
                         data?.bus.students &&
                         data?.bus.students?.map((student: StudentProps) => (
                             <div className="flex items-center  bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md">
@@ -150,7 +147,7 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                     <TableBody className="text-[0.8rem] text-[var(--textSoft)]">
                         {
                             teacherData?.bus === null ? <p>Teacher hasnt been assigned a bus yet, please contact admin</p> :
-                                data?.bus?.student?.map((student: StudentProps) => {
+                                data?.bus?.students?.map((student: StudentProps) => {
                                     return (
                                         <TableRow key={student.id}>
                                             <TableCell className="">
