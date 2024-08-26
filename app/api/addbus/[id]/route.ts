@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Buses from "@/(models)/Bus";
 import { BusSchema } from "@/schemas";
 import { db } from "@/lib/db";
+import { revalidateTag } from "next/cache";
 
 type ParamProp = {
   id: string;
@@ -13,7 +14,6 @@ export const GET = async (
   { params }: { params: ParamProp }
 ) => {
   try {
-    await connectToDB();
     const { id } = params;
     const bus = await db.buses.findMany({
       where: {
@@ -26,7 +26,7 @@ export const GET = async (
         driver: true,
       },
     });
-
+    revalidateTag("bus");
     if (!bus) {
       return new Response(JSON.stringify({ message: "Bus not found" }), {
         status: 404,
