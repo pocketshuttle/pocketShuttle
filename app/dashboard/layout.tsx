@@ -14,10 +14,10 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
 
     //@ts-ignore
     if (user?.role === "teacher") {
-        NextResponse.redirect("/teacher");
+        redirect("/teacher");
         //@ts-ignore
     } else if (user?.role === "parent") {
-        NextResponse.redirect("/parent");
+        redirect("/parent");
     }
 
     return (

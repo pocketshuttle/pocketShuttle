@@ -9,12 +9,12 @@ type ParamsProps = {
 
 export const updateStudentAttendance = async (
   id: string,
-  data: { attendance: string }
+  data: string | undefined
 ) => {
   try {
     console.log(data, " this new data");
 
-    if (!data || !data.attendance) {
+    if (!data) {
       return { message: "Invalid data provided", status: 400 };
     }
 

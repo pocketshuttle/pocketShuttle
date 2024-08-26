@@ -35,7 +35,10 @@ export const AttendanceTab = ({
     //             : "";
 
     const handleAttendanceClick = async (value: string) => {
-        const handleMode = label1 === "Present" || label1 === "Absent" ? updateStudentStatus(id, value) : updateStudentAttendance(id, value)
+        const handleMode = label1 === "Present" || label1 === "Absent" ? updateStudentAttendance(id, value) : updateStudentStatus(id, value)
+
+        console.log(value)
+
         setLocalAttendance(value);
         SetAttendance(value);
 

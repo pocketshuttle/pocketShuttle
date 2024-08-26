@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { db } from "@/lib/db";
 
 type ParamsProps = {
@@ -37,7 +37,7 @@ export const PATCH = async (
       );
     }
 
-    revalidatePath("/teacher");
+    revalidateTag("collection");
 
     return NextResponse.json(
       { message: "Attendance updated successfully", student: updatedStudent },
