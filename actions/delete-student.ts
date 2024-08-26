@@ -1,6 +1,6 @@
 "use server";
 import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export const handleDelete = async (id: string, mode: string) => {
   try {
@@ -10,6 +10,7 @@ export const handleDelete = async (id: string, mode: string) => {
           id: id,
         },
       });
+      revalidateTag("student");
     } else if (mode === "teacher") {
       await db.teacher.delete({
         where: {
@@ -24,6 +25,12 @@ export const handleDelete = async (id: string, mode: string) => {
       });
     } else if (mode === "parent") {
       await db.parent.delete({
+        where: {
+          id: id,
+        },
+      });
+    } else if (mode === "bus") {
+      await db.buses.delete({
         where: {
           id: id,
         },
