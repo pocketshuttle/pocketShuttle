@@ -34,7 +34,6 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
     const { data: routeData, isPending: routePending, errorMessage: routeError } = useFetch(`/api/addroute/${userId}`, userId);
 
 
-    console.log(routeData)
     const form = useForm<z.infer<typeof BusSchema>>({
         resolver: zodResolver(BusSchema),
         defaultValues: {
@@ -52,7 +51,7 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
     })
 
     const onSubmit = (values: z.infer<typeof BusSchema>) => {
-        console.log(values)
+        console.log(values, "bus values")
         startTransition(async () => {
             setSubmittedData(values)
         })

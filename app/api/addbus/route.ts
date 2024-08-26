@@ -1,20 +1,17 @@
-import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
-import Buses from "@/(models)/Bus";
-import Student from "@/(models)/Student";
+
 import { BusSchema } from "@/schemas";
 import { db } from "@/lib/db";
 
 export const POST = async (req: NextRequest) => {
   try {
-    await connectToDB();
     const data = await req.json();
-    console.log(data);
     const validatedData = BusSchema.safeParse(data);
 
     console.log(validatedData);
 
     if (!validatedData.success) {
+      console.log("Validation error:", validatedData.error.errors);
       return NextResponse.json(
         { message: "Validation error", errors: validatedData.error.errors },
         { status: 400 }
@@ -32,13 +29,13 @@ export const POST = async (req: NextRequest) => {
       bus_product_name,
       route,
     } = validatedData.data;
+    console.log(route);
 
     await db.buses.create({
       data: {
         school: {
           connect: { id: school_id },
         },
-        // schoolId: school_id,
         bus_number,
         bus_product_name,
         seat_number,
@@ -46,9 +43,11 @@ export const POST = async (req: NextRequest) => {
         route: {
           connect: { id: route },
         },
-        teacher: {
-          connect: { id: teacher || undefined },
-        },
+        ...(teacher && {
+          teacher: {
+            connect: { id: teacher },
+          },
+        }),
         ...(student && {
           students: {
             connect: { id: student },

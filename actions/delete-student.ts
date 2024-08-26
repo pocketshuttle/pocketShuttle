@@ -35,6 +35,7 @@ export const handleDelete = async (id: string, mode: string) => {
           id: id,
         },
       });
+      revalidateTag("bus");
     }
 
     // revalidatePath(`/dashboard/student/${id}`);

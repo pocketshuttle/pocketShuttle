@@ -31,12 +31,12 @@ const Buses = async () => {
                 driver: true,
             },
         });
-        revalidateTag("bus");
 
         if (!bus) {
             // Handle the case where teacher data is not found
             return <div>No teacher data found for this user.</div>;
         }
+        revalidateTag("bus");
         return (
             <div>
                 <BusData data={bus} />
