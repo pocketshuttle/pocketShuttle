@@ -7,7 +7,6 @@ import { db } from "@/lib/db";
 
 export const POST = async (req: NextRequest) => {
   try {
-    await connectToDB();
     const data = await req.json();
     const validatedData = ParentSchema.safeParse(data);
 
