@@ -4,6 +4,7 @@ import { updateStudentAttendance } from "@/actions/mart-attendance";
 import revalidateStudent from "@/actions/validation/revalidate-student";
 import { toast } from "@/components/ui/use-toast";
 import useUpdateAttendance from "@/hooks/usePatch";
+import { StudentStatus } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useState, useTransition } from "react";
 
@@ -35,6 +36,7 @@ export const AttendanceTab = ({
     //             : "";
 
     const handleAttendanceClick = async (value: string) => {
+        //@ts-ignore
         const handleMode = label1 === "Present" || label1 === "Absent" ? updateStudentAttendance(id, value) : updateStudentStatus(id, value)
 
         console.log(value)
