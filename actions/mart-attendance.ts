@@ -2,6 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { db } from "@/lib/db";
+import { StudentAttendance } from "@prisma/client";
 
 type ParamsProps = {
   id: string;
@@ -9,7 +10,7 @@ type ParamsProps = {
 
 export const updateStudentAttendance = async (
   id: string,
-  data: string | undefined
+  data: StudentAttendance
 ) => {
   try {
     console.log(data, " this new data");

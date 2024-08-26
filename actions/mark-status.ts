@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { sendMagicBellNotification } from "@/magicbell/notification";
+import { StudentStatus } from "@prisma/client";
 
 type ParamsProps = {
   id: string;
@@ -15,7 +16,7 @@ function getCurrentHourInTimeZone(timezone: string): number {
 
 export const updateStudentStatus = async (
   id: string,
-  data: { attendance: string }
+  data: StudentStatus
 ) => {
   console.log(data, "status data");
   try {
@@ -26,7 +27,7 @@ export const updateStudentStatus = async (
     const updatedStudent = await db.student.update({
       where: { id: id },
       data: {
-        status: data.attendance,
+        status: data,
       },
     });
 
