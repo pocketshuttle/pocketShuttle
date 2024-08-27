@@ -44,8 +44,9 @@ const TeachersDrivers = async ({ searchParams }: { searchParams: { [key: string]
 
     try {
         const teacherCount = await db.teacher.count({
-            //@ts-ignore
-            where: queryClause
+            where: {
+                id: userId
+            }
         })
 
         const teacherData = await db.teacher.findMany({
