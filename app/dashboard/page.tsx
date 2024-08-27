@@ -23,24 +23,31 @@ const Dashboard = async () => {
     }
     const userId = user?.id
 
-    console.log(userId)
-
     const teacherCount = await db.teacher.count({
         where: {
-            schoolId: userId
+            OR: [
+                { schoolId: userId },
+                { id: userId }
+            ]
         }
     })
 
-
     const studentCount = await db.student.count({
         where: {
-            schoolId: userId
+            OR: [
+                { schoolId: userId },
+                { id: userId }
+            ]
         }
     });
 
     const busCount = await db.buses.count({
         where: {
-            schoolId: userId
+            OR: [
+                { schoolId: userId },
+                { id: userId }
+            ]
+            // schoolId: userId
         }
     });
 
