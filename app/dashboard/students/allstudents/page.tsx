@@ -1,4 +1,5 @@
 import LoginButton from "@/components/auth/login-button";
+import { Pagination } from "@/components/dashboard/pagination/pagination";
 import StudentCard from "@/components/students/ui/student-card";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -18,7 +19,7 @@ const AllStudents = async ({ searchParams }: { searchParams: { [key: string]: st
     const gradeQuery = typeof searchParams.grade === "string"
         ? decodeURIComponent(decodeURIComponent(searchParams.grade.replace(/\+/g, ' ')))
         : "";
-    const ITEM_PER_PAGE = 4;
+    const ITEM_PER_PAGE = 10;
     if (!user) {
         return <div>
             User session is not available. Please log in.
@@ -62,6 +63,8 @@ const AllStudents = async ({ searchParams }: { searchParams: { [key: string]: st
             skip: ITEM_PER_PAGE * (page - 1),
         });
 
+
+
         if (!students) {
             // Handle the case where teacher data is not found
             return <div>No Students data found for this user.</div>;
@@ -93,9 +96,10 @@ const AllStudents = async ({ searchParams }: { searchParams: { [key: string]: st
             <div className="mt-4">
 
                 <div className=" flex gap-4 flex-wrap">
-                    {students.map((student: StudentProps) => (
+                    {students.map((student) => (
                         <StudentCard data={student} busData={bus} />
                     ))}
+                    <Pagination count={count} pageCount={10} />
                 </div>
             </div>
         )
