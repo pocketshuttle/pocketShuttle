@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { revalidateTag } from "next/cache";
 
 export const removeTeacherFromBus = async (
   teacherId: string,
@@ -43,6 +44,8 @@ export const removeTeacherFromBus = async (
       where: { id: teacherId },
       data: { busId: undefined },
     });
+
+    revalidateTag("remove-bus");
 
     return { message: "Teacher removed from bus" };
   } catch (error) {

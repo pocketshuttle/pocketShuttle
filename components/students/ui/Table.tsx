@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table"
 import { useFetch } from "@/hooks/useFetch"
 import { useSession } from "next-auth/react"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { SelectProperty } from "@/components/ui/select-wrapper"
 import { grades } from "@/data/schooldata"
 import { Spinner } from "@/components/ui/spinner"
@@ -45,7 +45,6 @@ import minus from "@/public/images/minus.json"
 import { handleDelete } from "@/actions/delete-student"
 import { toast } from "@/components/ui/use-toast"
 import deleted from "@/public/images/delete.json"
-import { revalidateStudent } from "@/actions/validation/revalidate-student"
 import { StudentPresence } from "./presence"
 import {
     Tooltip,
@@ -58,30 +57,30 @@ type IdProps = {
 }
 
 export const StudentsData = ({ userId }: IdProps) => {
-
     const [isPending, startTransition] = useTransition()
     const [filterGrade, setFilterGrade] = useState<string>("")
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
+    const router = useRouter()
 
     const searchParams = useSearchParams()
+    console.log(searchParams.get("q"))
     const search = searchParams.get("q") || ""
 
     const page = searchParams.get("page") || 1
+    const gradeQuery = filterGrade !== "All" ? `&grade=${filterGrade}` : "";
 
     const handleGradeChange = (value: string) => {
         setFilterGrade(value)
     }
 
-    const gradeQuery = filterGrade !== "All" ? `&grade=${filterGrade}` : "";
 
-    const { data, isPending: studentLoading, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}${gradeQuery}&page=${page}`, userId);
+    const { data, isPending: studentLoading, errorMessage } = useFetch(`/api/addstudent/${userId}?q=${search}&grade=${filterGrade}&page=${page}`, userId);
     const { data: busData, isPending: busLoading, errorMessage: busError } = useFetch(`/api/addbus/${userId}?q=${search}&grade=${filterGrade}&page=${page}`, userId);
     //@ts-ignore
     const { updateAtendance, loading, error } = useUpdateAttendance(userId, "DELETE");
 
     const studentsData = data?.students || [];
     const totalCount = data?.count || 0;
-    console.log(studentsData)
 
     const [isHovering, setIsHovering] = useState(false);
 
@@ -109,11 +108,6 @@ export const StudentsData = ({ userId }: IdProps) => {
         })
     }
 
-
-    // if (studentLoading) {
-    //     return <Spinner />
-    // }
-
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root))]">
             <div className="p-4 flex justify-end items-center ">
@@ -127,10 +121,6 @@ export const StudentsData = ({ userId }: IdProps) => {
             {
                 isOpenModal && <StudentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
             }
-
-            {/* <button onClick={() =>
-                revalidateStudent()
-            }>revalidate</button> */}
             <Table>
                 <TableHeader className="bg-[var(--hoverBg)] ">
                     <TableRow className="capitalize text-[0.7rem] border-[1px] border-gray-500 rounded-md ">

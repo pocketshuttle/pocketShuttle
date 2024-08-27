@@ -5,9 +5,10 @@ import React from 'react'
 
 const TeachersDrivers = async () => {
 
-
     return (
-        <div><Teachers /></div>
+        <div>
+            <Teachers />
+        </div>
     )
 }
 

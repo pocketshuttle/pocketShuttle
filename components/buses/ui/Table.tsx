@@ -1,12 +1,6 @@
 "use client"
-import { Pagination } from "@/components/dashboard/pagination/pagination"
-import { Search } from "@/components/dashboard/search/search"
 import { Button } from "@/components/ui/button"
-import dashboard from "@/public/images/dashboard.svg"
-import Image from "next/image"
 import { useState, useTransition } from "react"
-import { StudentModal } from "@/components/students/ui/Student-modal"
-import Link from "next/link"
 import { BusModal } from "./bus-modal"
 import { useSession } from "next-auth/react"
 import { useFetch } from "@/hooks/useFetch"
@@ -31,11 +25,9 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { deleteItem } from "@/lib/utils"
 import { ViewStudent } from "@/components/students/ui/view-student-wrapper"
 import RoutesModal from "./routes-modal"
 import { BusProps } from "@/types"
-import { Spinner } from "@/components/ui/spinner"
 import { AddRoute } from "./add-route"
 import { AddData } from "@/components/ui/add-data-button"
 import { EditData } from "@/components/ui/edit-data-link"
@@ -43,18 +35,16 @@ import deleted from "@/public/images/delete.json"
 import LottieAnimation from "@/components/dashboard/sidebar/menuLink/lottie-animation"
 import { handleDelete } from "@/actions/delete-student"
 import { toast } from "@/components/ui/use-toast"
+import { revalidateTag } from "next/cache"
 
 
-
-
-export const BusData = ({ data }) => {
+export const BusData = ({ data }: any) => {
     const [isOpenModal, setIsOpenModal] = useState(false)
     const [isOpenRouteModal, setIsRouteOpenModal] = useState(false)
 
     const { data: session } = useSession()
     const userId = session?.user?.id
 
-    // const { data: busData, isPending: busPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
     const { data: routeData } = useFetch(`/api/addroute/${userId}`, userId);
     const [isHovering, setIsHovering] = useState(false);
 
@@ -66,13 +56,13 @@ export const BusData = ({ data }) => {
         setIsOpenModal(true)
     }
 
-    const handleTeacherDelete = (id: string, mode: string) => {
+    const handleDeleteBus = (id: string, mode: string) => {
         startTransition(() => {
             handleDelete(id, mode).then((data) => {
                 toast({
                     description: data.message,
                 });
-                // window.location.reload();
+                // revalidateTag("bus")
             }).catch((error) => {
                 console.error("Error:", error);
                 toast({
@@ -102,7 +92,6 @@ export const BusData = ({ data }) => {
             }
 
 
-            {/* {busPending ? <Spinner /> : */}
             <Table >
                 <TableHeader >
                     <TableRow className=" text-[0.7rem] bg-[var(--hoverBg)] rounded-md border-none">
@@ -149,9 +138,6 @@ export const BusData = ({ data }) => {
                                         bus.route ?
                                             <span>{bus.route.route_name}</span> : <AddRoute data={routeData} placeholder="Select Route" label="Add Route" busId={bus.id} />
                                     }
-                                    {/* <Link href="#">
-                                        {bus.route ? bus.route.route_name : "no route added"}
-                                    </Link> */}
                                 </TableCell>
                                 <TableCell>
                                     <div className="space-x-2 flex">
@@ -180,27 +166,20 @@ export const BusData = ({ data }) => {
                                                     <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
                                                     <AlertDialogAction
                                                         className="bg-destructive"
-                                                        onClick={() => handleTeacherDelete(bus.id, "bus")}
+                                                        onClick={() => handleDeleteBus(bus.id, "bus")}
                                                     >
                                                         Continue
                                                     </AlertDialogAction>
                                                 </AlertDialogFooter>
                                             </AlertDialogContent>
                                         </AlertDialog>
-                                        {/* <EditData link={`/dashboard/`} mode="delete" /> */}
                                     </div>
                                 </TableCell>
                             </TableRow>
                         )
                     })}
                 </TableBody>
-
-
             </Table>
-
-            {/* <Pagination /> */}
-
         </div >
-
     )
 }

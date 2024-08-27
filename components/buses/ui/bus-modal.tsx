@@ -7,10 +7,7 @@ import { Dispatch, SetStateAction, useState, useTransition } from "react"
 import { Input } from "@/components/ui/input"
 import { BusSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
-import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
-import { SelectProperty } from "@/components/ui/select-wrapper"
 import { useSession } from "next-auth/react"
 import { usePost } from "@/hooks/usePost"
 import { useFetch } from "@/hooks/useFetch"
@@ -51,7 +48,6 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
     })
 
     const onSubmit = (values: z.infer<typeof BusSchema>) => {
-        console.log(values, "bus values")
         startTransition(async () => {
             setSubmittedData(values)
         })
@@ -66,7 +62,6 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
         form.setValue("route", value)
     }
 
-    console.log(selectRoute)
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 ">
             <div className="relative bg-gray-900  rounded-md w-3/6 ">
