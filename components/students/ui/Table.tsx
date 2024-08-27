@@ -17,15 +17,10 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { useFetch } from "@/hooks/useFetch"
-import { useSession } from "next-auth/react"
-import { useRouter, useSearchParams } from "next/navigation"
+
 import { SelectProperty } from "@/components/ui/select-wrapper"
 import { grades } from "@/data/schooldata"
-import { Spinner } from "@/components/ui/spinner"
-import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { SelectPassengerBus } from "@/components/ui/select-bus-wrapper"
-import useUpdateAttendance from "@/hooks/usePatch"
 import {
     AlertDialog,
     AlertDialogAction,

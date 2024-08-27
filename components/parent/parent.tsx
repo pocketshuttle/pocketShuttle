@@ -6,6 +6,7 @@ const Parent = async () => {
 
     return (
         <div>
+            {/* @ts-ignore */}
             <ParentData userId={user?.id} />
         </div>
     )

@@ -55,22 +55,17 @@ type ParentProps = {
 type SessionProps = {
     userId: string
 }
-
-export const ParentData = ({ userId }: SessionProps) => {
+// @ts-ignore
+export const ParentData = ({ parentData, totalCount, studentData }) => {
 
     const getParams = useSearchParams()
     const page = getParams.get("page") || ""
 
 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-    const { data, isPending: parentPending, errorMessage } = useFetch(`/api/addparent/${userId}`, userId);
-    const { data: studentData, isPending: studentLoading, errorMessage: studentError } = useFetch(`/api/addstudent/${userId}`, userId);
-    const parentData = data?.parent
-    console.log(studentData, "parent")
-    const totalCount = data?.parentCount || 0;
+
     const [isHovering, setIsHovering] = useState(false);
     const [isPending, startTransition] = useTransition()
-    // const [selectedParent, setSelectedParent] = useState<string | null>(null);
 
     const handleModal = () => {
         setIsOpenModal(true)
@@ -91,11 +86,7 @@ export const ParentData = ({ userId }: SessionProps) => {
             });
         })
     }
-    console.log(parentData)
 
-    if (parentPending) {
-        return <Spinner />
-    }
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
