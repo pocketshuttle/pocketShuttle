@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Teacher from "@/(models)/Teachers";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 type ParamProp = {
   id: string;
@@ -68,17 +68,12 @@ export const GET = async (
         }
       );
     }
-    const path = "/dashboard/teachers";
 
-    revalidatePath("/dashboard/teachers");
+    revalidateTag("new-teacher");
 
-    return new Response(
-      JSON.stringify({ teacher, count }),
-      {
-        status: 200,
-      },
-    
-    );
+    return new Response(JSON.stringify({ teacher, count }), {
+      status: 200,
+    });
   } catch (error) {
     console.error(error);
     return new NextResponse(

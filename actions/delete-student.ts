@@ -17,18 +17,21 @@ export const handleDelete = async (id: string, mode: string) => {
           id: id,
         },
       });
+      revalidateTag("teacher");
     } else if (mode === "driver") {
       await db.driver.delete({
         where: {
           id: id,
         },
       });
+      revalidateTag("driver");
     } else if (mode === "parent") {
       await db.parent.delete({
         where: {
           id: id,
         },
       });
+      revalidateTag("parent");
     } else if (mode === "bus") {
       await db.buses.delete({
         where: {

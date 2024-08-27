@@ -47,6 +47,7 @@ const TeacherView = async () => {
 
         return (
             <div>
+                {/* @ts-ignore */}
                 <TeachersViewData userId={user.id} user={user} data={teacherData} />
             </div>
         );

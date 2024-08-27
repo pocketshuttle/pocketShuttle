@@ -1,5 +1,4 @@
 "use client"
-
 import dashboard from "@/public/images/dashboard.svg"
 import { DriverAndTeacherModal } from "./teachers-modal"
 import { Pagination } from "@/components/dashboard/pagination/pagination"
@@ -39,6 +38,8 @@ import { useState, useTransition } from "react"
 import { removeTeacherFromBus } from "@/actions/remove-teacher-bus"
 import { toast } from "@/components/ui/use-toast"
 import { handleDelete } from "@/actions/delete-student"
+import { revalidateTag } from "next/cache"
+import revalidateData from "@/actions/validation/revalidate-teacher"
 
 
 export const TeachersTable = () => {
@@ -56,13 +57,17 @@ export const TeachersTable = () => {
     const [isHovering, setIsHovering] = useState(false);
 
     const { data, isPending: loading, errorMessage } = useFetch(`/api/addteacher/${userId}?q=${search}&page=${page}`, userId);
-    const { data: studentData, } = useFetch(`/api/addstudent/${userId}?q=${search}&page=${page}`, userId);
     const { data: busData, } = useFetch(`/api/addbus/${userId}`, userId);
+
     const teachersData = data?.teacher
     const totalCount = data?.count
+
     const handleModal = () => {
         setIsOpenModal(!isOpenModal);
     };
+
+
+   
 
     const handleRemove = (teacherId: string, busId: string) => {
         startTransition(() => {
@@ -70,6 +75,8 @@ export const TeachersTable = () => {
                 toast({
                     description: data.message,
                 });
+                revalidateData("new-teach")
+                // revalidateTag("remove-bus")
                 // window.location.reload();
             }).catch((error) => {
                 console.error("Error:", error);
@@ -85,6 +92,7 @@ export const TeachersTable = () => {
                 toast({
                     description: data.message,
                 });
+                revalidateTag("teacher")
                 // window.location.reload();
             }).catch((error) => {
                 console.error("Error:", error);
@@ -95,9 +103,6 @@ export const TeachersTable = () => {
         })
     }
 
-    // if (errorMessage) {
-    //     return <p>Error: {errorMessage}</p>;
-    // }
     return (
         <div>
             {
@@ -105,6 +110,7 @@ export const TeachersTable = () => {
             }
             <div className="p-4 flex justify-end items-center ">
                 < AddData label="Teacher" action={handleModal} />
+               
             </div>
             {
                 loading ? <Spinner /> :
@@ -121,7 +127,6 @@ export const TeachersTable = () => {
 
                         <TableBody className="text-[0.75rem] text-gray-400 ">
                             {
-                                // teachersData && teachersData > 0 ? (
                                 teachersData?.map((teacher: TeacherProps) => {
                                     return (
                                         <TableRow key={teacher.id}>

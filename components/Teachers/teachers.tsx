@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from 'react'
 import Tab from '@/components/Teachers/ui/teachers-tab'
-import { TeachersUI } from './ui/teacher-ui'
+import TeachersUI from './ui/teacher-ui'
 import { DriverTable } from '../driver/ui/Table'
 
 export const Teachers = () => {
