@@ -5,7 +5,6 @@ import { revalidatePath, revalidateTag } from "next/cache";
 type ParamsProps = {
   id: string;
 };
-export const revalidate = true;
 export const PATCH = async (
   req: NextRequest,
   { params }: { params: ParamsProps }

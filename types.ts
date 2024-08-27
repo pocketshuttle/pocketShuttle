@@ -1,3 +1,5 @@
+import { StudentAttendance } from "@prisma/client";
+
 export type DriversProps = {
   _id: string;
   id: string;
@@ -44,9 +46,9 @@ export type StudentProps = {
   gender: string;
   grade: string;
   address: string;
-  bus: BusProps;
+  bus?: BusProps;
   image: string;
-  attendance: string;
+  attendance: StudentAttendance | null;
   status: string;
   presence: string;
 };
