@@ -40,9 +40,13 @@ import { toast } from "@/components/ui/use-toast"
 import { handleDelete } from "@/actions/delete-student"
 import { revalidateTag } from "next/cache"
 import revalidateData from "@/actions/validation/revalidate-teacher"
+type userProps = {
+    teacherCount?: number | undefined,
+    teachersData?: any[],
+    busData?: any[]
+}
 
-
-export const TeachersTable = () => {
+export const TeachersTable = ({ teacherCount, teachersData, busData }: userProps) => {
     const { data: session } = useSession()
     const userId = session?.user?.id
 
@@ -50,24 +54,16 @@ export const TeachersTable = () => {
 
 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
-
-    const searchParams = useSearchParams()
-    const search = searchParams.get("q") || ""
-    const page = searchParams.get("page") || 1
     const [isHovering, setIsHovering] = useState(false);
 
-    const { data, isPending: loading, errorMessage } = useFetch(`/api/addteacher/${userId}?q=${search}&page=${page}`, userId);
-    const { data: busData, } = useFetch(`/api/addbus/${userId}`, userId);
 
-    const teachersData = data?.teacher
-    const totalCount = data?.count
 
     const handleModal = () => {
         setIsOpenModal(!isOpenModal);
     };
 
 
-   
+
 
     const handleRemove = (teacherId: string, busId: string) => {
         startTransition(() => {
@@ -92,8 +88,6 @@ export const TeachersTable = () => {
                 toast({
                     description: data.message,
                 });
-                revalidateTag("teacher")
-                // window.location.reload();
             }).catch((error) => {
                 console.error("Error:", error);
                 toast({
@@ -110,140 +104,139 @@ export const TeachersTable = () => {
             }
             <div className="p-4 flex justify-end items-center ">
                 < AddData label="Teacher" action={handleModal} />
-               
-            </div>
-            {
-                loading ? <Spinner /> :
-                    <Table>
-                        <TableHeader>
-                            <TableRow className=" text-[0.7rem] bg-[var(--hoverBg)]">
-                                <TableHead className="w-[250px] text-gray-300">Full Name</TableHead>
-                                <TableHead className="text-gray-300">Email</TableHead>
-                                <TableHead className="text-gray-300">Phone Number</TableHead>
-                                <TableHead className="text-gray-300">Address</TableHead>
-                                <TableHead className="text-gray-300">Bus No</TableHead>
-                            </TableRow>
-                        </TableHeader>
 
-                        <TableBody className="text-[0.75rem] text-gray-400 ">
-                            {
-                                teachersData?.map((teacher: TeacherProps) => {
-                                    return (
-                                        <TableRow key={teacher.id}>
-                                            <TableCell className="">
-                                                <div className="flex items-center gap-2">
-                                                    <img src={teacher.image && teacher.image || dashboard} alt={teacher.full_name} className="rounded-md object-cover w-9 h-9" />
-                                                    <span className="capitalize">{teacher.full_name}</span>
+            </div>
+
+            <Table>
+                <TableHeader>
+                    <TableRow className=" text-[0.7rem] bg-[var(--hoverBg)]">
+                        <TableHead className="w-[250px] text-gray-300">Full Name</TableHead>
+                        <TableHead className="text-gray-300">Email</TableHead>
+                        <TableHead className="text-gray-300">Phone Number</TableHead>
+                        <TableHead className="text-gray-300">Address</TableHead>
+                        <TableHead className="text-gray-300">Bus No</TableHead>
+                    </TableRow>
+                </TableHeader>
+
+                <TableBody className="text-[0.75rem] text-gray-400 ">
+                    {
+                        teachersData?.map((teacher: TeacherProps) => {
+                            return (
+                                <TableRow key={teacher.id}>
+                                    <TableCell className="">
+                                        <div className="flex items-center gap-2">
+                                            <img src={teacher.image && teacher.image || dashboard} alt={teacher.full_name} className="rounded-md object-cover w-9 h-9" />
+                                            <span className="capitalize">{teacher.full_name}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        {teacher.email}
+                                    </TableCell>
+                                    <TableCell>
+                                        {teacher.phoneNumber}
+                                    </TableCell>
+                                    <TableCell>
+                                        {teacher.address}
+                                    </TableCell>
+                                    <TableCell className="text-[0.7rem] capitalize ">
+                                        {
+                                            teacher.bus ? <div className="flex space-x-1">
+                                                <div>
+                                                    <span>{teacher.bus.color} </span>
+                                                    <span>{teacher.bus.bus_product_name}</span>(
+                                                    <span>{teacher.bus.bus_number}</span>)
                                                 </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                {teacher.email}
-                                            </TableCell>
-                                            <TableCell>
-                                                {teacher.phoneNumber}
-                                            </TableCell>
-                                            <TableCell>
-                                                {teacher.address}
-                                            </TableCell>
-                                            <TableCell className="text-[0.7rem] capitalize ">
-                                                {
-                                                    teacher.bus ? <div className="flex space-x-1">
-                                                        <div>
-                                                            <span>{teacher.bus.color} </span>
-                                                            <span>{teacher.bus.bus_product_name}</span>(
-                                                            <span>{teacher.bus.bus_number}</span>)
+
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <div
+                                                            className='w-[20px] h-[20px] mr-[0.2rem]'
+                                                            onMouseEnter={() => setIsHovering(true)}
+                                                            onMouseLeave={() => setIsHovering(false)}
+                                                        >
+                                                            <LottieAnimation isHovering={isHovering} animationData={minus} />
                                                         </div>
 
-                                                        <AlertDialog>
-                                                            <AlertDialogTrigger asChild>
-                                                                <div
-                                                                    className='w-[20px] h-[20px] mr-[0.2rem]'
-                                                                    onMouseEnter={() => setIsHovering(true)}
-                                                                    onMouseLeave={() => setIsHovering(false)}
-                                                                >
-                                                                    <LottieAnimation isHovering={isHovering} animationData={minus} />
-                                                                </div>
-
-                                                            </AlertDialogTrigger>
-                                                            <AlertDialogContent className="bg-gray-900 border-none">
-                                                                <AlertDialogHeader>
-                                                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                                                    <AlertDialogDescription className="text-gray-500 text-md">
-                                                                        {` You're about to remove 
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent className="bg-gray-900 border-none">
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                            <AlertDialogDescription className="text-gray-500 text-md">
+                                                                {` You're about to remove 
                                                                  ${teacher.full_name} 
                                                                     from ${teacher.bus.bus_product_name}  with bus Number ${teacher.bus.bus_number}`}
-                                                                    </AlertDialogDescription>
-                                                                </AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
-                                                                    <AlertDialogAction
-                                                                        className="bg-destructive"
-                                                                        onClick={() => handleRemove(teacher.id, teacher.bus.id)}
-                                                                    >
-                                                                        Continue
-                                                                    </AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
-
-                                                    </div> :
-                                                        <div className="w-full">
-                                                            {
-                                                                busData &&
-                                                                < AddToBus
-                                                                    placeholder="Select Bus"
-                                                                    label="Select Bus"
-                                                                    data={busData}
-                                                                    id={teacher.id}
-                                                                    mode="teacher"
-                                                                />
-                                                            }
-                                                        </div>
-                                                }
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="space-x-2 flex">
-                                                    <EditData link={`/dashboard/teachers/${teacher.id}`} mode="edit" />
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <div
-                                                                className='w-[20px] h-[20px] mr-[0.2rem]'
-                                                                onMouseEnter={() => setIsHovering(true)}
-                                                                onMouseLeave={() => setIsHovering(false)}
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction
+                                                                className="bg-destructive"
+                                                                onClick={() => handleRemove(teacher.id, teacher.bus.id)}
                                                             >
-                                                                <LottieAnimation isHovering={isHovering} animationData={deleted} />
-                                                            </div>
+                                                                Continue
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
 
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent className="bg-gray-900 border-none">
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                                                <AlertDialogDescription className="text-gray-500 text-md capitalize">
-                                                                    {` You're about to delete 
+                                            </div> :
+                                                <div className="w-full">
+                                                    {
+                                                        busData &&
+                                                        < AddToBus
+                                                            placeholder="Select Bus"
+                                                            label="Select Bus"
+                                                            data={busData}
+                                                            id={teacher.id}
+                                                            mode="teacher"
+                                                        />
+                                                    }
+                                                </div>
+                                        }
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="space-x-2 flex">
+                                            <EditData link={`/dashboard/teachers/${teacher.id}`} mode="edit" />
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <div
+                                                        className='w-[20px] h-[20px] mr-[0.2rem]'
+                                                        onMouseEnter={() => setIsHovering(true)}
+                                                        onMouseLeave={() => setIsHovering(false)}
+                                                    >
+                                                        <LottieAnimation isHovering={isHovering} animationData={deleted} />
+                                                    </div>
+
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent className="bg-gray-900 border-none">
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription className="text-gray-500 text-md capitalize">
+                                                            {` You're about to delete 
                                                                  ${teacher.full_name}?
                                                                     `}
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
-                                                                <AlertDialogAction
-                                                                    className="bg-destructive"
-                                                                    onClick={() => handleTeacherDelete(teacher.id, "teacher")}
-                                                                >
-                                                                    Continue
-                                                                </AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    )
-                                })
-                            }
-                        </TableBody>
-                    </Table>}
-            <Pagination count={totalCount} pageCount={2} />
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel className="bg-inherit">Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction
+                                                            className="bg-destructive"
+                                                            onClick={() => handleTeacherDelete(teacher.id, "teacher")}
+                                                        >
+                                                            Continue
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        })
+                    }
+                </TableBody>
+            </Table>
+            <Pagination count={teacherCount} pageCount={2} />
 
         </div>
 

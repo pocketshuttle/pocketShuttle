@@ -3,8 +3,15 @@ import React, { useState } from 'react'
 import Tab from '@/components/Teachers/ui/teachers-tab'
 import TeachersUI from './ui/teacher-ui'
 import { DriverTable } from '../driver/ui/Table'
-
-export const Teachers = () => {
+import { TeachersTable } from './ui/TeacherTable'
+type userProps = {
+    teacherCount?: number,
+    driverCount?: number,
+    teacherData?: any[],
+    driverData?: any[]
+    bus?: any[]
+}
+export const Teachers = ({ teacherCount, driverCount, teacherData, driverData, bus }: userProps) => {
     const [activeTab, setActiveTab] = useState("teachers")
 
     const handleTab = (tab: string) => {
@@ -18,7 +25,7 @@ export const Teachers = () => {
 
                 {
                     activeTab === "teachers" && <div className='flex flex-col gap-4'>
-                        <TeachersUI />
+                        <TeachersTable teacherCount={teacherCount} teachersData={teacherData} busData={bus} />
                     </div>
                 }
                 {

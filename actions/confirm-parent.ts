@@ -1,5 +1,6 @@
 "use server";
 import { db } from "@/lib/db";
+import { revalidateTag } from "next/cache";
 
 export const confirmParent = async (
   studentId: string,
@@ -60,6 +61,7 @@ export const confirmParent = async (
         },
       });
     }
+    revalidateTag("parent");
 
     return { message: "Student successfully added to parent" };
   } catch (error) {

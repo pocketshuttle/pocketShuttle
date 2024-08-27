@@ -34,7 +34,7 @@ const Buses = async () => {
 
         if (!bus) {
             // Handle the case where teacher data is not found
-            return <div>No teacher data found for this user.</div>;
+            return <div className="text-center">No Buses data found for this user.</div>;
         }
         revalidateTag("bus");
         return (
@@ -43,8 +43,8 @@ const Buses = async () => {
             </div>
         )
     } catch (error) {
-        console.error("Error fetching teacher data:", error);
-        return <div>An error occurred while fetching teacher data.</div>;
+        console.error("Error fetching Buses data:", error);
+        return <div className="text-center">An error occurred while fetching Buses data, please refresh or try again later</div>;
     }
 
     // revalidateTag("collection")
