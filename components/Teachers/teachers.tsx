@@ -1,9 +1,9 @@
 "use client"
 import React, { useState } from 'react'
 import Tab from '@/components/Teachers/ui/teachers-tab'
-import TeachersUI from './ui/teacher-ui'
 import { DriverTable } from '../driver/ui/Table'
 import { TeachersTable } from './ui/TeacherTable'
+
 type userProps = {
     teacherCount?: number,
     driverCount?: number,
@@ -13,9 +13,9 @@ type userProps = {
 }
 export const Teachers = ({ teacherCount, driverCount, teacherData, driverData, bus }: userProps) => {
     const [activeTab, setActiveTab] = useState("teachers")
-
     const handleTab = (tab: string) => {
         setActiveTab(tab)
+
     }
 
     return (
@@ -24,7 +24,7 @@ export const Teachers = ({ teacherCount, driverCount, teacherData, driverData, b
                 <Tab tab1='teachers' tab2='drivers' activeTab={activeTab} handleTab={handleTab} />
 
                 {
-                    activeTab === "teachers" && <div className='flex flex-col gap-4'>
+                    activeTab === "teachers" && <div className=' flex-col gap-4 flex'>
                         <TeachersTable teacherCount={teacherCount} teachersData={teacherData} busData={bus} />
                     </div>
                 }

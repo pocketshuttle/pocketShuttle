@@ -2,7 +2,6 @@
 import dashboard from "@/public/images/dashboard.svg"
 import { DriverAndTeacherModal } from "./teachers-modal"
 import { Pagination } from "@/components/dashboard/pagination/pagination"
-import { useFetch } from "@/hooks/useFetch"
 import { useSession } from "next-auth/react"
 import {
     Table,
@@ -15,7 +14,6 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { TeacherProps } from "@/types"
-import { Spinner } from "@/components/ui/spinner"
 import { AddToBus } from "@/components/buses/add-to-bus"
 import { AddData } from "@/components/ui/add-data-button"
 import { EditData } from "@/components/ui/edit-data-link"
