@@ -1,5 +1,6 @@
 "use server";
 import { db } from "@/lib/db";
+import { revalidateTag } from "next/cache";
 
 export const addParent = async (
   studentId: string,
@@ -11,7 +12,6 @@ export const addParent = async (
       where: { id: studentId },
     });
 
-    console.log(available);
     // const addedStudent = available?.Student?.map((student) => student.id);
 
     if (available?.parentId !== null) {
@@ -41,6 +41,8 @@ export const addParent = async (
         },
       },
     });
+
+    revalidateTag("parent");
 
     return { message: "Student added to parent" };
   } catch (error) {
