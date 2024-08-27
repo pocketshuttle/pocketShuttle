@@ -82,9 +82,6 @@ const TeachersDrivers = async ({ searchParams }: { searchParams: { [key: string]
             },
         });
 
-
-
-
         return (
             <div>
                 <Teachers teacherCount={teacherCount} teacherData={teacherData} bus={bus} />
