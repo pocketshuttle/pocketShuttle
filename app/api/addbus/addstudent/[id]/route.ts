@@ -73,7 +73,7 @@ export const PATCH = async (
       data: { busId },
     });
 
-    revalidateTag("collection");
+    revalidateTag("students");
 
     return NextResponse.json(
       { message: "Student added successfully" },
