@@ -61,9 +61,7 @@ const AllStudents = async ({ searchParams }: { searchParams: { [key: string]: st
             },
             take: ITEM_PER_PAGE,
             skip: ITEM_PER_PAGE * (page - 1),
-        });
-
-
+        })
 
         if (!students) {
             // Handle the case where teacher data is not found
@@ -72,8 +70,9 @@ const AllStudents = async ({ searchParams }: { searchParams: { [key: string]: st
         revalidateTag("students");
 
         const count = await db.student.count({
-            //@ts-ignore
-            where: query,
+            where: {
+                id: userId
+            }
         });
 
         const bus = await db.buses.findMany({

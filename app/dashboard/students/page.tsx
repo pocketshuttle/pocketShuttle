@@ -66,8 +66,9 @@ const Students = async ({ searchParams }: { searchParams: { [key: string]: strin
         revalidateTag("students");
 
         const count = await db.student.count({
-            //@ts-ignore
-            where: query,
+            where: {
+                id: userId
+            }
         });
 
         const bus = await db.buses.findMany({

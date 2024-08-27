@@ -45,8 +45,9 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
     }
     try {
         const parentCount = await db.parent.count({
-            //@ts-ignore
-            where: query,
+            where: {
+                id: userId
+            }
         });
 
         const parent = await db.parent.findMany({
