@@ -8,7 +8,7 @@ import LottieAnimation from "../sidebar/menuLink/lottie-animation"
 import arrow from "@/public/images/Arrow.json"
 import left from "@/public/images/left.json"
 type CountProps = {
-    count: number
+    count: number | undefined
     pageCount: number
 }
 export const Pagination = ({ count, pageCount }: CountProps) => {
