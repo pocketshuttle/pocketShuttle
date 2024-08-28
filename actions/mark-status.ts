@@ -14,10 +14,7 @@ function getCurrentHourInTimeZone(timezone: string): number {
   return tz.getHours();
 }
 
-export const updateStudentStatus = async (
-  id: string,
-  data: StudentStatus
-) => {
+export const updateStudentStatus = async (id: string, data: StudentStatus) => {
   console.log(data, "status data");
   try {
     if (!data) {
@@ -28,6 +25,9 @@ export const updateStudentStatus = async (
       where: { id: id },
       data: {
         status: data,
+      },
+      include: {
+        parent: true,
       },
     });
 
@@ -62,11 +62,11 @@ export const updateStudentStatus = async (
           presence: "IN_BUS",
         },
       });
-      // await sendMagicBellNotification(
-      //   updatedStudent.parentEmail,
-      //   "Child Status Update",
-      //   "Your child is now in the bus."
-      // );
+      await sendMagicBellNotification(
+        updatedStudent?.parent?.email,
+        "Child Status Update",
+        "Your child is now in the bus."
+      );
     } else if (updatedStudent.status === "PICKED" && hours >= 9 && hours < 16) {
       await db.student.update({
         where: { id: id },
