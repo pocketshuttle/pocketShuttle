@@ -39,8 +39,6 @@ export const AttendanceTab = ({
         //@ts-ignore
         const handleMode = label1 === "Present" || label1 === "Absent" ? updateStudentAttendance(id, value) : updateStudentStatus(id, value)
 
-        console.log(value)
-
         setLocalAttendance(value);
         SetAttendance(value);
 
