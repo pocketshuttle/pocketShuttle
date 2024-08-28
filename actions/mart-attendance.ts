@@ -13,8 +13,6 @@ export const updateStudentAttendance = async (
   data: StudentAttendance
 ) => {
   try {
-    console.log(data, " this new data");
-
     if (!data) {
       return { message: "Invalid data provided", status: 400 };
     }
@@ -31,7 +29,7 @@ export const updateStudentAttendance = async (
     }
 
     revalidatePath("/teacher");
-    revalidateTag("collection");
+    revalidateTag("students");
 
     return {
       message: "Attendance updated successfully",

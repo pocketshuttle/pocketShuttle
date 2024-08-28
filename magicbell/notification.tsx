@@ -1,6 +1,5 @@
 import { MagicBell, FloatingNotificationInbox } from '@magicbell/magicbell-react';
-const MAGICBELL_API_KEY = "b5ad8d7c5bbc6dccaceade3a242d4bc35c4dc665";
-const MAGICBELL_API_SECRET = "G2Qamc6GT49fHX72jxiS5mPRZ+aVrRj6X/CXkutw";
+
 const MAGICBELL_API_URL = "https://api.magicbell.io";
 export async function sendMagicBellNotification(email: string, title: string, content: string) {
     try {
