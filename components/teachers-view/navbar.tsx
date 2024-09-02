@@ -3,15 +3,15 @@ import { useRouter } from "next/navigation"
 import { MdNotifications } from "react-icons/md"
 import LottieAnimation from "../dashboard/sidebar/menuLink/lottie-animation"
 import { useState } from "react"
-import home from "@/public/images/home.json"
 import userprofile from "@/public/images/userProfile.json"
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { LogOut } from "lucide-react"
 import {
     Avatar,
     AvatarFallback,
     AvatarImage,
 } from "@/components/ui/avatar";
+import NotificationFeed from "@/components/knock/notitification-feed"
 type NavbarProps = {
     data: any
 }
@@ -26,7 +26,6 @@ const Navbar = ({ data }: NavbarProps) => {
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
             >
-
 
                 <Avatar>
                     {data?.image ? (
@@ -46,7 +45,7 @@ const Navbar = ({ data }: NavbarProps) => {
             </div>
 
             <div className="flex space-x-2 items-center justify-center">
-                <MdNotifications size={24} className="text-gray-300" />
+                < NotificationFeed />
                 <span
                     onClick={() => signOut()}
                 >

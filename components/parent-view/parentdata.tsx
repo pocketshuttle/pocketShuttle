@@ -4,7 +4,6 @@ import { StudentProps } from "@/types"
 import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
 import { Spinner } from "@/components/ui/spinner"
-import { SubscribeButton, UnSubscribeButton } from "@/magicbell/components/button"
 
 type SessionProps = {
     userId: string | undefined
@@ -16,15 +15,10 @@ const ParentViewData = ({ userId, user }: SessionProps) => {
     const { data, isPending: parentPending, errorMessage } = useFetch(`/api/addparent/${userId}`, userId);
 
     const parentData = data?.parent?.[0]
-    console.log(parentData)
 
     return (
         <main>
             <div>
-                <div>
-                    <SubscribeButton userEmaiil={parentData?.email} userId={parentData?.id} />
-                    <UnSubscribeButton userEmaiil={parentData?.email} userId={parentData?.id} />
-                </div>
                 <h3 className="text-center p-5">All kids</h3>
                 {
                     parentPending ? <Spinner /> :
