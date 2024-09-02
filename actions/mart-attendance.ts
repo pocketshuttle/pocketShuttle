@@ -40,8 +40,10 @@ export const updateStudentAttendance = async (
 
     await knock.workflows.trigger("in-bus", {
       data: {
-        bus_product_name: updatedStudent?.bus?.bus_product_name,
-        
+        student_name: updatedStudent?.full_name,
+        bus_color: updatedStudent?.bus?.color,
+        bus_name: updatedStudent?.bus?.bus_product_name,
+        bus_number: updatedStudent?.bus?.bus_number,
       },
       recipients: [
         {
