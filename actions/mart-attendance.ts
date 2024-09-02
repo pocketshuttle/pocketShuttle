@@ -3,6 +3,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { db } from "@/lib/db";
 import { StudentAttendance } from "@prisma/client";
+import { Knock } from "@knocklabs/node";
 
 type ParamsProps = {
   id: string;
@@ -12,6 +13,8 @@ export const updateStudentAttendance = async (
   id: string,
   data: StudentAttendance
 ) => {
+  const knock = new Knock(process.env.KNOCK_SECRET_API_SECRET);
+
   try {
     if (!data) {
       return { message: "Invalid data provided", status: 400 };
@@ -22,6 +25,10 @@ export const updateStudentAttendance = async (
       data: {
         attendance: data,
       },
+      include: {
+        parent: true,
+        bus: true,
+      },
     });
 
     if (!updatedStudent) {
@@ -30,6 +37,20 @@ export const updateStudentAttendance = async (
 
     revalidatePath("/teacher");
     revalidateTag("students");
+
+    await knock.workflows.trigger("in-bus", {
+      data: {
+        bus_product_name: updatedStudent?.bus?.bus_product_name,
+        
+      },
+      recipients: [
+        {
+          id: updatedStudent?.parent?.id!,
+          name: updatedStudent?.parent?.full_name!,
+          email: "abusomwansantos@gmail.com",
+        },
+      ],
+    });
 
     return {
       message: "Attendance updated successfully",

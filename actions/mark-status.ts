@@ -1,12 +1,14 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { sendMagicBellNotification } from "@/magicbell/notification";
+import { Knock } from "@knocklabs/node";
 import { StudentStatus } from "@prisma/client";
 
 type ParamsProps = {
   id: string;
 };
+
+const knock = new Knock(process.env.KNOCK_SECRET_API_SECRET);
 
 function getCurrentHourInTimeZone(timezone: string): number {
   const date = new Date();
@@ -28,6 +30,7 @@ export const updateStudentStatus = async (id: string, data: StudentStatus) => {
       },
       include: {
         parent: true,
+        Buses: true,
       },
     });
 
@@ -62,17 +65,37 @@ export const updateStudentStatus = async (id: string, data: StudentStatus) => {
           presence: "IN_BUS",
         },
       });
-      await sendMagicBellNotification(
-        updatedStudent?.parent?.email,
-        "Child Status Update",
-        "Your child is now in the bus."
-      );
+
+      await knock.workflows.trigger("in-bus", {
+        data: {
+          bus_product_name: updatedStudent?.Buses?.bus_product_name,
+        },
+        recipients: [
+          {
+            id: updatedStudent?.parent?.id!,
+            name: updatedStudent?.parent?.full_name!,
+            email: "abusomwansantos@gmail.com",
+          },
+        ],
+      });
     } else if (updatedStudent.status === "PICKED" && hours >= 9 && hours < 16) {
       await db.student.update({
         where: { id: id },
         data: {
           presence: "AT_SCHOOL",
         },
+      });
+      await knock.workflows.trigger("in-bus", {
+        data: {
+          bus_product_name: updatedStudent?.Buses?.bus_product_name,
+        },
+        recipients: [
+          {
+            id: updatedStudent?.parent?.id!,
+            name: updatedStudent?.parent?.full_name!,
+            email: "abusomwansantos@gmail.com",
+          },
+        ],
       });
     } else if (
       updatedStudent.status === "DROPPED" &&
