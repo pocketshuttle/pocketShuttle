@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { db } from "@/lib/db";
 import { StudentAttendance } from "@prisma/client";
 import { Knock } from "@knocklabs/node";
+import { sendNotification } from "./send-notifications";
 
 type ParamsProps = {
   id: string;
@@ -30,6 +31,19 @@ export const updateStudentAttendance = async (
         bus: true,
       },
     });
+
+    const handlePushNotification = async () => {
+      if (updatedStudent) {
+        await sendNotification(
+          `marked as ${data}`,
+          updatedStudent.full_name!,
+          "attendance",
+          updatedStudent?.full_name!
+        );
+      }
+    };
+
+    handlePushNotification();
 
     if (!updatedStudent) {
       return { message: "Student not found", status: 404 };
