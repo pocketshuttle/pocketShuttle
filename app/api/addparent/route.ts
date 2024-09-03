@@ -64,19 +64,6 @@ export const POST = async (req: NextRequest) => {
       },
     });
 
-    // const newParent = new Parent({
-    //   school_id,
-    //   full_name,
-    //   email,
-    //   phoneNumber,
-    //   password: hashPassword,
-    //   address,
-    //   students: studentId ? [studentId] : [],
-    //   image,
-    //   role,
-    // });
-
-    // await newParent.save();
 
     return Response.json(
       { message: "Parent added Succesfully " },

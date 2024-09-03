@@ -8,8 +8,6 @@ export const POST = async (req: NextRequest) => {
     const data = await req.json();
     const validatedData = BusSchema.safeParse(data);
 
-    console.log(validatedData);
-
     if (!validatedData.success) {
       console.log("Validation error:", validatedData.error.errors);
       return NextResponse.json(
@@ -53,8 +51,6 @@ export const POST = async (req: NextRequest) => {
             connect: { id: student },
           },
         }),
-        // teacherId: teacher || undefined,
-        // studentId: student || undefined,
       },
     });
 
@@ -66,7 +62,7 @@ export const POST = async (req: NextRequest) => {
     console.error("Error adding Bus:", error);
     return NextResponse.json(
       {
-        message: "Error adding driver",
+        message: "Error adding Bus",
         error: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }

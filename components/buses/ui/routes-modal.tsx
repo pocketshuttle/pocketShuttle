@@ -43,6 +43,8 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
             setSubmittedData(values)
         })
     }
+
+    console.log(userId)
     return (
         <div>
 
