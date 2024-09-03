@@ -135,7 +135,7 @@ model Parent {
   busId         String?
   NewUser       NewUser[]
   Student       Student[]
-  notifications ParentNotification[] 
+  notifications ParentNotification[]
 }
 
 model Student {
@@ -191,14 +191,14 @@ model Buses {
 model Notification {
   id               String               @id @default(cuid())
   notificationJson String
-  parents          ParentNotification[] 
+  parents          ParentNotification[]
 }
 
 model ParentNotification {
   id               String        @id @default(cuid())
-  parentId         String
+  parentId         String?
   notificationId   String?
-  parent           Parent        @relation(fields: [parentId], references: [id])
+  parent           Parent?       @relation(fields: [parentId], references: [id])
   notificationJson Notification? @relation(fields: [notificationId], references: [id])
 
   @@unique([parentId])

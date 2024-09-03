@@ -50,6 +50,7 @@ const Navbar = ({ data }: NavbarProps) => {
                 <NotificationRequest />
                 <span
                     onClick={() => signOut()}
+                    className="cursor-pointer"
                 >
                     <LogOut />
                 </span>

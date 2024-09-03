@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { db } from "@/lib/db";
 import { useSession } from "next-auth/react";
+import { generateSubscribeEndPoint, removeNotification } from "@/actions/notification/helper";
 
 export default function NotificationRequest() {
 	const { data: session } = useSession();
@@ -40,6 +41,7 @@ export default function NotificationRequest() {
 			try {
 				const registration = await navigator.serviceWorker.getRegistration();
 				if (registration) {
+
 					generateSubscribeEndPoint(registration);
 				} else {
 					const newRegistration = await navigator.serviceWorker.register("/sw.js");
@@ -57,70 +59,21 @@ export default function NotificationRequest() {
 		}
 	}
 
-	const generateSubscribeEndPoint = async (newRegistration: ServiceWorkerRegistration) => {
-		const applicationServerKey = urlB64ToUint8Array(
-			process.env.NEXT_PUBLIC_VAPID_KEY!
-		);
-		const options = {
-			applicationServerKey,
-			userVisibleOnly: true,
-		};
-		const subscription = await newRegistration.pushManager.subscribe(options);
-
-		try {
-			// Store the subscription in the database
-			const notification = await db.notification.create({
-				data: {
-					notificationJson: JSON.stringify(subscription),
-				},
-			});
-
-			// Create the association in the join table
-			await db.parentNotification.create({
-				data: {
-					parentId: userId!, // Use current user's ID
-					notificationId: notification.id,
-				},
-			});
-
-			queryClient.invalidateQueries({ queryKey: ["user"] });
-		} catch (error) {
-
-			toast({
-				description: "Error storing subscription: " + (error instanceof Error ? error.message : "Unknown error"),
-			});
-		}
-	};
-
-	const removeNotification = async () => {
+	const handleRemoveNotification = async () => {
 		setNotificationPermission("denied");
+		if (!userId) return;
 
-		try {
-			// Remove notifications and associations from the database
-			await db.parentNotification.deleteMany({
-				where: {
-					parentId: userId!,
-				},
-			});
+		const result = await removeNotification(userId);
 
-			await db.notification.deleteMany({
-				where: {
-					parents: {
-						every: {
-							parentId: userId!,
-						},
-					},
-				},
-			});
-
-			queryClient.invalidateQueries({ queryKey: ["user"] });
-		} catch (error) {
-			console.log(error);
+		if (result.error) {
 			toast({
-				description: "Error removing subscription: " + (error instanceof Error ? error.message : "Unknown error"),
+				description: "Error removing subscription: " + result.error,
 			});
+		} else {
+			queryClient.invalidateQueries({ queryKey: ["user"] });
 		}
 	};
+
 
 	useEffect(() => {
 		setNotificationPermission(Notification.permission);
@@ -129,7 +82,7 @@ export default function NotificationRequest() {
 	return (
 		<div className="hover:scale-110 cursor-pointer transition-all">
 			{notificationPermission === "granted" ? (
-				<BellRing onClick={removeNotification} />
+				<BellRing onClick={handleRemoveNotification} />
 			) : (
 				<BellOff onClick={showNotification} />
 			)}
