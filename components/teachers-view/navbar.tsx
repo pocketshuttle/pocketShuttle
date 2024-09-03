@@ -12,6 +12,7 @@ import {
     AvatarImage,
 } from "@/components/ui/avatar";
 import NotificationFeed from "@/components/knock/notitification-feed"
+import NotificationRequest from "@/components/webnotifications/notificattions"
 type NavbarProps = {
     data: any
 }
@@ -45,7 +46,8 @@ const Navbar = ({ data }: NavbarProps) => {
             </div>
 
             <div className="flex space-x-2 items-center justify-center">
-                < NotificationFeed />
+                {/* < NotificationFeed /> */}
+                <NotificationRequest />
                 <span
                     onClick={() => signOut()}
                 >

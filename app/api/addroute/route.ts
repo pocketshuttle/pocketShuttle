@@ -1,15 +1,11 @@
-import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
-import Buses from "@/(models)/Bus";
-import Student from "@/(models)/Student";
-import Route from "@/(models)/Route";
 import { RouteSchema } from "@/schemas";
 import { db } from "@/lib/db";
 
 export const POST = async (req: NextRequest) => {
   try {
-    await connectToDB();
     const data = await req.json();
+    console.log(data);
     const validatedData = RouteSchema.safeParse(data);
 
     if (!validatedData.success) {
@@ -29,13 +25,6 @@ export const POST = async (req: NextRequest) => {
       },
     });
 
-    // const newRoute = new Route({
-    //   school_id,
-    //   route_description,
-    //   route_name,
-    // });
-
-    // await newRoute.save();
     return Response.json(
       { message: "Route added Succesfully " },
       { status: 200 }

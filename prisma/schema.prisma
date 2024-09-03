@@ -121,20 +121,21 @@ model Driver {
 }
 
 model Parent {
-  id            String    @id @default(cuid())
+  id            String               @id @default(cuid())
   role          String
   full_name     String?
   image         String?
-  email         String?   @unique
-  emailVerified DateTime? @map("email_verified")
+  email         String?              @unique
+  emailVerified DateTime?            @map("email_verified")
   password      String?
   phoneNumber   String?
   address       String?
   schoolId      String
-  school        User      @relation(fields: [schoolId], references: [id])
+  school        User                 @relation(fields: [schoolId], references: [id])
   busId         String?
   NewUser       NewUser[]
   Student       Student[]
+  notifications ParentNotification[] 
 }
 
 model Student {
@@ -185,6 +186,22 @@ model Buses {
   driver           Driver?
 
   @@map("buses")
+}
+
+model Notification {
+  id               String               @id @default(cuid())
+  notificationJson String
+  parents          ParentNotification[] 
+}
+
+model ParentNotification {
+  id               String        @id @default(cuid())
+  parentId         String
+  notificationId   String?
+  parent           Parent        @relation(fields: [parentId], references: [id])
+  notificationJson Notification? @relation(fields: [notificationId], references: [id])
+
+  @@unique([parentId])
 }
 
 model verificationToken {
