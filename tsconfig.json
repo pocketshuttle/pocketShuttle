@@ -21,6 +21,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "backgroundtask/background-worker.js", "backgroundtask/patch.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "backgroundtask/background-worker.js", "backgroundtask/patch.js", "worker/index.js"],
   "exclude": ["node_modules"]
 }

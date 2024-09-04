@@ -49,9 +49,7 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
     // const totalCount = data?.count
     const [attendance, SetAttendance] = useState("")
 
-    // if (isLoading) {
-    //     return <Spinner />
-    // }
+
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
 
@@ -111,7 +109,8 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                                     <div className="flex space-x-3 ">
                                         <div>
                                             {
-                                                <  AttendanceTab label1="Present" label2="Absent" data={student.attendance} value1="PRESENT" value2="ABSENT" SetAttendance={SetAttendance} attendance={attendance} id={student.id} />
+                                                <  AttendanceTab label1="Present" label2="Absent" data={student.attendance ? student.attendance : "No attendance recorded"}
+                                                    value1="PRESENT" value2="ABSENT" SetAttendance={SetAttendance} attendance={attendance} id={student.id} />
                                             }
                                         </div>
                                         <div>
@@ -167,7 +166,7 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                                                 {student.address}
                                             </TableCell>
                                             <TableCell>
-                                                <  AttendanceTab label1="Present" label2="Absent" data={student.attendance} value1="PRESENT" value2="ABSENT" SetAttendance={SetAttendance} attendance={attendance} id={student.id} />
+                                                <  AttendanceTab label1="Present" label2="Absent" data={student.attendance ? student.attendance : "No attendance recorded"} value1="PRESENT" value2="ABSENT" SetAttendance={SetAttendance} attendance={attendance} id={student.id} />
                                             </TableCell>
                                             <TableCell>
                                                 {

@@ -4,8 +4,6 @@ import { updateStudentAttendance } from "@/actions/mart-attendance";
 import revalidateStudent from "@/actions/validation/revalidate-student";
 import { toast } from "@/components/ui/use-toast";
 import useUpdateAttendance from "@/hooks/usePatch";
-import { StudentStatus } from "@prisma/client";
-import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useState, useTransition } from "react";
 
 type RegisterProps = {
@@ -25,15 +23,6 @@ export const AttendanceTab = ({
     const [localAttendance, setLocalAttendance] = useState(data);
     const [isPending, startTransition] = useTransition()
     const { updateAtendance, loading, error } = useUpdateAttendance(id, "PATCH");
-
-
-
-    // const url =
-    //     label1 === "Present" || label1 === "Absent"
-    //         ? `/api/addstudent/markattendance/${id}`
-    //         : label1 === "Dropped" || label1 === "Picked"
-    //             ? `/api/addstudent/markstatus/${id}`
-    //             : "";
 
     const handleAttendanceClick = async (value: string) => {
         //@ts-ignore

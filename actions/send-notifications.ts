@@ -24,6 +24,7 @@ export const sendNotification = async (
     const subscription = await db.parentNotification.findFirst({
       where: { parentId: userId },
     });
+    console.log(subscription, "PARENT");
 
     if (subscription) {
       // Send the notification
