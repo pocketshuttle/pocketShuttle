@@ -22,6 +22,7 @@ import { addParent } from "@/actions/add-parent";
 import { useState, useTransition } from "react";
 import { ConfirmationModal } from "./confirmation-modal";
 import { confirmParent } from "@/actions/confirm-parent";
+import Image from "next/image";
 
 export function AddStudents({ data, parentId }: { data: StudentProps[], parentId: string }) {
     const [open, setOpen] = useState(false);
@@ -69,9 +70,7 @@ export function AddStudents({ data, parentId }: { data: StudentProps[], parentId
     const handleCancel = () => {
         setIsOpenModal(false)
         setOpen(false)
-
     }
-
 
     // Filter students based on the search term
     const filteredData = data?.filter(student =>
@@ -123,7 +122,10 @@ export function AddStudents({ data, parentId }: { data: StudentProps[], parentId
                                             value === student.id ? "opacity-100" : "opacity-0"
                                         )}
                                     />
-                                    {student.full_name}
+                                    <div className="flex space-x-1 ">
+                                        <Image src={student.image} width={40} height={50} alt="avatar" className="rounded-md" />
+                                        <span className="text-sm capitalize">{student.full_name}</span>
+                                    </div>
                                 </CommandItem>
                             ))}
                         </CommandGroup>

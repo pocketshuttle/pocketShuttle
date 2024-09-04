@@ -32,12 +32,16 @@ export const updateStudentAttendance = async (
       },
     });
 
+    // console.log(updatedStudent);
+    if (!updatedStudent) {
+      return { message: "Student not found", status: 404 };
+    }
     const handlePushNotification = async () => {
       if (updatedStudent) {
         await sendNotification(
           `marked as ${data}`,
-          updatedStudent.full_name!,
-          "attendance",
+          updatedStudent.parentId!,
+          updatedStudent?.image!,
           updatedStudent?.full_name!
         );
       }
@@ -45,28 +49,25 @@ export const updateStudentAttendance = async (
 
     handlePushNotification();
 
-    if (!updatedStudent) {
-      return { message: "Student not found", status: 404 };
-    }
+   
 
-    revalidatePath("/teacher");
     revalidateTag("students");
 
-    await knock.workflows.trigger("in-bus", {
-      data: {
-        student_name: updatedStudent?.full_name,
-        bus_color: updatedStudent?.bus?.color,
-        bus_name: updatedStudent?.bus?.bus_product_name,
-        bus_number: updatedStudent?.bus?.bus_number,
-      },
-      recipients: [
-        {
-          id: updatedStudent?.parent?.id!,
-          name: updatedStudent?.parent?.full_name!,
-          email: "abusomwansantos@gmail.com",
-        },
-      ],
-    });
+    // await knock.workflows.trigger("in-bus", {
+    //   data: {
+    //     student_name: updatedStudent?.full_name,
+    //     bus_color: updatedStudent?.bus?.color,
+    //     bus_name: updatedStudent?.bus?.bus_product_name,
+    //     bus_number: updatedStudent?.bus?.bus_number,
+    //   },
+    //   recipients: [
+    //     {
+    //       id: updatedStudent?.parent?.id!,
+    //       name: updatedStudent?.parent?.full_name!,
+    //       email: "abusomwansantos@gmail.com",
+    //     },
+    //   ],
+    // });
 
     return {
       message: "Attendance updated successfully",

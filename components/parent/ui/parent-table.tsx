@@ -1,11 +1,8 @@
 "use client"
 import { Pagination } from "@/components/dashboard/pagination/pagination"
-import { Search } from "@/components/dashboard/search/search"
-import { Button } from "@/components/ui/button"
 import dashboard from "@/public/images/dashboard.svg"
 import Image from "next/image"
 import { useState, useTransition } from "react"
-import Link from "next/link"
 import {
     Table,
     TableBody,
@@ -16,11 +13,9 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { useFetch } from "@/hooks/useFetch"
-import { useSession } from "next-auth/react"
+
 import { ParentModal } from "./parent-modal"
 import { ViewStudent } from "@/components/students/ui/view-student-wrapper"
-import { Spinner } from "@/components/ui/spinner"
 import { useSearchParams } from "next/navigation"
 import { EditData } from "@/components/ui/edit-data-link"
 import { AddData } from "@/components/ui/add-data-button"
@@ -60,6 +55,7 @@ export const ParentData = ({ parentData, totalCount, studentData }) => {
 
     const getParams = useSearchParams()
     const page = getParams.get("page") || ""
+
 
 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
@@ -137,7 +133,7 @@ export const ParentData = ({ parentData, totalCount, studentData }) => {
                                         {parent.phoneNumber}
                                     </TableCell>
                                     <TableCell>
-                                        <AddStudents data={studentData && studentData.students} parentId={parent.id} />
+                                        <AddStudents data={studentData} parentId={parent.id} />
                                     </TableCell>
 
                                     <TableCell>
