@@ -13,6 +13,7 @@ import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
 import Link from "next/link"
 
+{/* @ts-ignore */ }
 export const ViewStudent = ({ data }) => {
     return (
         <Select >
