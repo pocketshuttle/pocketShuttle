@@ -27,27 +27,6 @@ const nextConfig = {
   async rewrites() {
     return [];
   },
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      exec(
-        "node backgroundtask/background-worker.js",
-        (error, stdout, stderr) => {
-          if (error) {
-            console.error(
-              `Error executing background-worker.js: ${error.message}`
-            );
-            return;
-          }
-          if (stderr) {
-            console.error(`stderr: ${stderr}`);
-            return;
-          }
-          console.log(`stdout: ${stdout}`);
-        }
-      );
-    }
-    return config;
-  },
 };
 
 export default withPWA(nextConfig);

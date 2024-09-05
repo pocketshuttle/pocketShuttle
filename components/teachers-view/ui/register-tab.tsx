@@ -1,7 +1,6 @@
 "use client";
 import { updateStudentStatus } from "@/actions/mark-status";
 import { updateStudentAttendance } from "@/actions/mart-attendance";
-import revalidateStudent from "@/actions/validation/revalidate-student";
 import { toast } from "@/components/ui/use-toast";
 import useUpdateAttendance from "@/hooks/usePatch";
 import { Dispatch, SetStateAction, useState, useTransition } from "react";
@@ -36,8 +35,6 @@ export const AttendanceTab = ({
                 toast({
                     description: data.message,
                 });
-                revalidateStudent("collection")
-                // window.location.reload();
             }).catch((error) => {
                 console.error("Error:", error);
                 toast({
