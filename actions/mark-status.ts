@@ -31,6 +31,7 @@ export const updateStudentStatus = async (id: string, data: StudentStatus) => {
       include: {
         parent: true,
         Buses: true,
+        bus: true,
       },
     });
 
@@ -68,7 +69,7 @@ export const updateStudentStatus = async (id: string, data: StudentStatus) => {
 
       await knock.workflows.trigger("in-bus", {
         data: {
-          bus_product_name: updatedStudent?.Buses?.bus_product_name,
+          bus_product_name: updatedStudent?.bus?.bus_product_name,
         },
         recipients: [
           {
@@ -87,7 +88,7 @@ export const updateStudentStatus = async (id: string, data: StudentStatus) => {
       });
       await knock.workflows.trigger("in-bus", {
         data: {
-          bus_product_name: updatedStudent?.Buses?.bus_product_name,
+          bus_product_name: updatedStudent?.bus?.bus_product_name,
         },
         recipients: [
           {
