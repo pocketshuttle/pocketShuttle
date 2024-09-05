@@ -11,7 +11,7 @@ export const connectToDB = async () => {
     console.log("Already connected to the database");
     return;
   }
-
+  //@ts-ignore
   if (process.env.NODE_ENV === "development" && global.isConnected) {
     console.log("Already connected to the database in development");
     return;
@@ -20,13 +20,14 @@ export const connectToDB = async () => {
   try {
     await mongoose.connect(`${process.env.MONGODB_URI}`, {
       dbName: "dropoff",
-      bufferCommands: true, // Disable command buffering
+      bufferCommands: true,
       socketTimeoutMS: 10000,
     });
 
     isConnected = true;
     if (process.env.NODE_ENV === "development") {
-      global.isConnected = true; // Track connection state globally in development
+      //@ts-ignore
+      global.isConnected = true;
     }
     console.log("MongoDB connected successfully");
   } catch (error) {
