@@ -25,11 +25,14 @@ export const getTeachers = async (
 
     // Fetch count of matching teachers
     const count = await db.teacher.count({
+      //@ts-ignore
+
       where: whereClause,
     });
 
     // Fetch the teachers
     const teacher = await db.teacher.findMany({
+      //@ts-ignore
       where: whereClause,
       include: {
         Student: true,
