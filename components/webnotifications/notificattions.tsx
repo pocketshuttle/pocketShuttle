@@ -69,7 +69,9 @@ export default function NotificationRequest() {
 			const subscriptionData = {
 				endpoint: subscription.endpoint,
 				keys: {
+					//  @ts-ignore 
 					p256dh: subscription.toJSON().keys.p256dh,
+					//  @ts-ignore 
 					auth: subscription.toJSON().keys.auth,
 				},
 			};
