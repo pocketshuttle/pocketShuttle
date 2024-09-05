@@ -7,7 +7,6 @@ import { revalidateTag } from "next/cache";
 type ParamProp = {
   id: string;
 };
-export const revalidate = true;
 export const GET = async (
   req: NextRequest,
   { params }: { params: ParamProp }
@@ -104,8 +103,8 @@ export const PATCH = async (
         school: {
           connect: { id: data.school_id },
         },
-        busId: data.busId || undefined,
-        teacherId: data.teacherId || undefined,
+        ...(data.busId && { busId: data.busId }),
+        ...(data.teacherId && { teacherId: data.teacherId }),
         full_name: data.full_name,
         address: data.address,
         image: data.image,
