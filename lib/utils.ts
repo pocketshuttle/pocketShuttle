@@ -5,10 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const deleteItem = (data, itemId) => {
-  const updatedData = data.filter((item) => item.id !== itemId);
-  return updatedData;
-};
+
 
 export function urlB64ToUint8Array(base64String: string): Uint8Array {
 	const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
