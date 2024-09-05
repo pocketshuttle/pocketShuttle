@@ -113,6 +113,8 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                 >
                     <div className=" flex ">
                         <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[21.5rem] p-2 rounded-md" >
+                            {/* @ts-ignore */}
+
                             < UploadImage form={form} newAvatar={newAvatar} setNewAvatar={setNewAvatar} avatar={avatar} />
                         </div>
                         <div className="flex-1 px-5 ">
@@ -176,7 +178,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                         <div className="w-full">
                                             {
                                                 busData &&
-                                                < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} />
+                                                < SelectBusWrapper placeholder="Select Bus" label="Select Bus" data={busData} handleSelectChange={handleSelectBus} classname="" />
                                             }
                                         </div>
                                     </div>
