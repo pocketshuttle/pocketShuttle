@@ -1,7 +1,7 @@
 {
-  "cron": [
+  "crons": [
     {
-      "path": "/api/update-students-status",
+      "path": "/api/cron-jobs/reset-student",
       "schedule": "45 2 * * *"
     }
   ]
