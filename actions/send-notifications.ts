@@ -29,6 +29,7 @@ export const sendNotification = async (
     if (subscription) {
       // Send the notification
       await webpush.sendNotification(
+        //@ts-ignore
         JSON.parse(subscription.notificationJson),
         JSON.stringify({
           message: name,
