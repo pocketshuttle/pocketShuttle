@@ -29,13 +29,19 @@ export const generateSubscribeEndPoint = async (
     const subscriptionData = {
       endpoint: subscription.endpoint,
       keys: {
+        //@ts-ignore
         p256dh: subscription.toJSON().keys.p256dh,
+        //@ts-ignore
+
         auth: subscription.toJSON().keys.auth,
       },
     };
 
     // Call server action or API route to save the subscription
-    const result = await saveSubscriptionToDatabase(subscriptionData, user?.id);
+    const result = await saveSubscriptionToDatabase(
+      subscriptionData,
+      user?.id!
+    );
 
     if (result.error) {
       console.log(result.error);
