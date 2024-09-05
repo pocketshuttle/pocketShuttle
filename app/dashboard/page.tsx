@@ -7,6 +7,7 @@ import { db } from "@/lib/db"
 import LoginButton from "@/components/auth/login-button"
 import { Button } from "@/components/ui/button"
 import { getUserSession } from "@/lib/session"
+import { revalidateTag } from "next/cache"
 
 const Dashboard = async () => {
     const user = await getUserSession()
@@ -47,10 +48,22 @@ const Dashboard = async () => {
                 { schoolId: userId },
                 { id: userId }
             ]
-            // schoolId: userId
         }
     });
-
+    const bus = await db.buses.findMany({
+        where: {
+            OR: [{ id: userId }, { schoolId: userId }],
+        },
+        include: {
+            route: true,
+            teacher: true,
+            students: true,
+            driver: true,
+        },
+    });
+    if (bus) {
+        revalidateTag("bus")
+    }
 
     return (
         <div className="flex w-full" >
@@ -66,7 +79,8 @@ const Dashboard = async () => {
                         <DashboardWrapper headLabel="Total Number of Teachers" total={teacherCount} />
                     </div>
                 </div>
-                <CommuteTable userId={userId} />
+                {/* @ts-ignore */}
+                <CommuteTable busData={bus} />
                 {/* <Charts /> */}
             </div>
 
