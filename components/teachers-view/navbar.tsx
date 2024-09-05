@@ -46,8 +46,8 @@ const Navbar = ({ data }: NavbarProps) => {
             </div>
 
             <div className="flex space-x-2 items-center justify-center">
-                {/* < NotificationFeed /> */}
-                <NotificationRequest />
+                < NotificationFeed />
+                {/* <NotificationRequest /> */}
                 <span
                     onClick={() => signOut()}
                     className="cursor-pointer"

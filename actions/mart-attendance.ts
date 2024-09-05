@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { StudentAttendance } from "@prisma/client";
 import { Knock } from "@knocklabs/node";
 import { sendNotification } from "./send-notifications";
+import { sendSms } from "./notification/send-sms";
 
 type ParamsProps = {
   id: string;
@@ -36,38 +37,48 @@ export const updateStudentAttendance = async (
     if (!updatedStudent) {
       return { message: "Student not found", status: 404 };
     }
-    const handlePushNotification = async () => {
-      if (updatedStudent) {
-        await sendNotification(
-          `marked as ${data}`,
-          updatedStudent.parentId!,
-          updatedStudent?.image!,
-          updatedStudent?.full_name!
-        );
-      }
-    };
+    // Send SMS notification
+    const smsResult = await sendSms({
+      fullname: updatedStudent.full_name || "",
+      parent_name: updatedStudent.parent?.full_name || "Parent",
+      bus: updatedStudent.bus?.bus_product_name || "Unknown bus",
+      message: data,
+      phoneNumber: updatedStudent.parent?.phoneNumber || "",
+    });
 
-    handlePushNotification();
+    if (smsResult.status !== 200) {
+      console.error("Failed to send SMS:", smsResult.message);
+    }
+    // const handlePushNotification = async () => {
+    //   if (updatedStudent) {
+    //     await sendNotification(
+    //       `marked as ${data}`,
+    //       updatedStudent.parentId!,
+    //       updatedStudent?.image!,
+    //       updatedStudent?.full_name!
+    //     );
+    //   }
+    // };
 
-   
+    // handlePushNotification();
 
     revalidateTag("students");
 
-    // await knock.workflows.trigger("in-bus", {
-    //   data: {
-    //     student_name: updatedStudent?.full_name,
-    //     bus_color: updatedStudent?.bus?.color,
-    //     bus_name: updatedStudent?.bus?.bus_product_name,
-    //     bus_number: updatedStudent?.bus?.bus_number,
-    //   },
-    //   recipients: [
-    //     {
-    //       id: updatedStudent?.parent?.id!,
-    //       name: updatedStudent?.parent?.full_name!,
-    //       email: "abusomwansantos@gmail.com",
-    //     },
-    //   ],
-    // });
+    await knock.workflows.trigger("in-bus", {
+      data: {
+        student_name: updatedStudent?.full_name,
+        bus_color: updatedStudent?.bus?.color,
+        bus_name: updatedStudent?.bus?.bus_product_name,
+        bus_number: updatedStudent?.bus?.bus_number,
+      },
+      recipients: [
+        {
+          id: updatedStudent?.parent?.id!,
+          name: updatedStudent?.parent?.full_name!,
+          email: "abusomwansantos@gmail.com",
+        },
+      ],
+    });
 
     return {
       message: "Attendance updated successfully",

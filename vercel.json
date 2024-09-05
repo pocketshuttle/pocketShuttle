@@ -1,0 +1,8 @@
+{
+  "cron": [
+    {
+      "path": "/api/update-students-status",
+      "schedule": "45 2 * * *"
+    }
+  ]
+}
