@@ -31,13 +31,12 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import LottieAnimation from "@/components/dashboard/sidebar/menuLink/lottie-animation"
-import { useSearchParams } from "next/navigation"
 import { useState, useTransition } from "react"
 import { removeTeacherFromBus } from "@/actions/remove-teacher-bus"
 import { toast } from "@/components/ui/use-toast"
 import { handleDelete } from "@/actions/delete-student"
-import { revalidateTag } from "next/cache"
-import revalidateData from "@/actions/validation/revalidate-teacher"
+
+
 type userProps = {
     teacherCount?: number | undefined,
     teachersData?: any[],
@@ -69,9 +68,6 @@ export const TeachersTable = ({ teacherCount, teachersData, busData }: userProps
                 toast({
                     description: data.message,
                 });
-                revalidateData("new-teach")
-                // revalidateTag("remove-bus")
-                // window.location.reload();
             }).catch((error) => {
                 console.error("Error:", error);
                 toast({
