@@ -90,6 +90,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                 >
                     <div className=" flex ">
                         <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[21.5rem] p-2 rounded-md" >
+                            {/* @ts-ignore */}
                             < UploadImage newAvatar={newAvatar} avatar={avatar} form={form} setNewAvatar={setNewAvatar} />
                         </div>
                         <div className="flex-1 px-5 ">
