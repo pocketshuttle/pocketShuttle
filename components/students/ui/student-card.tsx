@@ -18,7 +18,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-
+{/* @ts-ignore */ }
 const StudentCard = ({ data, busData }) => {
     const [selectedBus, setSelectedBus] = useState<{ id: string; bus_product_name: string | null } | null>(null);
     const [isPending, startTransition] = useTransition()
