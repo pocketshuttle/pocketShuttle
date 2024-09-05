@@ -1,7 +1,6 @@
 "use client"
 import Image, { StaticImageData } from 'next/image'
 import React, { ChangeEvent, Dispatch, SetStateAction, useState } from 'react'
-import spinner from "@/public/images/spinner.gif"
 import { UseFormReturn } from 'react-hook-form'
 import LottieAnimation from '../dashboard/sidebar/menuLink/lottie-animation'
 import upload from "@/public/images/upload.json"
@@ -19,7 +18,6 @@ export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }: ImageProp
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
         inputElement?.click()
-        // console.log(inputElement)
     }
 
     const handleCameraInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -65,7 +63,6 @@ export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }: ImageProp
         } finally {
             setIsLoading(false)
         }
-
     }
 
     return (
