@@ -50,7 +50,6 @@ import {
 import { removeStudentFromBus } from "@/actions/remove-student-bus"
 type IdProps = {
     studentsData: StudentProps[]
-
     totalCount: number
 }
 //  @ts-ignore  
@@ -65,8 +64,7 @@ export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => 
         console.log(value)
         setFilterGrade(value)
         const updatedGradeQuery = value !== "All" ? `&grade=${value}` : "";
-        // router.push(`/students?q=${search}${updatedGradeQuery}&page=${page}`);
-        // router.push(`/students?grade=${encodeURIComponent(value)}&page=${page}`);
+      
     }
 
     const [isHovering, setIsHovering] = useState(false);

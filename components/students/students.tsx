@@ -6,10 +6,6 @@ import { Button } from "../ui/button";
 export const Student = async () => {
     const user = await getUserSession();
     const userId = user?.id;
-
-
-    // const search = typeof searchParams.page ===
-
     if (!user) {
         return <div>
             User session is not available. Please log in.
@@ -20,10 +16,11 @@ export const Student = async () => {
         </div>
     }
 
-    
+
     return (
         <div className="mt-2">
-            <StudentsData userId={userId} />
+            {/* @ts-ignore */}
+            <StudentsData />
         </div>
     );
 };

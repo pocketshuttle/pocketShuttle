@@ -1,4 +1,3 @@
-import { auth } from '@/auth'
 import CommuteUI from '@/components/commute/commute'
 import { Metadata } from 'next'
 

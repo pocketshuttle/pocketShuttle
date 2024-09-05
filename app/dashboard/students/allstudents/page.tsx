@@ -108,7 +108,6 @@ const AllStudents = async ({ searchParams }: { searchParams: { [key: string]: st
         return <div>An error occurred while fetching student data.</div>;
     }
 
-    // const { data: studentsData, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}?all=`, userId);
 
 }
 
