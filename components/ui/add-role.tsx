@@ -10,11 +10,11 @@ import {
 import { Dispatch, SetStateAction } from "react";
 
 type SelectProps = {
-    placeholder: string;
+    placeholder?: string;
     label?: string;
     handleSelectChange: (value: string) => void;
-    setFilterGrade: Dispatch<SetStateAction<string>>;
-    data: any
+    setFilterGrade?: Dispatch<SetStateAction<string>>;
+    data?: any
 };
 const data = [
     {

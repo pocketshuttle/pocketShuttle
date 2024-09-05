@@ -82,7 +82,8 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
 
     useEffect(() => {
         if (success && data) {
-            setIsSuccess(success); // handle the response data
+            setIsSuccess(success);
+            //@ts-ignore
             setDataMessage(data.message);
         }
     }, [success]);
