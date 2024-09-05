@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button"
 import dashboard from "@/public/images/dashboard.svg"
 import Image from "next/image"
 import { useState } from "react"
-import { StudentModal } from "@/components/students/ui/Student-modal"
-import Link from "next/link"
 import {
     Table,
     TableBody,
@@ -16,8 +14,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { useFetch } from "@/hooks/useFetch"
-import { useSession } from "next-auth/react"
+
 
 type StudentProps = {
     _id: string,
@@ -26,17 +23,12 @@ type StudentProps = {
     gender: string,
     grade: string,
     address: string,
-    bus: string
-    , image: string
+    bus: string,
+    image: string
 }
-export const StudentsData = ({ data }) => {
-    // const { data: session } = useSession()
-    // const userId = session?.user?.id
 
-    const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-    // const { data: studentsData, isPending, errorMessage } = useFetch(`/api/addstudent/${userId}`, userId);
-
-    // console.log(studentsData);
+//@ts-ignore
+export const StudentsData = ({ data }: StudentProps[]) => {
 
     return (
         <div className=" w-full shadow-md sm:rounded-lg bg-[#182237]">
@@ -88,8 +80,8 @@ export const StudentsData = ({ data }) => {
                 </TableBody>
             </Table>
 
-
-            <Pagination />
+            {/* @ts-ignore */}
+            <Pagination count={10} />
         </div >
 
     )

@@ -19,8 +19,6 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { ViewStudent } from "@/components/students/ui/view-student-wrapper";
-// import { StudentsData } from "./all-student";
 import React from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { BusProps, StudentProps } from "@/types";
@@ -31,25 +29,10 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
-type SessionProps = {
-    userId: string | undefined
-}
 
-export const CommuteTable = ({ userId }: SessionProps) => {
+//@ts-ignore
+export const CommuteTable = ({ busData }: BusProps[]) => {
     const [openBusId, setOpenBusId] = useState<string | null>(null);
-
-    const { data: busData, isPending, errorMessage } = useFetch(`/api/addbus/${userId}`, userId);
-    const { data: routeData, isPending: routeLoading, errorMessage: routeError } = useFetch(`/api/addroute/${userId}`, userId);
-
-    console.log(busData)
-    if (isPending) {
-        return <Spinner />
-    }
-
-    if (errorMessage) {
-        return <div>Error: {errorMessage}</div>;
-    }
-
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237] mt-4">
             <Table>
