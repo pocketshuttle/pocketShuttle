@@ -1,10 +1,13 @@
 import NewVerificationForm from '@/components/auth/new-verification-form'
-import React from 'react'
+
+import { Suspense } from 'react'
 
 const NewVerification = () => {
     return (
         <div className='flex items-center justify-center h-screen'>
-            < NewVerificationForm />
+            <Suspense>
+                < NewVerificationForm />
+            </Suspense>
         </div>
     )
 }
