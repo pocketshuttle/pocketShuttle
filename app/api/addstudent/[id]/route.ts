@@ -30,7 +30,7 @@ export const GET = async (
           id: id,
         },
       ],
-      //making the regex case insensitive
+      //making the regex case insensitive any
       ...(searchQuery && {
         full_name: { contains: searchQuery, mode: "insensitive" },
       }),
