@@ -4,6 +4,7 @@ import { ParentData } from '@/components/parent/ui/parent-table'
 import { Button } from '@/components/ui/button'
 import { db } from '@/lib/db'
 import { getUserSession } from '@/lib/session'
+import { Prisma } from '@prisma/client'
 import { revalidateTag } from 'next/cache'
 import React from 'react'
 
@@ -26,7 +27,7 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
     const searchQuery = typeof searchParams.q === "string" ? searchParams.q : ""
     const ITEM_PER_PAGE = 4;
 
-    const query = {
+    const query: Prisma.ParentWhereInput = {
         //we fetch our data by either school id or user Id
         OR: [
             {
@@ -51,7 +52,6 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
         });
 
         const parent = await db.parent.findMany({
-            //@ts-ignore
             where: query,
             include: {
                 Student: {

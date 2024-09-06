@@ -10,7 +10,7 @@ export const confirmParent = async (
   try {
     const student = await db.student.findUnique({
       where: { id: studentId },
-      include: { parent: true }, // Include parent information
+      include: { parent: true }, 
     });
 
     if (!student) {

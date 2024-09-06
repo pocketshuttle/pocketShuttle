@@ -1,12 +1,5 @@
 "use server";
-
-import Buses from "@/(models)/Bus";
-import Driver from "@/(models)/Driver";
-import Teacher from "@/(models)/Teachers";
-import User from "@/(models)/User";
 import { db } from "@/lib/db";
-import { connectToDB } from "@/utils/connect-to-db";
-import { NextResponse } from "next/server";
 
 export const addDriver = async (id: string, busId: string) => {
   try {

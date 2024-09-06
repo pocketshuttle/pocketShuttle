@@ -21,9 +21,7 @@ export const GET = async (
       },
     });
 
-    // const route = await Route.find({
-    //   $or: [{ school_id: id }, { _id: id }],
-    // });
+    
 
     if (!route) {
       return new Response(JSON.stringify({ message: "Route not found" }), {

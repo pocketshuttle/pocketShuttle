@@ -4,6 +4,7 @@ import Student from "@/(models)/Student";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { revalidateTag } from "next/cache";
+import { Prisma } from "@prisma/client";
 type ParamProp = {
   id: string;
 };
@@ -21,7 +22,7 @@ export const GET = async (
 
     console.log(gradeQuery, "this is the grade query");
     const { id } = params;
-    const query = {
+    const query: Prisma.StudentWhereInput = {
       OR: [
         {
           schoolId: id,
@@ -45,14 +46,10 @@ export const GET = async (
     //then skip that total number
     // const count = await Student.find(query).countDocuments();
     const count = await db.student.count({
-      //@ts-ignore
-
       where: query,
     });
 
     const students = await db.student.findMany({
-      //@ts-ignore
-
       where: query,
       include: {
         bus: true,

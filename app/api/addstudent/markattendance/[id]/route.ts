@@ -14,8 +14,6 @@ export const PATCH = async (
     const { id } = params;
     const data = await req.json();
 
-    console.log(data, "data");
-
     if (!data || !data.attendance) {
       return NextResponse.json(
         { message: "Invalid data provided" },

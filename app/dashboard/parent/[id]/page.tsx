@@ -24,7 +24,7 @@ import { toast } from "@/components/ui/use-toast"
 
 
 
-const SingleTeacherPage = () => {
+const SingleParentPage = () => {
 
 
     const [isPending, startTransition] = useTransition()
@@ -342,4 +342,4 @@ const SingleTeacherPage = () => {
     )
 }
 
-export default SingleTeacherPage
+export default SingleParentPage
