@@ -1,11 +1,12 @@
 import { NewPasswordForm } from '@/components/auth/new-password'
-import React from 'react'
-
+import { Suspense } from 'react'
 const ResetPassword = () => {
     return (
-        <div className='flex items-center justify-center h-screen'>
-            <NewPasswordForm />
-        </div>
+        <Suspense>
+            <div className='flex items-center justify-center h-screen'>
+                <NewPasswordForm />
+            </div>
+        </Suspense>
     )
 }
 
