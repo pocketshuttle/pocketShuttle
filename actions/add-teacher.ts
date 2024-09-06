@@ -1,8 +1,7 @@
 "use server";
 
-import { revalidate } from "@/app/api/addstudent/[id]/route";
 import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export const addTeacher = async (id: string, busId: string) => {
   try {
@@ -34,7 +33,7 @@ export const addTeacher = async (id: string, busId: string) => {
       data: { busId },
     });
 
-    revalidatePath("/teacher");
+    revalidateTag("teacher");
 
     return { message: "Teacher added to bus" };
   } catch (error) {
