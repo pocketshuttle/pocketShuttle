@@ -1,8 +1,6 @@
-import { connectToDB } from "@/utils/connect-to-db";
-import { NextRequest, NextResponse } from "next/server";
-import Parent from "@/(models)/Parent";
-import Student from "@/(models)/Student";
 import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
 type ParamProp = {
   id: string;
 };
@@ -13,26 +11,11 @@ export const GET = async (
 ) => {
   try {
     const { id } = params;
-    const whereClause = {
-      OR: [
-        {
-          schoolId: id,
-        },
-        {
-          id: id,
-        },
-      ],
-
-      // ...(searchName && {
-      //   full_name: {
-      //     contains: searchName,
-      //     mode: "insensitive",
-      //   },
-      // }),
+    const whereClause: Prisma.ParentWhereInput = {
+      OR: [{ schoolId: id }, { id: id }],
     };
 
     const parentCount = await db.parent.count({
-      //@ts-ignore
       where: whereClause,
     });
 

@@ -4,6 +4,7 @@ import Teacher from "@/(models)/Teachers";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { revalidatePath, revalidateTag } from "next/cache";
+import { Prisma } from "@prisma/client";
 
 type ParamProp = {
   id: string;
@@ -21,7 +22,7 @@ export const GET = async (
     const page: number = parseInt(url.get("page") || "1", 10);
     const { id } = params;
 
-    const whereClause = {
+    const whereClause: Prisma.TeacherWhereInput = {
       OR: [
         {
           schoolId: id,
@@ -40,12 +41,10 @@ export const GET = async (
     };
 
     const count = await db.teacher.count({
-      //@ts-ignore
       where: whereClause,
     });
 
     const teacher = await db.teacher.findMany({
-      //@ts-ignore
       where: whereClause,
       include: {
         Student: true,

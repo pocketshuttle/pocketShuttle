@@ -1,5 +1,6 @@
 import { revalidateTag } from "next/cache";
-import { db } from "@/lib/db"; // Ensure you import your database instance correctly
+import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 
 export const getTeachers = async (
   id: string,
@@ -12,8 +13,7 @@ export const getTeachers = async (
     const searchName = searchParams.get("q") || "";
     const page = parseInt(searchParams.get("page") || "1", 10);
 
-    // Construct the where clause
-    const whereClause = {
+    const whereClause: Prisma.TeacherWhereInput = {
       OR: [{ schoolId: id }, { id: id }],
       ...(searchName && {
         full_name: {
@@ -25,14 +25,11 @@ export const getTeachers = async (
 
     // Fetch count of matching teachers
     const count = await db.teacher.count({
-      //@ts-ignore
-
       where: whereClause,
     });
 
     // Fetch the teachers
     const teacher = await db.teacher.findMany({
-      //@ts-ignore
       where: whereClause,
       include: {
         Student: true,

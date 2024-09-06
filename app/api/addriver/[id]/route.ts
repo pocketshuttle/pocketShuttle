@@ -2,6 +2,7 @@ import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Driver from "@/(models)/Driver";
 import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 
 type ParamProp = {
   id: string;
@@ -16,19 +17,16 @@ export const GET = async (
 
     const url = new URL(req.url).searchParams;
     const searchDriver = url.get("q") || "";
-    const query = {
+    const query: Prisma.DriverWhereInput = {
       OR: [{ schoolId: id }, { id: id }],
       ...(searchDriver && {
         full_name: { contains: searchDriver, mode: "insensitive" },
       }),
     };
     const driversCount = await db.driver.count({
-      //@ts-ignore
       where: query,
     });
     const driver = await db.driver.findMany({
-      //@ts-ignore
-
       where: query,
       include: {
         bus: true,

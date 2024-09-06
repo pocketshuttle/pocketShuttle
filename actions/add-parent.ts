@@ -12,7 +12,6 @@ export const addParent = async (
       where: { id: studentId },
     });
 
-    // const addedStudent = available?.Student?.map((student) => student.id);
 
     if (available?.parentId !== null) {
       return { message: "Student already belong to a parent", status: 100 };
