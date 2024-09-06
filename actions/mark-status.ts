@@ -30,6 +30,7 @@ export const updateStudentStatus = async (id: string, data: StudentStatus) => {
       },
       include: {
         parent: true,
+        Buses: true,
         bus: true,
       },
     });
