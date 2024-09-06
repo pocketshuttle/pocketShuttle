@@ -157,7 +157,6 @@ model Student {
   school     User               @relation(fields: [schoolId], references: [id])
   busId      String?
   bus        Buses?             @relation("BusStudents", fields: [busId], references: [id])
-  Buses      Buses[]
 }
 
 model Route {
@@ -182,11 +181,11 @@ model Buses {
   students         Student[] @relation("BusStudents")
   route            Route?    @relation(fields: [routeId], references: [id])
   teacher          Teacher?
-  Student          Student[]
   driver           Driver?
 
   @@map("buses")
 }
+
 
 model Notification {
   id               String               @id @default(cuid())
