@@ -103,15 +103,22 @@ export const PATCH = async (
         school: {
           connect: { id: data.school_id },
         },
-        ...(data.busId && { busId: data.busId }),
-        ...(data.teacherId && { teacherId: data.teacherId }),
+        ...(data.busId && {
+          bus: {
+            connect: { id: data.busId },
+          },
+        }),
+        ...(data.teacherId && {
+          teacher: {
+            connect: { id: data.busId },
+          },
+        }),
         full_name: data.full_name,
         address: data.address,
         image: data.image,
         grade: data.grade,
         gender: data.gender,
         age: data.age,
-        // ...data,
       },
     });
 
