@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 
 type ParamsProps = {
   id: string;
@@ -41,7 +41,7 @@ export const PATCH = async (
         status: data.attendance,
       },
     });
-    revalidatePath("http://localhost:3000/teacher");
+    revalidateTag("students");
 
     //we decrease the available car seat when a student is picked
     if (updatedStudent.status === "PICKED" && updatedStudent.busId) {
