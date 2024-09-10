@@ -15,8 +15,8 @@ const { auth } = NextAuth(authConfig);
 
 export default auth(async (req) => {
   const { nextUrl } = req;
-  console.log(req.url, "request url");
-  console.log(nextUrl, "next url");
+  // console.log(req.url, "request url");
+  // console.log(nextUrl, "next url");
   try {
     const token = await getToken({
       req,
@@ -43,8 +43,6 @@ export default auth(async (req) => {
       nextUrl.pathname.startsWith(route)
     );
 
-    console.log(isAuthRoute, "auth in", nextUrl.pathname);
-
     if (isAuthRoute) {
       console.log(isAuthRoute, "auth route");
       if (isLoggedIn) {
@@ -61,10 +59,21 @@ export default auth(async (req) => {
       return null;
     }
 
-    console.log(userRole, "user role 2");
+    // console.log(userRole, "user role 2");
 
     if (!isLoggedIn && !isPublicRoute) {
-      return Response.redirect(new URL("/login", nextUrl));
+      //taking users back to the previous used route
+      let callbackUrl = nextUrl.pathname;
+      if (nextUrl.search) {
+        callbackUrl += nextUrl.search;
+      }
+
+      const encodeCallbackUrl = encodeURIComponent(callbackUrl);
+      console.log(encodeCallbackUrl);
+
+      return Response.redirect(
+        new URL(`/login?callbackUrl=${encodeCallbackUrl}`, nextUrl)
+      );
     }
 
     return null;

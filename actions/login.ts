@@ -13,7 +13,10 @@ import { getUserByEmail } from "@/data/user";
 import { generateVerificationToken } from "@/lib/token";
 import { sendVerificationEmail } from "@/lib/mail";
 
-export const Login = async (values: z.infer<typeof LoginSchema>) => {
+export const Login = async (
+  values: z.infer<typeof LoginSchema>,
+  callbackUrl?: string | null
+) => {
   //validating the data
   const validatedFields = LoginSchema.safeParse(values);
 
@@ -46,11 +49,12 @@ export const Login = async (values: z.infer<typeof LoginSchema>) => {
       email,
       password,
       redirectTo:
-        role === "parent"
+        callbackUrl ||
+        (role === "parent"
           ? DEFAULT_PARENT_ROLE
           : role === "teacher"
           ? DEFAULT_USER_ROLE
-          : DEFAULT_LOGIN_REDIRECT,
+          : DEFAULT_LOGIN_REDIRECT),
     };
 
     if (role) {

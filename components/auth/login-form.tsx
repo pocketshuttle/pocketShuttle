@@ -13,6 +13,7 @@ import { FormError } from "@/components/errorsandsuccess/form-error"
 import { FormSuccess } from "@/components/errorsandsuccess/form-success"
 import Link from "next/link"
 import { AddRoles } from "../ui/add-role"
+import { useSearchParams } from "next/navigation"
 
 
 export const LoginForm = () => {
@@ -20,6 +21,11 @@ export const LoginForm = () => {
     const [isError, setIsError] = useState<string | undefined>("")
     const [isSuccess, setIsSuccess] = useState<string | undefined>("")
     const [selectedRole, setSelectedRole] = useState<string>("")
+
+    const searchParams = useSearchParams()
+    const callbackUrl = searchParams.get("callbackUrl")
+
+
     {/**
      Initialize the form with react-hook-form, integrating Zod for validation
  - The form's validation schema is defined using Zod's `LoginSchema`
@@ -42,7 +48,7 @@ export const LoginForm = () => {
         setIsSuccess("")
         // using the useTransition hook from react
         startTransition(() => {
-            Login(values).then((data) => {
+            Login(values, callbackUrl).then((data) => {
                 setIsError(data?.error)
                 setIsSuccess(data?.success)
             })
