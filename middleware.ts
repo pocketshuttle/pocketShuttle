@@ -15,7 +15,8 @@ const { auth } = NextAuth(authConfig);
 
 export default auth(async (req) => {
   const { nextUrl } = req;
-  console.log(nextUrl);
+  console.log(req.url, "request url");
+  console.log(nextUrl, "next url");
   try {
     const token = await getToken({
       req,
