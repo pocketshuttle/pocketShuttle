@@ -15,6 +15,7 @@ const { auth } = NextAuth(authConfig);
 
 export default auth(async (req) => {
   const { nextUrl } = req;
+  console.log(nextUrl);
   try {
     const token = await getToken({
       req,
@@ -22,10 +23,8 @@ export default auth(async (req) => {
       secret: process.env.NEXTAUTH_SECRET,
     });
     const userRole = token?.role;
-    console.log(userRole);
-    const isLoggedIn = !!token;
 
-    console.log(userRole, "user role");
+    const isLoggedIn = !!token;
 
     const isAPIAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
 
