@@ -13,7 +13,7 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
 
     // if no user, that means you havent logged in, so redirect back to login page
     if (!user) {
-        return <div>
+        return  <div className="flex items-center justify-center">
             User session is not available. Please log in.
             <LoginButton>
                 <Button size={"lg"} >Login</Button>
