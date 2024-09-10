@@ -12,7 +12,7 @@ const withPWA = withPWAInit({
   workboxOptions: {
     disableDevLogs: true,
   },
-  // other options...
+
 });
 
 const nextConfig = {
