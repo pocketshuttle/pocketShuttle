@@ -49,12 +49,11 @@ export const Login = async (
       email,
       password,
       redirectTo:
-        callbackUrl ||
-        (role === "parent"
+        role === "parent"
           ? DEFAULT_PARENT_ROLE
           : role === "teacher"
           ? DEFAULT_USER_ROLE
-          : DEFAULT_LOGIN_REDIRECT),
+          : callbackUrl || DEFAULT_LOGIN_REDIRECT,
     };
 
     if (role) {

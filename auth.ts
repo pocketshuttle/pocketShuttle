@@ -55,6 +55,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     async jwt({ token, user, profile }) {
       if (!token.sub) return token;
+      console.log(token, "token");
 
       try {
         if (token.sub) {
