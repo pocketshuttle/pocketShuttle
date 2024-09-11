@@ -107,9 +107,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       name: `__Secure-next-auth.session-token`,
       options: {
         httpOnly: true,
-        sameSite: "lax", // Adjust based on your requirements
+        sameSite: "lax", 
         path: "/",
-        secure: process.env.NODE_ENV === "production", // Only secure in production
+        secure: process.env.NODE_ENV === "production", 
       },
     },
     csrfToken: {
