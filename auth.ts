@@ -55,11 +55,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     async jwt({ token }) {
       if (!token.sub) return token;
+      console.log("JWT Token:", token);
 
       try {
         if (token.sub) {
           const createdUser = await getCreatedById(token.sub);
-
+          console.log("created user", createdUser);
           if (createdUser) {
             if (createdUser.teacher) {
               token.name = createdUser.teacher.full_name;
@@ -81,6 +82,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async session({ token, session }) {
+      console.log("JWT Session:", session);
+
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }
@@ -95,6 +98,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // debug: process.env.NODE_ENV === "development" ? true : false,
   },
   adapter: PrismaAdapter(db),
-  session: { strategy: "jwt", maxAge: 5 * 24 * 60 * 60 },
+  session: {
+    strategy: "jwt",
+    maxAge: 5 * 24 * 60 * 60,
+  },
+  cookies: {
+    sessionToken: {
+      name: `__Secure-next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax", // Adjust based on your requirements
+        path: "/",
+        secure: process.env.NODE_ENV === "production", // Only secure in production
+      },
+    },
+    csrfToken: {
+      name: `__Host-next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
+
   ...authConfig,
 });
