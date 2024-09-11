@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "pocketshuttle",
     description: "location bus service for school and parent",
-    // url: "https://daily-habit-quest.vercel.app/",
+    url: "https://pocketshuttle.vercel.app",
     siteName: "PocketShuttle",
     images: "/icon512_maskable.png",
     type: "website",
