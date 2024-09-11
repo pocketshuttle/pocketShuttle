@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 import withPWAInit from "@ducanh2912/next-pwa";
 import { exec } from "child_process";
+import { debug } from "console";
 
 const withPWA = withPWAInit({
   dest: "public",
@@ -26,6 +27,7 @@ const nextConfig = {
   async rewrites() {
     return [];
   },
+  debug: true,
 };
 
 export default withPWA(nextConfig);

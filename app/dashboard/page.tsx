@@ -64,7 +64,7 @@ const Dashboard = async () => {
         },
     });
     if (bus) {
-        // revalidateTag("bus")
+        revalidateTag("bus")
     }
 
     return (
