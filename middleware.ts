@@ -78,7 +78,7 @@ export default auth(async (req) => {
   } catch (error) {
     console.error("Error fetching token:", error);
     // Handle error, e.g., redirect to login or display an error message
-    return Response.redirect(new URL("/login", nextUrl));
+    return Response.redirect(new URL("/login", req.url));
   }
 });
 

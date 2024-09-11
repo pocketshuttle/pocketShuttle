@@ -8,7 +8,7 @@ import QueryProvider from "@/components/webnotifications/query-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  // metadataBase: new URL("https://daily-habit-quest.vercel.app/"),
+  metadataBase: new URL("https://pocketshuttle.vercel.app"),
 
   title: {
     template: "track live location for kids",
