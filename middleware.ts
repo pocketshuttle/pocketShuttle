@@ -8,11 +8,9 @@ import {
   publicRoutes,
   DEFAULT_USER_ROLE,
 } from "@/routes";
-import { NextRequest } from "next/server";
 
 const { auth } = NextAuth(authConfig);
 //@ts-ignore
-
 export default auth(async (req) => {
   const { nextUrl } = req;
   // console.log(req.url, "request url");
@@ -23,6 +21,8 @@ export default auth(async (req) => {
       //@ts-ignore
       secret: process.env.NEXTAUTH_SECRET,
     });
+
+    console.log(token, "next-secret");
     const userRole = token?.role;
 
     const isLoggedIn = !!token;
@@ -87,6 +87,6 @@ export const config = {
   unstable_allowDynamic: [
     "mongoose/dist/browser.umd.js",
     "./(models)/Parent.ts",
-    "/node_modules/function-bind/**", // use a glob to allow anything in the function-bind 3rd party module
+    "/node_modules/function-bind/**",
   ],
 };
