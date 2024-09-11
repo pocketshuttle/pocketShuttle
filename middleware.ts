@@ -22,7 +22,8 @@ export default auth(async (req) => {
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    console.log(token, "next-secret");
+    console.log("NextAuth Secret:", process.env.NEXTAUTH_SECRET);
+    console.log("Token:", token);
     const userRole = token?.role;
 
     const isLoggedIn = !!token;
