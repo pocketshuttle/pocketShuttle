@@ -25,15 +25,12 @@ import {
 
 type ListType = {
     link: string;
-    icon: any; // Replace 'any' with the correct type if you know it, e.g., object
+    icon: any;
     title: string;
 };
 
 const Sidebar = ({ data }: any) => {
     const [isHovering, setIsHovering] = useState(false);
-    const { data: session } = useSession();
-
-
 
     const menuItems: { title: string; list: ListType[] }[] = [
         {
