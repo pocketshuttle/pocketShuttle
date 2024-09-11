@@ -55,7 +55,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     async jwt({ token, user, profile }) {
       if (!token.sub) return token;
-      console.log(token, "token");
 
       try {
         if (token.sub) {
@@ -83,7 +82,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     async session({ token, session }) {
-      console.log("session", session);
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }
@@ -98,6 +96,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   adapter: PrismaAdapter(db),
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt", maxAge: 5 * 24 * 60 * 60 },
   ...authConfig,
 });
