@@ -12,7 +12,6 @@ const withPWA = withPWAInit({
   workboxOptions: {
     disableDevLogs: true,
   },
-
 });
 
 const nextConfig = {
@@ -27,6 +26,7 @@ const nextConfig = {
   async rewrites() {
     return [];
   },
+  baseUrl: process.env.NEXT_PUBLIC_BASE_URL,
 };
 
 export default withPWA(nextConfig);
