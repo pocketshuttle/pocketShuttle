@@ -19,8 +19,6 @@ export const authRoutes = [
   "/reset",
   "/reset-password",
 ];
-// https://pocketshuttle.vercel.app/dashboard
-// http://localhost:3000/dashboard
 /**
  *  the prefix for api auth routes,
  * routes with this prefix are used for api auth
