@@ -9,6 +9,7 @@ import {
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "./lib/db";
 import { UserRole } from "@prisma/client";
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: "/auth/login",
@@ -32,7 +33,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       try {
         if (account?.provider !== "credentials") return true;
         //@ts-ignore
-
         const existingUser = await getUserByEmail(user?.email, user?.role);
         // console.log("user from authorize", existingUser);
         // if (!existingUser) {
@@ -53,7 +53,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
     },
 
-    async jwt({ token, user, profile }) {
+    async jwt({ token }) {
       if (!token.sub) return token;
 
       try {
@@ -91,7 +91,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.role = token.role as UserRole;
         session.user.name = token.name;
       }
-
       return session;
     },
   },
