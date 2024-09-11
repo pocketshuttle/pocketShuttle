@@ -8,12 +8,16 @@ import LoginButton from "@/components/auth/login-button"
 import { Button } from "@/components/ui/button"
 import { getUserSession } from "@/lib/session"
 import { revalidateTag } from "next/cache"
+import { auth } from "@/auth"
 
 const Dashboard = async () => {
-    const user = await getUserSession()
+    // const user = await getUserSession()
+    const session = await auth();
+
+
 
     // if no user, that means you havent logged in, so redirect back to login page
-    if (!user) {
+    if (!session) {
         return <div className="flex items-center justify-center">
             User session is not available. Please log in.
             <LoginButton>
@@ -22,7 +26,7 @@ const Dashboard = async () => {
 
         </div>
     }
-    const userId = user?.id
+    const userId = session?.user?.id
 
     const teacherCount = await db.teacher.count({
         where: {
@@ -62,7 +66,7 @@ const Dashboard = async () => {
         },
     });
     if (bus) {
-        revalidateTag("bus")
+        // revalidateTag("bus")
     }
 
     return (
