@@ -93,6 +93,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      return baseUrl; // Always redirect to the base URL (dashboard)
+    },
+    // debug: process.env.NODE_ENV === "development" ? true : false,
   },
   adapter: PrismaAdapter(db),
   session: { strategy: "jwt", maxAge: 5 * 24 * 60 * 60 },
