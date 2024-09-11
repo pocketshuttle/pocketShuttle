@@ -80,7 +80,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return token;
     },
-
     async session({ token, session }) {
       if (token.sub && session.user) {
         session.user.id = token.sub;
@@ -92,9 +91,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.name = token.name;
       }
       return session;
-    },
-    async redirect({ url, baseUrl }) {
-      return baseUrl; // Always redirect to the base URL (dashboard)
     },
     // debug: process.env.NODE_ENV === "development" ? true : false,
   },
