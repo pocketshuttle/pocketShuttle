@@ -8,16 +8,13 @@ import {
 } from "next";
 import { cache } from "react";
 
-export const getUserSession = cache(
-  async (
-    ...args:
-      | [GetServerSidePropsContext["req"], GetServerSidePropsContext["res"]]
-      | [NextApiRequest, NextApiResponse]
-      | []
-  ) => {
+export const getUserSession = async (
+  ...args:
+    | [GetServerSidePropsContext["req"], GetServerSidePropsContext["res"]]
+    | [NextApiRequest, NextApiResponse]
+    | []
+) => {
+  const session = await auth();
 
-    const session = await auth();
-
-    return session?.user;
-  }
-);
+  return session?.user;
+};
