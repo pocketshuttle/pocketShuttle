@@ -17,6 +17,8 @@ const Dashboard = async () => {
 
     const user = session?.user
 
+    console.log(user, "user token")
+
 
     // if no user, that means you havent logged in, so redirect back to login page
     if (!user) {
