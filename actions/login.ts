@@ -61,10 +61,26 @@ export const Login = async (
       signInParams.role = role;
     }
 
-    await signIn("credentials", {
-      redirect: true,
-      ...signInParams,
+    // await signIn("credentials", {
+    //   redirect: true,
+    //   ...signInParams,
+    // });
+
+    const result = await signIn("credentials", {
+      redirect: false, // Disable automatic redirect
+      ...signInParams, // Use the defined signInParams
     });
+    console.log(result, "result");
+    if (result?.ok) {
+      window.location.href =
+        role === "parent"
+          ? DEFAULT_PARENT_ROLE
+          : role === "teacher"
+          ? DEFAULT_USER_ROLE
+          : callbackUrl || DEFAULT_LOGIN_REDIRECT;
+    } else {
+      return { error: "Login failed!" };
+    }
   } catch (error: unknown) {
     if (error instanceof AuthError) {
       switch (error.type) {
