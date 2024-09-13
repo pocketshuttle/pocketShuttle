@@ -11,14 +11,7 @@ import { revalidateTag } from "next/cache"
 import { auth } from "@/auth"
 
 const Dashboard = async () => {
-    // const user = await getUserSession()
-    // console.log("user", user)
-    const session = await auth()
-
-    const user = session?.user
-
-    console.log(user, "user token")
-
+    const user = await getUserSession()
 
     // if no user, that means you havent logged in, so redirect back to login page
     if (!user) {
