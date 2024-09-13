@@ -1,4 +1,4 @@
-// "use client"
+"use client"
 // import { SessionProvider } from "next-auth/react"
 // import { ReactNode } from "react"
 
@@ -29,7 +29,6 @@ import { ReactNode, useCallback, useEffect, useState } from "react";
 // Retrieve user session for the app's session context
 const Provider = ({ children }: { children: ReactNode }) => {
     const [session, setSession] = useState<Session | null>(null);
-    const pathName = usePathname();
 
     const fetchSession = useCallback(async () => {
         if (typeof window !== "undefined") {
