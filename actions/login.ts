@@ -62,6 +62,7 @@ export const Login = async (
     }
 
     await signIn("credentials", {
+      redirect: true,
       ...signInParams,
     });
   } catch (error: unknown) {
