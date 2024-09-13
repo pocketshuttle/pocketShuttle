@@ -1,19 +1,69 @@
-"use client"
-import { SessionProvider } from "next-auth/react"
-import { ReactNode } from "react"
+// "use client"
+// import { SessionProvider } from "next-auth/react"
+// import { ReactNode } from "react"
 
-type ProviderProps = {
+// type ProviderProps = {
+//     children: ReactNode;
+//     session?: any
+
+// }
+
+// const Provider = ({ children, session }: ProviderProps) => {
+//     return (
+//         <SessionProvider session={session}>
+//             {children}
+//         </SessionProvider>
+//     )
+// }
+
+// export default Provider
+
+"use client";
+
+import { Session } from "next-auth";
+import {
+    SessionProvider as NextSessionProvider,
+    getSession
+} from "next-auth/react";
+import { usePathname } from "next/navigation";
+import {
+    ReactNode,
+    useCallback,
+    useEffect,
+    useState
+} from "react";
+
+// Retrieve user session for the app's session context
+const Provider = ({
+    children
+}: {
     children: ReactNode;
-    session?: any
+}) => {
+    const [session, setSession] = useState<Session | null>(null);
+    const pathName = usePathname();
 
-}
+    const fetchSession = useCallback(async () => {
+        try {
+            const sessionData = await getSession();
+            setSession(sessionData);
+        } catch (error) {
+            setSession(null);
 
-const Provider = ({ children, session }: ProviderProps) => {
+            if (process.env.NODE_ENV === "development") {
+                console.error(error);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchSession().finally();
+    }, [fetchSession, pathName]);
+
     return (
-        <SessionProvider session={session}>
+        <NextSessionProvider session={session}>
             {children}
-        </SessionProvider>
-    )
+        </NextSessionProvider>
+    );
 }
 
 export default Provider
