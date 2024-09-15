@@ -7,10 +7,6 @@ import { getUserByEmail } from "./data/user";
 
 export default {
   providers: [
-    GoogleProvider({
-      clientId: process.env.CLIENT_ID || "",
-      clientSecret: process.env.CLIENT_SECRET || "",
-    }),
     Credentials({
       async authorize(credentials) {
         //we validating the fields again
@@ -18,6 +14,7 @@ export default {
         if (validatedFields.success) {
           const { email, password, role } = validatedFields.data;
           const user = await getUserByEmail(email, role);
+          console.log(user, "this is user");
 
           if (!user || !user.password) {
             return null;
