@@ -21,14 +21,9 @@ export default auth(async (req) => {
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    console.log(token, "next-secret");
     const userRole = token?.role;
-
     const isLoggedIn = !!token;
-
     const isAPIAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
-
-    //   //if the nexturl.pathname is included in the publicroutes array, then it requires no auth
     const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
 
     //   //if the nexturl.pathname is included in the authroutes array, then it requires auth
@@ -43,22 +38,17 @@ export default auth(async (req) => {
     );
 
     if (isAuthRoute) {
-      console.log(isAuthRoute, "auth route");
       if (isLoggedIn) {
-        console.log(isLoggedIn, "login boolean");
-
         if (userRole === "parent") {
-          console.log("Redirecting to parent page");
           return Response.redirect(new URL(DEFAULT_USER_ROLE, nextUrl));
         }
-
         return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
       }
+      console.log(isAuthRoute, "auth route");
+      console.log(nextUrl.pathname, "pathname route");
 
       return null;
     }
-
-    // console.log(userRole, "user role 2");
 
     if (!isLoggedIn && !isPublicRoute) {
       //taking users back to the previous used route
@@ -75,7 +65,6 @@ export default auth(async (req) => {
 
     return null;
   } catch (error) {
-    console.error("Error fetching token:", error);
     // Handle error, e.g., redirect to login or display an error message
     return Response.redirect(new URL("/login", req.url));
   }
