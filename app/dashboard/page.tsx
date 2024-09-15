@@ -12,7 +12,7 @@ import { auth } from "@/auth"
 
 const Dashboard = async () => {
     const user = await getUserSession()
-    
+
     // if no user, that means you havent logged in, so redirect back to login page
     if (!user) {
         return <div className="flex items-center justify-center">

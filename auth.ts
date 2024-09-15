@@ -102,22 +102,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: "jwt",
     maxAge: 5 * 24 * 60 * 60,
   },
-  cookies: {
-    sessionToken: {
-      name: `__Secure-next-auth.session-token`, // Cookie name for session token
-      options: {
-        httpOnly: true, // Prevent access via JavaScript for security
-        sameSite: "lax", // Control cross-site request behavior, "lax" works for most cases
-        path: "/", // Path where the cookie is available (entire app)
-        secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-        // Ensure the cookie is set for the correct domain
-        domain:
-          process.env.NODE_ENV === "production"
-            ? "https://pocketshuttle.vercel.app"
-            : undefined,
-      },
-    },
-  },
+  
+  // cookies: {
+  //   sessionToken: {
+  //     name: `__Secure-next-auth.session-token`,
+  //     options: {
+  //       httpOnly: true, // Prevent access via JavaScript for security
+  //       sameSite: "lax", // Control cross-site request behavior, "lax" works for most cases
+  //       path: "/", // Path where the cookie is available (entire app)
+  //       secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+  //       domain:
+  //         process.env.NODE_ENV === "production"
+  //           ? "https://pocketshuttle.vercel.app"
+  //           : undefined,
+  //     },
+  //   },
+  // },
 
   debug: process.env.NODE_ENV === "development",
   ...authConfig,
