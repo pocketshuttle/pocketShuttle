@@ -18,7 +18,7 @@ export default auth(async (req) => {
     const token = await getToken({
       req,
       //@ts-ignore
-      secret: process.env.NEXTAUTH_SECRET,
+      secret: process.env.AUTH_SECRET,
     });
 
     const userRole = token?.role;
