@@ -1,5 +1,5 @@
 import NextAuth from "next-auth";
-import authConfig from "./auth.config";
+// import authConfig from "./auth.config";
 import {
   getCreatedById,
   getCreatedUser,
@@ -10,10 +10,43 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "./lib/db";
 import { UserRole } from "@prisma/client";
 
+import Credentials from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import { LoginSchema } from "@/schemas";
+import bcrypt from "bcryptjs";
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [
+    Credentials({
+      credentials: {
+        email: { label: "Email", type: "email", placeholder: "Email" },
+        password: {
+          label: "Password",
+          type: "password",
+          placeholder: "Password",
+        },
+      },
+      async authorize(credentials) {
+        //we validating the fields again
+        const validatedFields = LoginSchema.safeParse(credentials);
+        if (validatedFields.success) {
+          const { email, password, role } = validatedFields.data;
+          const user = await getUserByEmail(email, role);
+          console.log(user, "this is user");
+
+          if (!user || !user.password) {
+            return null;
+          }
+          const passwordMatch = await bcrypt.compare(password, user.password);
+          if (passwordMatch) return user;
+        }
+        return null;
+      },
+    }),
+  ],
   pages: {
-    signIn: "/auth/login",
-    error: "/auth/error",
+    signIn: "/login",
+    error: "/error",
   },
   events: {
     async linkAccount({ user }) {
@@ -52,7 +85,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         throw error;
       }
     },
+    // async authorized({ request: { nextUrl }, auth }) {
+    //   const isLoggedIn = !!auth?.user;
+    //   const { pathname } = nextUrl;
 
+    // },
     async jwt({ token }) {
       if (!token.sub) return token;
       console.log("JWT Token:", token);
@@ -89,7 +126,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       if (token.role && session.user) {
-        //@ts-ignore
         session.user.role = token.role as UserRole;
         session.user.name = token.name;
       }
@@ -97,28 +133,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     // debug: process.env.NODE_ENV === "development" ? true : false,
   },
-  adapter: PrismaAdapter(db),
   session: {
     strategy: "jwt",
     maxAge: 5 * 24 * 60 * 60,
   },
-
-  // cookies: {
-  //   sessionToken: {
-  //     name: `__Secure-next-auth.session-token`,
-  //     options: {
-  //       httpOnly: true, // Prevent access via JavaScript for security
-  //       sameSite: "lax", // Control cross-site request behavior, "lax" works for most cases
-  //       path: "/", // Path where the cookie is available (entire app)
-  //       secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-  //       domain:
-  //         process.env.NODE_ENV === "production"
-  //           ? "https://pocketshuttle.vercel.app"
-  //           : undefined,
-  //     },
-  //   },
-  // },
-
-  debug: process.env.NODE_ENV === "development",
-  ...authConfig,
 });

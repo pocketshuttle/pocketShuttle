@@ -1,5 +1,5 @@
 import NextAuth from "next-auth";
-import authConfig from "@/auth.config";
+// import authConfig from "@/bauth.config";
 import { getToken } from "next-auth/jwt";
 import {
   DEFAULT_LOGIN_REDIRECT,
@@ -8,10 +8,11 @@ import {
   publicRoutes,
   DEFAULT_USER_ROLE,
 } from "@/routes";
+import { NextRequest } from "next/server";
+// export { auth as middleware } from "@/auth";
 
-const { auth } = NextAuth(authConfig);
-//@ts-ignore
-export default auth(async (req) => {
+// const { auth } = NextAuth(authConfig);
+export async function middleware(req: NextRequest) {
   const { nextUrl } = req;
 
   try {
@@ -68,7 +69,7 @@ export default auth(async (req) => {
     // Handle error, e.g., redirect to login or display an error message
     return Response.redirect(new URL("/login", req.url));
   }
-});
+}
 
 export const config = {
   matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
