@@ -8,7 +8,7 @@ import {
   DEFAULT_USER_ROLE,
   DEFAULT_PARENT_ROLE,
 } from "@/routes";
-import { AuthError } from "next-auth";
+// import { AuthError } from "next-auth/authError";
 import { getUserByEmail } from "@/data/user";
 import { generateVerificationToken } from "@/lib/token";
 import { sendVerificationEmail } from "@/lib/mail";
@@ -66,15 +66,16 @@ export const Login = async (
       ...signInParams,
     });
   } catch (error: unknown) {
-    if (error instanceof AuthError) {
-      switch (error.type) {
-        case "CredentialsSignin":
-          return { error: "Invalid Credentials!" };
-        default:
-          return { error: "Something went wrong!" };
-      }
-    }
-    throw error;
+    console.log(error);
+    // if (error instanceof AuthError) {
+    //   switch (error.type) {
+    //     case "CredentialsSignin":
+    //       return { error: "Invalid Credentials!" };
+    //     default:
+    //       return { error: "Something went wrong!" };
+    //   }
+    // }
+    // throw error;
   }
   return { success: "Login Successful" };
 };
