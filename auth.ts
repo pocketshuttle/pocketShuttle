@@ -131,8 +131,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return session;
     },
-    // debug: process.env.NODE_ENV === "development" ? true : false,
   },
+  debug: process.env.NODE_ENV === "development",
   session: {
     strategy: "jwt",
     maxAge: 5 * 24 * 60 * 60,
