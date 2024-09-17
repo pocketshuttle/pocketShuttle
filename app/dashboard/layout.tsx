@@ -7,10 +7,8 @@ const poppins = Poppins({ weight: "500", subsets: ["latin"] });
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
     const user = await getUserSession();
-    //@ts-ignore
     if (user?.role === "teacher") {
         redirect("/teacher");
-        //@ts-ignore
     } else if (user?.role === "parent") {
         redirect("/parent");
     }

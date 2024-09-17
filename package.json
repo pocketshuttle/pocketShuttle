@@ -35,6 +35,7 @@
     "cloudinary": "^2.2.0",
     "clsx": "^2.1.1",
     "cmdk": "0.2.1 ",
+    "jose": "^5.9.2",
     "lottie-web": "^5.12.2",
     "lucide-react": "^0.428.0",
     "mongodb": "^6.8.0",
