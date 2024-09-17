@@ -64,7 +64,6 @@ export const Login = async (
     await signIn("credentials", {
       redirect: true,
       ...signInParams,
-      callbackUrl: "/dashboard",
     });
   } catch (error: unknown) {
     if (error instanceof AuthError) {
