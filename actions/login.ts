@@ -12,6 +12,10 @@ import {
 import { getUserByEmail } from "@/data/user";
 import { generateVerificationToken } from "@/lib/token";
 import { sendVerificationEmail } from "@/lib/mail";
+import { encrypt } from "@/lib/create-session";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import bcrypt from "bcryptjs";
 
 export const Login = async (
   values: z.infer<typeof LoginSchema>,
@@ -23,13 +27,24 @@ export const Login = async (
   if (!validatedFields.success) {
     return { error: "Invalid Details" };
   }
-  const { email, password, role } = validatedFields.data;
+  const { email, password, role: userRole } = validatedFields.data;
 
-  const existingUser = await getUserByEmail(email, role);
+  const existingUser = await getUserByEmail(email, userRole);
 
   if (!existingUser || !existingUser.password || !existingUser.email) {
     return { error: "Invalid Credentials!" };
   }
+
+  const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+  if (!isPasswordValid) {
+    return { error: "Invalid Credentials!" };
+  }
+
+  const userId = existingUser?.id;
+  const role = existingUser?.role;
+  const name = existingUser?.name || existingUser?.full_name;
+  const image = existingUser?.image;
+  console.log(existingUser, "existing");
 
   // if (!existingUser.emailVerified) {
   //   const verificationToken = await generateVerificationToken(
@@ -45,26 +60,37 @@ export const Login = async (
   // }
 
   try {
-    const signInParams = {
-      email,
-      password,
-      redirectTo:
-        role === "parent"
-          ? DEFAULT_PARENT_ROLE
-          : role === "teacher"
-          ? DEFAULT_USER_ROLE
-          : callbackUrl || DEFAULT_LOGIN_REDIRECT,
-    };
+    const expiresAt = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
+    const session = await encrypt({ userId, role, name, image });
 
-    if (role) {
-      //@ts-ignore
-      signInParams.role = role;
-    }
-
-    await signIn("credentials", {
-      redirect: true,
-      ...signInParams,
+    cookies().set("session", session, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      expires: expiresAt,
+      // sameSite: "lax",
+      // path: "/",
     });
+
+    //   const signInParams = {
+    //     email,
+    //     password,
+    //     redirectTo:
+    //       role === "parent"
+    //         ? DEFAULT_PARENT_ROLE
+    //         : role === "teacher"
+    //         ? DEFAULT_USER_ROLE
+    //         : callbackUrl || DEFAULT_LOGIN_REDIRECT,
+    //   };
+
+    //   if (role) {
+    //     //@ts-ignore
+    //     signInParams.role = role;
+    //   }
+
+    //   await signIn("credentials", {
+    //     redirect: true,
+    //     ...signInParams,
+    //   });
   } catch (error: unknown) {
     console.log(error);
     // if (error instanceof AuthError) {
@@ -77,5 +103,7 @@ export const Login = async (
     // }
     // throw error;
   }
+  redirect("/dashboard");
+
   return { success: "Login Successful" };
 };

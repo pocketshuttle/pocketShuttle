@@ -8,6 +8,8 @@ import User from "@/(models)/User";
 import { connectToDB } from "@/utils/connect-to-db";
 import { generateVerificationToken } from "@/lib/token";
 import { sendVerificationEmail } from "@/lib/mail";
+import { createSession } from "@/lib/create-session";
+import { redirect } from "next/navigation";
 
 export const register = async (values: z.infer<typeof RegisterSchema>) => {
   await connectToDB();
@@ -42,20 +44,24 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
       return { error: "Email already in use!" };
     }
 
-    await db.user.create({
+    const user = await db.user.create({
       data: {
         name: schoolname,
         email,
         password: hashedPassword,
       },
     });
-    const verificationToken = await generateVerificationToken(email);
 
-    await sendVerificationEmail(
-      verificationToken.email,
-      verificationToken.token
-    );
+    await createSession(user.id);
 
+    // const verificationToken = await generateVerificationToken(email);
+
+    // await sendVerificationEmail(
+    //   verificationToken.email,
+    //   verificationToken.token
+    // );
+
+    // redirect("/dashboard");
     return { success: "Confirmation Email Sent" };
   } catch (error) {
     console.error("Error during registration:", error);
