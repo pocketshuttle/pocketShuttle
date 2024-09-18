@@ -50,7 +50,7 @@ export const LoginForm = () => {
         startTransition(() => {
             Login(values, callbackUrl).then((data) => {
                 setIsError(data?.error)
-                setIsSuccess(data?.success)
+                // setIsSuccess(data?.success)
             })
         })
     }
