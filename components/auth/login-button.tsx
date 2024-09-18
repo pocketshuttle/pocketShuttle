@@ -1,6 +1,6 @@
 "use client"
 
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 interface LoginButtonProps {
     children: React.ReactNode;
@@ -17,7 +17,7 @@ const LoginButton = ({
     const router = useRouter()
 
     const onClick = () => {
-        router.push('/login')
+        redirect('/login')
     }
     if (mode === "modal") {
         return (
