@@ -6,7 +6,14 @@ import { redirect } from "next/navigation";
 const poppins = Poppins({ weight: "500", subsets: ["latin"] });
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
+    // Fetch the user session
     const user = await getUserSession();
+
+    // Handle case where no session is found (redirect to login)
+    if (!user) {
+        redirect("/login");
+    }
+    
     if (user?.role === "teacher") {
         redirect("/teacher");
     } else if (user?.role === "parent") {
