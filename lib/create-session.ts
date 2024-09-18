@@ -35,7 +35,7 @@ export async function createSession(id: string) {
     httpOnly: true,
     secure: true,
     expires: expiresAt,
-    sameSite: "lax",
+    sameSite: "none",
     path: "/",
   });
 }
