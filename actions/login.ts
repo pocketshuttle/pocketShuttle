@@ -40,11 +40,10 @@ export const Login = async (
     return { error: "Invalid Credentials!" };
   }
 
-  const userId = existingUser?.id;
+  const id = existingUser?.id;
   const role = existingUser?.role;
   const name = existingUser?.name || existingUser?.full_name;
   const image = existingUser?.image;
-  console.log(existingUser, "existing");
 
   // if (!existingUser.emailVerified) {
   //   const verificationToken = await generateVerificationToken(
@@ -61,7 +60,7 @@ export const Login = async (
 
   try {
     const expiresAt = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
-    const session = await encrypt({ userId, role, name, image });
+    const session = await encrypt({ id, role, name, image });
 
     cookies().set("session", session, {
       httpOnly: true,

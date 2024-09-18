@@ -13,7 +13,6 @@ import support from "@/public/images/support.json";
 import dashboard from "@/public/images/dashboard.json";
 import car from "@/public/images/Car.json";
 import analytics from "@/public/images/analytics.json";
-import exit from "@/public/images/exit.json";
 import LottieAnimation from "./menuLink/lottie-animation";
 import { useState } from "react";
 import userprofile from "@/public/images/userProfile.json";
@@ -22,6 +21,7 @@ import {
     AvatarFallback,
     AvatarImage,
 } from "@/components/ui/avatar";
+import Logout from "./logout";
 
 type ListType = {
     link: string;
@@ -31,7 +31,7 @@ type ListType = {
 
 const Sidebar = ({ data }: any) => {
     const [isHovering, setIsHovering] = useState(false);
-
+    const [openModal, setIsOpenModal] = useState(false)
     const menuItems: { title: string; list: ListType[] }[] = [
         {
             title: "Pages",
@@ -104,26 +104,33 @@ const Sidebar = ({ data }: any) => {
                 </ul>
             </div>
 
-            <button
-                className="flex gap-2 flex-start text-[0.9rem] py-3 px-2 hover:bg-[var(--hoverBg)] w-full rounded-md"
-                onClick={() => signOut()}
+            <div
+                className="flex flex-col gap-2 flex-start text-[0.9rem] py-3 px-2  w-full rounded-md  cursor-pointer"
+                onClick={() => setIsOpenModal(!openModal)}
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
             >
-                <Avatar>
-                    {data?.image ? (
-                        <AvatarImage src={data?.image} alt="@shadcn" />
-                    ) : (
-                        <div style={{ width: 40, height: 40 }}>
-                            <LottieAnimation isHovering={isHovering} animationData={userprofile} />
-                        </div>
-                    )}
-                </Avatar>
-                <div className="flex flex-col items-start ">
-                    <span className="text-[1rem] font-medium capitalize">{data?.name || "admin"}</span>
-                    <span className="text-[0.7rem] text-[#b7cac1]">{data?.role || "admffin"}</span>
+                {
+                    openModal && <Logout />
+                }
+
+                <div className="flex gap-2 flex-start text-[0.9rem] py-3 px-2 hover:bg-[var(--hoverBg)] w-full rounded-md">
+                    <Avatar>
+                        {data?.image ? (
+                            <AvatarImage src={data?.image} alt={data?.name} />
+                        ) : (
+                            <div style={{ width: 40, height: 40 }}>
+                                <LottieAnimation isHovering={isHovering} animationData={userprofile} />
+                            </div>
+                        )}
+                    </Avatar>
+                    <div className="flex flex-col items-start ">
+                        <span className="text-[1rem] font-medium capitalize">{data?.name || "admin"}</span>
+                        <span className="text-[0.7rem] text-[#b7cac1]">{data?.role || "admffin"}</span>
+                    </div>
                 </div>
-            </button>
+
+            </div>
         </div>
     );
 };

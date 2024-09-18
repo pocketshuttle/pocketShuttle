@@ -26,10 +26,10 @@ export async function decrypt(session: string | undefined = "") {
   }
 }
 
-export async function createSession(userId: string) {
+export async function createSession(id: string | null) {
   const expiresAt = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
   const role = "ADMIN";
-  const session = await encrypt({ userId, expiresAt, role });
+  const session = await encrypt({ id, expiresAt, role });
 
   cookies().set("session", session, {
     httpOnly: true,
@@ -40,15 +40,6 @@ export async function createSession(userId: string) {
   });
 }
 
-export function deleteSession() {
-  cookies().delete("session");
-}
 
-export async function logout() {
-  deleteSession();
-  redirect("/login");
-}
 
- 
 
- 
