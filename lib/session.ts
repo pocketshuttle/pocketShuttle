@@ -10,7 +10,7 @@ import { redirect } from "next/navigation";
 //   return session?.user;
 // };
 
-export const getUserSession = cache(async () => {
+export const getUserSession = async () => {
   const cookie = cookies().get("session")?.value;
   console.log("Cookie value:", cookie);
 
@@ -27,7 +27,7 @@ export const getUserSession = cache(async () => {
   }
 
   return session;
-});
+};
 
 // export const verifySession = cache(async () => {
 //   const cookie = cookies().get("session")?.value;
