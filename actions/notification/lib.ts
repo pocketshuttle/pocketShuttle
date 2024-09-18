@@ -7,7 +7,7 @@ export const generateSubscribeEndPoint = async (
   registration: ServiceWorkerRegistration
 ) => {
   const user = await getUserSession();
-  if (!user) {
+  if (!user || user?.id !== "string") {
     toast({
       description: "User session not found. Please log in.",
     });
