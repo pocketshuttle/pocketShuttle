@@ -3,8 +3,6 @@
 import settings from "@/public/images/setting.json";
 import MenuLink from "./menuLink/menuLink";
 import { DashboardHeader } from "../header/header";
-import { BiLogOut } from "react-icons/bi";
-import { signOut, useSession } from "next-auth/react";
 import classroom from "@/public/images/Classroom.json";
 import parent from "@/public/images/parent.json";
 import student from "@/public/images/student.json";

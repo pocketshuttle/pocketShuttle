@@ -13,11 +13,14 @@ import { redirect } from "next/navigation";
 export const getUserSession = cache(async () => {
   const cookie = cookies().get("session")?.value;
 
-  if (!cookie) return null;
   const session = await decrypt(cookie);
+
+  if (!session?.id) {
+    redirect("/login");
+  }
+
   return session;
 });
-
 
 // export const verifySession = cache(async () => {
 //   const cookie = cookies().get("session")?.value;

@@ -2,13 +2,15 @@
 
 import { logout } from "@/actions/logout";
 import { ExitIcon } from "@radix-ui/react-icons";
-import Image from "next/image";
+
 
 
 const Logout = () => {
     const handleLogout = async () => {
-        await logout();
+        const callbackUrl = window.location.pathname;
+        await logout(callbackUrl);
     };
+    ``
     return (
         <button className="py-2 flex justify-start items-center text-md bg-[crimson] rounded-sm px-2"
             onClick={handleLogout}
