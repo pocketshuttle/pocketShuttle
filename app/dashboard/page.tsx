@@ -1,6 +1,3 @@
-export const config = {
-    runtime: "nodejs",
-};
 import Alert from "@/components/dashboard/news/news"
 import { DashboardWrapper } from "@/components/dashboard/wrapper/dashboard-Wrapper"
 import ActiveCommute from "@/components/dashboard/activecommute/active"
