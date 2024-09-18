@@ -34,7 +34,6 @@ const SingleBus = () => {
     const { data: postData, loading: postLoading, errorMessage: postError, success } = usePost(`/api/addbus/${busId}`, submittedData, "PATCH")
 
 
-    console.log(busData)
 
     const form = useForm<z.infer<typeof BusSchema>>({
         resolver: zodResolver(BusSchema),

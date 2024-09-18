@@ -1,9 +1,7 @@
 "use server";
 
-import Buses from "@/(models)/Bus";
-import Driver from "@/(models)/Driver";
+
 import { db } from "@/lib/db";
-import { connectToDB } from "@/utils/connect-to-db";
 
 export const removeDriverFromBus = async (driverId: string, busId: string) => {
   console.log(driverId, busId, "ids ");

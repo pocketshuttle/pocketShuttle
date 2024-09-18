@@ -20,8 +20,8 @@ const AllStudents = async ({ searchParams }: { searchParams: { [key: string]: st
         ? decodeURIComponent(decodeURIComponent(searchParams.grade.replace(/\+/g, ' ')))
         : "";
     const ITEM_PER_PAGE = 10;
-    if (!user) {
-        return <div>
+    if (!user || user?.id !== "string") {
+        return <div className="flex items-center justify-center">
             User session is not available. Please log in.
             <LoginButton>
                 <Button size={"lg"} >Login</Button>
@@ -29,7 +29,6 @@ const AllStudents = async ({ searchParams }: { searchParams: { [key: string]: st
 
         </div>
     }
-
 
     const userId = user?.id
     const query = {
