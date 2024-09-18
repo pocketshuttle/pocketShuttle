@@ -12,8 +12,15 @@ import { redirect } from "next/navigation";
 
 export const getUserSession = cache(async () => {
   const cookie = cookies().get("session")?.value;
+  console.log("Cookie value:", cookie);
+
+  if (!cookie) {
+    console.log("No cookie found");
+    redirect("/login");
+  }
 
   const session = await decrypt(cookie);
+  console.log("Session data:", session);
 
   if (!session?.id) {
     redirect("/login");
