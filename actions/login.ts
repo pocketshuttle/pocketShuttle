@@ -77,11 +77,11 @@ export const Login = async (
   }
   // Determine redirect URL
   const redirectTo =
-    role === "parent"
-      ? DEFAULT_PARENT_ROLE
-      : role === "teacher"
-      ? DEFAULT_USER_ROLE
-      : callbackUrl || DEFAULT_LOGIN_REDIRECT;
+    // role === "parent"
+    //   ? DEFAULT_PARENT_ROLE
+    //   : role === "teacher"
+    //   ? DEFAULT_USER_ROLE
+    //   : callbackUrl || DEFAULT_LOGIN_REDIRECT;
 
-  redirect(redirectTo);
+    redirect("/dashboard");
 };
