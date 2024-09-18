@@ -4,8 +4,6 @@ import { MdNotifications } from "react-icons/md"
 import LottieAnimation from "../dashboard/sidebar/menuLink/lottie-animation"
 import { useState } from "react"
 import userprofile from "@/public/images/userProfile.json"
-import { signOut } from "next-auth/react";
-import { LogOut } from "lucide-react"
 import {
     Avatar,
     AvatarFallback,
@@ -13,6 +11,7 @@ import {
 } from "@/components/ui/avatar";
 import NotificationFeed from "@/components/knock/notitification-feed"
 import NotificationRequest from "@/components/webnotifications/notificattions"
+import Logout from "../dashboard/sidebar/logout"
 type NavbarProps = {
     data: any
 }
@@ -49,10 +48,10 @@ const Navbar = ({ data }: NavbarProps) => {
                 < NotificationFeed />
                 {/* <NotificationRequest /> */}
                 <span
-                    onClick={() => signOut()}
+
                     className="cursor-pointer"
                 >
-                    <LogOut />
+                    <Logout />
                 </span>
             </div>
 

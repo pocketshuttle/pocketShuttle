@@ -21,6 +21,7 @@ export const Login = async (
   values: z.infer<typeof LoginSchema>,
   callbackUrl?: string | null
 ) => {
+  
   //validating the data
   const validatedFields = LoginSchema.safeParse(values);
 
@@ -45,19 +46,6 @@ export const Login = async (
   const name = existingUser?.name || existingUser?.full_name;
   const image = existingUser?.image;
 
-  // if (!existingUser.emailVerified) {
-  //   const verificationToken = await generateVerificationToken(
-  //     existingUser.email
-  //   );
-
-  //   await sendVerificationEmail(
-  //     verificationToken.email,
-  //     verificationToken.token
-  //   );
-
-  //   return { success: "Confirmation email sent, please verify your account!" };
-  // }
-
   try {
     const expiresAt = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
     const session = await encrypt({ id, role, name, image });
@@ -66,8 +54,8 @@ export const Login = async (
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       expires: expiresAt,
-      // sameSite: "lax",
-      // path: "/",
+      sameSite: "lax",
+      path: "/",
     });
 
     //   const signInParams = {
@@ -92,17 +80,17 @@ export const Login = async (
     //   });
   } catch (error: unknown) {
     console.log(error);
-    // if (error instanceof AuthError) {
-    //   switch (error.type) {
-    //     case "CredentialsSignin":
-    //       return { error: "Invalid Credentials!" };
-    //     default:
-    //       return { error: "Something went wrong!" };
-    //   }
-    // }
-    // throw error;
+
+    return { error: "Invalid Credentials!" };
   }
-  redirect("/dashboard");
+  const redirectTo =
+    role === "parent"
+      ? DEFAULT_PARENT_ROLE
+      : role === "teacher"
+      ? DEFAULT_USER_ROLE
+      : callbackUrl || DEFAULT_LOGIN_REDIRECT;
+
+  redirect(redirectTo);
 
   return { success: "Login Successful" };
 };

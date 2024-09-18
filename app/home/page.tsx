@@ -1,12 +1,10 @@
 "use client"
-import { signOut, useSession, } from "next-auth/react"
+import Logout from "@/components/dashboard/sidebar/logout"
 
 const Home = () => {
-    const { data: session } = useSession()
-   
     return (
         <div className="text-red-600">
-            <button onClick={() => signOut()}>signout</button>
+            <Logout />
         </div>
     )
 }

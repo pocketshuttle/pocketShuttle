@@ -1,6 +1,3 @@
-import NextAuth from "next-auth";
-// import authConfig from "@/bauth.config";
-import { getToken } from "next-auth/jwt";
 import {
   DEFAULT_LOGIN_REDIRECT,
   apiAuthPrefix,
@@ -9,18 +6,16 @@ import {
   DEFAULT_USER_ROLE,
 } from "@/routes";
 import { NextRequest } from "next/server";
-// export { auth as middleware } from "@/auth";
+import { decrypt } from "./lib/create-session";
+import { cookies } from "next/headers";
 
-// const { auth } = NextAuth(authConfig);
 export async function middleware(req: NextRequest) {
   const { nextUrl } = req;
 
   try {
-    const token = await getToken({
-      req,
-      //@ts-ignore
-      secret: process.env.AUTH_SECRET,
-    });
+    const cookie = req.cookies.get("session")?.value;
+
+    const token = await decrypt(cookie);
 
     const userRole = token?.role;
     const isLoggedIn = !!token;
@@ -28,7 +23,6 @@ export async function middleware(req: NextRequest) {
     const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
 
     //   //if the nexturl.pathname is included in the authroutes array, then it requires auth
-    // const isAuthRoute = authRoutes.includes(nextUrl.pathname);
     if (isAPIAuthRoute) {
       return null;
     }
@@ -45,20 +39,22 @@ export async function middleware(req: NextRequest) {
         }
         return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
       }
-      console.log(isAuthRoute, "auth route");
-      console.log(nextUrl.pathname, "pathname route");
 
       return null;
     }
 
+    // If user is not logged in and it's not a public route, redirect to login
     if (!isLoggedIn && !isPublicRoute) {
       //taking users back to the previous used route
       let callbackUrl = nextUrl.pathname;
-      if (nextUrl.search) {
+      console.log(callbackUrl, "from middleware");
+
+      if (nextUrl.search && nextUrl.search.startsWith("?")) {
         callbackUrl += nextUrl.search;
       }
 
       const encodeCallbackUrl = encodeURIComponent(callbackUrl);
+
       return Response.redirect(
         new URL(`/login?callbackUrl=${encodeCallbackUrl}`, nextUrl)
       );
