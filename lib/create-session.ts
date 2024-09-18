@@ -26,7 +26,7 @@ export async function decrypt(session: string | undefined = "") {
   }
 }
 
-export async function createSession(id: string | null) {
+export async function createSession(id: string) {
   const expiresAt = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
   const role = "ADMIN";
   const session = await encrypt({ id, expiresAt, role });
@@ -39,7 +39,3 @@ export async function createSession(id: string | null) {
     path: "/",
   });
 }
-
-
-
-

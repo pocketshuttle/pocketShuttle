@@ -2,13 +2,11 @@
 
 import { LoginSchema } from "@/schemas";
 import * as z from "zod";
-import { signIn } from "@/auth";
 import {
   DEFAULT_LOGIN_REDIRECT,
   DEFAULT_USER_ROLE,
   DEFAULT_PARENT_ROLE,
 } from "@/routes";
-// import { AuthError } from "next-auth/authError";
 import { getUserByEmail } from "@/data/user";
 import { generateVerificationToken } from "@/lib/token";
 import { sendVerificationEmail } from "@/lib/mail";
@@ -21,7 +19,6 @@ export const Login = async (
   values: z.infer<typeof LoginSchema>,
   callbackUrl?: string | null
 ) => {
-  
   //validating the data
   const validatedFields = LoginSchema.safeParse(values);
 
@@ -31,22 +28,38 @@ export const Login = async (
   const { email, password, role: userRole } = validatedFields.data;
 
   const existingUser = await getUserByEmail(email, userRole);
-
+  // Check if user exists
   if (!existingUser || !existingUser.password || !existingUser.email) {
     return { error: "Invalid Credentials!" };
   }
+  // Verify email if needed
+  // if (!existingUser.emailVerified) {
+  //   const verificationToken = await generateVerificationToken(
+  //     existingUser.email
+  //   );
 
+  //   await sendVerificationEmail(
+  //     verificationToken.email,
+  //     verificationToken.token
+  //   );
+
+  //   return { success: "Confirmation email sent, please verify your account!" };
+  // }
+
+  // Check password validity
   const isPasswordValid = await bcrypt.compare(password, existingUser.password);
   if (!isPasswordValid) {
     return { error: "Invalid Credentials!" };
   }
-
+  // Prepare session data
   const id = existingUser?.id;
   const role = existingUser?.role;
+  //@ts-ignore
   const name = existingUser?.name || existingUser?.full_name;
   const image = existingUser?.image;
 
   try {
+    // Create session cookie
     const expiresAt = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
     const session = await encrypt({ id, role, name, image });
 
@@ -57,32 +70,12 @@ export const Login = async (
       sameSite: "lax",
       path: "/",
     });
-
-    //   const signInParams = {
-    //     email,
-    //     password,
-    //     redirectTo:
-    //       role === "parent"
-    //         ? DEFAULT_PARENT_ROLE
-    //         : role === "teacher"
-    //         ? DEFAULT_USER_ROLE
-    //         : callbackUrl || DEFAULT_LOGIN_REDIRECT,
-    //   };
-
-    //   if (role) {
-    //     //@ts-ignore
-    //     signInParams.role = role;
-    //   }
-
-    //   await signIn("credentials", {
-    //     redirect: true,
-    //     ...signInParams,
-    //   });
   } catch (error: unknown) {
     console.log(error);
 
     return { error: "Invalid Credentials!" };
   }
+  // Determine redirect URL
   const redirectTo =
     role === "parent"
       ? DEFAULT_PARENT_ROLE
@@ -91,6 +84,4 @@ export const Login = async (
       : callbackUrl || DEFAULT_LOGIN_REDIRECT;
 
   redirect(redirectTo);
-
-  return { success: "Login Successful" };
 };

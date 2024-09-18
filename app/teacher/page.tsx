@@ -10,15 +10,18 @@ import React from 'react';
 const TeacherView = async () => {
     const user = await getUserSession();
 
-    if (!user) {
-        // Handle the case where the user session is not available
-        return <div>
-            User session is not available. Please log in.
-            <LoginButton>
-                <Button size={"lg"} >Login</Button>
-            </LoginButton>
-
-        </div>
+    // If no user session, redirect to login
+    if (!user || typeof user.id !== 'string') {
+        return (
+            <div className="flex items-center justify-center">
+                <div>
+                    User session is not available. Please log in.
+                    <LoginButton>
+                        <Button size={"lg"}>Login</Button>
+                    </LoginButton>
+                </div>
+            </div>
+        )
     }
 
     try {
