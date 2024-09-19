@@ -76,12 +76,12 @@ const Sidebar = ({ data }: any) => {
                 },
                 {
                     title: "Settings",
-                    link: "/settings",
+                    link: "/dashboard/settings",
                     icon: settings,
                 },
                 {
                     title: "Help",
-                    link: "/help",
+                    link: "/dashboard/help",
                     icon: support,
                 },
             ],
