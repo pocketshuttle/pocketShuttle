@@ -12,7 +12,6 @@ import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { SelectProperty } from "@/components/ui/select-wrapper"
-import { useSession } from "next-auth/react"
 import { grades, buses, gender } from "@/data/schooldata"
 import { usePost } from "@/hooks/usePost"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
@@ -20,6 +19,9 @@ import { useFetch } from "@/hooks/useFetch"
 import { Textarea } from "@/components/ui/textarea"
 import { UploadImage } from "@/components/ui/upload-image"
 import { AddRoles } from "@/components/ui/add-role"
+import { useSession } from "@/hooks/useSession"
+import { toast } from "@/components/ui/use-toast"
+import { addNewParent } from "@/actions/addNewParent"
 
 interface StudentModalProps {
     setIsOpenModal: Dispatch<SetStateAction<boolean>>
@@ -29,33 +31,23 @@ interface StudentModalProps {
 export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) => {
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
     const [isPending, startTransition] = useTransition()
-    const [isError, setIsError] = useState("")
-    const [isSuccess, setIsSuccess] = useState("")
     const [newAvatar, setNewAvatar] = useState<string>("")
-
-    const [selectGender, setSelectGender] = useState<string>("")
-    const [selectGrade, setClassGrade] = useState<string>("")
-    const [selectBus, setSelectBus] = useState<string>("")
-    const [selectParent, setSelectParent] = useState<string>("")
-    const [selectDriver, setSelectDriver] = useState<string>("")
-    const [selectTeacher, setSelectTeacher] = useState<string>("")
+    const [selectStudent, setselectStudent] = useState<string>("")
     const [selectRole, setSelectedRole] = useState<string>("")
 
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    const session = useSession()
+    const userId = session?.id
+
 
 
     const { data, loading, errorMessage, success } = usePost("/api/addparent", submittedData, "POST")
-    // const { data: parentData, isPending: parentPending, errorMessage: parentError } = useFetch(`/api/addparent/${parentId}`, parentId);
-
-
     const form = useForm<z.infer<typeof ParentSchema>>({
         resolver: zodResolver(ParentSchema),
         defaultValues: {
-            school_id: userId,
+            school_id: !session.loading ? userId : "",
             full_name: "",
             image: newAvatar || "",
-            studentId: selectTeacher || undefined,
+            studentId: selectStudent || undefined,
             password: "",
             phoneNumber: "",
             address: "",
@@ -63,13 +55,33 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
             role: selectRole || ""
         }
     })
-
+    useEffect(() => {
+        if (!session.loading && userId) {
+            form.setValue("school_id", userId); // Dynamically update form with userId
+        }
+    }, [session.loading, userId, form]);
 
     const onSubmit = (values: z.infer<typeof ParentSchema>) => {
-        console.log(values)
+        if (!session.loading && session.id) {
+            values.school_id = userId;
+        } else {
+            console.error("Session is still loading or userId is not available");
+            return;
+        }
+
         startTransition(() => {
-            setSubmittedData(values)
-        });
+            addNewParent(values).then((data) => {
+                toast({
+                    //@ts-ignore
+                    description: data.message,
+                });
+            }).catch((error) => {
+                console.error("Error:", error);
+                toast({
+                    description: "An error occurred. Please try again.",
+                });
+            });
+        })
     }
 
     const handleCloseModal = () => {
