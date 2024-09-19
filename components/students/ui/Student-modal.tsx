@@ -12,7 +12,6 @@ import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { SelectProperty } from "@/components/ui/select-wrapper"
-import { useSession } from "next-auth/react"
 import { grades, buses, gender } from "@/data/schooldata"
 import { usePost } from "@/hooks/usePost"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
@@ -20,6 +19,7 @@ import { useFetch } from "@/hooks/useFetch"
 import { Textarea } from "@/components/ui/textarea"
 import { UploadImage } from "@/components/ui/upload-image"
 import { FormSuccess } from "@/components/ui/form-success"
+import { useSession } from "@/hooks/useSession"
 
 interface StudentModalProps {
     setIsOpenModal: Dispatch<SetStateAction<boolean>>
@@ -41,8 +41,10 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
     const [selectTeacher, setSelectTeacher] = useState<string>("")
 
 
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+
+    const session = useSession()
+    const userId = session?.id
+
 
     const { data, loading, errorMessage, success } = usePost("/api/addstudent", submittedData, "POST")
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
@@ -50,7 +52,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
     const form = useForm<z.infer<typeof StudentSchema>>({
         resolver: zodResolver(StudentSchema),
         defaultValues: {
-            school_id: userId || "",
+            school_id: "",
             full_name: "",
             age: 0,
             image: newAvatar || "",
@@ -64,9 +66,16 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
         }
     })
 
-
+    useEffect(() => {
+        if (!session.loading && userId) {
+            form.setValue("school_id", userId); // Dynamically update form with userId
+        }
+    }, [session.loading, userId, form]);
 
     const onSubmit = (values: z.infer<typeof StudentSchema>) => {
+        if (userId) {
+            values.school_id = userId;
+        }
         startTransition(() => {
             setSubmittedData(values)
             setNewAvatar("")
