@@ -1,5 +1,4 @@
 import LoginButton from '@/components/auth/login-button'
-import Parent from '@/components/parent/parent'
 import { ParentData } from '@/components/parent/ui/parent-table'
 import { Button } from '@/components/ui/button'
 import { db } from '@/lib/db'
@@ -12,7 +11,7 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
     const user = await getUserSession()
 
     // if no user, that means you havent logged in, so redirect back to login page
-    if (!user || user?.id !== "string") {
+    if (!user || typeof user?.id !== "string") {
         return <div className="flex items-center justify-center">
             User session is not available. Please log in.
             <LoginButton>

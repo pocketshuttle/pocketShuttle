@@ -50,7 +50,7 @@ type ParentProps = {
 type SessionProps = {
     userId: string
 }
-// @ts-ignore
+//@ts-ignore
 export const ParentData = ({ parentData, totalCount, studentData }) => {
 
     const getParams = useSearchParams()
