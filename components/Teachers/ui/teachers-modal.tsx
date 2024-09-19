@@ -33,12 +33,9 @@ interface DriverModalProps {
 
 export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route }: DriverModalProps) => {
 
-    // const { data: session } = useSession()
-    // const userId = session?.user?.id
+
     const session = useSession()
     const userId = session?.id
-
-    console.log(session, "user Id")
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
@@ -63,7 +60,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
     const form = useForm<z.infer<typeof useSchema>>({
         resolver: zodResolver(useSchema),
         defaultValues: {
-            school_id: userId,
+            school_id: "",
             full_name: "",
             email: "",
             phoneNumber: "",
@@ -79,7 +76,9 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
 
 
     const onSubmit = (values: z.infer<typeof useSchema>) => {
-        console.log(values, "values")
+        if (userId) {
+            values.school_id = userId;
+        }
         startTransition(() => {
             setSubmittedData(values)
             window.localStorage.removeItem("new_user_selected_avatar_url")

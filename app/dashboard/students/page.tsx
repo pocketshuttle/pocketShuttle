@@ -17,14 +17,19 @@ const Students = async ({ searchParams }: { searchParams: { [key: string]: strin
         ? decodeURIComponent(decodeURIComponent(searchParams.grade.replace(/\+/g, ' ')))
         : "";
     const ITEM_PER_PAGE = 4;
-    if (!user || user?.id !== "string") {
-        return <div className="flex items-center justify-center">
-            User session is not available. Please log in.
-            <LoginButton>
-                <Button size={"lg"} >Login</Button>
-            </LoginButton>
 
-        </div>
+    // if no user, that means you havent logged in, so redirect back to login page
+    if (!user || typeof user.id !== 'string') {
+        return (
+            <div className="flex items-center justify-center">
+                <div>
+                    User session is not available. Please log in.
+                    <LoginButton>
+                        <Button size={"lg"}>Login</Button>
+                    </LoginButton>
+                </div>
+            </div>
+        )
     }
     const userId = user?.id;
 
