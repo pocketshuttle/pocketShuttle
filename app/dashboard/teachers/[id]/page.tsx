@@ -13,7 +13,6 @@ import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { Textarea } from "@/components/ui/textarea"
 import { usePost } from "@/hooks/usePost"
 import { FormSuccess } from "@/components/ui/form-success"
-import { useSession } from "next-auth/react"
 import { useFetch } from "@/hooks/useFetch"
 import { usePathname, useSearchParams } from "next/navigation"
 import { SelectTrigger } from "@/components/ui/select"
@@ -22,6 +21,7 @@ import spinner from "@/public/images/spinner.gif"
 import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { Spinner } from "@/components/ui/spinner"
+import { useSession } from "@/hooks/useSession"
 
 
 
@@ -42,8 +42,8 @@ const SingleTeacherPage = () => {
     const pathname = usePathname()
     const id = pathname.split('/').pop()
 
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    const session = useSession()
+    const userId = session?.id
 
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
     // const { data: studentData, isPending: studentPending, errorMessage: studentError } = useFetch(`/api/addstudent/${userId}`, userId);
@@ -55,7 +55,7 @@ const SingleTeacherPage = () => {
     const teacherData = teachersData?.teacher
     const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
 
-    console.log(teacherData)
+
 
     const form = useForm<z.infer<typeof TeacherSchema>>({
         resolver: zodResolver(TeacherSchema),
@@ -84,6 +84,12 @@ const SingleTeacherPage = () => {
             });
         }
     }, [teacherData, form, userId]);
+
+    useEffect(() => {
+        if (userId) {
+            form.setValue('school_id', userId);
+        }
+    }, [userId, form]);
 
     useEffect(() => {
         setNewData(teacherData && teacherData[0].full_name)

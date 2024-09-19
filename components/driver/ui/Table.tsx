@@ -49,7 +49,7 @@ import { useSession } from "@/hooks/useSession"
 
 
 export const DriverTable = () => {
-    
+
     const session = useSession()
     const userId = session?.id
 
@@ -188,11 +188,6 @@ export const DriverTable = () => {
 
                                                 </div>
 
-
-
-
-
-
                                                 : <div className="w-full">
                                                     {
                                                         busData &&
@@ -209,7 +204,7 @@ export const DriverTable = () => {
                                     </TableCell>
                                     <TableCell>
                                         <div className="space-x-2 flex text-gray-200">
-                                            <EditData link={`/dashboard/driver/${driver.id}`} mode="edit" />
+                                            <EditData link={`/dashboard/drivers/${driver.id}`} mode="edit" />
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
                                                     <div
