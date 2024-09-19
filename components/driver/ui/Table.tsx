@@ -10,7 +10,6 @@ import { Pagination } from "@/components/dashboard/pagination/pagination"
 import Link from "next/link"
 import { DriverAndTeacherModal } from "@/components/Teachers/ui/teachers-modal"
 import { useFetch } from "@/hooks/useFetch"
-import { useSession } from "next-auth/react"
 import minus from "@/public/images/minus.json"
 
 import {
@@ -44,13 +43,15 @@ import { toast } from "@/components/ui/use-toast"
 import { removeDriverFromBus } from "@/actions/remove-driver"
 import deleted from "@/public/images/delete.json"
 import { handleDelete } from "@/actions/delete-student"
+import { useSession } from "@/hooks/useSession"
 
 
 
 
 export const DriverTable = () => {
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    
+    const session = useSession()
+    const userId = session?.id
 
     const searchParams = useSearchParams()
     const searchDriver = searchParams.get("q") || " "
