@@ -2,7 +2,6 @@
 import dashboard from "@/public/images/dashboard.svg"
 import { DriverAndTeacherModal } from "./teachers-modal"
 import { Pagination } from "@/components/dashboard/pagination/pagination"
-import { useSession } from "next-auth/react"
 import {
     Table,
     TableBody,
@@ -44,23 +43,13 @@ type userProps = {
 }
 
 export const TeachersTable = ({ teacherCount, teachersData, busData }: userProps) => {
-    const { data: session } = useSession()
-    const userId = session?.user?.id
-
     const [isPending, startTransition] = useTransition()
-
-
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
     const [isHovering, setIsHovering] = useState(false);
-
-
 
     const handleModal = () => {
         setIsOpenModal(!isOpenModal);
     };
-
-
-
 
     const handleRemove = (teacherId: string, busId: string) => {
         startTransition(() => {

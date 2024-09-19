@@ -52,7 +52,10 @@ export const TeacherSchema = z.object({
   full_name: z.string().min(1, {
     message: "Name is required!",
   }),
-  image: z.string().optional(),
+  image: z
+    .string()
+    .transform((value) => (value === "" ? undefined : value))
+    .optional(),
   password: z.string().min(6, {
     message: "Password must be more 6 characters!",
   }),
@@ -85,7 +88,10 @@ export const DriverSchema = z.object({
   full_name: z.string().min(1, {
     message: "Full Name is required!",
   }),
-  image: z.string().optional(),
+  image: z
+    .string()
+    .transform((value) => (value === "" ? undefined : value))
+    .optional(),
   email: z
     .string()
     .email({

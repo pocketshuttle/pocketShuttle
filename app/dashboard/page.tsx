@@ -13,9 +13,9 @@ import { revalidateTag } from "next/cache"
 const Dashboard = async () => {
     const user = await getUserSession()
 
-    console.log("new session", user);
 
 
+    // if no user, that means you havent logged in, so redirect back to login page
     if (!user || typeof user.id !== 'string') {
         return (
             <div className="flex items-center justify-center">
@@ -29,6 +29,9 @@ const Dashboard = async () => {
         )
     }
     const userId = user?.id
+
+    console.log("new session", userId);
+
 
     const teacherCount = await db.teacher.count({
         where: {

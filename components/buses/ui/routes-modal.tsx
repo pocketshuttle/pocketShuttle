@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/input'
 import React, { Dispatch, SetStateAction, useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { RouteSchema } from "@/schemas"
-import { useSession } from "next-auth/react"
 import { usePost } from "@/hooks/usePost"
 import { Button } from "@/components/ui/button"
+import { useSession } from "@/hooks/useSession"
 
 
 interface RouteModalProps {
@@ -17,8 +17,8 @@ interface RouteModalProps {
     isOpenModal: boolean
 }
 const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    const session = useSession()
+    const userId = session?.id
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined)
@@ -31,20 +31,21 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
     const form = useForm<z.infer<typeof RouteSchema>>({
         resolver: zodResolver(RouteSchema),
         defaultValues: {
-            school_id: userId,
+            school_id: "",
             route_name: "",
             route_description: ""
         }
     })
 
     const onSubmit = async (values: z.infer<typeof RouteSchema>) => {
-        console.log(values)
+        if (userId) {
+            values.school_id = userId;
+        }
         startTransition(() => {
             setSubmittedData(values)
         })
     }
 
-    console.log(userId)
     return (
         <div>
 

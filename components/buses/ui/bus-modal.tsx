@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input"
 import { BusSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
-import { useSession } from "next-auth/react"
 import { usePost } from "@/hooks/usePost"
 import { useFetch } from "@/hooks/useFetch"
 import { BusSelectWrapper } from "./bus-select-wrapper"
+import { useSession } from "@/hooks/useSession"
+import { addBus } from "@/actions/add-bus"
+import { toast } from "@/components/ui/use-toast"
 
 interface BusModalProps {
     setIsOpenModal: Dispatch<SetStateAction<boolean>>
@@ -19,8 +21,8 @@ interface BusModalProps {
 }
 
 export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    const session = useSession()
+    const userId = session?.id
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined)
@@ -34,7 +36,7 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
     const form = useForm<z.infer<typeof BusSchema>>({
         resolver: zodResolver(BusSchema),
         defaultValues: {
-            school_id: userId,
+            school_id: "",
             bus_number: "",
             driver: "",
             seat_number: 0,
@@ -48,8 +50,21 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
     })
 
     const onSubmit = (values: z.infer<typeof BusSchema>) => {
-        startTransition(async () => {
-            setSubmittedData(values)
+        if (userId) {
+            values.school_id = userId;
+        }
+        startTransition(() => {
+            addBus(values).then((data) => {
+                toast({
+                    //@ts-ignore
+                    description: data.message,
+                });
+            }).catch((error) => {
+                console.error("Error:", error);
+                toast({
+                    description: "An error occurred. Please try again.",
+                });
+            });
         })
     }
 
