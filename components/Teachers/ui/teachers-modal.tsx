@@ -73,7 +73,11 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
         }
     })
 
-
+    useEffect(() => {
+        if (!session.loading && userId) {
+            form.setValue("school_id", userId); // Dynamically update form with userId
+        }
+    }, [session.loading, userId, form]);
 
     const onSubmit = (values: z.infer<typeof useSchema>) => {
         if (userId) {

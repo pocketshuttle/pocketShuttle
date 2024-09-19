@@ -1,25 +1,40 @@
-import { Button } from "@/components/ui/button"
-import { PlayIcon } from "@radix-ui/react-icons"
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion"
+
 
 const NewsCard = () => {
     return (
-        <div className="space-y-4 p-2 bg-[var(--bg-root)] border-[1px] border-gray-500 rounded-md shadow-md">
-            <header className="text-sm">
-                🔥 Available now
-            </header>
-            <section className="space-y-6">
-                <div>
-                    <h1 className="text-sm font-semibold">How to use the new version of the admin dashboard</h1>
-                    <span className="text-[0.6rem] text-gray-600">Takes 3min to learn</span>
-                </div>
-                <main className="text-[0.63rem]  text-gray-400 ">
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Alias debitis vel cum numquam reiciendis fuga exercitationem maiores. Optio, natus dolorem ipsa mollitia pariatur iusto cum doloribus autem veritatis voluptates cupiditate quisquam
-                </main>
-                <footer className="mt-2">
-                    <Button size={"lg"} className="gap-2"> <PlayIcon /> Watch now</Button>
-                </footer>
-            </section>
-        </div>
+        <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1">
+                <AccordionTrigger>How to add Teachers</AccordionTrigger>
+                <AccordionContent>
+                    1. To add Teachers, kindly click on the teachers tab by the left
+                </AccordionContent>
+                <AccordionContent>
+                    2. Click on the add teachers to the top right, and fill in the form
+                </AccordionContent>
+                <AccordionContent>
+                    NB. The image <strong>MUST</strong> completely load before submitting
+                </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-2">
+                <AccordionTrigger>Buses</AccordionTrigger>
+                <AccordionContent>
+                    NB. Please <strong>ADD</strong> routes before adding Buses
+                </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-3">
+                <AccordionTrigger>Is it animated?</AccordionTrigger>
+                <AccordionContent>
+                    Yes. It&apos;s animated by default, but you can disable it if you
+                    prefer.
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
     )
 }
 
