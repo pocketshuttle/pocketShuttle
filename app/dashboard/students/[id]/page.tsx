@@ -16,12 +16,12 @@ import { usePathname } from "next/navigation"
 import { useFetch } from "@/hooks/useFetch"
 import { Textarea } from "@/components/ui/textarea"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
-import { useSession } from "next-auth/react"
 import { grades, buses, gender } from "@/data/schooldata"
 import spinner from "@/public/images/spinner.gif"
 import { usePost } from "@/hooks/usePost"
 import { BeatLoader } from "react-spinners"
 import { Spinner } from "@/components/ui/spinner"
+import { useSession } from "@/hooks/useSession"
 
 
 
@@ -29,8 +29,8 @@ const SingleStudent = () => {
     const pathname = usePathname()
     const id = pathname.split('/').pop()
 
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    const session = useSession()
+    const userId = session?.id
 
     const { data, isPending: studentPending, errorMessage: studentError } = useFetch(`/api/addstudent/${id}`, id);
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
@@ -87,7 +87,11 @@ const SingleStudent = () => {
             });
         }
     }, [studentData, form, userId]);
-
+    useEffect(() => {
+        if (userId) {
+            form.setValue('school_id', userId);  // Set the userId after session is loaded
+        }
+    }, [userId, form]);
     const onSubmit = (values: z.infer<typeof StudentSchema>) => {
         startTransition(() => {
             setSubmittedData(values)
@@ -145,7 +149,7 @@ const SingleStudent = () => {
     const handleSelectBus = (value: string) => {
         console.log(value)
         setSelectBus(value)
-                //@ts-ignore
+        //@ts-ignore
 
         form.setValue("busId", value.id);
     };

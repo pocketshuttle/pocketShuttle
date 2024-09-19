@@ -13,7 +13,6 @@ import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { Textarea } from "@/components/ui/textarea"
 import { usePost } from "@/hooks/usePost"
 import { FormSuccess } from "@/components/ui/form-success"
-import { useSession } from "next-auth/react"
 import { useFetch } from "@/hooks/useFetch"
 import { usePathname, useSearchParams } from "next/navigation"
 import { SelectTrigger } from "@/components/ui/select"
@@ -22,6 +21,7 @@ import spinner from "@/public/images/spinner.gif"
 import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { Spinner } from "@/components/ui/spinner"
+import { useSession } from "@/hooks/useSession"
 
 
 const SingleDriverPage = () => {
@@ -35,14 +35,12 @@ const SingleDriverPage = () => {
     const [newAvatar, setNewAvatar] = useState<string>("")
 
     const [selectBus, setSelectedBus] = useState<string>("")
-    const [selectStudent, setSelectedStudent] = useState<string>("")
 
     const pathname = usePathname()
     const id = pathname.split('/').pop()
 
-    const { data: session } = useSession()
-    const userId = session?.user?.id
-
+    const session = useSession()
+    const userId = session?.id
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
     // const { data: studentData, isPending: studentPending, errorMessage: studentError } = useFetch(`/api/addstudent/${userId}`, userId);
 
@@ -52,7 +50,6 @@ const SingleDriverPage = () => {
     const { data: driversData, isPending: isLoading, errorMessage: editMessage } = useFetch(`/api/addriver/${id}`, userId);
     const driverData = driversData?.driver
     const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
-
 
     const form = useForm<z.infer<typeof DriverSchema>>({
         resolver: zodResolver(DriverSchema),
@@ -67,6 +64,7 @@ const SingleDriverPage = () => {
             image: newAvatar || driverData?.[0].image,
         }
     })
+
     useEffect(() => {
         if (driverData) {
             form.reset({
@@ -81,6 +79,11 @@ const SingleDriverPage = () => {
         }
     }, [driverData, form, userId]);
 
+    useEffect(() => {
+        if (userId) {
+            form.setValue('school_id', userId);  // Set the userId after session is loaded
+        }
+    }, [userId, form])
 
     useEffect(() => {
         setNewData(driverData && driverData[0].full_name)

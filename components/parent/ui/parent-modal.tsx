@@ -57,7 +57,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
     })
     useEffect(() => {
         if (!session.loading && userId) {
-            form.setValue("school_id", userId); // Dynamically update form with userId
+            form.setValue("school_id", userId); 
         }
     }, [session.loading, userId, form]);
 

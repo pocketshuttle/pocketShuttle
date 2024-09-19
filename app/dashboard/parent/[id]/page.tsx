@@ -12,7 +12,6 @@ import avatar from "@/public/images/avatar.jpg"
 import { Textarea } from "@/components/ui/textarea"
 import { usePost } from "@/hooks/usePost"
 import { FormSuccess } from "@/components/ui/form-success"
-import { useSession } from "next-auth/react"
 import { useFetch } from "@/hooks/useFetch"
 import { usePathname, useSearchParams } from "next/navigation"
 import spinner from "@/public/images/spinner.gif"
@@ -20,6 +19,7 @@ import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { Spinner } from "@/components/ui/spinner"
 import { updateParent } from "@/actions/update-parent"
 import { toast } from "@/components/ui/use-toast"
+import { useSession } from "@/hooks/useSession"
 
 
 
@@ -41,8 +41,8 @@ const SingleParentPage = () => {
     const pathname = usePathname()
     const id = pathname.split('/').pop()
 
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    const session = useSession()
+    const userId = session?.id
 
     // const { data: studentData, isPending: studentPending, errorMessage: studentError } = useFetch(`/api/addstudent/${userId}`, userId);
 
@@ -81,6 +81,11 @@ const SingleParentPage = () => {
             });
         }
     }, [parentData, form, userId]);
+    useEffect(() => {
+        if (userId) {
+            form.setValue('school_id', userId);  // Set the userId after session is loaded
+        }
+    }, [userId, form]);
 
     useEffect(() => {
         setNewData(parentData && parentData[0].full_name)
