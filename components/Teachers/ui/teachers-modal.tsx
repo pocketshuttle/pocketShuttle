@@ -16,11 +16,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
 import { usePost } from "@/hooks/usePost"
 import { FormSuccess } from "@/components/ui/form-success"
-import { useSession } from "next-auth/react"
+
 import { useFetch } from "@/hooks/useFetch"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 import { AddRoles } from "@/components/ui/add-role"
+import { useSession } from "@/hooks/useSession"
 
 
 interface DriverModalProps {
@@ -32,8 +33,12 @@ interface DriverModalProps {
 
 export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route }: DriverModalProps) => {
 
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    // const { data: session } = useSession()
+    // const userId = session?.user?.id
+    const session = useSession()
+    const userId = session?.id
+
+    console.log(session, "user Id")
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
@@ -74,6 +79,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
 
 
     const onSubmit = (values: z.infer<typeof useSchema>) => {
+        console.log(values, "values")
         startTransition(() => {
             setSubmittedData(values)
             window.localStorage.removeItem("new_user_selected_avatar_url")
@@ -331,7 +337,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                     {/* <FormError message={isError} /> */}
                                     {/* <FormSuccess message={isSuccess} /> */}
                                     <Button
-                                        // disabled={isPending}
+                                        disabled={session?.loading}
                                         size="lg" className="w-full bg-[teal] " type="submit">{mode === "driver" ? "Add Driver" : "Add Teacher"}
                                     </Button>
                                 </form>

@@ -2,7 +2,6 @@
 import { Button } from "@/components/ui/button"
 import { useState, useTransition } from "react"
 import { BusModal } from "./bus-modal"
-import { useSession } from "next-auth/react"
 import { useFetch } from "@/hooks/useFetch"
 import {
     Table,
@@ -36,14 +35,15 @@ import LottieAnimation from "@/components/dashboard/sidebar/menuLink/lottie-anim
 import { handleDelete } from "@/actions/delete-student"
 import { toast } from "@/components/ui/use-toast"
 import { revalidateTag } from "next/cache"
+import { useSession } from "@/hooks/useSession"
 
 
 export const BusData = ({ data }: any) => {
     const [isOpenModal, setIsOpenModal] = useState(false)
     const [isOpenRouteModal, setIsRouteOpenModal] = useState(false)
 
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    const session = useSession()
+    const userId = session?.id
 
     const { data: routeData } = useFetch(`/api/addroute/${userId}`, userId);
     const [isHovering, setIsHovering] = useState(false);
@@ -103,6 +103,7 @@ export const BusData = ({ data }: any) => {
                         <TableHead className="w-[150px] text-gray-300">Teacher</TableHead>
                         <TableHead className="text-gray-300">Students</TableHead>
                         <TableHead className="text-gray-300">Routes</TableHead>
+                        <TableHead className="text-gray-300">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody className="text-[0.75rem] text-gray-400 ">
