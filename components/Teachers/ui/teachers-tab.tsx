@@ -30,7 +30,7 @@ const Tab = (props: TabType) => {
                         <p
                             onClick={() => handleTab("drivers")}
                             className={`cursor-pointer p-2 eventTab px-16 text-gray-300 capitalize  ${activeTab ===
-                                "drivers" && "text-gray-800 inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground active"}`}
+                                "drivers" && "text-gray-900 inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground active"}`}
                         >
                             {tab2}
                         </p>
