@@ -89,7 +89,7 @@ export function AddStudents({ data, parentId }: { data: StudentProps[], parentId
                 >
                     {value
                         ? data.find((student: StudentProps) => student.id === value)?.full_name
-                        : "Select Parent..."}
+                        : "Select Student..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
