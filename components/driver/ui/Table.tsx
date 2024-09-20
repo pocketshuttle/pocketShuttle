@@ -49,7 +49,6 @@ import { useSession } from "@/hooks/useSession"
 
 
 export const DriverTable = () => {
-
     const session = useSession()
     const userId = session?.id
 
@@ -122,6 +121,7 @@ export const DriverTable = () => {
                         <TableHead className="text-gray-300">Phone Number</TableHead>
                         <TableHead className="text-gray-300">Address</TableHead>
                         <TableHead className="text-gray-300">Bus</TableHead>
+                        <TableHead className="text-gray-300">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 {driversPending ? <Spinner /> : <TableBody className="text-[0.75rem] text-gray-400 ">

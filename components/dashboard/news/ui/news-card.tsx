@@ -44,6 +44,15 @@ const NewsCard = () => {
                     iv. to add student to a parent, go to the parent dashboard, select student, from the drop down menu, select the child.
                 </AccordionContent>
             </AccordionItem>
+            <AccordionItem value="item-4">
+                <AccordionTrigger>How to locate Drivers</AccordionTrigger>
+                <AccordionContent className="text-[0.7rem] text-gray-500">
+                    i. To locate drivers, kindly click on the teachers tab
+                </AccordionContent>
+                <AccordionContent className="text-[0.7rem] text-gray-500">
+                    ii. Click on the drivers tab
+                </AccordionContent>
+            </AccordionItem>
         </Accordion>
     )
 }
