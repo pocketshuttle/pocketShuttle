@@ -27,7 +27,7 @@ const TeacherView = async () => {
     try {
         const teacherData = await db.teacher.findUnique({
             where: {
-                id: user.id,  // Removed optional chaining since user is confirmed to exist
+                id: user.id,
             },
             include: {
                 Student: true,
