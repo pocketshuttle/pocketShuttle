@@ -17,7 +17,6 @@ function getCurrentHourInTimeZone(timezone: string): number {
 }
 
 export const updateStudentStatus = async (id: string, data: StudentStatus) => {
-  console.log(data, "status data");
   try {
     if (!data) {
       return { message: "No data provided", status: 400 };
@@ -34,8 +33,6 @@ export const updateStudentStatus = async (id: string, data: StudentStatus) => {
         bus: true,
       },
     });
-
-    console.log(updatedStudent);
 
     if (updatedStudent.status === "PICKED" && updatedStudent.busId) {
       await db.buses.update({
