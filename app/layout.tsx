@@ -4,7 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster"
 import Provider from "@/components/Provider";
 import QueryProvider from "@/components/webnotifications/query-provider";
-import Head from "next/head";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -40,10 +40,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <Head>
-        <link rel="manifest" href="https://progressier.app/lbUiVhJ6SXptddBZ8IYj/progressier.json" />
-        <script defer src="https://progressier.app/lbUiVhJ6SXptddBZ8IYj/script.js"></script>
-      </Head>
+
       <body className={inter.className}>
         {/* <Provider> */}
         < QueryProvider>
