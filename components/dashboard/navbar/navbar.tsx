@@ -1,21 +1,16 @@
 "use client"
 import { Input } from "@/components/ui/input"
 import { useFetch } from "@/hooks/useFetch"
-import { useSession } from "next-auth/react"
 import { usePathname } from "next/navigation"
 import { BiSearch } from "react-icons/bi"
 import { MdNotifications, MdOutlineChat } from "react-icons/md"
 import { Search } from "../search/search"
 import LottieAnimation from "../sidebar/menuLink/lottie-animation"
 import search from "@/public/images/search.json"
-import notification from "@/public/images/notification.json"
-
 import { useState } from "react"
 
 const Navbar = () => {
     const pathname = usePathname()
-    const { data: session } = useSession()
-    const userId = session?.user?.id
 
     const [isHovering, setIsHovering] = useState(false);
 
