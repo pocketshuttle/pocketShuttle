@@ -13,7 +13,7 @@ export const FAQ = () => {
                     <div className='w-3/6 space-y-3'>
 
                         <h1 className='text-2xl capitalize mb-2'>
-                            general FAQs
+                            Login FAQs
                         </h1>
                         <p className='text-[0.7rem]'>
                             Everything you need to know about our products and how it works, cant find an answer, chat our team support@pocketshuttle.app
