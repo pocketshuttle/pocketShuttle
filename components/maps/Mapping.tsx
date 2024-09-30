@@ -1,6 +1,6 @@
 "use client"
 import dynamic from 'next/dynamic';
-const DynamicMap = dynamic(() => import('./DynamicMap'), {
+const DynamicMap = dynamic(() => import("./Dynamicmap"), {
     ssr: false
 });
 
@@ -8,7 +8,7 @@ const DynamicMap = dynamic(() => import('./DynamicMap'), {
 // but also help avoid layout shift
 
 const DEFAULT_WIDTH = 600;
-const DEFAULT_HEIGHT = 600;
+const DEFAULT_HEIGHT = 800;
 
 const Map = (props: any) => {
     const { width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT } = props;
