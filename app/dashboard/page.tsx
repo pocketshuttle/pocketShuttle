@@ -8,15 +8,11 @@ import LoginButton from "@/components/auth/login-button"
 import { Button } from "@/components/ui/button"
 import { getUserSession } from "@/lib/session"
 import { revalidateTag } from "next/cache"
-import Maps from "@/components/maps/Map"
 import Location from "@/components/maps/Map/Map"
 
 
 const Dashboard = async () => {
     const user = await getUserSession()
-
-
-
     // if no user, that means you havent logged in, so redirect back to login page
     if (!user || typeof user.id !== 'string') {
         return (
@@ -31,9 +27,6 @@ const Dashboard = async () => {
         )
     }
     const userId = user?.id
-
-    console.log("new session", userId);
-
 
     const teacherCount = await db.teacher.count({
         where: {
