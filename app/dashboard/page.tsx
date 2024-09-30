@@ -8,6 +8,8 @@ import LoginButton from "@/components/auth/login-button"
 import { Button } from "@/components/ui/button"
 import { getUserSession } from "@/lib/session"
 import { revalidateTag } from "next/cache"
+import Maps from "@/components/maps/Map"
+import Location from "@/components/maps/Map/Map"
 
 
 const Dashboard = async () => {
@@ -91,6 +93,10 @@ const Dashboard = async () => {
                 {/* @ts-ignore */}
                 <CommuteTable busData={bus} />
                 {/* <Charts /> */}
+                <div >
+                    {/* <Maps /> */}
+                    <Location />
+                </div>
             </div>
 
             <aside className="w-2/6 sticky p-4">
