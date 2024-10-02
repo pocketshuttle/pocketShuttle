@@ -22,6 +22,8 @@ import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 import { AddRoles } from "@/components/ui/add-role"
 import { useSession } from "@/hooks/useSession"
+import { SearchBox } from "@mapbox/search-js-react";
+import { AddressComponent } from "@/components/maps/Map/searchbox"
 
 
 interface DriverModalProps {
@@ -39,7 +41,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
-
+    const [addressValue, setAddressValue] = useState('');
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState(false)
     const [dataMessage, setDataMessage] = useState("")
@@ -100,7 +102,6 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
         inputElement?.click()
-        // console.log(inputElement)
     }
     const handleCameraInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
@@ -168,6 +169,11 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
     const handleSelectStudent = (value: string) => {
         setSelectedStudent(value)
         form.setValue("studentId", value)
+    }
+    const handleAddressChange = (d: string) => {
+        setAddressValue(d)
+
+        form.setValue("address", d)
     }
 
     if (isSuccess) {
@@ -299,29 +305,15 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
 
 
                                     <div className="space-y-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="address"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Address</FormLabel>
-                                                    <FormControl>
-                                                        <Textarea
-                                                            {...field}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none "
-                                                            placeholder={mode === "teacher" ? "Teachers Address..." : "Drivers Address..."}
-                                                            disabled={isPending}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
 
-                                                    {/* <Image src={eye} alt="eye" /> */}
-                                                </FormItem>
-                                            )}
-                                        >
-                                        </FormField>
+                                        <FormItem>
+                                            <FormLabel>Address</FormLabel>
+                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} />
+                                            <FormMessage />
+
+                                        </FormItem>
+
                                     </div>
-
                                     <div className="flex gap-3 w-full">
                                         <div className="w-3/6">
                                             {

@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Map, { Marker, Popup } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
-import { getCurrentLocation, getRoute } from '../lib/utils';
+import { fetchCoordinates, getCurrentLocation, getRoute } from '../lib/utils';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX!;
 
@@ -15,11 +15,6 @@ const Location = () => {
     const [eta, setEta] = useState<string | null>(null);
 
     const address2 = "Lagos, NG";
-
-  
-   
-
-  
 
     useEffect(() => {
         const fetchRoute = async () => {
@@ -63,6 +58,7 @@ const Location = () => {
                         };
 
                         // Add the route layer to the map
+                        //@ts-ignore
                         const map = mapRef.current?.getMap();
                         if (map && !map.getLayer('route')) {
                             map.addLayer(routeLayer);
@@ -85,6 +81,7 @@ const Location = () => {
 
     const handleMapLoad = () => {
         if (mapRef.current) {
+            //@ts-ignore
             const mapInstance = mapRef.current.getMap();
             console.log("Map loaded:", mapInstance);
         }

@@ -1,4 +1,4 @@
-import mapboxgl from 'mapbox-gl';
+import mapboxgl from "mapbox-gl";
 
 // Get the driving route from start to end coordinates using Mapbox Directions API
 export const getRoute = async (
@@ -46,22 +46,23 @@ export const getCurrentLocation = (): Promise<[number, number]> => {
   });
 };
 
-
 const address2 = "Lagos, NG";
 
 // Fetch coordinates for an address using Mapbox Geocoding API
-const fetchCoordinates = async (address: string) => {
-    try {
-        const response = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}`
-        );
-        const data = await response.json();
-        if (data && data.features && data.features.length > 0) {
-            return data.features[0].center; // Longitude, Latitude format
-        }
-        return null;
-    } catch (error) {
-        console.error("Error fetching coordinates:", error);
-        return null;
+export const fetchCoordinates = async (address: string) => {
+  try {
+    const response = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+        address
+      )}.json?access_token=${mapboxgl.accessToken}`
+    );
+    const data = await response.json();
+    if (data && data.features && data.features.length > 0) {
+      return data.features[0].center; // Longitude, Latitude format
     }
+    return null;
+  } catch (error) {
+    console.error("Error fetching coordinates:", error);
+    return null;
+  }
 };
