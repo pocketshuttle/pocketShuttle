@@ -8,7 +8,8 @@ import LoginButton from "@/components/auth/login-button"
 import { Button } from "@/components/ui/button"
 import { getUserSession } from "@/lib/session"
 import { revalidateTag } from "next/cache"
-import Location from "@/components/maps/Map/Map"
+import Location from "@/components/maps/Map/new-map"
+// import Location from "@/components/maps/Map/Map"
 
 
 const Dashboard = async () => {
