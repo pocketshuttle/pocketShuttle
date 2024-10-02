@@ -1,13 +1,15 @@
 "use client"
 import { SearchBox } from "@mapbox/search-js-react";
 import React, { useState } from "react";
-export function Component() {
-    const [value, setValue] = useState('');
-    const handleChange = (d: string) => {
-        setValue(d);
-    };
+type addressTypes = {
+    handleAddressChange: (d: string) => void
+    value: string
+}
+export const AddressComponent = ({ handleAddressChange, value }: addressTypes) => {
+
     return (
         <div>
+            {/* @ts-ignore */}
             <SearchBox
                 options={{
                     // proximity: {
@@ -18,10 +20,11 @@ export function Component() {
                     language: "en"
                 }}
                 value={value}
-                onChange={handleChange}
+                onChange={handleAddressChange}
                 accessToken={process.env.NEXT_PUBLIC_MAPBOX!}
             />
         </div>
 
     );
+
 }
