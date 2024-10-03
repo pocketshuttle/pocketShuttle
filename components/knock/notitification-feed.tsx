@@ -9,14 +9,15 @@ import {
 
 // Required CSS import, unless you're overriding the styling
 import "@knocklabs/react/dist/index.css";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/hooks/useSession";
+
 
 const NotificationFeed = () => {
     const [isVisible, setIsVisible] = useState(false);
     const notifButtonRef = useRef(null);
 
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    const session = useSession()
+    const userId = session?.id
 
     if (!userId) return
 

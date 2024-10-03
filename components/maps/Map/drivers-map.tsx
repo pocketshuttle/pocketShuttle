@@ -12,12 +12,11 @@ type AddressProps = {
     address: string | null | undefined;
 }
 
-const Location = ({ address }: AddressProps) => {
+export const DriversLocation = ({ address }: AddressProps) => {
 
     const mapRef = useRef(null);
     const [coords1, setCoords1] = useState<[number, number] | null>(null);
     const [coords2, setCoords2] = useState<[number, number] | null>(null);
-    const [eta, setEta] = useState<string | null>(null);
 
 
     useEffect(() => {
@@ -68,19 +67,6 @@ const Location = ({ address }: AddressProps) => {
                             map.addLayer(routeLayer);
                         }
 
-                        // Calculate and set ETA
-                        const durationInSeconds = route.duration;
-                        const timeInMinutes = Math.floor(durationInSeconds / 60);
-                        const timeInSeconds = Math.floor(durationInSeconds % 60);
-                        setEta(`${timeInMinutes} min ${timeInSeconds} sec`);
-
-                        if (map) {
-                            const bounds = new mapboxgl.LngLatBounds();
-                            bounds.extend([coordinates1[0], coordinates1[1]]);
-                            bounds.extend([coordinates2[0], coordinates2[1]]);
-                            map.fitBounds(bounds, { padding: 50 });
-                        }
-
                     }
                 }
             } catch (error) {
@@ -105,9 +91,7 @@ const Location = ({ address }: AddressProps) => {
 
     return (
         <div>
-            <div>
-                {eta && <p>Estimated Time of Arrival: {eta}</p>}
-            </div>
+
             {coords1 && coords2 ? (
                 <Map
                     initialViewState={{
@@ -116,7 +100,7 @@ const Location = ({ address }: AddressProps) => {
                         zoom: 8,
                     }}
                     onLoad={handleMapLoad}
-                    style={{ width: '100%', height: '400px' }}
+                    style={{ width: '100%', height: '700px' }}
                     mapStyle="mapbox://styles/mapbox/streets-v11"
                     ref={mapRef}
                     mapboxAccessToken={mapboxgl.accessToken}
@@ -129,8 +113,6 @@ const Location = ({ address }: AddressProps) => {
                                 style={{ width: '30px', height: '30px' }}
                             />
                         </Marker>
-
-
                     )}
                     {coords2 && (
                         <Marker longitude={coords2[0]} latitude={coords2[1]} color="red" >
@@ -159,4 +141,4 @@ const Location = ({ address }: AddressProps) => {
     );
 };
 
-export default Location;
+

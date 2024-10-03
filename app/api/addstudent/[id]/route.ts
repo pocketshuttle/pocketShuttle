@@ -20,7 +20,6 @@ export const GET = async (
     const gradeQuery = url.get("grade") || "";
     const page: number = (url.get("page") as unknown as number) || 1;
 
-    console.log(gradeQuery, "this is the grade query");
     const { id } = params;
     const query: Prisma.StudentWhereInput = {
       OR: [

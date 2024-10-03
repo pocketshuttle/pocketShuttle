@@ -22,7 +22,6 @@ import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 import { AddRoles } from "@/components/ui/add-role"
 import { useSession } from "@/hooks/useSession"
-import { SearchBox } from "@mapbox/search-js-react";
 import { AddressComponent } from "@/components/maps/Map/searchbox"
 
 
