@@ -22,6 +22,7 @@ import { AddRoles } from "@/components/ui/add-role"
 import { useSession } from "@/hooks/useSession"
 import { toast } from "@/components/ui/use-toast"
 import { addNewParent } from "@/actions/addNewParent"
+import { AddressComponent } from "@/components/maps/Map/searchbox"
 
 interface StudentModalProps {
     setIsOpenModal: Dispatch<SetStateAction<boolean>>
@@ -34,6 +35,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
     const [newAvatar, setNewAvatar] = useState<string>("")
     const [selectStudent, setselectStudent] = useState<string>("")
     const [selectRole, setSelectedRole] = useState<string>("")
+    const [addressValue, setAddressValue] = useState("")
 
     const session = useSession()
     const userId = session?.id
@@ -57,7 +59,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
     })
     useEffect(() => {
         if (!session.loading && userId) {
-            form.setValue("school_id", userId); 
+            form.setValue("school_id", userId);
         }
     }, [session.loading, userId, form]);
 
@@ -90,6 +92,12 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
     const handleSelectRole = (value: string) => {
         setSelectedRole(value)
         form.setValue("role", value)
+    }
+
+    const handleAddressChange = (d: string) => {
+        setAddressValue(d)
+
+        form.setValue("address", d)
     }
 
     return (
@@ -207,28 +215,12 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                         </div>
                                     </div>
                                     <div className="space-y-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="address"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Parent Address</FormLabel>
-                                                    <FormControl>
-                                                        <Textarea
-                                                            {...field}
-                                                            placeholder="Parent Address"
-                                                            disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none "
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
+                                        <FormItem>
+                                            <FormLabel>Parent Address</FormLabel>
+                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} />
+                                            <FormMessage />
 
-                                                    {/* <Image src={eye} alt="eye" /> */}
-                                                </FormItem>
-                                            )}
-                                        >
-
-                                        </FormField>
+                                        </FormItem>
                                     </div>
 
                                     {/* <FormError message={isError} /> */}

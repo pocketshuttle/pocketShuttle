@@ -42,11 +42,8 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
     const page = searchParams.get("page")
 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
-
-
     const teacherData = data
 
-    // const totalCount = data?.count
     const [attendance, SetAttendance] = useState("")
 
 

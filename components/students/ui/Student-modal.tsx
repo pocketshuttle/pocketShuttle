@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { UploadImage } from "@/components/ui/upload-image"
 import { FormSuccess } from "@/components/ui/form-success"
 import { useSession } from "@/hooks/useSession"
+import { AddressComponent } from "@/components/maps/Map/searchbox"
 
 interface StudentModalProps {
     setIsOpenModal: Dispatch<SetStateAction<boolean>>
@@ -39,7 +40,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
     const [selectParent, setSelectParent] = useState<string>("")
     const [selectDriver, setSelectDriver] = useState<string>("")
     const [selectTeacher, setSelectTeacher] = useState<string>("")
-
+    const [addressValue, setAddressValue] = useState("")
 
 
     const session = useSession()
@@ -107,6 +108,12 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
         setClassGrade(value);
         form.setValue("grade", value);
     };
+
+    const handleAddressChange = (d: string) => {
+        setAddressValue(d)
+
+        form.setValue("address", d)
+    }
 
     if (success) {
         return <FormSuccess message={"Successfully added"} setIsOpenModal={setIsOpenModal} />
@@ -192,28 +199,11 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                         </div>
                                     </div>
                                     <div className="space-y-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="address"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Student Address</FormLabel>
-                                                    <FormControl>
-                                                        <Textarea
-                                                            {...field}
-                                                            placeholder="Teachers Address"
-                                                            disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none "
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-
-                                                    {/* <Image src={eye} alt="eye" /> */}
-                                                </FormItem>
-                                            )}
-                                        >
-
-                                        </FormField>
+                                        <FormItem>
+                                            <FormLabel>Parent Address</FormLabel>
+                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} />
+                                            <FormMessage />
+                                        </FormItem>
                                     </div>
 
                                     {/* <FormError message={isError} /> */}

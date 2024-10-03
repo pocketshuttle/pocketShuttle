@@ -36,8 +36,8 @@ type ParentProps = {
  * each child can have just one parent, but parents can have multiple kids
  * @returns JSX.Element
  */
+
 export const GuardianPage = ({ data }: { data: { students: StudentProps[] } }) => {
-    console.log(data?.students);
     const [attendance, SetAttendance] = React.useState("")
 
     return (
@@ -58,13 +58,13 @@ export const GuardianPage = ({ data }: { data: { students: StudentProps[] } }) =
                     <div className="py-4 space-y-2">
                         <h2 className="capitalize">{student?.parent?.full_name}</h2>
                         <p className="text-lg text-[var(--textSoft)]">
-                            {student.parent.phoneNumber}
+                            {student.parent?.phoneNumber}
                         </p>
                         <p className="text-sm text-[var(--textSoft)]">
-                            {student.parent.email}
+                            {student.parent?.email}
                         </p>
                         <p className="text-sm text-[var(--textSoft)]">
-                            {student.parent.address}
+                            {student.parent?.address}
                         </p>
                     </div>
                 </div>
@@ -75,7 +75,7 @@ export const GuardianPage = ({ data }: { data: { students: StudentProps[] } }) =
                 {data?.students?.map((student: StudentProps) => {
                     const parentKids = student?.parent?.Student;
 
-                    return parentKids.map((sibling: StudentProps) => {
+                    return parentKids?.map((sibling: StudentProps) => {
                         return (
                             <div
                                 key={sibling.id}

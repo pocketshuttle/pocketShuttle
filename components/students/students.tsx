@@ -6,6 +6,7 @@ import { Button } from "../ui/button";
 export const Student = async () => {
     const user = await getUserSession();
     const userId = user?.id;
+    
     if (!user) {
         return <div>
             User session is not available. Please log in.

@@ -26,5 +26,5 @@ export const useSession = () => {
 
     fetchSession();
   }, []);
-  return { id, loading }; // Return both userId and loading state
+  return { id, loading }; 
 };

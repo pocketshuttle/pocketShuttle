@@ -22,6 +22,7 @@ import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { Spinner } from "@/components/ui/spinner"
 import { useSession } from "@/hooks/useSession"
+import { AddressComponent } from "@/components/maps/Map/searchbox"
 
 
 
@@ -33,7 +34,7 @@ const SingleTeacherPage = () => {
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState(false)
     const [dataMessage, setDataMessage] = useState("")
-
+    const [addressValue, setAddressValue] = useState('');
     const [newAvatar, setNewAvatar] = useState<string>("")
 
     const [selectBus, setSelectedBus] = useState<string>("")
@@ -178,6 +179,11 @@ const SingleTeacherPage = () => {
         form.setValue("studentId", value)
     }
 
+    const handleAddressChange = (d: string) => {
+        setAddressValue(d)
+
+        form.setValue("address", d)
+    }
 
     return (
         <div >
@@ -304,27 +310,13 @@ const SingleTeacherPage = () => {
 
 
                                 <div className="space-y-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="address"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Address</FormLabel>
-                                                <FormControl>
-                                                    <Textarea
-                                                        {...field}
-                                                        className="py-3 border-none bg-[var(--bgSoft)] outline-none "
-                                                        placeholder="Teachers Address..."
-                                                        disabled={isPending}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
+                                    <FormItem>
+                                        <FormLabel>Address</FormLabel>
+                                        <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} />
+                                        <FormMessage />
 
-                                                {/* <Image src={eye} alt="eye" /> */}
-                                            </FormItem>
-                                        )}
-                                    >
-                                    </FormField>
+                                    </FormItem>
+
                                 </div>
                                 <div className="flex gap-3">
                                     <div className="w-3/6">

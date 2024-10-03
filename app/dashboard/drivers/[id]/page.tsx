@@ -21,6 +21,7 @@ import spinner from "@/public/images/spinner.gif"
 import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { Spinner } from "@/components/ui/spinner"
+import { AddressComponent } from "@/components/maps/Map/searchbox"
 import { useSession } from "@/hooks/useSession"
 
 
@@ -31,7 +32,7 @@ const SingleDriverPage = () => {
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState(false)
     const [dataMessage, setDataMessage] = useState("")
-
+    const [addressValue, setAddressValue] = useState("")
     const [newAvatar, setNewAvatar] = useState<string>("")
 
     const [selectBus, setSelectedBus] = useState<string>("")
@@ -42,8 +43,6 @@ const SingleDriverPage = () => {
     const session = useSession()
     const userId = session?.id
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
-    // const { data: studentData, isPending: studentPending, errorMessage: studentError } = useFetch(`/api/addstudent/${userId}`, userId);
-
     const [newData, setNewData] = useState(null)
 
     const { data, loading, errorMessage, success } = usePost(`/api/addriver/${id}`, submittedData, "PATCH")
@@ -167,6 +166,11 @@ const SingleDriverPage = () => {
         form.setValue("busId", value.id)
     }
 
+    const handleAddressChange = (d: string) => {
+        setAddressValue(d)
+
+        form.setValue("address", d)
+    }
     // useEffect(() => {
     //     window.localStorage.setItem('user_selected_avatar_url', newAvatar)
     // }, [newAvatar])
@@ -280,27 +284,12 @@ const SingleDriverPage = () => {
 
 
                                         <div className="space-y-4">
-                                            <FormField
-                                                control={form.control}
-                                                name="address"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>Address</FormLabel>
-                                                        <FormControl>
-                                                            <Textarea
-                                                                {...field}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none "
-                                                                placeholder="drivers Address..."
-                                                                disabled={isPending}
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
+                                            <FormItem>
+                                                <FormLabel>Drivers Address</FormLabel>
+                                                <AddressComponent handleAddressChange={handleAddressChange} value={addressValue} />
+                                                <FormMessage />
 
-                                                        {/* <Image src={eye} alt="eye" /> */}
-                                                    </FormItem>
-                                                )}
-                                            >
-                                            </FormField>
+                                            </FormItem>
                                         </div>
                                         <div className="flex gap-3">
                                             <div className="w-3/6">
