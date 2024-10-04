@@ -18,7 +18,8 @@ const Location = ({ address }: AddressProps) => {
     const [coords1, setCoords1] = useState<[number, number] | null>(null);
     const [coords2, setCoords2] = useState<[number, number] | null>(null);
     const [eta, setEta] = useState<string | null>(null);
-
+    const [directions, setDirections] = useState<string[] | null>(null);
+    const [openDirection, setOpenDirection] = useState<boolean>(false)
 
     useEffect(() => {
         const fetchRoute = async () => {
@@ -33,6 +34,7 @@ const Location = ({ address }: AddressProps) => {
 
                 if (coordinates1 && coordinates2) {
                     const route = await getRoute(coordinates1, coordinates2);
+                    console.log(route)
 
                     if (route) {
                         const coordinates = route.geometry.coordinates;
@@ -74,13 +76,19 @@ const Location = ({ address }: AddressProps) => {
                         const timeInSeconds = Math.floor(durationInSeconds % 60);
                         setEta(`${timeInMinutes} min ${timeInSeconds} sec`);
 
+                        // Fit map to bounds of both locations
                         if (map) {
                             const bounds = new mapboxgl.LngLatBounds();
                             bounds.extend([coordinates1[0], coordinates1[1]]);
                             bounds.extend([coordinates2[0], coordinates2[1]]);
                             map.fitBounds(bounds, { padding: 50 });
                         }
-
+                        // Set the directions instructions
+                        if (route.legs && route.legs.length > 0) {
+                            const steps = route.legs[0].steps;
+                            const directionsList = steps.map((step: any, index: number) => step.maneuver.instruction);
+                            setDirections(directionsList);
+                        }
                     }
                 }
             } catch (error) {
@@ -102,11 +110,14 @@ const Location = ({ address }: AddressProps) => {
     if (!coords1 || !coords2) {
         return <div>Loading map...</div>;
     }
-
     return (
         <div>
-            <div>
-                {eta && <p>Estimated Time of Arrival: {eta}</p>}
+            <div className='flex items-center justify-between p-2'>
+                {eta && <p>ETA: {eta}</p>}
+
+                <button className='p-2 ' onClick={() => setOpenDirection(!openDirection)}>
+                    Show Directions
+                </button>
             </div>
             {coords1 && coords2 ? (
                 <Map
@@ -129,32 +140,43 @@ const Location = ({ address }: AddressProps) => {
                                 style={{ width: '30px', height: '30px' }}
                             />
                         </Marker>
-
-
                     )}
                     {coords2 && (
-                        <Marker longitude={coords2[0]} latitude={coords2[1]} color="red" >
+                        <Marker longitude={coords2[0]} latitude={coords2[1]} color="red">
                             <img
                                 src="/images/home.png"
-                                alt="Current Location"
+                                alt="Destination"
                                 style={{ width: '30px', height: '30px' }}
                             />
                             <Popup
-                                closeButton={true
-
-                                } closeOnClick={false}
+                                closeButton={true}
+                                closeOnClick={false}
                                 longitude={coords2[0]}
                                 latitude={coords2[1]}
-
                             >
                                 {address}
                             </Popup>
                         </Marker>
                     )}
                 </Map>
+
             ) : (
                 <div>Loading map...</div>
             )}
+
+            {/* Conditionally display direction instructions */}
+            {
+                openDirection &&
+                directions && directions.length > 0 && (
+                    <div>
+                        <h3>Directions:</h3>
+                        <ol>
+                            {directions.map((instruction, index) => (
+                                <li key={index}>{instruction}</li>
+                            ))}
+                        </ol>
+                    </div>
+                )}
         </div>
     );
 };

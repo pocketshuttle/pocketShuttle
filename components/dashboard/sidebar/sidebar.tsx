@@ -11,6 +11,7 @@ import support from "@/public/images/support.json";
 import dashboard from "@/public/images/dashboard.json";
 import car from "@/public/images/Car.json";
 import analytics from "@/public/images/analytics.json";
+import location from "@/public/images/location.json";
 import LottieAnimation from "./menuLink/lottie-animation";
 import { useState } from "react";
 import userprofile from "@/public/images/userProfile.json";
@@ -54,21 +55,29 @@ const Sidebar = ({ data }: any) => {
                     link: "/dashboard/commute",
                     icon: car,
                 },
+
+                {
+                    title: "Parent",
+                    link: "/dashboard/parent",
+                    icon: parent,
+                },
+
+                {
+                    title: "Map",
+                    link: "/dashboard/map",
+                    icon: location,
+                },
                 {
                     title: "Buses",
                     link: "/dashboard/bus",
                     icon: car,
                 },
                 {
-                    title: "Parent",
-                    link: "/dashboard/parent",
-                    icon: parent,
-                },
-                {
                     title: "Revenue",
                     link: "/dashboard/revenue",
                     icon: analytics,
                 },
+
                 {
                     title: "Reports",
                     link: "/dashboard/report",
