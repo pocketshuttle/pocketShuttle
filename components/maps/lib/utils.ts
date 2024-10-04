@@ -7,7 +7,7 @@ export const getRoute = async (
 ) => {
   try {
     const res = await fetch(
-      `https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?geometries=geojson&access_token=${process.env.NEXT_PUBLIC_MAPBOX}`
+      `https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?geometries=geojson&steps=true&access_token=${process.env.NEXT_PUBLIC_MAPBOX}`
     );
     const data = await res.json();
     return data.routes[0];
@@ -17,17 +17,13 @@ export const getRoute = async (
   }
 };
 
-// (2) [7.4481664, 9.060352]
-// [7.4481664, 9.060352]
-// [7.3518792, 9.1717901]
 // Fetch the current location using the Geolocation API
 export const getCurrentLocation = (): Promise<[number, number]> => {
   return new Promise((resolve, reject) => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
+      navigator.geolocation.watchPosition(
+        async (position) => {
           const { latitude, longitude } = position.coords;
-          console.log("Current location:", [longitude, latitude]);
           resolve([longitude, latitude]);
         },
         (error) => {
@@ -46,8 +42,6 @@ export const getCurrentLocation = (): Promise<[number, number]> => {
   });
 };
 
-const address2 = "Lagos, NG";
-
 // Fetch coordinates for an address using Mapbox Geocoding API
 export const fetchCoordinates = async (address: string) => {
   try {
@@ -64,5 +58,58 @@ export const fetchCoordinates = async (address: string) => {
   } catch (error) {
     console.error("Error fetching coordinates:", error);
     return null;
+  }
+};
+
+// Function to send the location to the server
+export const sendLocationToServer = async (
+  latitude: number,
+  longitude: number
+) => {
+  try {
+    const response = await fetch("/api/bustracking", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ latitude, longitude }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to send location to the server");
+    }
+  } catch (error) {
+    console.error("Error sending location to server:", error);
+  }
+};
+
+// Function to send the teachers location to the server
+export const sendTeacherLocationToServer = async (
+  latitude: number,
+  longitude: number,
+  teacherId: string,
+  teacherImage: string,
+  teacherName: string
+) => {
+  try {
+    const res = await fetch("/api/teacherlocation", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        latitude,
+        longitude,
+        teacherId,
+        teacherImage,
+        teacherName,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to send location to the server");
+    }
+  } catch (error) {
+    console.error("Error sending location to server:", error);
   }
 };

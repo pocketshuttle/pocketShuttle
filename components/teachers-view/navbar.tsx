@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation"
 import { MdNotifications } from "react-icons/md"
 import LottieAnimation from "../dashboard/sidebar/menuLink/lottie-animation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import userprofile from "@/public/images/userProfile.json"
 import {
     Avatar,
@@ -12,12 +12,45 @@ import {
 import NotificationFeed from "@/components/knock/notitification-feed"
 import NotificationRequest from "@/components/webnotifications/notificattions"
 import Logout from "../dashboard/sidebar/logout"
+import { Switch } from "@/components/ui/switch"
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
+
+import { getCurrentLocation } from "../maps/lib/utils"
+
 type NavbarProps = {
     data: any
 }
 const Navbar = ({ data }: NavbarProps) => {
     const router = useRouter()
     const [isHovering, setIsHovering] = useState(false);
+    const [isTracking, setIsTracking] = useState<boolean>(false);
+    const [location, setLocation] = useState<{ latitude: number, longitude: number } | null>(null);
+
+    const toggleTracking = () => {
+        setIsTracking(!isTracking);
+    };
+
+    useEffect(() => {
+        if (isTracking) {
+            const updateLocation = async () => {
+                try {
+                    const [longitude, latitude] = await getCurrentLocation();
+
+                } catch (error) {
+                    console.error('Error fetching location:', error);
+                }
+            }
+
+            // Update location every 10 seconds when tracking is on
+            const intervalId = setInterval(updateLocation, 10000);
+            return () => clearInterval(intervalId);
+        }
+    }, [isTracking])
 
     return (
         <div className="flex justify-between bg-[var(--bg-root)] h-[60px] w-full
@@ -45,14 +78,32 @@ const Navbar = ({ data }: NavbarProps) => {
             </div>
 
             <div className="flex space-x-2 items-center justify-center">
+
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <div className="flex items-center space-x-1 flex-col">
+                                <Switch id="location-toggle"
+                                    onClick={toggleTracking}
+                                />
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Toggle your location</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+
+
                 < NotificationFeed />
-                {/* <NotificationRequest /> */}
+
                 <span
 
                     className="cursor-pointer"
                 >
                     <Logout />
                 </span>
+
             </div>
 
         </div>

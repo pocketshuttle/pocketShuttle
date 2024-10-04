@@ -16,7 +16,7 @@ const Logout = () => {
             onClick={handleLogout}
         >
             <ExitIcon className=" mr-2" />
-            logout
+           
         </button>
     )
 }
