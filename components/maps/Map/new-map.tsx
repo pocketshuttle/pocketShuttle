@@ -29,6 +29,7 @@ const Location = ({ address }: AddressProps) => {
                 setCoords1(coordinates1);
 
                 // Fetch the coordinates of the second address
+                //@ts-ignore
                 const coordinates2 = await fetchCoordinates(address);
                 setCoords2(coordinates2);
 

@@ -25,17 +25,11 @@ import { Spinner } from "../ui/spinner"
 import Navbar from "./navbar"
 import { StudentProps, TeacherProps } from "@/types"
 
-
-
-
-
 type SessionProps = {
     userId: string | undefined
     user: any
     data: TeacherProps
 }
-
-
 
 export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
     const searchParams = useSearchParams()
@@ -50,9 +44,6 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
 
-            {/* {
-                isOpenModal && <StudentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
-            } */}
             <div className=" lg:hidden w-full">
                 <header className=" px-4  space-y-4 text-lg text-gray-400">
                     {
@@ -92,7 +83,7 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                         data?.bus &&
                         data?.bus.students &&
                         data?.bus.students?.map((student: StudentProps) => (
-                            <div className="flex items-center  bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md">
+                            <div className="flex items-center  bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md" key={student.id}>
                                 <Link href={`teacher/${student.id}`}>
                                     <Image src={student.image || avatar} alt={student.full_name} className="rounded-md object-cover w-24 h-24" width={100} height={100} />
                                 </Link>
