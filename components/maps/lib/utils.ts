@@ -41,6 +41,30 @@ export const getCurrentLocation = (): Promise<[number, number]> => {
     }
   });
 };
+// Fetch the current location using the Geolocation API
+export const getSchoolLocation = (): Promise<[number, number]> => {
+  return new Promise((resolve, reject) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          resolve([longitude, latitude]);
+        },
+        (error) => {
+          console.error("Error getting current location:", error);
+          reject(error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    } else {
+      reject(new Error("Geolocation is not supported by this browser."));
+    }
+  });
+};
 
 // Fetch coordinates for an address using Mapbox Geocoding API
 export const fetchCoordinates = async (address: string) => {

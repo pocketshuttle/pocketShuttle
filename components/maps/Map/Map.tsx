@@ -60,12 +60,14 @@ const RoutingControl = ({ address2, eta, setEta }: RoutingControlProps) => {
 
             if (coordinates1 && coordinates2) {
                 setCoords1(coordinates1);  // Set current location
-                setCoords2(coordinates2);  // Set destination location
+                //@ts-ignore
+                setCoords2(coordinates2);  // @ts
 
                 // Initialize the routing control with waypoints
                 L.Routing.control({
                     waypoints: [
                         L.latLng(coordinates1),  // Starting point
+                        //@ts-ignore
                         L.latLng(coordinates2),  // Destination
                     ],
                 }).on("routesfound", (e) => {
@@ -101,6 +103,7 @@ const RoutingControl = ({ address2, eta, setEta }: RoutingControlProps) => {
     );
 };
 
+//@ts-ignore
 const Location = ({ address }) => {
     const DEFAULT_WIDTH = 600;
     const DEFAULT_HEIGHT = 600;

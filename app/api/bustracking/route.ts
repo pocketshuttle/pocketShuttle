@@ -18,7 +18,7 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
     const pusher = getPusherInstance();
 
     // Trigger the event to Pusher
-    await pusher.trigger("live-bus-channel", "bus-location-update", {
+    await pusher.trigger("live-school-channel", "bus-location-update", {
       latitude,
       longitude,
     });

@@ -79,25 +79,26 @@ const Navbar = ({ data }: NavbarProps) => {
 
             <div className="flex space-x-2 items-center justify-center">
 
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <div className="flex items-center space-x-1 flex-col">
-                                <Switch id="location-toggle"
-                                    onClick={toggleTracking}
-                                />
-                            </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Toggle your location</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-
+                {
+                    data.role === "teacher" && (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="flex items-center space-x-1 flex-col">
+                                        <Switch id="location-toggle"
+                                            onClick={toggleTracking}
+                                        />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Toggle your location</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )
+                }
                 < NotificationFeed />
-
                 <span
-
                     className="cursor-pointer"
                 >
                     <Logout />
