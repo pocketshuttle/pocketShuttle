@@ -20,17 +20,18 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-import { getCurrentLocation } from "../maps/lib/utils"
+import { getCurrentLocation, sendTeacherLocationToServer } from "../maps/lib/utils"
+import { useSession } from "@/hooks/useSession"
+
 
 type NavbarProps = {
     data: any
 }
 const Navbar = ({ data }: NavbarProps) => {
-    const router = useRouter()
     const [isHovering, setIsHovering] = useState(false);
     const [isTracking, setIsTracking] = useState<boolean>(false);
-    const [location, setLocation] = useState<{ latitude: number, longitude: number } | null>(null);
 
+    const router = useRouter()
     const toggleTracking = () => {
         setIsTracking(!isTracking);
     };
@@ -40,12 +41,11 @@ const Navbar = ({ data }: NavbarProps) => {
             const updateLocation = async () => {
                 try {
                     const [longitude, latitude] = await getCurrentLocation();
-
+                    sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name)
                 } catch (error) {
                     console.error('Error fetching location:', error);
                 }
             }
-
             // Update location every 10 seconds when tracking is on
             const intervalId = setInterval(updateLocation, 10000);
             return () => clearInterval(intervalId);
@@ -93,7 +93,6 @@ const Navbar = ({ data }: NavbarProps) => {
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
-
 
                 < NotificationFeed />
 
