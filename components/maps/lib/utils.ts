@@ -92,7 +92,7 @@ export const sendTeacherLocationToServer = async (
   teacherName: string
 ) => {
   try {
-    const res = await fetch("/api/teacherlocation", {
+    const res = await fetch("/api/bustracking/teachers", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 // Define the expected type for the session
 interface Session {
   id: string | null;
+  name: string | null;
+  image: string | undefined;
+  role: string | undefined;
 }
 
 export const useSession = () => {
@@ -26,5 +29,5 @@ export const useSession = () => {
 
     fetchSession();
   }, []);
-  return { id, loading }; 
+  return { id, loading };
 };
