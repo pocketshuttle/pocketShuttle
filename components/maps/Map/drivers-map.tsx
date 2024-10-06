@@ -35,7 +35,7 @@ export const DriversLocation = () => {
                         zoom: 10,
                         speed: 0.5,
                         curve: 1.5,
-                        essential: true, // Ensures animation runs on all devices
+                        essential: true,
                     });
                 }
             } catch (error) {

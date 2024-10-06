@@ -1,7 +1,11 @@
 import LoginButton from '@/components/auth/login-button'
+import Location from '@/components/maps/Map/new-map'
+import { BusArrival } from '@/components/parent-view/bus-arrival'
 import ParentViewData from '@/components/parent-view/parentdata'
 import { Button } from '@/components/ui/button'
+import { db } from '@/lib/db'
 import { getUserSession } from '@/lib/session'
+import { Prisma } from '@prisma/client'
 import React from 'react'
 
 const TeacherView = async () => {
@@ -19,10 +23,38 @@ const TeacherView = async () => {
             </div>
         )
     }
+    const id = user?.id
+    const whereClause: Prisma.ParentWhereInput = {
+        OR: [{ schoolId: id }, { id: id }],
+    };
+
+    const parentCount = await db.parent.count({
+        where: whereClause,
+    });
+
+    const parent = await db.parent.findMany({
+        where: whereClause,
+        include: {
+            Student: {
+                include: {
+                    bus: {
+                        include: {
+                            teacher: true,
+                            driver: true,
+                        },
+                    },
+                },
+            },
+        },
+    });
+
 
     return (
         <div>
-            <ParentViewData userId={user?.id} user={user} />
+            <div >
+                <  BusArrival parentAddress={parent[0]?.address} />
+            </div>
+            <ParentViewData parentData={parent} />
         </div>
     )
 }

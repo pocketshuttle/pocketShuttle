@@ -87,10 +87,7 @@ const Dashboard = async () => {
                 {/* @ts-ignore */}
                 <CommuteTable busData={bus} />
                 {/* <Charts /> */}
-                <div >
-                    {/* <Maps /> */}
-                    <Location />
-                </div>
+              
             </div>
 
             <aside className="w-2/6 sticky p-4">
