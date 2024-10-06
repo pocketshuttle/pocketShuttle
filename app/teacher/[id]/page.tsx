@@ -13,13 +13,26 @@ import { revalidateTag } from 'next/cache'
  */
 
 const StudentView = async ({ params }: { params: { id: string } }) => {
-    // const { data: studentsData, isPending, errorMessage } = useFetch(`/api/addstudent/${id}`, id);
     const studentData = await db.student.findUnique({
         where: { id: params.id },
         include: {
-            parent: true
+            parent: {
+                include: {
+                    Student: {
+                        include: {
+                            bus: {
+                                include: {
+                                    teacher: true,  // Include the teacher assigned to the bus
+                                    driver: true,   // Include the driver assigned to the bus
+                                },
+                            },
+                        },
+                    },
+                },
+            }
         }
     })
+    // Revalidate the cache for the 'students' tag to ensure real-time data
     revalidateTag("students")
 
     return (

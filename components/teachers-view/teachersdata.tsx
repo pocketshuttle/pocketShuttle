@@ -83,16 +83,20 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                         data?.bus &&
                         data?.bus.students &&
                         data?.bus.students?.map((student: StudentProps) => (
-                            <div className="flex items-center  bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md" key={student.id}>
+                            <div className="flex items-center  bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md " key={student.id}>
                                 <Link href={`teacher/${student.id}`}>
                                     <Image src={student.image || avatar} alt={student.full_name} className="rounded-md object-cover w-24 h-24" width={100} height={100} />
                                 </Link>
 
-                                <div className="py-4 space-y-2">
-                                    <h2 className="space-x-2">{student.full_name}
-                                        <small className="ml-2 text-[var(--textSoft)]">{student.age}</small>
-                                        <small className=" text-[var(--textSoft)]">{student.grade}</small>
-                                    </h2>
+                                <div className="py-4 space-y-2 ">
+                                    <div className="flex  justify-between items-center space-x-4  w-full">
+                                        <h2 className="space-x-2">{student.full_name}
+                                            <small className="ml-2 text-[var(--textSoft)]">{student.age}</small>
+                                            <small className=" text-[var(--textSoft)]">{student.grade}</small>
+                                        </h2>
+                                        <  AttendanceTab label1="OTW" label2="Stop" data={student.attendance ? student.attendance : "No attendance recorded"}
+                                            value1="OTW" value2="STOP" SetAttendance={SetAttendance} attendance={attendance} id={student.id} />
+                                    </div>
                                     <p className="text-sm text-[var(--textSoft)]">{student.address}</p>
                                     <div className="flex space-x-3 ">
                                         <div>
