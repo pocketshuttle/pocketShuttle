@@ -10,33 +10,48 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX!;
 
 type AddressProps = {
     address: string | null | undefined;
-}
+    parentAddress: string;
+    teacherData: TeacherLocation | undefined;
+};
 
-const Location = ({ address }: AddressProps) => {
+type TeacherLocation = {
+    teacherId: string;
+    teacherName: string;
+    teacherImage: string;
+    latitude: number;
+    longitude: number;
+};
 
+const Location = ({ address, parentAddress, teacherData }: AddressProps) => {
     const mapRef = useRef(null);
-    const [coords1, setCoords1] = useState<[number, number] | null>(null);
+    const [coords1, setCoords1] = useState<[number, number] | null>(teacherData ? [teacherData.longitude, teacherData.latitude] : null);
     const [coords2, setCoords2] = useState<[number, number] | null>(null);
     const [eta, setEta] = useState<string | null>(null);
     const [directions, setDirections] = useState<string[] | null>(null);
-    const [openDirection, setOpenDirection] = useState<boolean>(false)
+    const [openDirection, setOpenDirection] = useState<boolean>(false);
 
     useEffect(() => {
+        if (teacherData) {
+            console.log('Teacher Data:', teacherData);
+            setCoords1([teacherData?.longitude, teacherData?.latitude]); // Set longitude first, then latitude
+        }
+    }, [teacherData]);
+
+    useEffect(() => {
+        // Fetch the parent's address coordinates
+        const fetchParentCoordinates = async () => {
+            const coordinates2 = await fetchCoordinates(parentAddress);
+            setCoords2(coordinates2);
+        };
+        fetchParentCoordinates();
+    }, [parentAddress]);
+
+    // Fetch the route whenever teacher's location (coords1) or parent's location (coords2) changes
+    useEffect(() => {
         const fetchRoute = async () => {
-            try {
-                // Get the current coordinates
-                const coordinates1 = await getCurrentLocation();
-                setCoords1(coordinates1);
-
-                // Fetch the coordinates of the second address
-                //@ts-ignore
-                const coordinates2 = await fetchCoordinates(address);
-                setCoords2(coordinates2);
-
-                if (coordinates1 && coordinates2) {
-                    const route = await getRoute(coordinates1, coordinates2);
-                    console.log(route)
-
+            if (coords1 && coords2) {
+                try {
+                    const route = await getRoute(coords1, coords2);
                     if (route) {
                         const coordinates = route.geometry.coordinates;
 
@@ -80,104 +95,119 @@ const Location = ({ address }: AddressProps) => {
                         // Fit map to bounds of both locations
                         if (map) {
                             const bounds = new mapboxgl.LngLatBounds();
-                            bounds.extend([coordinates1[0], coordinates1[1]]);
-                            bounds.extend([coordinates2[0], coordinates2[1]]);
+                            bounds.extend([coords1[0], coords1[1]]);
+                            bounds.extend([coords2[0], coords2[1]]);
                             map.fitBounds(bounds, { padding: 50 });
                         }
+
                         // Set the directions instructions
                         if (route.legs && route.legs.length > 0) {
                             const steps = route.legs[0].steps;
-                            const directionsList = steps.map((step: any, index: number) => step.maneuver.instruction);
+                            const directionsList = steps.map((step: any) => step.maneuver.instruction);
                             setDirections(directionsList);
                         }
                     }
+                } catch (error) {
+                    console.error('Error in fetching route or coordinates:', error);
                 }
-            } catch (error) {
-                console.error("Error in fetching route or coordinates:", error);
             }
         };
 
         fetchRoute();
-    }, [address]);
+
+        const debounceFetchRoute = setTimeout(() => {
+            fetchRoute();
+        }, 500); 
+
+        return () => clearTimeout(debounceFetchRoute);
+    }, [coords1, coords2, teacherData]);
+
+
+    useEffect(() => {
+        const fetchLatestData = async () => {
+            // Fetch latest teacher and parent data here
+            if (teacherData) {
+                setCoords1([teacherData?.longitude, teacherData?.latitude]); // Update teacher's location
+            }
+        };
+
+        // Polling every 10 seconds to get the latest location updates
+        const interval = setInterval(fetchLatestData, 10000);
+
+        return () => clearInterval(interval); // Cleanup the interval on component unmount
+    }, [teacherData]);
 
     const handleMapLoad = () => {
         if (mapRef.current) {
             //@ts-ignore
             const mapInstance = mapRef.current.getMap();
-            console.log("Map loaded:", mapInstance);
+            console.log('Map loaded:', mapInstance);
         }
     };
 
     if (!coords1 || !coords2) {
         return <div>Loading map...</div>;
     }
+
     return (
         <div>
-            <div className='flex items-center justify-between p-2'>
-                {eta && <p>ETA: {eta}</p>}
-
-                <button className='p-2 ' onClick={() => setOpenDirection(!openDirection)}>
-                    Show Directions
-                </button>
-            </div>
-            {coords1 && coords2 ? (
-                <Map
-                    initialViewState={{
-                        latitude: coords1[1],
-                        longitude: coords1[0],
-                        zoom: 8,
-                    }}
-                    onLoad={handleMapLoad}
-                    style={{ width: '100%', height: '400px' }}
-                    mapStyle="mapbox://styles/mapbox/streets-v11"
-                    ref={mapRef}
-                    mapboxAccessToken={mapboxgl.accessToken}
-                >
-                    {coords1 && (
-                        <Marker longitude={coords1[0]} latitude={coords1[1]} color="blue">
-                            <img
-                                src="/images/sbus.png"
-                                alt="Current Location"
-                                style={{ width: '30px', height: '30px' }}
-                            />
-                        </Marker>
-                    )}
-                    {coords2 && (
-                        <Marker longitude={coords2[0]} latitude={coords2[1]} color="red">
-                            <img
-                                src="/images/home.png"
-                                alt="Destination"
-                                style={{ width: '30px', height: '30px' }}
-                            />
-                            <Popup
-                                closeButton={true}
-                                closeOnClick={false}
-                                longitude={coords2[0]}
-                                latitude={coords2[1]}
-                            >
-                                {address}
-                            </Popup>
-                        </Marker>
-                    )}
-                </Map>
-
-            ) : (
-                <div>Loading map...</div>
-            )}
-
-            {/* Conditionally display direction instructions */}
             {
-                openDirection &&
-                directions && directions.length > 0 && (
-                    <div>
-                        <h3>Directions:</h3>
-                        <ol>
-                            {directions.map((instruction, index) => (
-                                <li key={index}>{instruction}</li>
-                            ))}
-                        </ol>
+                teacherData &&
+                <>
+                    <div className='flex items-center justify-between p-2'>
+                        {eta && <p>ETA: {eta}</p>}
+
+                        <button className='p-2' onClick={() => setOpenDirection(!openDirection)}>
+                            Show Directions
+                        </button>
                     </div>
-                )}
+
+                    <Map
+                        initialViewState={{
+                            latitude: coords1[1], // Latitude second
+                            longitude: coords1[0], // Longitude first
+                            zoom: 8,
+                        }}
+                        onLoad={handleMapLoad}
+                        style={{ width: '100%', height: '400px' }}
+                        mapStyle='mapbox://styles/mapbox/streets-v11'
+                        ref={mapRef}
+                        mapboxAccessToken={mapboxgl.accessToken}
+                    >
+                        <Marker longitude={coords1[0]} latitude={coords1[1]} color='blue'>
+                            <img
+                                src={teacherData?.teacherImage}
+                                alt='Current Location'
+                                style={{ width: '30px', height: '30px', borderRadius: "50%" }}
+                            />
+                        </Marker>
+                        {coords2 && (
+                            <Marker longitude={coords2[0]} latitude={coords2[1]} color='red'>
+                                <img
+                                    src='/images/home.png'
+                                    alt='Destination'
+                                    style={{ width: '30px', height: '30px' }}
+                                />
+                                <Popup closeButton={true} closeOnClick={false} longitude={coords2[0]} latitude={coords2[1]}>
+                                    {address}
+                                </Popup>
+                            </Marker>
+                        )}
+                    </Map>
+
+                    {/* Conditionally display direction instructions */}
+                    {openDirection && directions && directions.length > 0 && (
+                        <div>
+                            <h3>Directions:</h3>
+                            <ol>
+                                {directions.map((instruction, index) => (
+                                    <li key={index}>{instruction}</li>
+                                ))}
+                            </ol>
+                        </div>
+                    )}
+                </>
+            }
         </div>
     );
 };

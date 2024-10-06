@@ -38,6 +38,16 @@ export type TeacherProps = {
   image: string;
   bus: BusProps;
 };
+export type ParentProps = {
+  id: string;
+  full_name: string;
+  email: string;
+  phoneNumber: string;
+  address: string;
+  image: string;
+  bus: BusProps;
+  Student: StudentProps[];
+};
 
 export type StudentProps = {
   id: string;

@@ -1,7 +1,6 @@
 import Location from '@/components/maps/Map/new-map'
 // import Location from '@/components/maps/Map/Map'
 import { GuardianPage } from '@/components/teachers-view/student-view/guardian'
-import { Skeleton } from '@/components/ui/skeleton'
 import { db } from '@/lib/db'
 import { revalidateTag } from 'next/cache'
 
@@ -25,7 +24,8 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
 
     return (
         <div>
-            <Location address={studentData?.address} />
+            {/* <Location address={studentData?.address} /> */}
+            {/* @ts-ignore */}
             <GuardianPage data={studentData} />
 
         </div>
