@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { db } from "@/lib/db";
 import { StudentAttendance } from "@prisma/client";
 import { Knock } from "@knocklabs/node";

@@ -14,6 +14,7 @@ export const updateLocation = async (
         await db.student.update({
             where: { id: id },
             data: {
+                //@ts-ignore
                 presence: data,
             },
             include: {

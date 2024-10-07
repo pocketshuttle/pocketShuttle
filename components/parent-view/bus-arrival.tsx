@@ -1,9 +1,9 @@
 "use client"
 import Pusher from 'pusher-js';
-
 import { useEffect, useState } from "react";
 import Location from '../maps/Map/new-map';
-type TeacherLocation = {
+
+interface TeacherLocation {
     teacherId: string;
     teacherName: string;
     teacherImage: string;
@@ -12,36 +12,56 @@ type TeacherLocation = {
 };
 
 //@ts-expect-error
-export const BusArrival = ({ parentAddress }) => {
-    //We are using teacher and not bus, because
-    // 1. if teacher is coming Soon, it most certainly bus is Coming_Soon,
-    // II. teachers have logins and drivers dont
-    //III> so when the teacher trigger the button to alert the parent, theyre on their way for pick up, the parent c an visualize the movement of the teacher 
-    const [teachersLocations, setTeachersLocations] = useState<TeacherLocation>();
+export const BusArrival = ({ parentAddress, parentId }) => {
+    const [teacherLocation, setTeacherLocation] = useState<TeacherLocation | null>(null);
 
     useEffect(() => {
-        const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-            cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+        // Ensure environment variables are set
+        const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
+        const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
+
+        if (!pusherKey || !pusherCluster) {
+            console.error("Pusher key or cluster not set in environment variables.");
+            return;
+        }
+
+        const pusher = new Pusher(pusherKey, {
+            cluster: pusherCluster,
         });
 
-        const teacherChannel = pusher.subscribe('live-teachers-channel');
-        teacherChannel.bind("teacher-location-update", (data: TeacherLocation) => {
-            setTeachersLocations(data)
-        })
+        // Subscribe to the parent-specific channel for updates
+        const channel = pusher.subscribe(`parent-${parentId}`);
 
-        // Cleanup Pusher subscriptions on component unmount
-        return () => {
-            teacherChannel.unbind_all();
-            pusher.unsubscribe('live-teachers-channel');
+        // Handle location updates from the teacher
+        const handleLocationUpdate = (data: TeacherLocation) => {
+            // Check if the new location is different before updating state to avoid redundant re-renders
+            if (data.latitude !== teacherLocation?.latitude || data.longitude !== teacherLocation?.longitude) {
+                setTeacherLocation(data);
+            }
         };
-    }, [])
+
+        channel.bind("teacher-location-update", handleLocationUpdate);
+
+        // Cleanup on component unmount
+        return () => {
+            channel.unbind("teacher-location-update", handleLocationUpdate); // Unbind specific event
+            pusher.unsubscribe(`parent-${parentId}`); // Unsubscribe from the parent-specific channel
+            pusher.disconnect(); // Cleanly disconnect from Pusher
+        };
+    }, [parentId, teacherLocation]);
+
+    console.log(parentId);
 
     return (
         <div>
-            <Location address={"lagos, NG"}
-                parentAddress={parentAddress}
-                teacherData={teachersLocations}
-            />
+            {/* Render the map component only when valid teacher data is available */}
+            {teacherLocation && (
+                <Location
+                    address={"lagos, NG"}
+                    parentAddress={parentAddress}
+                    teacherData={teacherLocation}
+                />
+            )}
         </div>
-    )
-}
+    );
+};

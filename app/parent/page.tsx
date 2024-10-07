@@ -52,7 +52,7 @@ const TeacherView = async () => {
     return (
         <div>
             <div >
-                <  BusArrival parentAddress={parent[0]?.address} />
+                <  BusArrival parentAddress={parent[0]?.address} parentId={id} />
             </div>
             <ParentViewData parentData={parent} />
         </div>

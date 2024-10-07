@@ -25,7 +25,6 @@ export const AttendanceTab = ({
     const { updateAtendance, loading, error } = useUpdateAttendance(id, "PATCH");
 
     const handleAttendanceClick = async (value: string) => {
-        console.log(value, "lable 1")
         //@ts-ignore
         const handleMode = label1 === "Present" || label1 === "Absent" ? updateStudentAttendance(id, value) : label1 === "OTW" || label1 === "Stop" ? updateLocation(id, value) : updateStudentStatus(id, value)
         setLocalAttendance(value);
@@ -34,6 +33,7 @@ export const AttendanceTab = ({
         startTransition(() => {
             handleMode.then((data) => {
                 toast({
+                    //@ts-ignore
                     description: data.message,
                 });
             }).catch((error) => {
