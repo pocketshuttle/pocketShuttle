@@ -35,15 +35,14 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
     const searchParams = useSearchParams()
     const page = searchParams.get("page")
 
-    const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
     const teacherData = data
-
     const [attendance, SetAttendance] = useState("")
+
+    console.log(data);
 
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
-
             <div className=" lg:hidden w-full">
                 <header className=" px-4  space-y-4 text-lg text-gray-400">
                     {
