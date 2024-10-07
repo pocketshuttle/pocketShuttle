@@ -75,8 +75,6 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                     }
                 </header>
 
-
-
                 <main className="px-4 space-y-2 w-full">
                     <h2>Students</h2>
                     {
@@ -94,8 +92,8 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                                             <small className="ml-2 text-[var(--textSoft)]">{student.age}</small>
                                             <small className=" text-[var(--textSoft)]">{student.grade}</small>
                                         </h2>
-                                        <  AttendanceTab label1="OTW" label2="Stop" data={student.attendance ? student.attendance : "No attendance recorded"}
-                                            value1="OTW" value2="STOP" SetAttendance={SetAttendance} attendance={attendance} id={student.id} />
+                                        <  AttendanceTab label1="OTW" label2="Stop" data={student.presence ? student.presence : "No presence recorded"}
+                                            value1="ON_THE_WAY" value2="NONE" SetAttendance={SetAttendance} attendance={attendance} id={student.id} />
                                     </div>
                                     <p className="text-sm text-[var(--textSoft)]">{student.address}</p>
                                     <div className="flex space-x-3 ">
@@ -107,7 +105,7 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                                         </div>
                                         <div>
                                             {
-                                                student.attendance === "PRESENT" ?
+                                                student.attendance === "PRESENT" || student.presence === "ON_THE_WAY" ?
                                                     <  AttendanceTab label1="Dropped" label2="Picked" data={student.status} value1="DROPPED" value2="PICKED"
                                                         SetAttendance={SetAttendance} attendance={attendance} id={student.id} /> : ""
                                             }

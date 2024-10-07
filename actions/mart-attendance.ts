@@ -7,10 +7,6 @@ import { Knock } from "@knocklabs/node";
 import { sendNotification } from "./send-notifications";
 import { sendSms } from "./notification/send-sms";
 
-type ParamsProps = {
-  id: string;
-};
-
 export const updateStudentAttendance = async (
   id: string,
   data: StudentAttendance
