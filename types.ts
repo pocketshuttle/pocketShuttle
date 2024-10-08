@@ -61,6 +61,7 @@ export type StudentProps = {
   attendance: StudentAttendance | null;
   status: string;
   presence: string;
+  parent?: ParentProps;
 };
 
 export type SelectProps = {

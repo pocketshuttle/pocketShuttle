@@ -5,6 +5,8 @@ import Map, { Marker, Popup } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
 import { fetchCoordinates, getCurrentLocation, getRoute } from '../lib/utils';
+import { useRecoilState } from 'recoil';
+import { studentETA } from '@/atoms/eta';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX!;
 
@@ -28,6 +30,8 @@ const Location = ({ parentAddress, teacherData }: AddressProps) => {
     const [eta, setEta] = useState<string | null>(null);
     const [directions, setDirections] = useState<string[] | null>(null);
     const [openDirection, setOpenDirection] = useState<boolean>(false);
+    const [studentEta, setStudentEta] = useRecoilState<number | null>(studentETA)
+
 
     useEffect(() => {
         if (teacherData) {
@@ -44,6 +48,7 @@ const Location = ({ parentAddress, teacherData }: AddressProps) => {
         };
         fetchParentCoordinates();
     }, [parentAddress]);
+
 
     // Fetch the route whenever teacher's location (coords1) or parent's location (coords2) changes
     useEffect(() => {
@@ -90,6 +95,9 @@ const Location = ({ parentAddress, teacherData }: AddressProps) => {
                         const timeInMinutes = Math.floor(durationInSeconds / 60);
                         const timeInSeconds = Math.floor(durationInSeconds % 60);
                         setEta(`${timeInMinutes} min ${timeInSeconds} sec`);
+                        setStudentEta(timeInMinutes)
+
+
 
                         // Fit map to bounds of both locations
                         if (map) {
@@ -120,7 +128,6 @@ const Location = ({ parentAddress, teacherData }: AddressProps) => {
 
         return () => clearTimeout(debounceFetchRoute);
     }, [coords1, coords2, teacherData]);
-
 
     useEffect(() => {
         const fetchLatestData = async () => {

@@ -32,7 +32,6 @@ const Navbar = ({ data }: NavbarProps) => {
     const [isTracking, setIsTracking] = useState<boolean>(false); // Manages the location tracking toggle state
     const router = useRouter(); // Provides router functionalities for navigation
 
-
     // Memoize avatar content to prevent unnecessary re-renders
     const avatarContent = useMemo(() => {
         return data?.image ? (
@@ -98,7 +97,10 @@ const Navbar = ({ data }: NavbarProps) => {
 
                 {/* User details section (greeting and name display) */}
                 <div className="flex flex-col items-start">
-                    <small className="text-[#606060]">Good day Teach!</small>
+                    {
+                        data &&
+                        <small className="text-[#606060]">Good day {data.role}!</small>
+                    }
                     <span className="text-[1.1rem] font-medium capitalize text-[#EEEEEE]">
                         {data?.name || "admin"} {/* Default to "admin" if name isn't provided */}
                     </span>
