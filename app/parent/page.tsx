@@ -6,8 +6,11 @@ import { Button } from '@/components/ui/button'
 import { db } from '@/lib/db'
 import { getUserSession } from '@/lib/session'
 import { Prisma } from '@prisma/client'
+import { Weight } from 'lucide-react'
+import { Montserrat } from 'next/font/google'
 import React from 'react'
 
+const mont = Montserrat({ subsets: ["latin"], weight: "500" })
 const TeacherView = async () => {
     const user = await getUserSession()
     // If no user session, redirect to login
@@ -48,9 +51,13 @@ const TeacherView = async () => {
         },
     });
 
+    if (!parent) {
+        // Handle the case where parent data is not found
+        return <div className='text-center flex items-center '>No Parent found data found for this user, please refresh or contact school admin.</div>;
+    }
 
     return (
-        <div>
+        <div className={mont.className}>
             <div >
                 <  BusArrival parentAddress={parent[0]?.address} parentId={id} />
             </div>

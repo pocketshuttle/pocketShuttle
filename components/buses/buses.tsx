@@ -50,9 +50,6 @@ const Buses = async () => {
         console.error("Error fetching Buses data:", error);
         return <div className="text-center">An error occurred while fetching Buses data, please refresh or try again later</div>;
     }
-
-    // revalidateTag("collection")
-
 }
 
 export default Buses 

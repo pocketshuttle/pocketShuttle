@@ -9,7 +9,6 @@ import { fetchCoordinates, getCurrentLocation, getRoute } from '../lib/utils';
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX!;
 
 type AddressProps = {
-    address: string | null | undefined;
     parentAddress: string;
     teacherData: TeacherLocation | undefined;
 };
@@ -22,7 +21,7 @@ type TeacherLocation = {
     longitude: number;
 };
 
-const Location = ({ address, parentAddress, teacherData }: AddressProps) => {
+const Location = ({ parentAddress, teacherData }: AddressProps) => {
     const mapRef = useRef(null);
     const [coords1, setCoords1] = useState<[number, number] | null>(teacherData ? [teacherData.longitude, teacherData.latitude] : null);
     const [coords2, setCoords2] = useState<[number, number] | null>(null);
@@ -117,7 +116,7 @@ const Location = ({ address, parentAddress, teacherData }: AddressProps) => {
 
         const debounceFetchRoute = setTimeout(() => {
             fetchRoute();
-        }, 500); 
+        }, 500);
 
         return () => clearTimeout(debounceFetchRoute);
     }, [coords1, coords2, teacherData]);
@@ -189,7 +188,7 @@ const Location = ({ address, parentAddress, teacherData }: AddressProps) => {
                                     style={{ width: '30px', height: '30px' }}
                                 />
                                 <Popup closeButton={true} closeOnClick={false} longitude={coords2[0]} latitude={coords2[1]}>
-                                    {address}
+                                    {parentAddress}
                                 </Popup>
                             </Marker>
                         )}
