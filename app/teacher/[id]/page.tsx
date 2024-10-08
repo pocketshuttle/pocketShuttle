@@ -34,6 +34,7 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
             }
         }
     })
+
     // Revalidate the cache for the 'students' tag to ensure real-time data
     revalidateTag("students")
 
