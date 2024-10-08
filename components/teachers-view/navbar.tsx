@@ -30,7 +30,6 @@ type NavbarProps = {
 const Navbar = ({ data }: NavbarProps) => {
     const [isHovering, setIsHovering] = useState(false);
     const [isTracking, setIsTracking] = useState<boolean>(false);
-
     const router = useRouter()
     const toggleTracking = () => {
         setIsTracking(!isTracking);
@@ -54,8 +53,8 @@ const Navbar = ({ data }: NavbarProps) => {
 
     return (
         <div className="flex justify-between bg-[var(--bg-root)] h-[60px] w-full
-        items-center px-4 mb-5">
-            <div className="flex gap-[1rem]  items-center justify-center cursor-pointer" onClick={() => router.back()}
+        items-center px-4 py-4 mb-5 mt-5 ">
+            <div className="flex space-x-2  items-center justify-center cursor-pointer" onClick={() => router.back()}
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
             >
@@ -71,14 +70,14 @@ const Navbar = ({ data }: NavbarProps) => {
                 </Avatar>
 
                 <div className="flex flex-col items-start ">
-                    <span className="text-[1.5rem] font-medium capitalize">{data?.name || "admin"}</span>
+                    <small className="text-[#606060]">good day teach!</small>
+                    <span className="text-[1.1rem] font-medium capitalize text-[#EEEEEE]">{data?.name || "admin"}</span>
                 </div>
 
 
             </div>
 
             <div className="flex space-x-2 items-center justify-center">
-
                 {
                     data.role === "teacher" && (
                         <TooltipProvider>

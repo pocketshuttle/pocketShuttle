@@ -41,7 +41,7 @@ type ParentProps = {
 export const GuardianPage = ({ data }: { data: StudentProps }) => {
     const [attendance, SetAttendance] = React.useState("")
 
-    const siblings = data.parent.Student.filter((sibling_id) => sibling_id.id !== data.id)
+    const siblings = data?.parent?.Student?.filter((sibling_id) => sibling_id.id !== data.id)
 
     return (
         <main className="px-4 space-y-2 w-full">
@@ -68,13 +68,14 @@ export const GuardianPage = ({ data }: { data: StudentProps }) => {
                         <p className="text-sm text-[var(--textSoft)]">
                             {data.parent?.address}
                         </p>
+
                     </div>
                 </div>
             }
 
             <div>
                 <h3 className="text-center p-5">All kids</h3>
-                {siblings.map((sibling: StudentProps) => {
+                {siblings?.map((sibling: StudentProps) => {
                     return (
                         <div
                             key={sibling.id}

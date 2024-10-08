@@ -63,6 +63,12 @@ const Drivers = async ({ searchParams }: { searchParams: { [key: string]: string
                 bus: true,
             },
         });
+
+
+        if (!driverData) {
+            // Handle the case where parent data is not found
+            return <div className='text-center flex items-center '>No Driver found data found for this user, please refresh or contact school admin.</div>;
+        }
         return (
             <div>
                 <Teachers />

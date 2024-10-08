@@ -1,6 +1,13 @@
-import mapboxgl from "mapbox-gl";
+import mapboxgl from "mapbox-gl"; // Import Mapbox GL library for interacting with Mapbox APIs
 
-// Get the driving route from start to end coordinates using Mapbox Directions API
+/**
+ * Get the driving route from the start to end coordinates using the Mapbox Directions API.
+ * This function requests directions using the 'driving' profile and returns a route in GeoJSON format.
+ *
+ * @param start - Starting coordinates as a tuple [longitude, latitude]
+ * @param end - Ending coordinates as a tuple [longitude, latitude]
+ * @returns A promise resolving to the first route from the Mapbox Directions API response or null in case of an error
+ */
 export const getRoute = async (
   start: [number, number],
   end: [number, number]
@@ -10,54 +17,36 @@ export const getRoute = async (
       `https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?geometries=geojson&steps=true&access_token=${process.env.NEXT_PUBLIC_MAPBOX}`
     );
     const data = await res.json();
-    return data.routes[0];
+    return data.routes[0]; // Return the first route from the response
   } catch (error) {
     console.error("Error fetching route:", error);
-    return null;
+    return null; // Return null if there was an error
   }
 };
 
-// Fetch the current location using the Geolocation API
+/**
+ * Fetch the current location using the browser's Geolocation API.
+ * This function continuously watches the user's location with high accuracy and resolves the current coordinates.
+ *
+ * @returns A promise resolving to the current location coordinates as a tuple [longitude, latitude]
+ */
 export const getCurrentLocation = (): Promise<[number, number]> => {
   return new Promise((resolve, reject) => {
     if (navigator.geolocation) {
+      // Watch for location changes
       navigator.geolocation.watchPosition(
-        async (position) => {
+        (position) => {
           const { latitude, longitude } = position.coords;
-          resolve([longitude, latitude]);
+          resolve([longitude, latitude]); // Resolve with current coordinates
         },
         (error) => {
           console.error("Error getting current location:", error);
-          reject(error);
+          reject(error); // Reject the promise if an error occurs
         },
         {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        }
-      );
-    } else {
-      reject(new Error("Geolocation is not supported by this browser."));
-    }
-  });
-};
-// Fetch the current location using the Geolocation API
-export const getSchoolLocation = (): Promise<[number, number]> => {
-  return new Promise((resolve, reject) => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          resolve([longitude, latitude]);
-        },
-        (error) => {
-          console.error("Error getting current location:", error);
-          reject(error);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
+          enableHighAccuracy: true, // Ensure high accuracy
+          timeout: 10000, // Time out after 10 seconds if no location is obtained
+          maximumAge: 0, // Do not use cached location
         }
       );
     } else {
@@ -66,7 +55,43 @@ export const getSchoolLocation = (): Promise<[number, number]> => {
   });
 };
 
-// Fetch coordinates for an address using Mapbox Geocoding API
+/**
+ * Fetch the school location using the browser's Geolocation API.
+ * This function fetches the current location (no continuous updates, unlike `getCurrentLocation`).
+ *
+ * @returns A promise resolving to the current location coordinates as a tuple [longitude, latitude]
+ */
+export const getSchoolLocation = (): Promise<[number, number]> => {
+  return new Promise((resolve, reject) => {
+    if (navigator.geolocation) {
+      // Get current position only once
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          resolve([longitude, latitude]); // Resolve with current coordinates
+        },
+        (error) => {
+          console.error("Error getting current location:", error);
+          reject(error); // Reject the promise if an error occurs
+        },
+        {
+          enableHighAccuracy: true, // Ensure high accuracy
+          timeout: 10000, // Time out after 10 seconds if no location is obtained
+          maximumAge: 0, // Do not use cached location
+        }
+      );
+    } else {
+      reject(new Error("Geolocation is not supported by this browser."));
+    }
+  });
+};
+
+/**
+ * Fetch the coordinates for a given address using the Mapbox Geocoding API.
+ *
+ * @param address - The address to geocode
+ * @returns A promise resolving to the coordinates [longitude, latitude] of the address, or null if no results are found
+ */
 export const fetchCoordinates = async (address: string) => {
   try {
     const response = await fetch(
@@ -76,16 +101,22 @@ export const fetchCoordinates = async (address: string) => {
     );
     const data = await response.json();
     if (data && data.features && data.features.length > 0) {
-      return data.features[0].center; // Longitude, Latitude format
+      return data.features[0].center; // Return the first result's coordinates (longitude, latitude)
     }
-    return null;
+    return null; // Return null if no features are found
   } catch (error) {
     console.error("Error fetching coordinates:", error);
-    return null;
+    return null; // Return null if an error occurs
   }
 };
 
-// Function to send the location to the server
+/**
+ * Send the user's location to the server via an API POST request.
+ *
+ * @param latitude - The latitude to send
+ * @param longitude - The longitude to send
+ * @returns A promise that resolves when the location is successfully sent, or logs an error on failure
+ */
 export const sendLocationToServer = async (
   latitude: number,
   longitude: number
@@ -96,18 +127,27 @@ export const sendLocationToServer = async (
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ latitude, longitude }),
+      body: JSON.stringify({ latitude, longitude }), // Send coordinates as JSON
     });
 
     if (!response.ok) {
-      throw new Error("Failed to send location to the server");
+      throw new Error("Failed to send location to the server"); // Handle failed responses
     }
   } catch (error) {
-    console.error("Error sending location to server:", error);
+    console.error("Error sending location to server:", error); // Log errors to console
   }
 };
 
-// Function to send the teachers location to the server
+/**
+ * Send the teacher's location, along with teacher details, to the server via an API POST request.
+ *
+ * @param latitude - The latitude of the teacher's location
+ * @param longitude - The longitude of the teacher's location
+ * @param teacherId - The teacher's unique ID
+ * @param teacherImage - The teacher's profile image URL
+ * @param teacherName - The teacher's name
+ * @returns A promise that resolves when the location is successfully sent, or logs an error on failure
+ */
 export const sendTeacherLocationToServer = async (
   latitude: number,
   longitude: number,
@@ -126,14 +166,14 @@ export const sendTeacherLocationToServer = async (
         longitude,
         teacherId,
         teacherImage,
-        teacherName,
+        teacherName, // Send teacher data and coordinates as JSON
       }),
     });
 
     if (!res.ok) {
-      throw new Error("Failed to send location to the server");
+      throw new Error("Failed to send location to the server"); // Handle failed responses
     }
   } catch (error) {
-    console.error("Error sending location to server:", error);
+    console.error("Error sending location to server:", error); // Log errors to console
   }
 };

@@ -83,7 +83,6 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
       },
     });
 
-    console.log(teacher);
 
     // If the teacher has a bus and students associated, notify each parent
     if (teacher?.bus?.students) {
@@ -91,8 +90,6 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
       const parentChannels = teacher.bus.students
         .filter((student) => student.parent?.id) // Ensure the student has a valid parent
         .map((student) => `parent-${student.parent?.id}`);
-
-      console.log(parentChannels, "parent channels ");
 
       // Broadcast to each parent's channel
       for (const channel of parentChannels) {

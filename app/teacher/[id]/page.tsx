@@ -1,4 +1,5 @@
 import Location from '@/components/maps/Map/new-map'
+import { BusArrival } from '@/components/parent-view/bus-arrival'
 // import Location from '@/components/maps/Map/Map'
 import { GuardianPage } from '@/components/teachers-view/student-view/guardian'
 import { db } from '@/lib/db'
@@ -26,6 +27,7 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
                                     driver: true,   // Include the driver assigned to the bus
                                 },
                             },
+                            parent: true
                         },
                     },
                 },
@@ -35,9 +37,14 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
     // Revalidate the cache for the 'students' tag to ensure real-time data
     revalidateTag("students")
 
+    if (!studentData?.parent) {
+        // Handle the case where parent data is not found
+        return <div className='text-center flex items-center '>No Parent found for this student, please refresh or contact school admin.</div>;
+    }
+
     return (
         <div>
-            {/* <Location address={studentData?.address} /> */}
+            <  BusArrival parentAddress={studentData?.parent?.address} parentId={studentData?.parent?.id} />
             {/* @ts-ignore */}
             <GuardianPage data={studentData} />
 

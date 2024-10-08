@@ -12,12 +12,14 @@ html,
   --textSoft: #b7cac1;
   --hoverBg: #16171c;
   --hoverBgTable: #21222739;
+  --tw-bg-opacity: 1;
   height: 100%;
 }
 
 body {
   background-color: var(--bg-root);
   color: var(--text);
+  font-family: "Poppins", sans-serif;
 }
 * {
   margin: 0;

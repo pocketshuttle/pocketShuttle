@@ -11,9 +11,7 @@ import Link from "next/link"
 import {
     Table,
     TableBody,
-    TableCaption,
     TableCell,
-    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
@@ -37,9 +35,6 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
 
     const teacherData = data
     const [attendance, SetAttendance] = useState("")
-
-    console.log(data);
-
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
@@ -80,7 +75,8 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                         data?.bus &&
                         data?.bus.students &&
                         data?.bus.students?.map((student: StudentProps) => (
-                            <div className="flex items-center  bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md " key={student.id}>
+                            <div className="flex items-center bg-[#18181b] bg-opacity-30 py-2 px-4 space-x-4 rounded-md" key={student.id}>
+
                                 <Link href={`teacher/${student.id}`}>
                                     <Image src={student.image || avatar} alt={student.full_name} className="rounded-md object-cover w-24 h-24" width={100} height={100} />
                                 </Link>

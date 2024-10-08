@@ -50,14 +50,11 @@ export const BusArrival = ({ parentAddress, parentId }) => {
         };
     }, [parentId, teacherLocation]);
 
-    console.log(parentId);
-
     return (
         <div>
             {/* Render the map component only when valid teacher data is available */}
             {teacherLocation && (
                 <Location
-                    address={"lagos, NG"}
                     parentAddress={parentAddress}
                     teacherData={teacherLocation}
                 />

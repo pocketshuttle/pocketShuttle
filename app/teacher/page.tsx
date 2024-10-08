@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { db } from '@/lib/db';
 import { getUserSession } from '@/lib/session';
 import { revalidateTag } from 'next/cache';
-import React from 'react';
+import React, { Suspense } from 'react';
 
 const TeacherView = async () => {
     const user = await getUserSession();
@@ -49,10 +49,13 @@ const TeacherView = async () => {
         revalidateTag("collection");
 
         return (
-            <div>
-                {/* @ts-ignore */}
-                <TeachersViewData userId={user.id} user={user} data={teacherData} />
-            </div>
+            <Suspense>
+                <div>
+                    {/* @ts-ignore */}
+                    <TeachersViewData userId={user.id} user={user} data={teacherData} />
+                </div>
+            </Suspense>
+
         );
     } catch (error) {
         console.error("Error fetching teacher data:", error);
