@@ -5,7 +5,13 @@ import { Toaster } from "@/components/ui/toaster"
 import Provider from "@/components/Provider";
 import QueryProvider from "@/components/webnotifications/query-provider";
 
-
+import {
+  RecoilRoot,
+  atom,
+  selector,
+  useRecoilState,
+  useRecoilValue,
+} from 'recoil';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -40,18 +46,17 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+      <Provider>
+        <body className={inter.className}>
+          < QueryProvider>
+            <main>
+              {children}
+            </main>
+          </QueryProvider>
+          <Toaster />
+        </body>
+      </Provider>
 
-      <body className={inter.className}>
-        {/* <Provider> */}
-        < QueryProvider>
-          <main>
-            {children}
-          </main>
-        </QueryProvider>
-        {/* </Provider> */}
-
-        <Toaster />
-      </body>
     </html >
   );
 }

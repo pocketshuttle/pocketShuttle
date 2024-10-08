@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import dashboard from "@/public/images/dashboard.svg"
 import avatar from "@/public/images/avatar.jpg"
 import Image from "next/image"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { StudentModal } from "@/components/students/ui/Student-modal"
 import Link from "next/link"
 import {
@@ -22,19 +22,29 @@ import { useSearchParams } from "next/navigation"
 import { Spinner } from "../ui/spinner"
 import Navbar from "./navbar"
 import { StudentProps, TeacherProps } from "@/types"
+import { useRecoilValue } from "recoil"
+import { studentETA } from "@/atoms/eta"
+import { BusArrival } from "../parent-view/bus-arrival"
+import { Separator } from "../ui/separator"
+import { fetchCoordinates, getCurrentLocation, getRoute } from "../maps/lib/utils"
+import { EachStudent } from "./ui/student-ui"
 
 type SessionProps = {
     userId: string | undefined
     user: any
     data: TeacherProps
 }
-
+interface TeacherLocation {
+    latitude: number;
+    longitude: number;
+};
 export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
     const searchParams = useSearchParams()
     const page = searchParams.get("page")
-
+    const eta = useRecoilValue(studentETA)
     const teacherData = data
     const [attendance, SetAttendance] = useState("")
+
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
@@ -43,23 +53,31 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                     {
                         data?.bus === null ? <span>Teacher hasnt been assigned a bus, please contact admin</span> :
                             <div className="flex flex-col">
-                                <p>
-                                    Bus Name :
+                                <p className="space-x-4">
+                                    <small>
+                                        Bus Name :
+                                    </small>
                                     <span className="capitalize">{
                                         data?.bus &&
                                         data?.bus.bus_product_name
                                     }
                                     </span>
                                 </p>
-                                <p>
-                                    Driver : <span className="capitalize">
+                                <p className="space-x-4">
+                                    <small>
+                                        Driver :
+                                    </small>
+                                    <span className="capitalize">
                                         {
                                             data?.bus?.driver &&
                                             data?.bus?.driver?.full_name}
                                     </span>
                                 </p>
-                                <p>
-                                    Driver Contact : <span className="capitalize">
+                                <p className="space-x-4">
+                                    <small>
+                                        Driver Contact:
+                                    </small>
+                                    <span className="capitalize">
                                         {
                                             data?.bus?.driver &&
                                             data?.bus?.driver?.phoneNumber}
@@ -70,45 +88,14 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                 </header>
 
                 <main className="px-4 space-y-2 w-full">
-                    <h2>Students</h2>
+                    <h2 className="text-center p-4">Students</h2>
                     {
                         data?.bus &&
                         data?.bus.students &&
                         data?.bus.students?.map((student: StudentProps) => (
-                            <div className="flex items-center bg-[#18181b] bg-opacity-30 py-2 px-4 space-x-4 rounded-md" key={student.id}>
-
-                                <Link href={`teacher/${student.id}`}>
-                                    <Image src={student.image || avatar} alt={student.full_name} className="rounded-md object-cover w-24 h-24" width={100} height={100} />
-                                </Link>
-
-                                <div className="py-4 space-y-2 ">
-                                    <div className="flex  justify-between items-center space-x-4  w-full">
-                                        <h2 className="space-x-2">{student.full_name}
-                                            <small className="ml-2 text-[var(--textSoft)]">{student.age}</small>
-                                            <small className=" text-[var(--textSoft)]">{student.grade}</small>
-                                        </h2>
-                                        <  AttendanceTab label1="OTW" label2="Stop" data={student.presence ? student.presence : "No presence recorded"}
-                                            value1="ON_THE_WAY" value2="NONE" SetAttendance={SetAttendance} attendance={attendance} id={student.id} />
-                                    </div>
-                                    <p className="text-sm text-[var(--textSoft)]">{student.address}</p>
-                                    <div className="flex space-x-3 ">
-                                        <div>
-                                            {
-                                                <  AttendanceTab label1="Present" label2="Absent" data={student.attendance ? student.attendance : "No attendance recorded"}
-                                                    value1="PRESENT" value2="ABSENT" SetAttendance={SetAttendance} attendance={attendance} id={student.id} />
-                                            }
-                                        </div>
-                                        <div>
-                                            {
-                                                student.attendance === "PRESENT" || student.presence === "ON_THE_WAY" ?
-                                                    <  AttendanceTab label1="Dropped" label2="Picked" data={student.status} value1="DROPPED" value2="PICKED"
-                                                        SetAttendance={SetAttendance} attendance={attendance} id={student.id} /> : ""
-                                            }
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
+                            <div key={student.id}>
+                                < EachStudent student={student} />
+                            </div >
                         ))
                     }
                 </main>

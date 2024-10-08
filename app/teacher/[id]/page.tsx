@@ -45,7 +45,7 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
 
     return (
         <div>
-            <  BusArrival parentAddress={studentData?.parent?.address} parentId={studentData?.parent?.id} />
+            <BusArrival parentAddress={studentData?.parent?.address} parentId={studentData?.parent?.id} />
             {/* @ts-ignore */}
             <GuardianPage data={studentData} />
 
