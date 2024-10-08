@@ -19,6 +19,7 @@ export const AddressComponent = ({ handleAddressChange, value }: addressTypes) =
                     country: 'NG',
                     language: "en"
                 }}
+                onSuggest={handleAddressChange}
                 value={value}
                 onChange={handleAddressChange}
                 accessToken={process.env.NEXT_PUBLIC_MAPBOX!}
