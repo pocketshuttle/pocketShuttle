@@ -106,8 +106,9 @@ const SingleStudent = () => {
     }
     const handleAddressChange = (d: string) => {
         setAddressValue(d)
+        const selectedValue = d.features?.[0]?.place_name || "";
 
-        form.setValue("address", d)
+        form.setValue("address", selectedValue)
     }
 
     const handleCameraInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
