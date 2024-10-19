@@ -95,9 +95,11 @@ const SingleStudent = () => {
         }
     }, [userId, form]);
     const onSubmit = (values: z.infer<typeof StudentSchema>) => {
-        startTransition(() => {
-            setSubmittedData(values)
-        })
+        console.log(values);
+
+        // startTransition(() => {
+        //     setSubmittedData(values)
+        // })
     }
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
@@ -106,9 +108,16 @@ const SingleStudent = () => {
     }
     const handleAddressChange = (d: string) => {
         setAddressValue(d)
-        const selectedValue = d.features?.[0]?.place_name || "";
+        // const selectedValue = d.features?.[0]?.place_name || "";
+        console.log(d)
 
-        form.setValue("address", selectedValue)
+        // form.setnpm i @geoapify/leaflet-address-search-pluginValue("address", d)
+    }
+    const handleSuggestionChange = (d: {}) => {
+        // setAddressValue(d)
+        // const selectedValue = d.features?.[0]?.place_name || "";
+        console.log(d)
+        // form.setValue("address", d)
     }
 
     const handleCameraInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -155,7 +164,6 @@ const SingleStudent = () => {
         form.setValue("gender", value); // Update form value
     };
     const handleSelectBus = (value: string) => {
-        console.log(value)
         setSelectBus(value)
         //@ts-ignore
 
@@ -267,7 +275,7 @@ const SingleStudent = () => {
                                     <div className="space-y-4">
                                         <FormItem>
                                             <FormLabel>Students Address</FormLabel>
-                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} />
+                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} handleSuggestionChange={handleSuggestionChange} />
                                             <FormMessage />
 
                                         </FormItem>

@@ -1,11 +1,16 @@
 "use client"
 import { SearchBox } from "@mapbox/search-js-react";
-import React, { useState } from "react";
-type addressTypes = {
-    handleAddressChange: (d: string) => void
-    value: string
-}
-export const AddressComponent = ({ handleAddressChange, value }: addressTypes) => {
+import { GeocoderAutocomplete } from '@geoapify/geocoder-autocomplete';
+import React, { useEffect, useRef, useState } from "react";
+
+type AddressComponentProps = {
+    handleAddressChange: (value: string) => void;
+    handleSuggestionChange: (suggestion: any) => void;
+    value: string;
+};
+
+export const AddressComponent = ({ handleAddressChange, handleSuggestionChange, value }: AddressComponentProps) => {
+
 
     return (
         <div>
@@ -19,10 +24,12 @@ export const AddressComponent = ({ handleAddressChange, value }: addressTypes) =
                     country: 'NG',
                     language: "en"
                 }}
-                onSuggest={handleAddressChange}
+                onRetrieve={handleSuggestionChange}
+                placeholder="Please add your address, be precise as much as possible or use a landmark"
                 value={value}
                 onChange={handleAddressChange}
                 accessToken={process.env.NEXT_PUBLIC_MAPBOX!}
+
             />
         </div>
 

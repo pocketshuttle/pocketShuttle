@@ -13,6 +13,8 @@
     "@auth/mongodb-adapter": "^3.4.1",
     "@auth/prisma-adapter": "^2.4.2",
     "@ducanh2912/next-pwa": "^10.2.8",
+    "@geoapify/geocoder-autocomplete": "^2.0.3",
+    "@geoapify/leaflet-address-search-plugin": "^1.0.2",
     "@hookform/resolvers": "^3.7.0",
     "@knocklabs/node": "^0.6.8",
     "@knocklabs/react": "^0.2.7",
