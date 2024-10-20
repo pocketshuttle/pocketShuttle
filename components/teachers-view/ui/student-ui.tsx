@@ -72,7 +72,7 @@ export const EachStudent = ({ student }: { student: StudentProps }) => {
 
     return (
         <div key={student.id} className="w-full bg-[#606060]/10">
-            <div className="flex items-center py-2 px-4 space-x-4 rounded-md border-b-[1px] border-dashed border-[#2A2A2A]">
+            <div className="flex items-center justify-center py-2 px-4 space-x-4 rounded-md border-b-[1px] border-dashed border-[#2A2A2A]">
                 <Link href={`teacher/${student.id}`}>
                     <Image
                         src={student.image || avatar}
