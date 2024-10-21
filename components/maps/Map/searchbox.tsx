@@ -10,8 +10,6 @@ type AddressComponentProps = {
 };
 
 export const AddressComponent = ({ handleAddressChange, handleSuggestionChange, value }: AddressComponentProps) => {
-
-
     return (
         <div>
             {/* @ts-ignore */}

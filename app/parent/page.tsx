@@ -57,7 +57,7 @@ const TeacherView = async () => {
     }
 
     return (
-        <div className={mont.className}>
+        <div className={`${mont.className} `} >
             <div >
                 <  BusArrival parentAddress={parent[0]?.address} parentId={id} />
             </div>
