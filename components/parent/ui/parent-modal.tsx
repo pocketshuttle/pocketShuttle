@@ -217,7 +217,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                     <div className="space-y-4">
                                         <FormItem>
                                             <FormLabel>Parent Address</FormLabel>
-                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} />
+                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue}  />
                                             <FormMessage />
 
                                         </FormItem>
