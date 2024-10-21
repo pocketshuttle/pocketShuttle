@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 type AddressComponentProps = {
     handleAddressChange: (value: string) => void;
-    handleSuggestionChange: (suggestion: any) => void;
+    handleSuggestionChange?: (suggestion: any) => void;
     value: string;
 };
 

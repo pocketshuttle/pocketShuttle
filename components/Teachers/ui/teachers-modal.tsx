@@ -102,6 +102,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
         const inputElement = document.getElementById("cameraInput")
         inputElement?.click()
     }
+
     const handleCameraInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
 
@@ -164,6 +165,12 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
         setSelectedRole(value)
         console.log(value)
         form.setValue("role", value)
+    }
+    const handleSuggestionChange = (d: {}) => {
+        // setAddressValue(d)
+        // const selectedValue = d.features?.[0]?.place_name || "";
+        console.log(d)
+        // form.setValue("address", d)
     }
     const handleSelectStudent = (value: string) => {
         setSelectedStudent(value)
@@ -307,7 +314,9 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
 
                                         <FormItem>
                                             <FormLabel>Address</FormLabel>
-                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} />
+                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue}
+                                                handleSuggestionChange={handleSuggestionChange}
+                                            />
                                             <FormMessage />
 
                                         </FormItem>

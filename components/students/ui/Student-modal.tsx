@@ -103,6 +103,12 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
         setSelectParent(value);
         form.setValue("parentId", value);
     };
+    const handleSuggestionChange = (d: {}) => {
+        // setAddressValue(d)
+        // const selectedValue = d.features?.[0]?.place_name || "";
+        console.log(d)
+        // form.setValue("address", d)
+    }
 
     const handleGradeChange = (value: string) => {
         setClassGrade(value);
@@ -201,7 +207,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                     <div className="space-y-4">
                                         <FormItem>
                                             <FormLabel>Parent Address</FormLabel>
-                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} />
+                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} handleSuggestionChange={handleSuggestionChange} />
                                             <FormMessage />
                                         </FormItem>
                                     </div>
