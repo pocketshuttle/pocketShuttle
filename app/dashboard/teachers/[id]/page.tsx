@@ -112,7 +112,12 @@ const SingleTeacherPage = () => {
         }
     }, [success]);
 
-
+    const handleSuggestionChange = (d: {}) => {
+        // setAddressValue(d)
+        // const selectedValue = d.features?.[0]?.place_name || "";
+        console.log(d)
+        // form.setValue("address", d)
+    }
 
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
@@ -312,7 +317,7 @@ const SingleTeacherPage = () => {
                                 <div className="space-y-4">
                                     <FormItem>
                                         <FormLabel>Address</FormLabel>
-                                        <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} />
+                                        <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} handleSuggestionChange={handleSuggestionChange} />
                                         <FormMessage />
 
                                     </FormItem>
