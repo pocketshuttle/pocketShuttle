@@ -82,14 +82,13 @@ const Navbar = ({ data }: NavbarProps) => {
             // Cleanup: Clear interval when tracking is turned off or component unmounts
             return () => clearInterval(intervalId);
         }
-    }, [isTracking]); // Dependency array ensures effect runs only when `isTracking` changes
-
+    }, [isTracking]);
     return (
         <div className="flex justify-between bg-[var(--bg-root)] h-[60px] w-full items-center px-4 py-4 mb-5 mt-5">
             {/* Profile section: Clicking navigates back, and Lottie animation is triggered on hover */}
             <div
                 className="flex space-x-2 items-center justify-center cursor-pointer"
-                onClick={() => router.back()} // Navigates back to the previous page
+                // onClick={() => router.back()} // Navigates back to the previous page
                 onMouseEnter={() => setIsHovering(true)} // Enable hover effect
                 onMouseLeave={() => setIsHovering(false)} // Disable hover effect
             >
