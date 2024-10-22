@@ -14,8 +14,7 @@ const ParentViewData = ({ parentData }) => {
             <div>
                 <h3 className="text-center p-5">All kids</h3>
                 {
-
-                    parentData[0]?.Student?.map((sibling: StudentProps) => {
+                    parentData?.Student?.map((sibling: StudentProps) => {
                         const bus = sibling?.bus
                         const driver = sibling?.bus?.driver
                         const teacher = sibling?.bus?.teacher
@@ -26,13 +25,12 @@ const ParentViewData = ({ parentData }) => {
                                 className="max-w-lg mx-auto bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 flex items-center px-2">
                                 <div className="relative ">
                                     <Image className="w-24 h-24 mb-3 rounded-sm shadow-lg" src={sibling?.image || avatar} alt="Hotel Image" width={200} height={200} />
-
                                 </div>
 
                                 <div className="p-4">
                                     <div className=" flex items-center space-x-4">
                                         <h2 className="text-xl font-semibold text-gray-900">  {sibling?.full_name}</h2>
-                                        <Badge variant="outline" className={`text-[#EEEEEE] text-[0.5rem] ${sibling.status === "PICKED" ? 'bg-[crimson]' : "bg-[teal]"}`}> {sibling.status}</Badge>
+                                        <Badge variant="outline" className={`text-[#EEEEEE] text-[0.5rem] ${sibling?.status === "PICKED" ? 'bg-[crimson]' : "bg-[teal]"}`}> {sibling.status}</Badge>
                                     </div>
                                     <p className="capitalize text-gray-500">
                                         <span>

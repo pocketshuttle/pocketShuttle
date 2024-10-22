@@ -46,7 +46,7 @@ const TeacherView = async () => {
         }
 
         // Revalidate the cache with the "collection" tag
-        revalidateTag("collection");
+        revalidateTag("students");
 
         return (
             <Suspense>

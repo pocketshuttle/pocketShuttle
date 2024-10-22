@@ -56,8 +56,6 @@ export const ParentData = ({ parentData, totalCount, studentData }) => {
     const getParams = useSearchParams()
     const page = getParams.get("page") || ""
 
-
-
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
 
     const [isHovering, setIsHovering] = useState(false);

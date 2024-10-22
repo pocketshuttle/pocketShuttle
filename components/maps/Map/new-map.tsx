@@ -35,7 +35,6 @@ const Location = ({ parentAddress, teacherData }: AddressProps) => {
 
     useEffect(() => {
         if (teacherData) {
-            console.log('Teacher Data:', teacherData);
             setCoords1([teacherData?.longitude, teacherData?.latitude]); // Set longitude first, then latitude
         }
     }, [teacherData]);
@@ -147,7 +146,6 @@ const Location = ({ parentAddress, teacherData }: AddressProps) => {
         if (mapRef.current) {
             //@ts-ignore
             const mapInstance = mapRef.current.getMap();
-            console.log('Map loaded:', mapInstance);
         }
     };
 

@@ -7,7 +7,7 @@ import useUpdateAttendance from "@/hooks/usePatch";
 import { Dispatch, SetStateAction, useState, useTransition } from "react";
 
 type RegisterProps = {
-    value1: string;
+    value1: string
     value2: string;
     label1: string;
     label2: string;
@@ -33,7 +33,6 @@ export const AttendanceTab = ({
         startTransition(() => {
             handleMode.then((data) => {
                 toast({
-                    //@ts-ignore
                     description: data.message,
                 });
             }).catch((error) => {
