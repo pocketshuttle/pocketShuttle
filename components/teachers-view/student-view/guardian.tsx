@@ -48,7 +48,7 @@ export const GuardianPage = ({ data }: { data: StudentProps }) => {
             <h2>Guardian Profile</h2>
             {data &&
                 <div
-                    className="flex items-center bg-[var(--bgSoft)] py-2 px-4 space-x-4 rounded-md"
+                    className="flex items-center bg-[var(--bgSoft)] px-4 space-x-4 rounded-md"
                 >
                     <Image
                         src={data?.parent?.image || avatar}
@@ -57,7 +57,7 @@ export const GuardianPage = ({ data }: { data: StudentProps }) => {
                         width={100}
                         height={100}
                     />
-                    <div className="py-4 space-y-2">
+                    <div className="py-2 ">
                         <h2 className="capitalize">{data?.parent?.full_name}</h2>
                         <p className="text-lg text-[var(--textSoft)]">
                             {data.parent?.phoneNumber}

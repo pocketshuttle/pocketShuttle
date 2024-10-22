@@ -28,7 +28,8 @@ export const updateStudentAttendance = async (
         bus: true,
       },
     });
-
+    revalidateTag("parent");
+    revalidateTag("students");
     // console.log(updatedStudent);
     if (!updatedStudent) {
       return { message: "Student not found", status: 404 };

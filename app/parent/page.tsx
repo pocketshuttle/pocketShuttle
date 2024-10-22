@@ -5,38 +5,36 @@ import ParentViewData from '@/components/parent-view/parentdata'
 import { Button } from '@/components/ui/button'
 import { db } from '@/lib/db'
 import { getUserSession } from '@/lib/session'
-import { Prisma } from '@prisma/client'
-import { Weight } from 'lucide-react'
+import { revalidateTag } from 'next/cache'
 import { Montserrat } from 'next/font/google'
-import React from 'react'
+import React, { Suspense } from 'react'
 
+// Load Montserrat font
 const mont = Montserrat({ subsets: ["latin"], weight: "500" })
+
 const TeacherView = async () => {
     const user = await getUserSession()
-    // If no user session, redirect to login
+
+    // Redirect to login if no user session
     if (!user || typeof user.id !== 'string') {
         return (
-            <div className="flex items-center justify-center">
-                <div>
-                    User session is not available. Please log in.
+            <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                    <p>User session is not available. Please log in.</p>
                     <LoginButton>
-                        <Button size={"lg"}>Login</Button>
+                        <Button size="lg">Login</Button>
                     </LoginButton>
                 </div>
             </div>
         )
     }
+
     const id = user?.id
-    const whereClause: Prisma.ParentWhereInput = {
-        OR: [{ schoolId: id }, { id: id }],
-    };
 
-    const parentCount = await db.parent.count({
-        where: whereClause,
-    });
-
-    const parent = await db.parent.findMany({
-        where: whereClause,
+    const parent = await db.parent.findUnique({
+        where: {
+            id: id
+        },
         include: {
             Student: {
                 include: {
@@ -52,20 +50,32 @@ const TeacherView = async () => {
     });
 
     if (!parent) {
-        // Handle the case where parent data is not found
-        return <div className='text-center flex items-center '>No Parent found data found for this user, please refresh or contact school admin.</div>;
+        // Handle case where no parent data is found
+        return (
+            <div className="text-center flex items-center justify-center h-screen">
+                <p>No Parent data found for this user. Please refresh or contact the school admin.</p>
+            </div>
+        );
     }
 
+    // Trigger revalidation for student cache tag
+    revalidateTag("parent")
+    revalidateTag("students")
+
     return (
-        <div className={`${mont.className} `} >
-            <div >
-                <  BusArrival parentAddress={parent[0]?.address} parentId={id} />
+        <Suspense>
+
+            <div className={`${mont.className} p-3`}>
+
+                <div>
+                    <BusArrival parentAddress={parent?.address} parentId={id} />
+                </div>
+
+                <ParentViewData parentData={parent} />
             </div>
-            <ParentViewData parentData={parent} />
-        </div>
+        </Suspense>
+
     )
 }
-
-
 
 export default TeacherView
