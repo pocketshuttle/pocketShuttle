@@ -54,7 +54,6 @@ const ParentViewData = ({ parentData }) => {
                                     </p>
                                     <p className="space-x-2 capitalize">
                                         <small className="text-[#111111]">
-
                                             {teacher?.full_name}
                                         </small>
                                         <small className="ml-2 text-lg text-[#111111] ">

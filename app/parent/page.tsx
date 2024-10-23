@@ -30,52 +30,57 @@ const TeacherView = async () => {
     }
 
     const id = user?.id
+    try {
 
-    const parent = await db.parent.findUnique({
-        where: {
-            id: id
-        },
-        include: {
-            Student: {
-                include: {
-                    bus: {
-                        include: {
-                            teacher: true,
-                            driver: true,
+
+
+        const parent = await db.parent.findUnique({
+            where: {
+                id: id
+            },
+            include: {
+                Student: {
+                    include: {
+                        bus: {
+                            include: {
+                                teacher: true,
+                                driver: true,
+                                students: true
+                            },
                         },
                     },
                 },
             },
-        },
-    });
-
-    if (!parent) {
-        // Handle case where no parent data is found
-        return (
-            <div className="text-center flex items-center justify-center h-screen">
-                <p>No Parent data found for this user. Please refresh or contact the school admin.</p>
-            </div>
-        );
-    }
-
-    // Trigger revalidation for student cache tag
-    revalidateTag("parent")
-    revalidateTag("students")
-
-    return (
-        <Suspense>
-
-            <div className={`${mont.className} p-3`}>
-
-                <div>
-                    <BusArrival parentAddress={parent?.address} parentId={id} />
+        });
+        if (!parent) {
+            // Handle case where no parent data is found
+            return (
+                <div className="text-center flex items-center justify-center h-screen">
+                    <p>No Parent data found for this user. Please refresh or contact the school admin.</p>
                 </div>
+            );
+        }
 
-                <ParentViewData parentData={parent} />
-            </div>
-        </Suspense>
+        // Trigger revalidation for student cache tag
+        revalidateTag("students");
+        revalidateTag("parent");
 
-    )
+        return (
+            <Suspense>
+                <div className={`${mont.className} p-3`}>
+                    <div>
+                        <BusArrival parentAddress={parent?.address} parentId={id} />
+                    </div>
+
+                    <ParentViewData parentData={parent} />
+                </div>
+            </Suspense>
+
+        )
+
+    } catch (error) {
+        return <div>An error occurred while fetching your data, please refresh</div>;
+    }
 }
 
 export default TeacherView

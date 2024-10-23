@@ -28,7 +28,7 @@ export const updateStudentAttendance = async (
         bus: true,
       },
     });
-    revalidateTag("parent");
+    revalidateTag("new-parent");
     revalidateTag("students");
     // console.log(updatedStudent);
     if (!updatedStudent) {
@@ -76,6 +76,7 @@ export const updateStudentAttendance = async (
         },
       ],
     });
+    revalidateTag("new-parent");
 
     return {
       message: "Attendance updated successfully",
