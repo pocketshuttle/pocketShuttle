@@ -14,7 +14,9 @@ import { FormSuccess } from "@/components/errorsandsuccess/form-success"
 import Link from "next/link"
 import { AddRoles } from "../ui/add-role"
 import { useSearchParams } from "next/navigation"
+import { Poppins } from "next/font/google"
 
+const poppins = Poppins({ weight: "400", subsets: ["latin"] });
 
 export const LoginForm = () => {
     const [isPending, startTransition] = useTransition()
@@ -70,7 +72,7 @@ export const LoginForm = () => {
         >
             <Form {...form}>
                 {/* the handle submit comes from the form constant */}
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-6 ${poppins.className}`}>
                     <div className="space-y-4">
                         <FormField
                             control={form.control}
@@ -131,7 +133,7 @@ export const LoginForm = () => {
                     <FormSuccess message={isSuccess} />
                     <Button
                         disabled={isPending}
-                        size="lg" className="w-full" type="submit">Login</Button>
+                        size="lg" className="w-full text-lg" type="submit">Login</Button>
                 </form>
             </Form>
         </CardWrapper>
