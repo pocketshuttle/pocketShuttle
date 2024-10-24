@@ -15,7 +15,7 @@ import {
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://pocketshuttle.netlify.app"),
+  metadataBase: new URL("https://www.pocketshuttle.com"),
 
   title: {
     template: "track live location for kids",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "pocketshuttle",
     description: "location bus service for school and parent",
-    url: "https://pocketshuttle.netlify.app",
+    url: "https://www.pocketshuttle.com",
     siteName: "PocketShuttle",
     images: "/logo.png",
     type: "website",

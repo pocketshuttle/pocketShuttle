@@ -13,7 +13,7 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
     if (!user) {
         redirect("/login");
     }
-    
+
     if (user?.role === "teacher") {
         redirect("/teacher");
     } else if (user?.role === "parent") {
@@ -21,7 +21,7 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
     }
 
     return (
-        <div className={`flex h-screen ${poppins.className}`}>
+        <div className={`flex h-screen bg-black ${poppins.className}`}>
             <div className="w-1/5 max-h-screen">
                 <Sidebar data={user} />
             </div>

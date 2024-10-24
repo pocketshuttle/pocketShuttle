@@ -118,7 +118,7 @@ const Navbar = ({ data }: NavbarProps) => {
                                 </div>
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p>Toggle your location</p> {/* Tooltip content when hovering over the switch */}
+                                <p>Toggle your location</p> 
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
