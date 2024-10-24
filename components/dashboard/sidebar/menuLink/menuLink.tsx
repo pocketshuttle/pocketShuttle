@@ -3,7 +3,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import LottieAnimation from "./lottie-animation";
-import classroom from "@/public/images/Classroom.json"
+import { Roboto } from "next/font/google";
+
+const roboto = Roboto({ weight: "400", subsets: ["latin"] })
 type ListType = {
     link: string;
     icon: string;
@@ -19,7 +21,9 @@ const MenuLink = ({ menu }: { menu: ListType[] }) => {
             {menu.map((item: ListType, index: number) => (
                 <Link href={item.link} key={index} prefetch>
                     <div
-                        className={`flex items-center space-x-2 px-2 py-3 hover:bg-[var(--hoverBg)] mb-1 rounded-md ${pathname === item.link && "bg-[var(--hoverBg)]"
+                        className={`
+                            ${roboto.className} 
+                            flex  items-center space-x-2 px-2 py-3 hover:bg-[var(--hoverBg)] mb-1 rounded-md ${pathname === item.link && "bg-[var(--hoverBg)]"
                             }`}
                         onMouseEnter={() => setHoverIndex(index)}
                         onMouseLeave={() => setHoverIndex(null)}
@@ -31,7 +35,7 @@ const MenuLink = ({ menu }: { menu: ListType[] }) => {
                                 animationData={item.icon}
                             />
                         </div>
-                        <span className="text-[0.8rem]">{item.title}</span>
+                        <span className="text-[.9rem] tracking-wide text-[#EEEEEE]">{item.title}</span>
                     </div>
                 </Link>
             ))}

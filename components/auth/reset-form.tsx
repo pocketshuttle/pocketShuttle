@@ -13,7 +13,8 @@ import { FormError } from "@/components/errorsandsuccess/form-error"
 import { FormSuccess } from "@/components/errorsandsuccess/form-success"
 import Link from "next/link"
 import { reset } from "@/actions/reset"
-
+import { Poppins } from "next/font/google"
+const poppins = Poppins({ weight: "400", subsets: ["latin"] });
 
 export const ResetPasswordForm = () => {
     const [isPending, startTransition] = useTransition()
@@ -55,7 +56,7 @@ export const ResetPasswordForm = () => {
         >
             <Form {...form}>
                 {/* the handle submit comes from the form constant */}
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-6 ${poppins.className}`}>
                     <div className="space-y-4">
                         <FormField
                             control={form.control}

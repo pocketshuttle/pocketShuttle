@@ -12,6 +12,8 @@ import { FormSuccess } from "@/components/errorsandsuccess/form-success"
 import { Login } from "@/actions/login"
 import { useState, useTransition } from "react"
 import { register } from "@/actions/register"
+import { Poppins } from "next/font/google"
+const poppins = Poppins({ weight: "400", subsets: ["latin"] });
 
 
 export const RegisterForm = () => {
@@ -59,7 +61,7 @@ export const RegisterForm = () => {
         >
             <Form {...form}>
                 {/* the handle submit comes from the form constant */}
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-6 ${poppins.className} text-[#222222]`}>
                     <div className="space-y-4 ">
                         <FormField
                             control={form.control}
