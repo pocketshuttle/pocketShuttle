@@ -1,5 +1,6 @@
 "use server"
 import LoginButton from '@/components/auth/login-button';
+import { NetworkError } from '@/components/errorsandsuccess/error/error';
 import { TeachersViewData } from '@/components/teachers-view/teachersdata';
 import { Button } from '@/components/ui/button';
 import { db } from '@/lib/db';
@@ -57,8 +58,16 @@ const TeacherView = async () => {
             </Suspense>
 
         );
-    } catch (error) {
-        console.error("Error fetching teacher data:", error);
+    } catch (error: any) {
+        if (error.message.includes("Can't reach database server at")) {
+            return <div className=" flex items-center justify-center">
+                <NetworkError error="Connection" />
+            </div>
+        } else {
+            <div className="flex items-center justify-center ">
+                please refresh
+            </div>
+        }
         return <div>An error occurred while fetching teacher data.</div>;
     }
 };
