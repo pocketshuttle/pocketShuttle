@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { getUserSession } from "@/lib/session"
 import { revalidateTag } from "next/cache"
 import Location from "@/components/maps/Map/new-map"
+import { NetworkError } from "@/components/errorsandsuccess/error/error"
 // import Location from "@/components/maps/Map/Map"
 
 
@@ -28,74 +29,88 @@ const Dashboard = async () => {
         )
     }
     const userId = user?.id
+    try {
 
-    const teacherCount = await db.teacher.count({
-        where: {
-            OR: [
-                { schoolId: userId },
-                { id: userId }
-            ]
+        const teacherCount = await db.teacher.count({
+            where: {
+                OR: [
+                    { schoolId: userId },
+                    { id: userId }
+                ]
+            }
+        })
+
+        const studentCount = await db.student.count({
+            where: {
+                OR: [
+                    { schoolId: userId },
+                    { id: userId }
+                ]
+            }
+        });
+
+        const busCount = await db.buses.count({
+            where: {
+                OR: [
+                    { schoolId: userId },
+                    { id: userId }
+                ]
+            }
+        });
+        const bus = await db.buses.findMany({
+            where: {
+                OR: [{ id: userId }, { schoolId: userId }],
+            },
+            include: {
+                route: true,
+                teacher: true,
+                students: true,
+                driver: true,
+            },
+        });
+        if (bus) {
+            revalidateTag("bus")
         }
-    })
 
-    const studentCount = await db.student.count({
-        where: {
-            OR: [
-                { schoolId: userId },
-                { id: userId }
-            ]
-        }
-    });
+        return (
+            <div className="flex w-full" >
+                <div className="w-4/6">
+                    <div className="flex w-full gap-2 justify-between p-2 ">
+                        <div className="w-2/6">
+                            <DashboardWrapper headLabel="Total Number of Buses" total={busCount} />
+                        </div>
+                        <div className="w-2/6">
+                            <DashboardWrapper headLabel="Total Number of Students" total={studentCount} />
+                        </div>
+                        <div className="w-2/6">
+                            <DashboardWrapper headLabel="Total Number of Teachers" total={teacherCount} />
+                        </div>
+                    </div>
+                    {/* @ts-ignore */}
+                    <CommuteTable busData={bus} />
+                    {/* <Charts /> */}
 
-    const busCount = await db.buses.count({
-        where: {
-            OR: [
-                { schoolId: userId },
-                { id: userId }
-            ]
-        }
-    });
-    const bus = await db.buses.findMany({
-        where: {
-            OR: [{ id: userId }, { schoolId: userId }],
-        },
-        include: {
-            route: true,
-            teacher: true,
-            students: true,
-            driver: true,
-        },
-    });
-    if (bus) {
-        revalidateTag("bus")
-    }
-
-    return (
-        <div className="flex w-full" >
-            <div className="w-4/6">
-                <div className="flex w-full gap-2 justify-between p-2 ">
-                    <div className="w-2/6">
-                        <DashboardWrapper headLabel="Total Number of Buses" total={busCount} />
-                    </div>
-                    <div className="w-2/6">
-                        <DashboardWrapper headLabel="Total Number of Students" total={studentCount} />
-                    </div>
-                    <div className="w-2/6">
-                        <DashboardWrapper headLabel="Total Number of Teachers" total={teacherCount} />
-                    </div>
                 </div>
-                {/* @ts-ignore */}
-                <CommuteTable busData={bus} />
-                {/* <Charts /> */}
-              
+
+                <aside className="w-2/6 sticky p-4">
+                    <Alert />
+                </aside>
+
             </div>
+        )
+    } catch (error: any) {
+        console.log(error, "connection errro")
+        if (error.message.includes("Can't reach database server at")) {
+            return <div className=" flex items-center justify-center">
+                <NetworkError error="Connection" />
+            </div>
+        } else {
+            <div className="flex items-center justify-center ">
+                please refresh
+            </div>
+        }
 
-            <aside className="w-2/6 sticky p-4">
-                <Alert />
-            </aside>
-
-        </div>
-    )
+    }
 }
 
 export default Dashboard

@@ -1,4 +1,5 @@
 import LoginButton from "@/components/auth/login-button";
+import { NetworkError } from "@/components/errorsandsuccess/error/error";
 import { Student } from "@/components/students/students"
 import { StudentsData } from "@/components/students/ui/Table";
 import { Button } from "@/components/ui/button";
@@ -92,7 +93,7 @@ const Students = async ({ searchParams }: { searchParams: { [key: string]: strin
             revalidateTag("bus")
         }
 
-       
+
 
         return (
             <div>
@@ -101,12 +102,18 @@ const Students = async ({ searchParams }: { searchParams: { [key: string]: strin
             </div>
         )
 
-    } catch (error) {
-        console.error("Error fetching teacher data:", error);
-        return <div>An error occurred while fetching student data.</div>;
+    } catch (error: any) {
+        if (error.message.includes("Can't reach database server at")) {
+            return <div className=" flex items-center justify-center">
+                <NetworkError error="Connection" />
+            </div>
+        } else {
+            <div className="flex items-center justify-center ">
+                please refresh
+            </div>
+        }
     }
 
-    console.log(gradeQuery, "next params from the server component ")
 
 
 }

@@ -1,5 +1,6 @@
 import LoginButton from "@/components/auth/login-button";
 import { Pagination } from "@/components/dashboard/pagination/pagination";
+import { NetworkError } from "@/components/errorsandsuccess/error/error";
 import StudentCard from "@/components/students/ui/student-card";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -107,9 +108,16 @@ const AllStudents = async ({ searchParams }: { searchParams: { [key: string]: st
             </div>
         )
 
-    } catch (error) {
-        console.error("Error fetching teacher data:", error);
-        return <div>An error occurred while fetching student data.</div>;
+    } catch (error:any) {
+        if (error.message.includes("Can't reach database server at")) {
+            return <div className=" flex items-center justify-center">
+                <NetworkError error="Connection" />
+            </div>
+        } else {
+            <div className="flex items-center justify-center ">
+                please refresh
+            </div>
+        }
     }
 
 

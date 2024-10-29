@@ -1,4 +1,5 @@
 import LoginButton from '@/components/auth/login-button'
+import { NetworkError } from '@/components/errorsandsuccess/error/error'
 import Location from '@/components/maps/Map/new-map'
 import { BusArrival } from '@/components/parent-view/bus-arrival'
 import ParentViewData from '@/components/parent-view/parentdata'
@@ -78,8 +79,16 @@ const TeacherView = async () => {
 
         )
 
-    } catch (error) {
-        return <div>An error occurred while fetching your data, please refresh</div>;
+    } catch (error: any) {
+        if (error.message.includes("Can't reach database server at")) {
+            return <div className=" flex items-center justify-center">
+                <NetworkError error="Connection" />
+            </div>
+        } else {
+            <div className="flex items-center justify-center ">
+                please refresh
+            </div>
+        }
     }
 }
 
