@@ -1,6 +1,5 @@
 import LoginButton from "@/components/auth/login-button";
 import { NetworkError } from "@/components/errorsandsuccess/error/error";
-import { Student } from "@/components/students/students"
 import { StudentsData } from "@/components/students/ui/Table";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
@@ -18,6 +17,8 @@ const Students = async ({ searchParams }: { searchParams: { [key: string]: strin
         ? decodeURIComponent(decodeURIComponent(searchParams.grade.replace(/\+/g, ' ')))
         : "";
     const ITEM_PER_PAGE = 4;
+
+    console.log(gradeQuery, "students", searchParams)
 
     // if no user, that means you havent logged in, so redirect back to login page
     if (!user || typeof user.id !== 'string') {

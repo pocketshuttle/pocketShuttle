@@ -68,13 +68,14 @@ const Dashboard = async () => {
                 driver: true,
             },
         });
+        revalidateTag("students")
         if (bus) {
             revalidateTag("bus")
         }
 
         return (
             <div className="flex w-full" >
-                <div className="w-4/6">
+                <div className="w-full lg:w-4/6">
                     <div className="flex w-full gap-2 justify-between p-2 ">
                         <div className="w-2/6">
                             <DashboardWrapper headLabel="Total Number of Buses" total={busCount} />
@@ -87,12 +88,12 @@ const Dashboard = async () => {
                         </div>
                     </div>
                     {/* @ts-ignore */}
-                    <CommuteTable busData={bus} />
+                    <CommuteTable userId={userId} />
                     {/* <Charts /> */}
 
                 </div>
 
-                <aside className="w-2/6 sticky p-4">
+                <aside className="hidden lg:w-2/6 lg:block sticky p-4">
                     <Alert />
                 </aside>
 

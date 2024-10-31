@@ -6,6 +6,7 @@ import { Social } from "@/components/auth/social"
 import { BackButton } from "@/components/auth/back-button"
 import { Button } from "@/components/ui/button"
 import { IoMdClose } from "react-icons/io"
+import { Separator } from "@/components/ui/separator"
 
 interface CardWrapperProps {
     children: React.ReactNode
@@ -21,6 +22,7 @@ export const TeacherCardWrapper = ({ children, headLabel, action }: CardWrapperP
                     <AuthHeader label={headLabel} />
                     <IoMdClose width={30} className="cursor-pointer w-6" onClick={action} />
                 </div>
+                <Separator className="bg-[#3A3A3A]" />
 
             </CardHeader>
             <CardContent>

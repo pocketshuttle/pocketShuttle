@@ -11,16 +11,11 @@ export const GET = async (
 ) => {
   try {
     const { id } = params;
-    const whereClause: Prisma.ParentWhereInput = {
-      OR: [{ schoolId: id }, { id: id }],
-    };
 
-    const parentCount = await db.parent.count({
-      where: whereClause,
-    });
-
-    const parent = await db.parent.findMany({
-      where: whereClause,
+    const parent = await db.parent.findUnique({
+      where: {
+        id: id,
+      },
       include: {
         Student: {
           include: {
@@ -28,26 +23,21 @@ export const GET = async (
               include: {
                 teacher: true,
                 driver: true,
+                students: true,
               },
             },
           },
         },
       },
     });
-    // const parent = await Parent.find(query).populate({
-    //   path: "students",
-    //   model: "Student",
-    // });
 
-    console.log("Fetched parent data: ", parent);
-
-    if (parent.length === 0) {
+    if (!parent) {
       return new Response(JSON.stringify({ message: "Parent not found" }), {
         status: 404,
       });
     }
 
-    return new Response(JSON.stringify({ parent, parentCount }), {
+    return new Response(JSON.stringify(parent), {
       status: 200,
     });
   } catch (error) {

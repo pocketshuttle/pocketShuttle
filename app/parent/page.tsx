@@ -73,10 +73,9 @@ const TeacherView = async () => {
                         <BusArrival parentAddress={parent?.address} parentId={id} />
                     </div>
 
-                    <ParentViewData parentData={parent} />
+                    <ParentViewData userId={id} />
                 </div>
             </Suspense>
-
         )
 
     } catch (error: any) {

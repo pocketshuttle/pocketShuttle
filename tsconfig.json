@@ -27,6 +27,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "worker/index.js"
-  ],
+, "app/api/events/attendance-events.ts"  ],
   "exclude": ["node_modules"]
 }

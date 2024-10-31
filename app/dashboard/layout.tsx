@@ -21,12 +21,12 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
     }
 
     return (
-        <div className={`flex h-screen bg-black ${poppins.className}`}>
-            <div className="w-1/5 max-h-screen">
+        <div className={`flex h-screen bg-black ${poppins.className} w-full`}>
+            <div className="w-[10%] lg:w-1/5 max-h-screen">
                 <Sidebar data={user} />
             </div>
 
-            <div className="flex-1 p-3 ml-1/5">
+            <div className="flex-1 p-3 ml-1/5 w-[90%] lg:w-full">
                 <Navbar />
                 {children}
             </div>
