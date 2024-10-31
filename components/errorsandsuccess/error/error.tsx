@@ -12,7 +12,7 @@ export const NetworkError = ({ error }: { error: string }) => {
     <p className="text-red-500 text-xl">
       The link seems to have taken a detour! Please hit 'Refresh' to get back on track
     </p>
-    <Button onClick={() => router.refresh} className="px-6  " variant="default">
+    <Button onClick={() => router.refresh()} className="px-6  " variant="default">
       refesh
     </Button>
   </div>;

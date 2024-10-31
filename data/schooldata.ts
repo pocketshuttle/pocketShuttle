@@ -29,32 +29,52 @@ export type BusesProps = {
 
 export const grades = [
   {
-    value: "Grade A",
-    label: "Grade A",
+    value: "Creche",
+    label: "Creche",
   },
   {
-    value: "Grade B",
-    label: "Grade B",
+    value: "Grade 1",
+    label: "Grade 1",
   },
   {
-    value: "Grade C",
-    label: "Grade C",
+    value: "Grade 2",
+    label: "Grade 2",
   },
   {
-    value: "Grade D",
-    label: "Grade D",
+    value: "Grade 3",
+    label: "Grade 3",
   },
   {
-    value: "Grade E",
-    label: "Grade E",
+    value: "Grade 4",
+    label: "Grade 4",
   },
   {
-    value: "Grade F",
-    label: "Grade F",
+    value: "Grade 5",
+    label: "Grade 5",
   },
   {
-    value: "Grade H",
-    label: "Grade H",
+    value: "Grade 7 (JSS1)",
+    label: "Grade 7",
+  },
+  {
+    value: "Grade 8 (JSS2)",
+    label: "Grade 8",
+  },
+  {
+    value: "Grade 9 (JSS3)",
+    label: "Grade 9",
+  },
+  {
+    value: "Grade 10 (SS1)",
+    label: "Grade 10",
+  },
+  {
+    value: "Grade 11 (SS2)",
+    label: "Grade 11",
+  },
+  {
+    value: "Grade 12 (SS3)",
+    label: "Grade 12",
   },
 ];
 

@@ -4,11 +4,10 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import avatar from "@/public/images/avatar.jpg"
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pagination } from "@/components/dashboard/pagination/pagination";
 import Link from "next/link";
 import { useFetch } from "@/hooks/useFetch";
-import { useSession } from "next-auth/react";
 import {
     Table,
     TableBody,
@@ -30,9 +29,26 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-//@ts-ignore
-export const CommuteTable = ({ busData }: BusProps[]) => {
+import useSWR from "swr";
+import { FormError } from "@/components/errorsandsuccess/form-error";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+export const CommuteTable = ({ userId }: { userId: string }) => {
+
+    const { data: busData, error, isLoading } = useSWR<BusProps[]>(
+        `/api/addbus/${userId}`,
+        fetcher,
+        // { refreshInterval: 5000 } // Refresh every 5 seconds
+    );
+
+    if (error) {
+        <FormError message={error} />
+    }
     const [openBusId, setOpenBusId] = useState<string | null>(null);
+
+    console.log(busData)
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237] mt-4">
             <Table>
@@ -46,6 +62,22 @@ export const CommuteTable = ({ busData }: BusProps[]) => {
                     </TableRow>
                 </TableHeader>
                 <TableBody className="text-[0.75rem] text-gray-400">
+
+                    {
+                        isLoading && (
+                            < TableRow>
+                                <TableCell colSpan={5}>
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-12 w-full mb-2 " />
+                                        <Skeleton className="h-12 w-full" />
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )
+
+                    }
+
+
                     {busData?.map((bus: BusProps) => {
                         const isBusOpen = openBusId === bus.id;
                         return (

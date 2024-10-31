@@ -58,10 +58,9 @@ export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => 
     const [filterGrade, setFilterGrade] = useState<string>("")
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
 
-    console.log(studentsData, "students data")
     // TODO: CHECK FOR THE CORRECT METHOD FOR SCHOOL GRADE
     const handleGradeChange = (value: string) => {
-        console.log(value)
+        console.log(value, "grade")
         setFilterGrade(value)
         const updatedGradeQuery = value !== "All" ? `&grade=${value}` : "";
 
