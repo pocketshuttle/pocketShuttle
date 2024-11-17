@@ -170,10 +170,10 @@ export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => 
                                     </TableCell>
                                     <TableCell className="capitalize">
                                         {
-                                            student.bus ?
-                                                <div className=" space-x-2 flex"> {student.bus && student.bus.bus_product_name}
+                                            student?.bus ?
+                                                <div className=" space-x-2 flex"> {student?.bus && student?.bus?.bus_product_name}
                                                     <span>
-                                                        ({student.bus && student.bus.bus_number})
+                                                        ({student?.bus && student?.bus?.bus_number})
                                                     </span>
                                                     <AlertDialog>
                                                         <AlertDialogTrigger asChild>

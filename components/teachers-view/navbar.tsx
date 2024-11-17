@@ -45,7 +45,7 @@ const Navbar = ({ data }: NavbarProps) => {
 
     // Toggle the state of location tracking (switch on/off)
     const toggleTracking = () => {
-        const newTrackingState = !isTracking;
+        const newTrackingState = !isTracking; 
         setIsTracking(newTrackingState);
         // Save the new tracking state to localStorage
         window.localStorage.setItem("tracking", JSON.stringify(newTrackingState));
