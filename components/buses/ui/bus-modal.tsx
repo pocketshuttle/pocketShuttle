@@ -137,14 +137,10 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                                 )}
                                             />
                                         </div>
-
-
                                     </div>
 
                                     <div className="space-x-4 flex items-center w-full justify-between">
-
                                         <div className="space-y-4 w-3/6">
-
                                             <FormField
                                                 control={form.control}
                                                 name="seat_number"
@@ -158,8 +154,10 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                                                 type="number"
                                                                 disabled={isPending}
                                                                 className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                                onChange={(e) => field.onChange(Number(e.target.value))}
-
+                                                                onChange={(e) => {
+                                                                    const value = e.target.value;
+                                                                    field.onChange(value === "" ? "" : Number(value));
+                                                                }}
                                                             />
                                                         </FormControl>
                                                     </FormItem>
@@ -196,8 +194,6 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                     {/* <div className="flex  justify-between ">
                                         < SelectProperty placeholder="Bus" label="Bus Name" item="Bus A" />
                                     </div> */}
-                                    {/* <FormError message={isError} /> */}
-                                    {/* <FormSuccess message={isSuccess} /> */}
                                     <Button
                                         disabled={isPending}
                                         size="lg" className="w-full bg-[teal] p-5" type="submit">Add Bus
