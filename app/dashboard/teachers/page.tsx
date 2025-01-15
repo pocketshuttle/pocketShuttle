@@ -28,7 +28,7 @@ const TeachersDrivers = async ({ searchParams }: { searchParams: { [key: string]
     const userId = user?.id
     const page = typeof searchParams.page === "string" ? Number(searchParams.page) : 1
     const searchQuery = typeof searchParams.q === "string" ? searchParams.q : ""
-    const ITEM_PER_PAGE = 4;
+    const ITEM_PER_PAGE = 10;
 
     const queryClause: Prisma.TeacherWhereInput = {
         OR: [
@@ -101,7 +101,7 @@ const TeachersDrivers = async ({ searchParams }: { searchParams: { [key: string]
 
     } catch (error) {
         console.error("Error fetching Parents data:", error);
-        return <div className='text-center'>An error occurred while fetching Parents data, please refresh or try again later.</div>;
+        return <div className='text-center'>An error occurred while fetching Teachers data, please refresh or try again later.</div>;
     }
 
 }

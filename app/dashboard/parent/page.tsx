@@ -24,7 +24,7 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
     //if the next req for the next page is a string, we convert it to number then pass it as a params, if its unavailable , we set it to 1
     const page = typeof searchParams.page === "string" ? Number(searchParams.page) : 1
     const searchQuery = typeof searchParams.q === "string" ? searchParams.q : ""
-    const ITEM_PER_PAGE = 4;
+    const ITEM_PER_PAGE = 10;
 
     const query: Prisma.ParentWhereInput = {
         //we fetch our data by either school id or user Id
@@ -86,6 +86,9 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
                 ],
             }
         })
+
+
+        console.log(parent, "from parent")
 
         return (
             <div>
