@@ -89,23 +89,23 @@ const SingleStudent = () => {
             });
         }
     }, [studentData, form, userId]);
+
     useEffect(() => {
         if (userId) {
             form.setValue('school_id', userId);  // Set the userId after session is loaded
         }
     }, [userId, form]);
-    const onSubmit = (values: z.infer<typeof StudentSchema>) => {
-        console.log(values);
 
-        // startTransition(() => {
-        //     setSubmittedData(values)
-        // })
+    const onSubmit = (values: z.infer<typeof StudentSchema>) => {
+        startTransition(() => {
+            setSubmittedData(values)
+        })
     }
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
         inputElement?.click()
-        // console.log(inputElement)
     }
+
     const handleAddressChange = (d: string) => {
         setAddressValue(d)
         // const selectedValue = d.features?.[0]?.place_name || "";
@@ -196,7 +196,6 @@ const SingleStudent = () => {
                                 onChange={handleCameraInputChange}
                             />
                             <Image src={
-
                                 newAvatar ? isLoadingImage ? spinner : newAvatar :
                                     studentData && studentData[0]?.image ?
                                         studentData[0]?.image : avatar

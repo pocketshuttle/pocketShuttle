@@ -94,8 +94,6 @@ const Students = async ({ searchParams }: { searchParams: { [key: string]: strin
             revalidateTag("bus")
         }
 
-
-
         return (
             <div>
                 {/* @ts-ignore */}

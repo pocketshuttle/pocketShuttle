@@ -68,6 +68,7 @@ export const GET = async (
       });
     }
     revalidateTag("collection");
+    revalidateTag("students");
 
     return new Response(JSON.stringify({ students, count }), {
       status: 200,
