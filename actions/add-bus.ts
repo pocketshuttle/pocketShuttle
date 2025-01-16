@@ -4,17 +4,13 @@ import { db } from "@/lib/db";
 import { BusSchema } from "@/schemas";
 import { revalidateTag } from "next/cache";
 import * as z from "zod";
-import { NextResponse } from "next/server";
 
 export const addBus = async (values: z.infer<typeof BusSchema>) => {
   try {
     // Validate the input data using Zod schema
     const validatedData = BusSchema.safeParse(values);
     if (!validatedData.success) {
-      return NextResponse.json(
-        { message: "Validation error", errors: validatedData.error.errors },
-        { status: 400 }
-      );
+      return { message: validatedData.error.errors, status: 500 };
     }
 
     const {
@@ -58,14 +54,11 @@ export const addBus = async (values: z.infer<typeof BusSchema>) => {
     // Revalidate bus-related caches after adding a bus
     revalidateTag("bus");
 
-    return NextResponse.json({ message: "Bus Added Successfully" }, { status: 200 });
+    return { message: "Bus Added Successfully!", status: 200 };
   } catch (error: any) {
     console.error("Error adding Bus:", error.message || error);
 
     // Handle specific database errors or fallback to general error
-    return NextResponse.json(
-      { message: "Error adding Bus", error: error.message || "Unknown error occurred" },
-      { status: 500 }
-    );
+    return { message: "Error adding Bus!", status: 400 };
   }
 };
