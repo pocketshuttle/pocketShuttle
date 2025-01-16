@@ -53,20 +53,23 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
         if (userId) {
             values.school_id = userId;
         }
-        startTransition(() => {
-            addBus(values).then((data) => {
+        startTransition(async () => {
+            const res = await addBus(values)
+            if (res.status === 200) {
                 toast({
                     //@ts-ignore
-                    description: data.message,
+                    description: res.message,
                 });
-            }).catch((error) => {
-                console.error("Error:", error);
+            } else {
                 toast({
-                    description: "An error occurred. Please try again.",
+                    //@ts-ignore
+                    description: res.message,
                 });
-            });
-        })
+            }
+
+        });
     }
+
 
 
     const handleCloseModal = () => {
