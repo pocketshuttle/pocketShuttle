@@ -26,8 +26,6 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined)
-    const [isError, setIsError] = useState("")
-    const [isSuccess, setIsSuccess] = useState("")
     const [selectRoute, setSelectedRoute] = useState<string>("")
     const { data, loading, errorMessage, success } = usePost("/api/addbus", submittedData, "POST")
     const { data: routeData, isPending: routePending, errorMessage: routeError } = useFetch(`/api/addroute/${userId}`, userId);

@@ -173,7 +173,7 @@ model Route {
 model Buses {
   id               String    @id @default(cuid())
   bus_product_name String
-  bus_number       String
+  bus_number       String    @unique
   seat_number      Int
   color            String?
   schoolId         String
