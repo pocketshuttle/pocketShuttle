@@ -32,21 +32,22 @@ export function AddStudents({ data, parentId }: { data: StudentProps[], parentId
     const [openModal, setIsOpenModal] = useState(false)
 
     const handleSelectStudent = (value: string) => {
-        startTransition(() => {
-            addParent(value, parentId).then((response) => {
-                if (response.status === 100) {
-                    setIsOpenModal(true)
-                }
-                toast({
-                    description: response.message,
+        startTransition(async () => {
+            const res = addParent(value, parentId)
+                .then((response) => {
+                    if (response.status === 100) {
+                        setIsOpenModal(true)
+                    }
+                    toast({
+                        description: response.message,
+                    });
+                    setValue(value);
+                }).catch((error) => {
+                    console.error("Error:", error);
+                    toast({
+                        description: "An error occurred. Please try again.",
+                    });
                 });
-                setValue(value);
-            }).catch((error) => {
-                console.error("Error:", error);
-                toast({
-                    description: "An error occurred. Please try again.",
-                });
-            });
         });
     };
 

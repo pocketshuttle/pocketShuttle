@@ -16,7 +16,7 @@ const Students = async ({ searchParams }: { searchParams: { [key: string]: strin
     const gradeQuery = typeof searchParams.grade === "string"
         ? decodeURIComponent(decodeURIComponent(searchParams.grade.replace(/\+/g, ' ')))
         : "";
-    const ITEM_PER_PAGE = 4;
+    const ITEM_PER_PAGE = 20;
 
     console.log(gradeQuery, "students", searchParams)
 

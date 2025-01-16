@@ -87,9 +87,6 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
             }
         })
 
-
-        console.log(parent, "from parent")
-
         return (
             <div>
                 <ParentData parentData={parent} totalCount={parentCount} studentData={studentData} />
