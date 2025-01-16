@@ -51,14 +51,16 @@ const SingleParentPage = () => {
     const { data, loading, errorMessage: ParentError, success } = usePost(`/api/addteacher/${id}`, submittedData, "PATCH")
     const { data: parentsData, isPending: parentPending, errorMessage } = useFetch(`/api/addparent/${id}`, userId);
 
-    const parentData = parentsData?.parent
+    console.log(parentsData);
+
+    const parentData = parentsData
     const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
 
     const form = useForm<z.infer<typeof TeacherSchema>>({
         resolver: zodResolver(TeacherSchema),
         defaultValues: {
             school_id: userId,
-            full_name: parentData && parentData?.[0].full_name,
+            full_name: parentData && parentData?.full_name,
             email: "",
             password: "",
             phoneNumber: "",
@@ -72,12 +74,12 @@ const SingleParentPage = () => {
         if (parentData) {
             form.reset({
                 school_id: userId,
-                full_name: parentData?.[0]?.full_name,
-                email: parentData?.[0]?.email,
-                phoneNumber: parentData?.[0]?.phoneNumber,
-                address: parentData?.[0]?.address,
-                image: newAvatar || parentData?.[0]?.image,
-                role: parentData?.[0].role
+                full_name: parentData?.full_name,
+                email: parentData?.email,
+                phoneNumber: parentData?.phoneNumber,
+                address: parentData?.address,
+                image: newAvatar || parentData?.image,
+                role: parentData?.role
             });
         }
     }, [parentData, form, userId]);
@@ -88,22 +90,22 @@ const SingleParentPage = () => {
     }, [userId, form]);
 
     useEffect(() => {
-        setNewData(parentData && parentData[0].full_name)
+        setNewData(parentData && parentData?.full_name)
     }, [id, parentData])
 
     const onSubmit = (values: z.infer<typeof TeacherSchema>) => {
         // console.log(values)
-        startTransition(() => {
-            updateParent(id, values).then((response) => {
+        startTransition(async () => {
+            const response = await updateParent(id, values)
+            if (response.status === 200) {
                 toast({
                     description: response.message,
                 });
-            }).catch((error) => {
-                console.error("Error:", error);
+            } else {
                 toast({
                     description: "An error occurred. Please try again.",
                 });
-            });
+            }
         });
 
     };
@@ -174,17 +176,6 @@ const SingleParentPage = () => {
         }
     }, [])
 
-    const handleSelectBus = (value: string) => {
-        setSelectedBus(value)
-        //@ts-ignore
-        form.setValue("busId", value.id)
-    }
-    const handleSelectStudent = (value: string) => {
-        setSelectedStudent(value)
-        form.setValue("studentId", value)
-    }
-
-
     return (
         <div >
             <div >
@@ -204,8 +195,8 @@ const SingleParentPage = () => {
 
                         <Image src={
                             newAvatar ? isLoadingImage ? spinner : newAvatar :
-                                parentData && parentData[0]?.image ?
-                                    parentData[0]?.image : avatar
+                                parentData && parentData?.image ?
+                                    parentData?.image : avatar
                         } alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
                     </div>
                     <div className="flex-1 px-5 ">

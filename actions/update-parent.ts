@@ -24,9 +24,9 @@ export const updateParent = async (parentId: string | undefined, data: any) => {
       data: updateData,
     });
 
-    return { message: "Parent updated successfully" };
+    return { message: "Parent updated successfully", status: 200 };
   } catch (error) {
     console.error("Error updating parent:", error);
-    return { message: "Error updating parent" };
+    return { message: "Error updating parent", status: 400 };
   }
 };
