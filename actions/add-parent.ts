@@ -12,7 +12,6 @@ export const addParent = async (
       where: { id: studentId },
     });
 
-
     if (available?.parentId !== null) {
       return { message: "Student already belong to a parent", status: 100 };
     }
@@ -43,9 +42,9 @@ export const addParent = async (
 
     revalidateTag("parent");
 
-    return { message: "Student added to parent" };
+    return { message: "Student added to parent", status: 200 };
   } catch (error) {
     console.error("Error adding Parent:", error);
-    return { message: "Error adding Parent" };
+    return { message: "Error adding Parent", status: 400 };
   }
 };

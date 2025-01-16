@@ -62,29 +62,39 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
             form.setValue("school_id", userId);
         }
     }, [session.loading, userId, form]);
-
-    const onSubmit = (values: z.infer<typeof ParentSchema>) => {
-        if (!session.loading && session.id) {
-            values.school_id = userId;
-        } else {
-            console.error("Session is still loading or userId is not available");
+    const onSubmit = async (values: z.infer<typeof ParentSchema>) => {
+        // Guard clause for session check
+        if (session.loading || !session.id) {
+            toast({ description: "Please wait for session to load" });
             return;
         }
 
-        startTransition(() => {
-            addNewParent(values).then((data) => {
+        try {
+            startTransition(async () => {
+                const response = await addNewParent({
+                    ...values,
+                    school_id: session.id
+                });
+
                 toast({
                     //@ts-ignore
-                    description: data.message,
+                    description: response.message || "Parent added successfully",
+                    variant: response.status === 200 ? "default" : "destructive"
                 });
-            }).catch((error) => {
-                console.error("Error:", error);
-                toast({
-                    description: "An error occurred. Please try again.",
-                });
+
+                if (response.status === 200) {
+                    handleCloseModal();
+                    form.reset();
+                }
             });
-        })
-    }
+        } catch (error) {
+            toast({
+                description: "Failed to add parent",
+                variant: "destructive"
+            });
+            console.error("Parent creation error:", error);
+        }
+    };
 
     const handleCloseModal = () => {
         setIsOpenModal(false)
@@ -217,7 +227,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                     <div className="space-y-4">
                                         <FormItem>
                                             <FormLabel>Parent Address</FormLabel>
-                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue}  />
+                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} />
                                             <FormMessage />
 
                                         </FormItem>

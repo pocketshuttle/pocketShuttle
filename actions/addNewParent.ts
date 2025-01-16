@@ -11,10 +11,7 @@ export const addNewParent = async (values: z.infer<typeof ParentSchema>) => {
     // Validate the input data using Zod schema
     const validatedData = ParentSchema.safeParse(values);
     if (!validatedData.success) {
-      return NextResponse.json(
-        { message: "Validation error", errors: validatedData.error.errors },
-        { status: 400 }
-      );
+      return { message: validatedData.error.errors, status: 500 };
     }
 
     const {
@@ -68,19 +65,10 @@ export const addNewParent = async (values: z.infer<typeof ParentSchema>) => {
     // Revalidate bus-related caches after adding a bus
     revalidateTag("parent");
 
-    return Response.json(
-      { message: "Parent added Succesfully " },
-      { status: 200 }
-    );
+    return { message: "Parent added Succesfully ", status: 200 };
   } catch (error) {
     // Handle errors
     console.error("Error adding Parent:", error);
-    return NextResponse.json(
-      {
-        message: "Error adding Parent",
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    );
+    return { message: "Error adding Parent", status: 500 };
   }
 };
