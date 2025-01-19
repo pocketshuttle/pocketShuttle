@@ -79,7 +79,6 @@ export const RegisterForm = () => {
                                         />
                                     </FormControl>
                                     <FormMessage />
-
                                 </FormItem>
                             )}
                         >
