@@ -23,7 +23,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
 };
 
 export const sendResetPasswordEmail = async (email: string, token: string) => {
-  const passwordLink = `${domain}/reset-password?token=${token}`;
+  const passwordLink = `${domain}reset-password?token=${token}`;
 
   await resend.emails.send({
     from: "onboarding@pocketshuttle.com",
