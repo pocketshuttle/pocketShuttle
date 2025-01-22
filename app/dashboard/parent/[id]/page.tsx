@@ -51,8 +51,6 @@ const SingleParentPage = () => {
     const { data, loading, errorMessage: ParentError, success } = usePost(`/api/addteacher/${id}`, submittedData, "PATCH")
     const { data: parentsData, isPending: parentPending, errorMessage } = useFetch(`/api/addparent/${id}`, userId);
 
-    console.log(parentsData);
-
     const parentData = parentsData
     const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
 
