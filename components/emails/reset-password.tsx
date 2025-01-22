@@ -31,7 +31,7 @@ export const PocketshuttleResetPasswordEmail = ({
                 <Container style={container}>
                     <Img
                         src={`${baseUrl}/images/pslogo.png`}
-                        width="40"
+                        width="200"
                         height="33"
                         alt="Dropbox"
                     />
