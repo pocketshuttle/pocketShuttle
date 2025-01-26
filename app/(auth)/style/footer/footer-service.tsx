@@ -6,14 +6,13 @@ export const FooterService = () => {
     const links = useMemo(() => [
         { href: "/terms", label: "Terms of Service" },
         { href: "/privacy", label: "privacy" },
-        { href: "/faq", label: "Frequently Asked Questions(FAQ)" }
+        { href: "/faq", label: "Frequently Asked Questions (FAQ)" }
     ], [])
 
     const linkStyle = "text-slate-500 text-sm hover:text-slate-300 transition"
 
     return (
-        <div className="flex items-center justify-between px-2 gap-x-2">
-
+        <div className="flex flex-col md:flex-row items-center justify-between px-2 gap-x-2 py-3 gap-y-2">
             {
                 links.map(({ href, label }) => {
                     return (
