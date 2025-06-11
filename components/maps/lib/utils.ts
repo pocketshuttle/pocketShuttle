@@ -1,4 +1,5 @@
 import mapboxgl from "mapbox-gl"; // Import Mapbox GL library for interacting with Mapbox APIs
+import { useRef } from "react";
 
 /**
  * Get the driving route from the start to end coordinates using the Mapbox Directions API.
@@ -37,67 +38,42 @@ export const getCurrentLocation = (): Promise<[number, number]> => {
       return;
     }
 
-    // Clear previous watch if exists
-    let watchId: number;
-
-    // Options for geolocation
     const options = {
       enableHighAccuracy: true,
-      timeout: 30000, // Increased timeout to 30 seconds
-      maximumAge: 5000, // Allow cached positions up to 5 seconds old
+      timeout: 30000,
+      maximumAge: 5000,
     };
 
-    try {
-      watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          // Clear the watch after successfully getting location
-          if (watchId) {
-            navigator.geolocation.clearWatch(watchId);
-          }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        resolve([longitude, latitude]);
+      },
+      (error) => {
+        console.error("Geolocation error:", {
+          code: error.code,
+          message: error.message,
+        });
 
-          resolve([longitude, latitude]);
-        },
-        (error) => {
-          console.error("Geolocation error:", {
-            code: error.code,
-            message: error.message,
-          });
-
-          // Clear the watch on error
-          if (watchId) {
-            navigator.geolocation.clearWatch(watchId);
-          }
-
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              reject(new Error("Location permission denied"));
-              break;
-            case error.POSITION_UNAVAILABLE:
-              reject(new Error("Location information unavailable"));
-              break;
-            case error.TIMEOUT:
-              reject(new Error("Location request timed out"));
-              break;
-            default:
-              reject(error);
-          }
-        },
-        options
-      );
-    } catch (e) {
-      console.error("Error setting up geolocation:", e);
-      reject(e);
-    }
-
-    // Cleanup function
-    return () => {
-      if (watchId) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-    };
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            reject(new Error("Location permission denied"));
+            break;
+          case error.POSITION_UNAVAILABLE:
+            reject(new Error("Location information unavailable"));
+            break;
+          case error.TIMEOUT:
+            reject(new Error("Location request timed out"));
+            break;
+          default:
+            reject(error);
+        }
+      },
+      options
+    );
   });
 };
+
 
 /**
  * Fetch the school location using the browser's Geolocation API.
@@ -219,7 +195,6 @@ export const sendTeacherLocationToServer = async (
     });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
   } catch (error) {
     if (retryCount < MAX_RETRIES) {
       retryCount++;
