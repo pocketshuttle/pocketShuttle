@@ -48,43 +48,44 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
-            <div className=" lg:hidden w-full">
-                <header className=" px-4  space-y-4 text-lg text-gray-400">
-                    {
-                        data?.bus === null ? <span>Teacher hasnt been assigned a bus, please contact admin</span> :
-                            <div className="flex flex-col">
-                                <p className="space-x-4">
-                                    <small>
-                                        Bus Name :
-                                    </small>
-                                    <span className="capitalize">{
-                                        data?.bus &&
-                                        data?.bus.bus_product_name
-                                    }
-                                    </span>
-                                </p>
-                                <p className="space-x-4">
-                                    <small>
-                                        Driver :
-                                    </small>
-                                    <span className="capitalize">
-                                        {
-                                            data?.bus?.driver &&
-                                            data?.bus?.driver?.full_name}
-                                    </span>
-                                </p>
-                                <p className="space-x-4">
-                                    <small>
-                                        Driver Contact:
-                                    </small>
-                                    <span className="capitalize">
-                                        {
-                                            data?.bus?.driver &&
-                                            data?.bus?.driver?.phoneNumber}
-                                    </span>
-                                </p>
+            <div className="lg:hidden w-full">
+                <header className="px-4 py-6 rounded-lg shadow-sm">
+                    {data?.bus === null ? (
+                        <div className="text-center p-4 bg-yellow-50 rounded border border-yellow-200 text-yellow-700">
+                            <span>Teacher hasn't been assigned a bus. Please contact admin.</span>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-medium text-gray-400 mb-2">Bus Information</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <p className="flex items-center space-x-2">
+                                        <span className="text-sm font-medium text-gray-300">Bus Name:</span>
+                                        <span className="text-gray-200 font-medium capitalize">
+                                            {data?.bus?.bus_product_name || 'N/A'}
+                                        </span>
+                                    </p>
+                                    <p className="flex items-center space-x-2">
+                                        <span className="text-sm font-medium text-gray-300">Driver:</span>
+                                        <span className="text-gray-200 font-medium capitalize">
+                                            {data?.bus?.driver?.full_name || 'N/A'}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div className="space-y-2">
+                                    <p className="flex items-center space-x-2">
+                                        <span className="text-sm font-medium text-gray-300">Driver Contact:</span>
+                                        <a
+                                            href={`tel:${data?.bus?.driver?.phoneNumber}`}
+                                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                                        >
+                                            {data?.bus?.driver?.phoneNumber || 'N/A'}
+                                        </a>
+                                    </p>
+                                </div>
                             </div>
-                    }
+                        </div>
+                    )}
                 </header>
 
                 <main className="px-4 space-y-2 w-full">
@@ -119,6 +120,7 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                         {
                             teacherData?.bus === null ? <p>Teacher hasnt been assigned a bus yet, please contact admin</p> :
                                 data?.bus?.students?.map((student: StudentProps) => {
+
                                     return (
                                         <TableRow key={student.id}>
                                             <TableCell className="">

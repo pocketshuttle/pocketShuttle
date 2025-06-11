@@ -32,26 +32,70 @@ export const getRoute = async (
  */
 export const getCurrentLocation = (): Promise<[number, number]> => {
   return new Promise((resolve, reject) => {
-    if (navigator.geolocation) {
-      // Watch for location changes
-      navigator.geolocation.watchPosition(
+    if (!navigator.geolocation) {
+      reject(new Error("Geolocation is not supported by this browser."));
+      return;
+    }
+
+    // Clear previous watch if exists
+    let watchId: number;
+
+    // Options for geolocation
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 30000, // Increased timeout to 30 seconds
+      maximumAge: 5000, // Allow cached positions up to 5 seconds old
+    };
+
+    try {
+      watchId = navigator.geolocation.watchPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          resolve([longitude, latitude]); // Resolve with current coordinates
+          // Clear the watch after successfully getting location
+          if (watchId) {
+            navigator.geolocation.clearWatch(watchId);
+          }
+
+          resolve([longitude, latitude]);
         },
         (error) => {
-          console.error("Error getting current location:", error);
-          reject(error); // Reject the promise if an error occurs
+          console.error("Geolocation error:", {
+            code: error.code,
+            message: error.message,
+          });
+
+          // Clear the watch on error
+          if (watchId) {
+            navigator.geolocation.clearWatch(watchId);
+          }
+
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              reject(new Error("Location permission denied"));
+              break;
+            case error.POSITION_UNAVAILABLE:
+              reject(new Error("Location information unavailable"));
+              break;
+            case error.TIMEOUT:
+              reject(new Error("Location request timed out"));
+              break;
+            default:
+              reject(error);
+          }
         },
-        {
-          enableHighAccuracy: true, // Ensure high accuracy
-          timeout: 10000, // Time out after 10 seconds if no location is obtained
-          maximumAge: 0, // Do not use cached location
-        }
+        options
       );
-    } else {
-      reject(new Error("Geolocation is not supported by this browser."));
+    } catch (e) {
+      console.error("Error setting up geolocation:", e);
+      reject(e);
     }
+
+    // Cleanup function
+    return () => {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
   });
 };
 
@@ -148,13 +192,17 @@ export const sendLocationToServer = async (
  * @param teacherName - The teacher's name
  * @returns A promise that resolves when the location is successfully sent, or logs an error on failure
  */
+
+const MAX_RETRIES = 3;
+let retryCount = 0;
+
 export const sendTeacherLocationToServer = async (
   latitude: number,
   longitude: number,
   teacherId: string,
   teacherImage: string,
   teacherName: string
-) => {
+): Promise<void> => {
   try {
     const res = await fetch("/api/bustracking/teachers", {
       method: "POST",
@@ -166,14 +214,25 @@ export const sendTeacherLocationToServer = async (
         longitude,
         teacherId,
         teacherImage,
-        teacherName, // Send teacher data and coordinates as JSON
+        teacherName,
       }),
     });
 
-    if (!res.ok) {
-      throw new Error("Failed to send location to the server"); // Handle failed responses
-    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
   } catch (error) {
+    if (retryCount < MAX_RETRIES) {
+      retryCount++;
+      console.warn(`Retrying to send location (attempt ${retryCount})...`);
+      await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount)); // Wait 1 second before retrying
+      return sendTeacherLocationToServer(
+        latitude,
+        longitude,
+        teacherId,
+        teacherImage,
+        teacherName
+      );
+    }
     console.error("Error sending location to server:", error); // Log errors to console
   }
 };

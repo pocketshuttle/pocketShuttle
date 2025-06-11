@@ -1,8 +1,10 @@
 import Location from '@/components/maps/Map/new-map'
 import { BusArrival } from '@/components/parent-view/bus-arrival'
+import { SocketDebugPanel } from '@/components/socket/socket-debug-panel'
 // import Location from '@/components/maps/Map/Map'
 import { GuardianPage } from '@/components/teachers-view/student-view/guardian'
 import { db } from '@/lib/db'
+import { getUserSession } from '@/lib/session'
 import { revalidateTag } from 'next/cache'
 
 
@@ -14,6 +16,15 @@ import { revalidateTag } from 'next/cache'
  */
 
 const StudentView = async ({ params }: { params: { id: string } }) => {
+
+    const user = await getUserSession()
+    const teacherId = user?.teacherId || user?.id; // Use teacherId if available, otherwise use user id
+
+    if (!user || !teacherId) {
+        // If the user is not authenticated, redirect to the login page
+        return <div className='text-center flex items-center '>You are not logged in, please login to view this page.</div>;
+    }
+
     const studentData = await db.student.findUnique({
         where: { id: params.id },
         include: {
@@ -35,6 +46,8 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
         }
     })
 
+    console.log("Student Data:", studentData)
+
     // Revalidate the cache for the 'students' tag to ensure real-time data
     revalidateTag("students")
 
@@ -45,10 +58,9 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
 
     return (
         <div>
-            <BusArrival parentAddress={studentData?.parent?.address} parentId={studentData?.parent?.id} />
+            <BusArrival parentAddress={studentData?.parent?.address || ""} parentId={studentData?.parent?.id} teacherId={teacherId || ""} />
             {/* @ts-ignore */}
             <GuardianPage data={studentData} />
-
         </div>
 
     )

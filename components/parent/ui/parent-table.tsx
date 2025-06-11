@@ -170,8 +170,6 @@ export const ParentData = ({ parentData, totalCount, studentData }) => {
                                             </AlertDialog>
                                         </div>
                                     </TableCell>
-
-
                                 </TableRow>
                             )
                         })

@@ -37,11 +37,12 @@ const CommuteUI = async () => {
     });
     revalidateTag("bus");
 
+
+    console.log("Bus data:", bus);
+
     return (
         <div>
-
-            {/* @ts-ignore */}
-            <CommuteTable busData={bus} />
+            <CommuteTable userId={userId} />
         </div>
     )
 }
