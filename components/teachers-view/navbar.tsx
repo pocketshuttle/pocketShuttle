@@ -70,27 +70,34 @@ const Navbar = ({ data }: NavbarProps) => {
      * Location updates every 10 seconds when tracking is enabled.
      */
     useEffect(() => {
+        const updateLocation = async () => {
+            try {
+                // Get current coordinates
+                const [longitude, latitude] = await getCurrentLocation();
+                // Send the teacher's location to the server
+
+                await publishLocation(latitude, longitude, data.id, data.name, data.image,);
+                sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name);
+            } catch (error) {
+                console.error('Error fetching location:', error);
+                setIsTracking(false);
+                window.localStorage.setItem("tracking", "false");
+            }
+        };
         if (isTracking) {
-            const updateLocation = async () => {
-                try {
-                    // Get current coordinates
-                    const [longitude, latitude] = await getCurrentLocation();
-                    // Send the teacher's location to the server
-
-                    await publishLocation(latitude, longitude, data.id, data.name, data.image,);
-                    sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name);
-                } catch (error) {
-                    console.error('Error fetching location:', error);
-                }
-            };
+            // Initial update
+            updateLocation();
             // Set an interval to update location every 10 seconds
-            const intervalId = setInterval(updateLocation, 2000);
-            // Cleanup: Clear interval when tracking is turned off or component unmounts
-            return () => clearInterval(intervalId);
+            const intervalId = setInterval(updateLocation, 10000);
 
+            // Cleanup function
+            return () => {
+                if (intervalId) {
+                    clearInterval(intervalId);
+                }
+            }
         }
-
-    }, [isTracking]);
+    }, [isTracking, data]);
 
 
 

@@ -3,6 +3,7 @@ import Pusher from 'pusher-js';
 import { useEffect, useState } from "react";
 import Location from '../maps/Map/new-map';
 import { io } from 'socket.io-client';
+import { useTeacherLocation } from '@/hooks/useTeacher-location';
 
 interface TeacherLocation {
     teacherId: string;
@@ -57,34 +58,36 @@ export const BusArrival = ({ parentAddress, parentId, teacherId }) => {
     //     };
     // }, [parentId]);
 
-    useEffect(() => {
-        const socket = io("http://localhost:3000", {
-            path: "/api/socket/io",
-            autoConnect: true,
-            reconnectionAttempts: 5,
-            reconnectionDelay: 1000,
-        });
+    useTeacherLocation(teacherId, setTeacherLocation);
+    // useEffect(() => {
 
-        socket.on("connect", () => {
-            setConnectionStatus("Connected to server");
-            socket.emit("join-parent-room", parentId);
-        });
+    //     const socket = io("http://localhost:3000", {
+    //         path: "/api/socket/io",
+    //         autoConnect: true,
+    //         reconnectionAttempts: 5,
+    //         reconnectionDelay: 1000,
+    //     });
 
-        socket.on("teacher-location-update", (data: TeacherLocation) => {
-            if (data.teacherId === teacherId) {
-                setTeacherLocation(data);
-                setConnectionStatus("Location received");
-            }
-        });
+    //     socket.on("connect", () => {
+    //         setConnectionStatus("Connected to server");
+    //         socket.emit("join-parent-room", parentId);
+    //     });
 
-        socket.on("disconnect", () => {
-            setConnectionStatus("Disconnected - reconnecting...");
-        });
+    //     socket.on("teacher-location-update", (data: TeacherLocation) => {
+    //         if (data.teacherId === teacherId) {
+    //             setTeacherLocation(data);
+    //             setConnectionStatus("Location received");
+    //         }
+    //     });
 
-        return () => {
-            socket.disconnect();
-        };
-    }, [parentId, teacherId]);
+    //     socket.on("disconnect", () => {
+    //         setConnectionStatus("Disconnected - reconnecting...");
+    //     });
+
+    //     return () => {
+    //         socket.disconnect();
+    //     };
+    // }, [parentId, teacherId]);
 
     console.log("teacherLocation", teacherLocation);
 
