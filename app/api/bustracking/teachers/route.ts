@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { PUSHER_EVENTS } from "@/lib/pusher-constants";
 import { getPusherInstance } from "@/pusher/server";
 import { NextApiRequest, NextApiResponse } from "next";
 import { NextRequest, NextResponse } from "next/server";
@@ -19,12 +20,13 @@ interface LocationUpdatePayload {
  * @param channel - Channel name to broadcast the message
  * @param data - The location update data to send
  */
+
 async function broadcastLocationUpdate(
   pusher: ReturnType<typeof getPusherInstance>,
   channel: string,
   data: LocationUpdatePayload
 ) {
-  await pusher.trigger(channel, "teacher-location-update", data);
+  return pusher.trigger(channel, "teacher-location-update", data);
 }
 
 export async function POST(req: NextRequest, res: NextApiResponse) {
@@ -33,8 +35,7 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
     const { latitude, longitude, teacherId, teacherImage, teacherName } =
       (await req.json()) as LocationUpdatePayload;
 
-    console.log(latitude, longitude);
-
+  
     // Ensure latitude and longitude are valid numbers
     if (typeof latitude !== "number" || typeof longitude !== "number") {
       return NextResponse.json(
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
     // Broadcast the teacher's location to a public channel
     await broadcastLocationUpdate(
       pusher,
-      "live-teachers-channel",
+      "teacher-location-update",
       locationData
     );
 
@@ -83,6 +84,7 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
       },
     });
 
+    console.log("Teacher with bus and students:", teacher);
 
     // If the teacher has a bus and students associated, notify each parent
     if (teacher?.bus?.students) {
@@ -92,9 +94,11 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
         .map((student) => `parent-${student.parent?.id}`);
 
       // Broadcast to each parent's channel
-      for (const channel of parentChannels) {
-        await broadcastLocationUpdate(pusher, channel, locationData);
-      }
+      await Promise.all(
+        parentChannels.map((channel) =>
+          broadcastLocationUpdate(pusher, channel, locationData)
+        )
+      );
     }
 
     // Respond to the client indicating a successful operation

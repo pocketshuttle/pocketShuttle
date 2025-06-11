@@ -32,6 +32,8 @@ const Location = ({ parentAddress, teacherData }: AddressProps) => {
     const [openDirection, setOpenDirection] = useState<boolean>(false);
     const [studentEta, setStudentEta] = useRecoilState<number | null>(studentETA)
 
+    console.log("teacherData from map", teacherData)
+
 
     useEffect(() => {
         if (teacherData) {

@@ -43,6 +43,8 @@ export const CommuteTable = ({ userId }: { userId: string }) => {
         // { refreshInterval: 5000 } // Refresh every 5 seconds
     );
 
+
+
     if (error) {
         <FormError message={error} />
     }
@@ -108,7 +110,7 @@ export const CommuteTable = ({ userId }: { userId: string }) => {
                                 {isBusOpen && (
                                     <TableRow>
                                         <TableCell colSpan={5}>
-                                            <div className="bg-gray-800 p-4 rounded-md">
+                                            <div className="rounded-md">
                                                 <Table>
                                                     <TableHeader>
                                                         <TableRow className=" uppercase text-[0.7rem]">

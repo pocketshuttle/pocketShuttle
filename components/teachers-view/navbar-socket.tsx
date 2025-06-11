@@ -22,8 +22,7 @@ import {
 
 import { getCurrentLocation, sendTeacherLocationToServer } from "../maps/lib/utils"; // Utility functions for geolocation and sending location
 import { useSession } from "@/hooks/useSession"; // Custom hook for managing user session
-import { updateLocation } from "@/actions/mark-otw";
-import { publishLocation } from "@/utils/ably-teacher";
+import { io } from "socket.io-client";
 
 type NavbarProps = {
     data: any; // Expected props, with 'data' holding user or teacher information
@@ -34,6 +33,7 @@ const Navbar = ({ data }: NavbarProps) => {
     const [isTracking, setIsTracking] = useState<boolean>(false); // Manages the location tracking toggle state
     const router = useRouter(); // Provides router functionalities for navigation
     // const [longitude, latitude] = await getCurrentLocation();
+
 
 
     // Memoize avatar content to prevent unnecessary re-renders
@@ -71,26 +71,39 @@ const Navbar = ({ data }: NavbarProps) => {
      */
     useEffect(() => {
         if (isTracking) {
+            const socket = io({
+                path: "/api/socket/io",
+            });
+
+            // Join teacher room
+            socket.emit("join-teacher-room", data.id);
+
             const updateLocation = async () => {
                 try {
-                    // Get current coordinates
                     const [longitude, latitude] = await getCurrentLocation();
-                    // Send the teacher's location to the server
 
-                    await publishLocation(latitude, longitude, data.id, data.name, data.image,);
-                    sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name);
+
+                    socket.emit("teacher-location-update", {
+                        teacherId: data.id,
+                        teacherName: data.name,
+                        teacherImage: data.image,
+                        latitude,
+                        longitude,
+                    });
                 } catch (error) {
-                    console.error('Error fetching location:', error);
+                    console.error("Error updating location:", error);
                 }
             };
-            // Set an interval to update location every 10 seconds
-            const intervalId = setInterval(updateLocation, 2000);
-            // Cleanup: Clear interval when tracking is turned off or component unmounts
-            return () => clearInterval(intervalId);
 
+            const intervalId = setInterval(updateLocation, 5000);
+            updateLocation(); // Initial update
+
+            return () => {
+                clearInterval(intervalId);
+                socket.disconnect();
+            };
         }
-
-    }, [isTracking]);
+    }, [isTracking, data.id, data.name, data.image]);
 
 
 

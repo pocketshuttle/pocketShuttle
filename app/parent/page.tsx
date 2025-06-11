@@ -32,9 +32,6 @@ const TeacherView = async () => {
 
     const id = user?.id
     try {
-
-
-
         const parent = await db.parent.findUnique({
             where: {
                 id: id
@@ -70,7 +67,7 @@ const TeacherView = async () => {
             <Suspense>
                 <div className={`${mont.className} p-3`}>
                     <div>
-                        <BusArrival parentAddress={parent?.address} parentId={id} />
+                        <BusArrival parentAddress={parent?.address || ""} parentId={id} />
                     </div>
 
                     <ParentViewData userId={id} />
