@@ -5,7 +5,8 @@ import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 
 const containerStyle = {
     width: "100%",
-    height: "500px",
+    height: "700px",
+
 };
 
 interface Props {
@@ -22,6 +23,11 @@ const GoogleMapView = ({ latitude, longitude }: Props) => {
                 mapContainerStyle={containerStyle}
                 center={center}
                 zoom={15}
+                options={{
+                    fullscreenControl: false,
+                    zoomControl: false
+                }}
+
             >
                 <Marker position={center} />
             </GoogleMap>
