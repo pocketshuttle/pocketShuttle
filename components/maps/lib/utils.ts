@@ -74,35 +74,38 @@ export const getCurrentLocation = (): Promise<[number, number]> => {
   });
 };
 
-
 /**
  * Fetch the school location using the browser's Geolocation API.
  * This function fetches the current location (no continuous updates, unlike `getCurrentLocation`).
  *
  * @returns A promise resolving to the current location coordinates as a tuple [longitude, latitude]
  */
-export const getSchoolLocation = (): Promise<[number, number]> => {
+type Coordinates = [number, number]; // [lat, lng]
+
+export const getSchoolLocation = async (): Promise<[number, number]> => {
   return new Promise((resolve, reject) => {
-    if (navigator.geolocation) {
-      // Get current position only once
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          resolve([longitude, latitude]); // Resolve with current coordinates
-        },
-        (error) => {
-          console.error("Error getting current location:", error);
-          reject(error); // Reject the promise if an error occurs
-        },
-        {
-          enableHighAccuracy: true, // Ensure high accuracy
-          timeout: 10000, // Time out after 10 seconds if no location is obtained
-          maximumAge: 0, // Do not use cached location
-        }
-      );
-    } else {
-      reject(new Error("Geolocation is not supported by this browser."));
+    if (!navigator.geolocation) {
+      console.error("Geolocation is not supported by this browser.");
+      return reject(new Error("Geolocation not supported"));
     }
+
+    console.log("Attempting to get location...");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        console.log("Location success", pos);
+        const { latitude, longitude } = pos.coords;
+        resolve([longitude, latitude]);
+      },
+      (err) => {
+        console.error("Geolocation error object:", err);
+        reject(err);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
   });
 };
 
