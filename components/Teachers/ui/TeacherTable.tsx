@@ -82,13 +82,12 @@ export const TeachersTable = ({ teacherCount, teachersData, busData }: userProps
 
     return (
         <div>
-            {
+            {/* {
                 isOpenModal && <DriverAndTeacherModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} mode="teacher" />
             }
             <div className="p-4 flex justify-end items-center ">
-                < AddData label="Teacher" action={handleModal} />
-
-            </div>
+                < AddData label="Add a Teacher" action={handleModal} />
+            </div> */}
 
             <Table>
                 <TableHeader>

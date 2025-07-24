@@ -43,17 +43,13 @@ export const CommuteTable = ({ userId }: { userId: string }) => {
         // { refreshInterval: 5000 } // Refresh every 5 seconds
     );
 
-
-
     if (error) {
         <FormError message={error} />
     }
     const [openBusId, setOpenBusId] = useState<string | null>(null);
-
-    console.log(busData)
     return (
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237] mt-4">
-            <Table>
+        <div className="relative overflow-x-auto shadow-md  sm:rounded-lg bg-[#151618] mt-4">
+            <Table className="bg-[#151618] rounded-bl-lg rounded-br-lg">
                 <TableHeader>
                     <TableRow className="text-[0.7rem]">
                         <TableHead className="w-[250px] text-gray-300">Bus No</TableHead>

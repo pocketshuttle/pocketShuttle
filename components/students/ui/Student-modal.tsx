@@ -127,19 +127,17 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-            <div className="relative bg-gray-900  rounded-md w-5/6 ">
-
+            <div className="relative bg-gray-200  rounded-md w-3/6 ">
                 <TeacherCardWrapper
                     headLabel="Add Student"
                     action={() => handleCloseModal()}
                 >
                     <div className=" flex  ">
-                        <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[21.5rem] p-2 rounded-md" >
+                        <div className=" w-[30%] items-center border-[1.5px] border-dashed border-gray-300 shadow-md    p-2 rounded-md" >
                             {/* @ts-ignore */}
                             < UploadImage form={form} newAvatar={newAvatar} setNewAvatar={setNewAvatar} avatar={avatar} />
-
                         </div>
-                        <div className="flex-1 px-5 ">
+                        <div className="flex-1 px-5 text-gray-900 ">
 
                             <Form {...form}>
                                 {/* the handle submit comes from the form constant */}
@@ -157,7 +155,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                                             placeholder="John Doe"
                                                             type="text"
                                                             disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                            className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
                                                         />
                                                     </FormControl>
                                                     <FormMessage />
@@ -166,8 +164,9 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                         >
                                         </FormField>
                                     </div>
-                                    <div className="space-x-4 flex items-center w-full justify-center">
-                                        <div className="w-5/6">
+
+                                    <div className="space-x-4 flex items-center w-full justify-between">
+                                        <div className="w-3/6 flex-1">
                                             <FormField
                                                 control={form.control}
                                                 name="age"
@@ -180,7 +179,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                                                 placeholder="mm/dd/yyyy"
                                                                 type="number"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
                                                                 onChange={e => field.onChange(Number(e.target.value))}
                                                             />
                                                         </FormControl>
@@ -189,10 +188,10 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                                 )}
                                             />
                                         </div>
-
-                                        <div className="w-full">
+                                        <div className="w-3/6 flex-1 mt-8">
                                             < SelectProperty placeholder="Gender" label="Student Grade" data={gender} handleSelectChange={handleGenderChange} />
                                         </div>
+
                                     </div>
 
                                     <div className="flex space-x-3 justify-between w-full ">
@@ -216,7 +215,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                     {/* <FormSuccess message={isSuccess} /> */}
                                     <Button
                                         disabled={isPending}
-                                        size="lg" className="w-full bg-[teal] p-5" type="submit">Add Student
+                                        size="lg" className="w-full bg-[#1B1464] p-5" type="submit">Add Student
                                     </Button>
                                 </form>
                             </Form>

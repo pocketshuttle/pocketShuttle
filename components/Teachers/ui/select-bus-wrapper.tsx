@@ -31,7 +31,7 @@ type EditProps = {
 export const SelectBusWrapper = ({ placeholder, label, data, handleSelectChange, classname, edit }: SelectProps) => {
     return (
         <Select onValueChange={handleSelectChange}>
-            <SelectTrigger className={`${classname && classname}w-3/6`}>
+            <SelectTrigger className={`${classname && classname} w-full text-gray-100`}>
                 <SelectValue placeholder={placeholder}
                 />
             </SelectTrigger>

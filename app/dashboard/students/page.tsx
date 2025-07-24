@@ -18,8 +18,6 @@ const Students = async ({ searchParams }: { searchParams: { [key: string]: strin
         : "";
     const ITEM_PER_PAGE = 20;
 
-    console.log(gradeQuery, "students", searchParams)
-
     // if no user, that means you havent logged in, so redirect back to login page
     if (!user || typeof user.id !== 'string') {
         return (

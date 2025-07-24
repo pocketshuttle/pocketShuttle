@@ -125,7 +125,6 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
 
             const data = new FormData()
             data.append('file', file)
-            // data.append("upload_preset", 'images')
 
             const res = await fetch(`/api/upload/`, {
                 method: 'POST',
