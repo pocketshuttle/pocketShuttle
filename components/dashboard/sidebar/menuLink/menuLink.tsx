@@ -23,7 +23,7 @@ const MenuLink = ({ menu }: { menu: ListType[] }) => {
                     <div
                         className={`
                             ${roboto.className} 
-                            flex  items-center space-x-2 px-2 py-3 hover:bg-[var(--hoverBg)] mb-1 rounded-md ${pathname === item.link && "bg-[var(--hoverBg)]"
+                            flex  items-center space-x-2 px-2 py-3 hover:bg-[#040404] mb-1 rounded-md ${pathname === item.link && "bg-[var(--hoverBg)]"
                             }`}
                         onMouseEnter={() => setHoverIndex(index)}
                         onMouseLeave={() => setHoverIndex(null)}
@@ -39,6 +39,7 @@ const MenuLink = ({ menu }: { menu: ListType[] }) => {
                     </div>
                 </Link>
             ))}
+
         </div>
     );
 };

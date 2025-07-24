@@ -20,7 +20,7 @@ export const TeacherCardWrapper = ({ children, headLabel, action }: CardWrapperP
             <CardHeader>
                 <div className="flex justify-end p-3">
                     <AuthHeader label={headLabel} />
-                    <IoMdClose width={30} className="cursor-pointer w-6" onClick={action} />
+                    <IoMdClose width={30} className="cursor-pointer w-6 text-gray-950" onClick={action} />
                 </div>
                 <Separator className="bg-[#3A3A3A]" />
 

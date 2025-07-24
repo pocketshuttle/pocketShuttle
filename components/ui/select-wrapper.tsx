@@ -27,7 +27,7 @@ export const SelectProperty = ({ placeholder, label, data, handleSelectChange, s
     }
     return (
         <Select onValueChange={handleSelectChange}>
-            <SelectTrigger className="w-3/6 text-gray-100">
+            <SelectTrigger className="w-full text-gray-100">
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>

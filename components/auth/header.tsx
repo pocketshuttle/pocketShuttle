@@ -12,7 +12,7 @@ interface HeaderProps {
 
 export const AuthHeader = ({ label }: HeaderProps) => {
     return (
-        <div className="w-full flex flex-col gap-y-4 items-center justify-center">
+        <div className="w-full flex flex-col gap-y-4 items-center justify-center text-gray-900">
             <h1
                 className={cn("text-2xl py-4 font-semibold", font.className)}
             >
