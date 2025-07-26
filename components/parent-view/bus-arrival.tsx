@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Location from '../maps/Map/new-map';
 import { io } from 'socket.io-client';
 import { useTeacherLocation } from '@/hooks/useTeacher-location';
+import NewLocation from '../maps/Map/new-mapp';
 
 interface TeacherLocation {
     teacherId: string;
@@ -17,7 +18,6 @@ interface TeacherLocation {
 export const BusArrival = ({ parentAddress, parentId, teacherId }) => {
     const [teacherLocation, setTeacherLocation] = useState<TeacherLocation | null>(null);
     const [connectionStatus, setConnectionStatus] = useState<string>("Connecting...");
-    console.log("from bus arrival", parentId, teacherId, parentAddress);
 
     // useEffect(() => {
     //     // Ensure environment variables are set
@@ -93,9 +93,12 @@ export const BusArrival = ({ parentAddress, parentId, teacherId }) => {
 
     return (
         <div>
-            {/* Render the map component only when valid teacher data is available */}
             {teacherLocation && (
-                <Location
+                // <Location
+                //     parentAddress={parentAddress}
+                //     teacherData={teacherLocation}
+                // />
+                <NewLocation
                     parentAddress={parentAddress}
                     teacherData={teacherLocation}
                 />

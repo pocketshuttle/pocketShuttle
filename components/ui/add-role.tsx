@@ -30,7 +30,7 @@ export const AddRoles = ({ handleSelectChange }: SelectProps) => {
 
     return (
         <Select onValueChange={handleSelectChange}>
-            <SelectTrigger className="w-3/6 text-gray-100">
+            <SelectTrigger className="w-full text-gray-100">
                 <SelectValue placeholder="Select Roles" />
             </SelectTrigger>
             <SelectContent>

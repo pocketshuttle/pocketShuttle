@@ -112,14 +112,14 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-            <div className="relative bg-gray-900  rounded-md w-5/6 ">
+            <div className="relative bg-gray-100  rounded-md w-5/6 text-gray-950">
 
                 <TeacherCardWrapper
                     headLabel="Add Parent"
                     action={() => handleCloseModal()}
                 >
                     <div className=" flex ">
-                        <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[21.5rem] p-2 rounded-md" >
+                        <div className=" w-[25%] items-center  bg-gray-200 h-[21.5rem] p-2 rounded-md" >
                             {/* @ts-ignore */}
                             < UploadImage newAvatar={newAvatar} avatar={avatar} form={form} setNewAvatar={setNewAvatar} />
                         </div>
@@ -127,8 +127,8 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
 
                             <Form {...form}>
                                 {/* the handle submit comes from the form constant */}
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                                    <div className="space-y-4">
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 text-gray-950">
+                                    <div className="space-y-4 ">
                                         <FormField
                                             control={form.control}
                                             name="full_name"
@@ -141,7 +141,8 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                                             placeholder="John Doe"
                                                             type="text"
                                                             disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                            className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
+
                                                         />
                                                     </FormControl>
                                                     <FormMessage />
@@ -164,7 +165,8 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                                                 placeholder="johndoe@email.com"
                                                                 type="email"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
+
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
@@ -185,7 +187,8 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                                                 placeholder="johndoe@email.com"
                                                                 type="text"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
+
                                                             // onChange={e => field.onChange(Number(e.target.value))}
                                                             />
                                                         </FormControl>
@@ -211,7 +214,8 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                                                 placeholder="johndoe@email.com"
                                                                 type="password"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
+
                                                             // onChange={e => field.onChange(Number(e.target.value))}
                                                             />
                                                         </FormControl>
@@ -220,7 +224,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                                 )}
                                             />
                                         </div>
-                                        <div className="w-2/6">
+                                        <div className="w-2/6 mt-7">
                                             <AddRoles handleSelectChange={handleSelectRole} />
                                         </div>
                                     </div>

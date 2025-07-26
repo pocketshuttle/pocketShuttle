@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Map, { Marker, Popup } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
-import { fetchCoordinates, getCurrentLocation, getRoute } from '../lib/utils';
+import { fetchCoordinates, getCurrentLocation, getRoute, googleFetchCoordinates } from '../lib/utils';
 import { useRecoilState } from 'recoil';
 import { studentETA } from '@/atoms/eta';
 
@@ -32,24 +32,23 @@ const Location = ({ parentAddress, teacherData }: AddressProps) => {
     const [openDirection, setOpenDirection] = useState<boolean>(false);
     const [studentEta, setStudentEta] = useRecoilState<number | null>(studentETA)
 
-    console.log("teacherData from map", teacherData)
-
-
     useEffect(() => {
         if (teacherData) {
-            setCoords1([teacherData?.longitude, teacherData?.latitude]); // Set longitude first, then latitude
+            setCoords1([teacherData?.longitude, teacherData?.latitude]);
         }
     }, [teacherData]);
+
+
 
     useEffect(() => {
         // Fetch the parent's address coordinates
         const fetchParentCoordinates = async () => {
-            const coordinates2 = await fetchCoordinates(parentAddress);
+            // const coordinates2 = await fetchCoordinates(parentAddress);
+            const coordinates2 = await googleFetchCoordinates(parentAddress);
             setCoords2(coordinates2);
         };
         fetchParentCoordinates();
     }, [parentAddress]);
-
 
     // Fetch the route whenever teacher's location (coords1) or parent's location (coords2) changes
     useEffect(() => {
@@ -134,7 +133,7 @@ const Location = ({ parentAddress, teacherData }: AddressProps) => {
         const fetchLatestData = async () => {
             // Fetch latest teacher and parent data here
             if (teacherData) {
-                setCoords1([teacherData?.longitude, teacherData?.latitude]); // Update teacher's location
+                setCoords1([teacherData?.longitude, teacherData?.latitude]); // Update coords1 with latest teacher data
             }
         };
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import avatar from "@/public/images/avatar.jpg";
 import { AttendanceTab } from "./register-tab";
-import { fetchCoordinates, getCurrentLocation, getRoute } from "@/components/maps/lib/utils";
+import { fetchCoordinates, getCurrentLocation, getGoogleMapsRoute, getRoute } from "@/components/maps/lib/utils";
 
 export const EachStudent = ({ student }: { student: StudentProps }) => {
     const [attendance, SetAttendance] = useState("");
@@ -27,8 +27,10 @@ export const EachStudent = ({ student }: { student: StudentProps }) => {
             try {
                 if (student?.address) { // Ensure the address exists before fetching
                     const coordinates2 = await fetchCoordinates(student.address);
+
+                    console.log("Coordinates for parent address:", coordinates2);
                     if (coordinates2) {
-                        setCoords2(coordinates2); // Only set if coordinates are valid
+                        setCoords2(coordinates2);
                     } else {
                         console.error("Coordinates not found for the given address");
                     }
@@ -44,14 +46,17 @@ export const EachStudent = ({ student }: { student: StudentProps }) => {
 
 
 
-    console.log(coords2);
-
-
     // Fetch route and calculate ETA only when both coordinates are available
     useEffect(() => {
+        console.log("Coords1:", coords1, "Coords2:", coords2);
+
+
         const fetchRouteEta = async () => {
             if (coords1 && coords2) {
-                const route = await getRoute(coords1, coords2);
+                // const route = await getRoute(coords1, coords2);
+                const route = await getGoogleMapsRoute(coords1, coords2);
+
+                console.log("Route data:", route);
                 const durationInSeconds = route?.duration;
                 if (durationInSeconds) {
                     // Calculate hours, minutes, and seconds from duration
