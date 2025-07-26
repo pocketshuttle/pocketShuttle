@@ -33,13 +33,11 @@ const Navbar = ({ data }: NavbarProps) => {
     const [isHovering, setIsHovering] = useState(false); // Manages hover state for the profile
     const [isTracking, setIsTracking] = useState<boolean>(false); // Manages the location tracking toggle state
     const router = useRouter(); // Provides router functionalities for navigation
-    // const [longitude, latitude] = await getCurrentLocation();
-
 
     // Memoize avatar content to prevent unnecessary re-renders
     const avatarContent = useMemo(() => {
         return data?.image ? (
-            <AvatarImage src={data?.image} alt="@shadcn" />
+            <AvatarImage src={data?.image} alt="name" />
         ) : (
             <div style={{ width: 40, height: 40 }}>
                 <LottieAnimation isHovering={isHovering} animationData={userprofile} />
@@ -55,14 +53,13 @@ const Navbar = ({ data }: NavbarProps) => {
         window.localStorage.setItem("tracking", JSON.stringify(newTrackingState));
     };
 
-
     // Restore tracking state from localStorage when component mounts
     useEffect(() => {
         const storedTracking = window.localStorage.getItem("tracking");
         if (storedTracking) {
             setIsTracking(JSON.parse(storedTracking)); // Restore the switch state from localStorage
         }
-    }, []); // Run this effect only once when the component mounts
+    }, []);
 
 
     /**
@@ -70,6 +67,7 @@ const Navbar = ({ data }: NavbarProps) => {
      * Location updates every 10 seconds when tracking is enabled.
      */
     useEffect(() => {
+
         const updateLocation = async () => {
             try {
                 // Get current coordinates

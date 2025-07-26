@@ -106,13 +106,13 @@ export const DriverTable = () => {
     // }
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
-            {
+            {/* {
                 isOpenModal && <DriverAndTeacherModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} mode="driver" />
             }
 
             <div className="p-4 flex justify-end items-center ">
                 < AddData label="Driver" action={handleModal} />
-            </div>
+            </div> */}
             <Table>
                 <TableHeader>
                     <TableRow className=" text-[0.7rem]  border-gray-500 bg-[var(--hoverBg)]">

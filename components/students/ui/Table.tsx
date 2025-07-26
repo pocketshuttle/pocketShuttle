@@ -56,7 +56,7 @@ type IdProps = {
 export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => {
     const [isPending, startTransition] = useTransition()
     const [filterGrade, setFilterGrade] = useState<string>("")
-    const [isOpenModal, setIsOpenModal] = useState<boolean>(true)
+    const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
 
     const handleGradeChange = (value: string) => {
         console.log(value, "grade")

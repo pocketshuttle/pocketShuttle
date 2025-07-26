@@ -50,7 +50,7 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
         <div>
 
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 ">
-                <div className="relative bg-gray-900  rounded-md w-3/6 ">
+                <div className="relative bg-gray-50  rounded-md w-3/6 ">
 
                     <TeacherCardWrapper
                         headLabel="Add a Route"
@@ -74,7 +74,8 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
                                                                     placeholder="Tesla"
                                                                     type="text"
                                                                     disabled={isPending}
-                                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                    className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
+
                                                                 />
                                                             </FormControl>
                                                             <FormMessage />
@@ -95,7 +96,7 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
                                                                     placeholder="Tesla"
                                                                     type="text"
                                                                     disabled={isPending}
-                                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                    className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
                                                                 />
                                                             </FormControl>
                                                             <FormMessage />
@@ -104,7 +105,7 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
                                                 />
                                             </div>
                                         </div>
-                                        <Button variant="secondary" type="submit">
+                                        <Button variant="secondary" type="submit" className="bg-green-800 w-full text-green-200 hover:bg-green-900">
                                             Submit
                                         </Button>
                                     </form>

@@ -127,13 +127,13 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-            <div className="relative bg-gray-200  rounded-md w-3/6 ">
+            <div className="relative bg-gray-200  rounded-md w-4/6 ">
                 <TeacherCardWrapper
                     headLabel="Add Student"
                     action={() => handleCloseModal()}
                 >
                     <div className=" flex  ">
-                        <div className=" w-[30%] items-center border-[1.5px] border-dashed border-gray-300 shadow-md    p-2 rounded-md" >
+                        <div className=" w-[40%] items-center border-[1.5px] border-dashed border-gray-300 shadow-md    p-2 rounded-md" >
                             {/* @ts-ignore */}
                             < UploadImage form={form} newAvatar={newAvatar} setNewAvatar={setNewAvatar} avatar={avatar} />
                         </div>

@@ -55,7 +55,8 @@ export const AddressComponent = ({
             <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
                 <input
                     type="text"
-                    className="w-full p-2 border border-gray-300 rounded"
+                    className="py-3 px-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12 w-full"
+
                     placeholder="Please add your address, be precise as much as possible or use a landmark"
                     value={value}
                     onChange={(e) => handleAddressChange(e.target.value)}

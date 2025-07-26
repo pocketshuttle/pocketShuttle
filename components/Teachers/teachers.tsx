@@ -31,16 +31,29 @@ export const Teachers = ({ teacherCount, driverCount, teacherData, driverData, b
                 <div className='py-3 flex items-center justify-between'>
                     <Tab tab1='teachers' tab2='drivers' activeTab={activeTab} handleTab={handleTab} />
 
-                    <div className="p-4 flex justify-end items-center ">
-                        < AddData label="Add a Teacher" action={handleModal} />
-                    </div>
+
+                    {
+                        activeTab === "drivers" && <div className="p-4 flex justify-end items-center ">
+                            < AddData label="Add a Driver" action={handleModal} />
+                        </div>
+                    }
+                    {
+                        activeTab === "teachers" && <div className="p-4 flex justify-end items-center ">
+                            < AddData label="Add a Teacher" action={handleModal} />
+                        </div>
+                    }
+
+
 
                 </div>
-
-
-
                 {
-                    isOpenModal && <DriverAndTeacherModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} mode="teacher" />
+                    isOpenModal && (
+                        <DriverAndTeacherModal
+                            isOpenModal={isOpenModal}
+                            setIsOpenModal={setIsOpenModal}
+                            mode={activeTab === "drivers" ? "driver" : "teacher"}
+                        />
+                    )
                 }
 
                 {
