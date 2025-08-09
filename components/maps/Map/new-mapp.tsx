@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
     GoogleMap,
     LoadScript,
@@ -32,7 +32,7 @@ const containerStyle = {
 };
 
 const DEFAULT_ZOOM = 12;
-const UPDATE_INTERVAL = 10000; // 10 seconds
+const UPDATE_INTERVAL = 40000; // 10 seconds
 const DEBOUNCE_DELAY = 500;
 
 const libraries: Libraries = ['places'];
@@ -48,25 +48,23 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [studentEta, setStudentEta] = useRecoilState<number | null>(studentETA);
+
+
     const { isLoaded, loadError } = useLoadScript({
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-        libraries
+        libraries,
     });
 
-    // Memoized fetch function
     const fetchRoute = useCallback(async (origin: google.maps.LatLngLiteral, destination: google.maps.LatLngLiteral) => {
 
-        console.log("Fetching route from:", origin, "to:", destination);
         try {
             const route = await getGoogleMapsRoute(origin, destination);
 
-            console.log("Route data:", route);
             if (route) {
                 setDirections(route);
-                const duration = route.routes[0].legs[0].duration?.text || null;
-                const durationValue = route.routes[0].legs[0].duration?.value || null;
+                const duration = route.legs[0].duration?.text || null;
+                const durationValue = route.legs[0].duration?.value || null;
                 setEta(duration);
-
                 if (durationValue) {
                     setStudentEta(Math.floor(durationValue / 60));
                 }
@@ -79,12 +77,24 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         }
     }, [setStudentEta]);
 
-    // Fetch parent coordinates
+    useEffect(() => {
+        console.log('Current state:', {
+            isLoaded,
+            coords1,
+            coords2,
+            directions,
+            error,
+            loading
+        });
+    }, [isLoaded, coords1, coords2, directions, error, loading]);
+
     useEffect(() => {
         const fetchParentCoordinates = async () => {
             try {
                 setLoading(true);
                 const coordinates = await googleFetchCoordinates(parentAddress);
+
+                console.log("Coordinates for parent address:", coordinates);
                 if (coordinates) {
                     setCoords2(coordinates);
                 }
@@ -99,10 +109,11 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         }
     }, [parentAddress]);
 
-    // Update route when coordinates change
+
+    console.log("coords1:", coords1, "coords2:", coords2);
+
     useEffect(() => {
         if (!coords1 || !coords2) return;
-
         const debounceTimer = setTimeout(() => {
             fetchRoute(coords1, coords2);
         }, DEBOUNCE_DELAY);
@@ -110,16 +121,31 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         return () => clearTimeout(debounceTimer);
     }, [coords1, coords2, fetchRoute]);
 
-    // Update teacher location periodically
     useEffect(() => {
         if (!teacherData) return;
-
         const interval = setInterval(() => {
             setCoords1({ lat: teacherData.latitude, lng: teacherData.longitude });
         }, UPDATE_INTERVAL);
 
         return () => clearInterval(interval);
     }, [teacherData]);
+
+    const teacherIcon = useMemo(() => {
+        if (!isLoaded || !teacherData) return undefined;
+        return {
+            url: teacherData.teacherImage,
+            style: { borderRadius: "50%" },
+            scaledSize: new window.google.maps.Size(40, 40),
+        };
+    }, [isLoaded, teacherData]);
+
+    const homeIcon = useMemo(() => {
+        if (!isLoaded) return undefined;
+        return {
+            url: "/images/home.png",
+            scaledSize: new window.google.maps.Size(40, 40),
+        };
+    }, [isLoaded]);
 
     if (error) {
         return (
@@ -156,54 +182,37 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
                 </button>
             </div>
 
-            <LoadScript
-                googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-                loadingElement={<div className="h-96 bg-gray-100 rounded" />}
+            <GoogleMap
+                mapContainerStyle={containerStyle}
+                center={coords1}
+                zoom={DEFAULT_ZOOM}
+                options={{
+                    streetViewControl: false,
+                    mapTypeControl: false,
+                    fullscreenControl: false,
+                }}
             >
-                <GoogleMap
-                    mapContainerStyle={containerStyle}
-                    center={coords1}
-                    zoom={DEFAULT_ZOOM}
-                    options={{
-                        streetViewControl: false,
-                        mapTypeControl: false,
-                        fullscreenControl: false,
-                    }}
-                >
-                    <Marker
-                        position={coords1}
-                        icon={{
-                            url: teacherData?.teacherImage,
-                            scaledSize: new google.maps.Size(40, 40),
+                <Marker position={coords1} icon={teacherIcon} />
+                <Marker position={coords2} icon={homeIcon} />
+                {directions && (
+                    <DirectionsRenderer
+                        directions={directions}
+                        options={{
+                            suppressMarkers: true,
+                            polylineOptions: {
+                                strokeColor: "#3b82f6",
+                                strokeWeight: 5,
+                            },
                         }}
                     />
-                    <Marker
-                        position={coords2}
-                        icon={{
-                            url: "/images/home.png",
-                            scaledSize: new google.maps.Size(40, 40),
-                        }}
-                    />
-                    {directions && (
-                        <DirectionsRenderer
-                            directions={directions}
-                            options={{
-                                suppressMarkers: true,
-                                polylineOptions: {
-                                    strokeColor: "#3b82f6",
-                                    strokeWeight: 5,
-                                },
-                            }}
-                        />
-                    )}
-                </GoogleMap>
-            </LoadScript>
+                )}
+            </GoogleMap>
 
-            {openDirection && directions && (
+            {/* {openDirection && directions && (
                 <div className="p-4 bg-gray-50 rounded">
                     <h3 className="font-bold mb-2">Step-by-Step Directions:</h3>
                     <ol className="space-y-2 list-decimal list-inside">
-                        {directions.routes[0].legs[0].steps.map((step, index) => (
+                        {directions.routes.legs[0].steps.map((step, index) => (
                             <li
                                 key={index}
                                 className="text-sm"
@@ -212,7 +221,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
                         ))}
                     </ol>
                 </div>
-            )}
+            )} */}
         </div>
     );
 };

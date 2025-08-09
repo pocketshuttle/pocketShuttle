@@ -25,37 +25,61 @@ export const getRoute = async (
   }
 };
 
+// export const getGoogleMapsRoute = async (
+//   start: [number, number],
+//   end: [number, number]
+// ): Promise<string | null> => {
+//   try {
+//     const origin = `${start[1]},${start[0]}`;
+//     const destination = `${end[1]},${end[0]}`;
+
+//     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+//     const response = await fetch(
+//       // `https://maps.googleapis.com/maps/api/directions/json?origin=${start[1]},${start[0]}&destination=${end[1]},${end[0]}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
+//       `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&mode=driving&key=${apiKey}`
+//     );
+
+//     if (!response.ok) {
+//       console.error("Google Directions API error:", response.statusText);
+//       return null;
+//     }
+//     const data = await response.json();
+
+//     if (data.status !== "OK" || !data.routes?.length) {
+//       console.warn("No route found:", data.status);
+//       return null;
+//     }
+
+//     const route = data.routes[0];
+//     return route;
+//   } catch (error) {
+//     console.error("Error fetching Google Maps route:", error);
+//     return null;
+//   }
+// };
+
 export const getGoogleMapsRoute = async (
-  start: [number, number],
-  end: [number, number]
-): Promise<string | null> => {
+  origin: google.maps.LatLngLiteral,
+  destination: google.maps.LatLngLiteral
+) => {
   try {
-    const origin = `${start[1]},${start[0]}`;
-    const destination = `${end[1]},${end[0]}`;
+    const destObj = { lat: destination[1], lng: destination[0] };
 
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    const query = new URLSearchParams({
+      origin: `${origin.lat},${origin.lng}`,
+      destination: `${destObj.lat},${destObj.lng}`,
+      mode: "driving",
+    });
+    const response = await fetch(`/api/directions?${query.toString()}`);
+    if (!response.ok) throw new Error("Failed to fetch directions");
 
-    const response = await fetch(
-      // `https://maps.googleapis.com/maps/api/directions/json?origin=${start[1]},${start[0]}&destination=${end[1]},${end[0]}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
-      `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&mode=driving&key=${apiKey}`
-    );
-
-    if (!response.ok) {
-      console.error("Google Directions API error:", response.statusText);
-      return null;
-    }
     const data = await response.json();
 
-    if (data.status !== "OK" || !data.routes?.length) {
-      console.warn("No route found:", data.status);
-      return null;
-    }
-
-    const route = data.routes[0];
-    return route;
+    return data.routes[0];
   } catch (error) {
-    console.error("Error fetching Google Maps route:", error);
-    return null;
+    console.error("Error fetching directions:", error);
+    throw error;
   }
 };
 
