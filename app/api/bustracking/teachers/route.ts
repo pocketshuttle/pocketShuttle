@@ -23,7 +23,7 @@ async function broadcastLocationUpdate(
   data: LocationUpdatePayload
 ) {
   const ablyChannel = ably.channels.get(channel);
-  return ablyChannel.publish("teacher-location-update", data);
+  return ablyChannel.publish("live-school-channel", data);
 }
 
 export async function POST(req: NextRequest) {

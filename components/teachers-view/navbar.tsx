@@ -21,18 +21,36 @@ import {
 } from "@/components/ui/tooltip"; // Tooltip components for displaying extra info
 
 import { getCurrentLocation, sendTeacherLocationToServer } from "../maps/lib/utils"; // Utility functions for geolocation and sending location
-import { useSession } from "@/hooks/useSession"; // Custom hook for managing user session
+import { useSession } from "@/hooks/useSession";
 import { updateLocation } from "@/actions/mark-otw";
 import { publishLocation } from "@/utils/ably-teacher";
+import { useRef } from "react";
 
 type NavbarProps = {
-    data: any; // Expected props, with 'data' holding user or teacher information
+    data: any;
 };
+
+
+
+function getDistanceMeters(coord1: any, coord2: any) {
+    const R = 6371e3; // meters
+    const φ1 = coord1.lat * Math.PI / 180;
+    const φ2 = coord2.lat * Math.PI / 180;
+    const Δφ = (coord2.lat - coord1.lat) * Math.PI / 180;
+    const Δλ = (coord2.lng - coord1.lng) * Math.PI / 180;
+    const a =
+        Math.sin(Δφ / 2) ** 2 +
+        Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 const Navbar = ({ data }: NavbarProps) => {
     const [isHovering, setIsHovering] = useState(false); // Manages hover state for the profile
     const [isTracking, setIsTracking] = useState<boolean>(false); // Manages the location tracking toggle state
     const router = useRouter(); // Provides router functionalities for navigation
+
+    const lastSentTimeRef = useRef(0);
+    const lastCoordsRef = useRef<{ lat: number; lng: number } | null>(null);
 
     // Memoize avatar content to prevent unnecessary re-renders
     const avatarContent = useMemo(() => {
@@ -73,7 +91,7 @@ const Navbar = ({ data }: NavbarProps) => {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(async (position) => {
                     const { latitude, longitude } = position.coords;
-                    console.log("Current coordinates:", { latitude, longitude });
+                    // console.log("Current coordinates:", { latitude, longitude });
                     // Send the teacher's location to the server
                     // await sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name);
                 }, (error) => {
@@ -89,50 +107,43 @@ const Navbar = ({ data }: NavbarProps) => {
 
     useEffect(() => {
 
-        const fetchLocation = () => {
-            if (navigator.geolocation) {
-                navigator.geolocation.watchPosition(async (position) => {
-
-                    const { latitude, longitude } = position.coords;
-                    // Send the teacher's location to the server
-                    // await sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name);
-                }, (error) => {
-                    console.log('Error fetching location:', error);
-                    // setIsTracking(false);
-                    // window.localStorage.setItem("tracking", "false");
-                }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 })
-            }
-        }
-
-
-
-
         const updateLocation = async () => {
             try {
                 const [longitude, latitude] = await getCurrentLocation();
-                console.log("Current coordinates:", { latitude, longitude });
+                const now = Date.now();
+
+                // Throttle: only send if 10+ seconds passed AND moved > 10m
+                if (now - lastSentTimeRef.current < 10000) return;
+
+                if (lastCoordsRef.current) {
+                    const moved = getDistanceMeters(lastCoordsRef.current, {
+                        lat: latitude,
+                        lng: longitude,
+                    });
+                    if (moved < 10) return;
+                }
 
                 await Promise.all([
                     publishLocation(latitude, longitude, data.id, data.name, data.image),
                     sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name),
                 ]);
 
+                lastSentTimeRef.current = now;
+                lastCoordsRef.current = { lat: latitude, lng: longitude };
+
+                console.log("Location sent:", latitude, longitude);
             } catch (error: any) {
                 console.error("Error fetching location:", error);
-
                 if (error.code === 1) {
                     setIsTracking(false);
                     window.localStorage.setItem("tracking", "false");
-                } else {
-                    // Keep tracking on, maybe retry
-                    console.warn("Temporary location issue, will retry...");
                 }
             }
         };
 
+
         if (isTracking) {
             updateLocation();
-            fetchLocation()
 
             const intervalId = setInterval(updateLocation, 10000);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 
 const containerStyle = {
@@ -12,10 +12,25 @@ const containerStyle = {
 interface Props {
     latitude: number;
     longitude: number;
+    teachersLocation: any
 }
 
 
-const GoogleMapView = ({ latitude, longitude }: Props) => {
+const GoogleMapView = ({ latitude, longitude, teachersLocation }: Props) => {
+    const mapRef = useRef<google.maps.Map | null>(null);
+    const onLoad = (map: google.maps.Map) => {
+        mapRef.current = map;
+    };
+
+    const handleMarkerClick = (lat: number, lng: number) => {
+        console.log("Marker clicked at:", lat, lng);
+        if (mapRef.current) {
+            mapRef.current.panTo({ lat, lng }); // move center
+            mapRef.current.setZoom(18);         // zoom in
+        } else {
+            console.warn("Map not loaded yet.");
+        }
+    };
     const center = { lat: latitude, lng: longitude };
     return (
         <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
@@ -27,9 +42,25 @@ const GoogleMapView = ({ latitude, longitude }: Props) => {
                     fullscreenControl: false,
                     zoomControl: false
                 }}
+                onLoad={onLoad}
 
             >
                 <Marker position={center} />
+                {teachersLocation.map((teacher: any) => (
+                    <Marker
+                        key={teacher.teacherId}
+                        position={{
+                            lat: teacher.latitude,
+                            lng: teacher.longitude,
+                        }}
+                        title={teacher.teacherName}
+                        icon={{
+                            url: teacher.teacherImage,
+                            scaledSize: new window.google.maps.Size(40, 40),
+                        }}
+                        onClick={() => handleMarkerClick(teacher.latitude, teacher.longitude)}
+                    />
+                ))}
             </GoogleMap>
         </LoadScript>
     )

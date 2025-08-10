@@ -1,9 +1,13 @@
-import Ably from "ably";
+import { getAblyClient } from "@/ably/ably-client";
 
-const ably = new Ably.Realtime({
-  key: process.env.NEXT_PUBLIC_ABLY_KEY!,
-});
-
+/**
+ * Publishes a teacher's location to Ably.
+ * @param latitude - The latitude of the teacher's location.
+ * @param longitude - The longitude of the teacher's location.
+ * @param teacherId - The ID of the teacher.
+ * @param teacherName - The name of the teacher.
+ * @param teacherImage - The image URL of the teacher.
+ */
 export const publishLocation = async (
   latitude: number,
   longitude: number,
@@ -12,7 +16,9 @@ export const publishLocation = async (
   teacherImage: string
 ) => {
   try {
-    const ably = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_KEY!);
+    // const ably = new Ably.Realtime(process.env.NEXT_PUBLIC_ABLY_KEY!);
+    const ably = getAblyClient();
+
     const channel = ably.channels.get(`teacher-location:${teacherId}`);
 
     await channel.publish("location-update", {
