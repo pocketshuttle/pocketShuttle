@@ -89,7 +89,7 @@ export const BusArrival = ({ parentAddress, parentId, teacherId }) => {
     //     };
     // }, [parentId, teacherId]);
 
-    console.log("teacherLocation", teacherLocation);
+    // console.log("teacherLocation", teacherLocation);
 
     return (
         <div>

@@ -64,6 +64,7 @@ export const getGoogleMapsRoute = async (
   destination: google.maps.LatLngLiteral
 ) => {
   try {
+    //@ts-ignore
     const destObj = { lat: destination[1], lng: destination[0] };
 
     const query = new URLSearchParams({
@@ -87,7 +88,6 @@ const checkPermissions = async () => {
   if (navigator.permissions) {
     try {
       const status = await navigator.permissions.query({ name: "geolocation" });
-      console.log("Permission status:", status.state);
       return status.state;
     } catch (e) {
       console.error("Permission query failed", e);
@@ -133,7 +133,7 @@ export const getCurrentLocation = async (
           }
         },
         {
-          enableHighAccuracy: true,
+          // enableHighAccuracy: true,
           timeout: 5000,
           maximumAge: 0,
           ...options,
@@ -157,14 +157,13 @@ type Coordinates = [number, number]; // [lat, lng]
 export const getSchoolLocation = async (): Promise<[number, number]> => {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      console.error("Geolocation is not supported by this browser.");
+      // console.error("Geolocation is not supported by this browser.");
       return reject(new Error("Geolocation not supported"));
     }
 
-    console.log("Attempting to get location...");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        console.log("Location success", pos);
+        // console.log("Location success", pos);
         const { latitude, longitude } = pos.coords;
         resolve([longitude, latitude]);
       },
@@ -275,6 +274,7 @@ export const sendTeacherLocationToServer = async (
   teacherImage: string,
   teacherName: string
 ): Promise<void> => {
+  console.log("Sending teacher location to server:", latitude);
   try {
     const res = await fetch("/api/bustracking/teachers", {
       method: "POST",

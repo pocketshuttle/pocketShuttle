@@ -12,6 +12,7 @@ import {
   useRecoilState,
   useRecoilValue,
 } from 'recoil';
+import AblyProviderRoot from "@/ably/ably-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -47,14 +48,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <Provider>
-        <body className={inter.className}>
-          < QueryProvider>
-            <main>
-              {children}
-            </main>
-          </QueryProvider>
-          <Toaster />
-        </body>
+        < AblyProviderRoot>
+          <body className={inter.className}>
+            < QueryProvider>
+              <main>
+                {children}
+              </main>
+            </QueryProvider>
+            <Toaster />
+          </body>
+        </AblyProviderRoot>
       </Provider>
 
     </html >
