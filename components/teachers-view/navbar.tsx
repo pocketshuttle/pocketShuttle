@@ -49,7 +49,6 @@ const Navbar = ({ data }: NavbarProps) => {
     const toggleTracking = () => {
         const newTrackingState = !isTracking;
         setIsTracking(newTrackingState);
-        // Save the new tracking state to localStorage
         window.localStorage.setItem("tracking", JSON.stringify(newTrackingState));
     };
 
@@ -62,33 +61,81 @@ const Navbar = ({ data }: NavbarProps) => {
     }, []);
 
 
+
     /**
      * useEffect hook to start location tracking when the switch is toggled on.
      * Location updates every 10 seconds when tracking is enabled.
      */
+
+
     useEffect(() => {
+        const fetchLocation = () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    console.log("Current coordinates:", { latitude, longitude });
+                    // Send the teacher's location to the server
+                    // await sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name);
+                }, (error) => {
+                    console.error('Error fetching location:', error);
+                    setIsTracking(false);
+                    window.localStorage.setItem("tracking", "false");
+                });
+            }
+        }
+        fetchLocation()
+    }, []);
+
+
+    useEffect(() => {
+
+        const fetchLocation = () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(async (position) => {
+
+                    const { latitude, longitude } = position.coords;
+                    // Send the teacher's location to the server
+                    // await sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name);
+                }, (error) => {
+                    console.log('Error fetching location:', error);
+                    // setIsTracking(false);
+                    // window.localStorage.setItem("tracking", "false");
+                }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 })
+            }
+        }
+
+
+
 
         const updateLocation = async () => {
             try {
-                // Get current coordinates
                 const [longitude, latitude] = await getCurrentLocation();
-                // Send the teacher's location to the server
+                console.log("Current coordinates:", { latitude, longitude });
 
-                await publishLocation(latitude, longitude, data.id, data.name, data.image,);
-                sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name);
-            } catch (error) {
-                console.error('Error fetching location:', error);
-                setIsTracking(false);
-                window.localStorage.setItem("tracking", "false");
+                await Promise.all([
+                    publishLocation(latitude, longitude, data.id, data.name, data.image),
+                    sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name),
+                ]);
+
+            } catch (error: any) {
+                console.error("Error fetching location:", error);
+
+                if (error.code === 1) {
+                    setIsTracking(false);
+                    window.localStorage.setItem("tracking", "false");
+                } else {
+                    // Keep tracking on, maybe retry
+                    console.warn("Temporary location issue, will retry...");
+                }
             }
         };
+
         if (isTracking) {
-            // Initial update
             updateLocation();
-            // Set an interval to update location every 10 seconds
+            fetchLocation()
+
             const intervalId = setInterval(updateLocation, 10000);
 
-            // Cleanup function
             return () => {
                 if (intervalId) {
                     clearInterval(intervalId);
@@ -97,11 +144,15 @@ const Navbar = ({ data }: NavbarProps) => {
         }
     }, [isTracking, data]);
 
-
+    useEffect(() => {
+        const storedTracking = window.localStorage.getItem("tracking");
+        if (storedTracking) {
+            setIsTracking(JSON.parse(storedTracking));
+        }
+    }, []);
 
     return (
         <div className="flex justify-between bg-[var(--bg-root)] h-[60px] w-full items-center px-4 py-4 mb-5 mt-5">
-            {/* Profile section: Clicking navigates back, and Lottie animation is triggered on hover */}
             <div
                 className="flex space-x-2 items-center justify-center cursor-pointer"
                 // onClick={() => router.back()} // Navigates back to the previous page
@@ -110,7 +161,6 @@ const Navbar = ({ data }: NavbarProps) => {
             >
                 <Avatar>{avatarContent}</Avatar>
 
-                {/* User details section (greeting and name display) */}
                 <div className="flex flex-col items-start">
                     {
                         data &&
@@ -122,13 +172,11 @@ const Navbar = ({ data }: NavbarProps) => {
                 </div>
             </div>
 
-            {/* Notification and action section (e.g., tracking, notifications, logout) */}
             <div className="flex space-x-2 items-center justify-center">
                 {data.role === "teacher" && (
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                {/* Location toggle switch for teachers */}
                                 <div className="flex items-center space-x-1 flex-col">
                                     <Switch id="location-toggle" onClick={toggleTracking} checked={isTracking} />
                                 </div>
@@ -139,9 +187,7 @@ const Navbar = ({ data }: NavbarProps) => {
                         </Tooltip>
                     </TooltipProvider>
                 )}
-                {/* Display notification feed component */}
                 <NotificationFeed />
-                {/* Logout button */}
                 <span className="cursor-pointer">
                     <Logout />
                 </span>

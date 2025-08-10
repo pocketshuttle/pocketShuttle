@@ -1,6 +1,8 @@
 import { getPusherInstance } from "@/pusher/server";
 import { NextApiRequest, NextApiResponse } from "next";
 import { NextRequest, NextResponse } from "next/server";
+import Ably from "ably";
+
 
 export async function POST(req: NextRequest, res: NextApiResponse) {
   try {
@@ -13,7 +15,6 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
       );
     }
 
-    // Save the location (you could remove this part if not saving to the database)
     // Get the Pusher instance
     const pusher = getPusherInstance();
 

@@ -7,6 +7,8 @@ import mapboxgl from 'mapbox-gl';
 import { getSchoolLocation } from '../lib/utils';
 import Pusher from 'pusher-js';
 import GoogleMapView from './google-map';
+import { useTeacherLocation } from '@/hooks/useTeacher-location';
+import { useSchoolTeacherLocations } from '@/hooks/useTeacherAblyLocation';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX!;
 
@@ -22,10 +24,39 @@ export const DriversLocation = () => {
     const mapRef = useRef<any>(null);
     const [teachersLocations, setTeachersLocations] = useState<TeacherLocation[]>([]);
     const [mySchoolLocation, setSchoolLocation] = useState({ latitude: 0, longitude: 0 });
+    const [schoolLocation, setschoolLocation] = useState({ latitude: 0, longitude: 0 });
     const [isMapLoaded, setIsMapLoaded] = useState(false);
     const pusherRef = useRef<Pusher | null>(null);
 
+    const [teacherLocation, setTeacherLocation] = useState<TeacherLocation | null>(null);
+    const [connectionStatus, setConnectionStatus] = useState<string>("Connecting...");
+
+    const teachers = useSchoolTeacherLocations()
+
+    console.log("Teachers locations:", teachers);
+
+
+
     useEffect(() => {
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                const pos = navigator.geolocation.getCurrentPosition(pos => {
+                    const { latitude, longitude } = pos.coords;
+                    setschoolLocation({ latitude, longitude });
+                    // console.log("School location updated:", { latitude, longitude });
+                    console.log("Current position:", latitude, longitude);
+                });
+
+                console.log("Geolocation watchPosition started:", pos);
+
+            } else {
+                console.log("Geolocation is not supported by this browser.");
+            }
+        }
+
+        getLocation();
+
         const fetchSchoolLocation = async () => {
             try {
                 const [longitude, latitude] = await getSchoolLocation();
@@ -134,7 +165,7 @@ export const DriversLocation = () => {
             </Map>
 */}
 
-            <GoogleMapView latitude={mySchoolLocation.latitude} longitude={mySchoolLocation.longitude} />
+            {/* <GoogleMapView latitude={mySchoolLocation.latitude} longitude={mySchoolLocation.longitude} /> */}
 
 
             {!isMapLoaded && (

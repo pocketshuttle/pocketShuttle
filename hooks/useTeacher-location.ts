@@ -18,7 +18,6 @@ export const useTeacherLocation = (
 
     const channel = ably.channels.get(`teacher-location:${teacherId}`);
 
-    // Subscribe to location updates
     channel.subscribe("location-update", (message) => {
       const { latitude, longitude, teacherName, teacherImage } = message.data;
       onUpdate({ teacherId, teacherName, teacherImage, latitude, longitude });
