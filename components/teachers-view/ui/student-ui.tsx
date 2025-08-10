@@ -25,10 +25,10 @@ export const EachStudent = ({ student }: { student: StudentProps }) => {
     useEffect(() => {
         const fetchParentCoordinates = async () => {
             try {
-                if (student?.address) { // Ensure the address exists before fetching
+                if (student?.address) { 
                     const coordinates2 = await fetchCoordinates(student.address);
 
-                    console.log("Coordinates for parent address:", coordinates2);
+                    // console.log("Coordinates for parent address:", coordinates2);
                     if (coordinates2) {
                         setCoords2(coordinates2);
                     } else {
@@ -42,13 +42,13 @@ export const EachStudent = ({ student }: { student: StudentProps }) => {
 
         // Fetch coordinates when student's address is available
         fetchParentCoordinates();
-    }, [student?.address]); // Depend only on the student's address
+    }, [student?.address]); 
 
 
 
     // Fetch route and calculate ETA only when both coordinates are available
     useEffect(() => {
-        console.log("Coords1:", coords1, "Coords2:", coords2);
+        // console.log("Coords1:", coords1, "Coords2:", coords2);
 
 
         const fetchRouteEta = async () => {

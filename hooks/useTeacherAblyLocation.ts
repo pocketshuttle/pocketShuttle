@@ -1,5 +1,6 @@
+// hooks/useSchoolTeacherLocations.ts
+import { getAblyClient } from "@/ably/ably-client";
 import { useEffect, useState, useCallback } from "react";
-import Ably from "ably";
 
 interface TeacherLocation {
   teacherId: string;
@@ -16,30 +17,26 @@ export const useSchoolTeacherLocations = () => {
     setTeachers((prev) => {
       const index = prev.findIndex((t) => t.teacherId === location.teacherId);
       if (index !== -1) {
-        // Update existing teacher's location
         const updated = [...prev];
         updated[index] = location;
         return updated;
       }
-      // Add new teacher
       return [...prev, location];
     });
   }, []);
 
   useEffect(() => {
-    const ably = new Ably.Realtime({
-      key: process.env.NEXT_PUBLIC_ABLY_KEY!,
-    });
+    const ably = getAblyClient();
+    const channel = ably.channels.get("teacher-location-update");
 
-    const channel = ably.channels.get("live-school-channel");
-
-    channel.subscribe("teacher-location-update", (message) => {
+    const listener = (message: any) => {
       updateTeacherLocation(message.data);
-    });
+    };
+
+    channel.subscribe("live-school-channel", listener);
 
     return () => {
-      channel.unsubscribe();
-      ably.close();
+      channel.unsubscribe("live-school-channel", listener);
     };
   }, [updateTeacherLocation]);
 

@@ -274,7 +274,7 @@ export const sendTeacherLocationToServer = async (
   teacherImage: string,
   teacherName: string
 ): Promise<void> => {
-  console.log("Sending teacher location to server:", latitude);
+  // console.log("Sending teacher location to server:", latitude);
   try {
     const res = await fetch("/api/bustracking/teachers", {
       method: "POST",
@@ -304,6 +304,6 @@ export const sendTeacherLocationToServer = async (
         teacherName
       );
     }
-    console.error("Error sending location to server:", error); // Log errors to console
+    console.error("Error sending location to server:", error);
   }
 };
