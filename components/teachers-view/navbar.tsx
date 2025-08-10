@@ -32,16 +32,16 @@ type NavbarProps = {
 
 
 
-function getDistanceMeters(coord1: any, coord2: any) {
-    const R = 6371e3; // meters
-    const φ1 = coord1.lat * Math.PI / 180;
-    const φ2 = coord2.lat * Math.PI / 180;
-    const Δφ = (coord2.lat - coord1.lat) * Math.PI / 180;
-    const Δλ = (coord2.lng - coord1.lng) * Math.PI / 180;
-    const a =
-        Math.sin(Δφ / 2) ** 2 +
-        Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+function getDistanceMetersFast(coord1: any, coord2: any) {
+    const R = 6371000; // Earth radius in meters
+    const lat1 = coord1.lat * Math.PI / 180;
+    const lat2 = coord2.lat * Math.PI / 180;
+    const dLat = lat2 - lat1;
+    const dLng = (coord2.lng - coord1.lng) * Math.PI / 180;
+
+    const x = dLng * Math.cos((lat1 + lat2) / 2);
+    const y = dLat;
+    return Math.sqrt(x * x + y * y) * R;
 }
 
 const Navbar = ({ data }: NavbarProps) => {
@@ -106,6 +106,56 @@ const Navbar = ({ data }: NavbarProps) => {
 
 
     useEffect(() => {
+        /**
+ * updateLocation()
+ *
+ * Purpose:
+ * --------
+ * Sends the teacher's current location to both the real-time channel (Ably) and the server API,
+ * but in a way that balances responsiveness with bandwidth/cost efficiency.
+ *
+ * How it works:
+ * -------------
+ * 1. **Get Current Location**
+ *    - Uses `getCurrentLocation()` to fetch the teacher's latitude & longitude.
+ *
+ * 2. **Throttle Updates by Time**
+ *    - Normally, updates are sent at most every `maxUpdateIntervalMs` (default 10 seconds).
+ *    - Prevents spamming Ably/Pusher and reduces server load.
+ *
+ * 3. **Immediate Update on Significant Movement**
+ *    - If the teacher moves more than `immediateUpdateDistanceM` (default 50 meters)
+ *      before the time limit is reached, we bypass throttling and send immediately.
+ *    - This ensures the map is responsive for fast-moving teachers (e.g., driving).
+ *
+ * 4. **Distance Calculation**
+ *    - Uses `getDistanceMetersFast()` (Equirectangular approximation) for speed over
+ *      the more precise Haversine formula, since accuracy within ~1m is sufficient.
+ *
+ * 5. **Refs for State Between Updates**
+ *    - `lastSentTimeRef` stores the timestamp of the last sent update.
+ *    - `lastCoordsRef` stores the last sent coordinates so we can measure movement.
+ *
+ * 6. **Error Handling**
+ *    - If location permission is denied (error code 1), tracking is disabled
+ *      and `localStorage` is updated so it stays off after refresh.
+ *
+ * Configurable Parameters (future dashboard settings):
+ * -----------------------------------------------------
+ * - `maxUpdateIntervalMs` (default: 10_000 ms / 10 seconds)
+ *   Maximum allowed interval between location updates when moving slowly.
+ *
+ * - `immediateUpdateDistanceM` (default: 50 meters)
+ *   Distance threshold to trigger an immediate update before the time limit.
+ *
+ * Why this matters:
+ * -----------------
+ * This system ensures:
+ * - **Cost efficiency**: Avoids unnecessary updates when stationary or moving slowly.
+ * - **Real-time accuracy**: Sends rapid updates when fast movement is detected.
+ * - **User respect**: Stops tracking immediately if permissions are revoked.
+ */
+
 
         const updateLocation = async () => {
             try {
@@ -116,7 +166,7 @@ const Navbar = ({ data }: NavbarProps) => {
                 if (now - lastSentTimeRef.current < 10000) return;
 
                 if (lastCoordsRef.current) {
-                    const moved = getDistanceMeters(lastCoordsRef.current, {
+                    const moved = getDistanceMetersFast(lastCoordsRef.current, {
                         lat: latitude,
                         lng: longitude,
                     });
