@@ -9,6 +9,7 @@ import { getUserSession } from '@/lib/session'
 import { revalidateTag } from 'next/cache'
 import { Montserrat } from 'next/font/google'
 import React, { Suspense } from 'react'
+import { ParentMainView } from '@/components/parent-view/parent-view'
 
 // Load Montserrat font
 const mont = Montserrat({ subsets: ["latin"], weight: "500" })
@@ -36,19 +37,40 @@ const TeacherView = async () => {
             where: {
                 id: id
             },
-            include: {
+            select: {
+                id: true,
+                address: true,
                 Student: {
-                    include: {
+                    select: {
+                        id: true,
+                        full_name: true,
+                        image: true,
+                        status: true,
                         bus: {
-                            include: {
-                                teacher: true,
-                                driver: true,
-                                students: true
-                            },
-                        },
-                    },
-                },
-            },
+                            select: {
+                                id: true,
+                                color: true,
+                                bus_product_name: true,
+                                bus_number: true,
+                                teacher: {
+                                    select: {
+                                        id: true,
+                                        full_name: true,
+                                        phoneNumber: true
+                                    }
+                                },
+                                driver: {
+                                    select: {
+                                        id: true,
+                                        full_name: true,
+                                        phoneNumber: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         });
         if (!parent) {
             // Handle case where no parent data is found
@@ -63,14 +85,12 @@ const TeacherView = async () => {
         revalidateTag("students");
         revalidateTag("parent");
 
+        console.log("Parent data:", parent);
+
         return (
             <Suspense>
                 <div className={`${mont.className} p-3`}>
-                    <div>
-                        <BusArrival parentAddress={parent?.address || ""} parentId={id} />
-                    </div>
-
-                    <ParentViewData userId={id} />
+                    <ParentMainView parentAddress={parent.address ?? ''} parentId={id} siblings={parent.Student as any} />
                 </div>
             </Suspense>
         )

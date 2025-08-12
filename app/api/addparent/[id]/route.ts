@@ -16,14 +16,34 @@ export const GET = async (
       where: {
         id: id,
       },
-      include: {
+      select: {
+        id: true,
         Student: {
-          include: {
+          select: {
+            id: true,
+            full_name: true,
+            image: true,
+            status: true,
             bus: {
-              include: {
-                teacher: true,
-                driver: true,
-                students: true,
+              select: {
+                id: true,
+                color: true,
+                bus_product_name: true,
+                bus_number: true,
+                teacher: {
+                  select: {
+                    id: true,
+                    full_name: true,
+                    phoneNumber: true,
+                  },
+                },
+                driver: {
+                  select: {
+                    id: true,
+                    full_name: true,
+                    phoneNumber: true,
+                  },
+                },
               },
             },
           },

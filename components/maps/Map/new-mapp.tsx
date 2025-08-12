@@ -60,7 +60,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
 
         try {
             const route = await getGoogleMapsRoute(origin, destination);
-            console.log("Fetched route:", route);
+            // console.log("Fetched route:", route);
 
             if (route && route.routes && route.routes.length > 0) {
                 setDirections(route);
@@ -100,8 +100,8 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         }
     }, [parentAddress]);
 
-    console.log("coords:", directions);
-    console.log("isLoaded:", isLoaded, "coords1:", coords1, "coords2:", coords2);
+    // console.log("coords:", directions);
+    // console.log("isLoaded:", isLoaded, "coords1:", coords1, "coords2:", coords2);
 
 
     useEffect(() => {
@@ -161,8 +161,6 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
             </div>
         );
     }
-
-    console.log("coords1:", coords1, "coords2:", coords2, "directions:", directions);
 
     if (!isLoaded) return <div>Loading Google Maps...</div>;
     if (loadError) return <div>Error loading maps</div>;

@@ -12,7 +12,6 @@ export const POST = async (req: NextRequest) => {
     const validatedData = StudentSchema.safeParse(data);
 
     if (!validatedData.success) {
-      console.log(validatedData.error.errors);
       return Response.json(
         { message: "Validation error", errors: validatedData.error.errors },
         { status: 400 }
