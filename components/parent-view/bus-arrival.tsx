@@ -5,6 +5,7 @@ import Location from '../maps/Map/new-map';
 import { io } from 'socket.io-client';
 import { useTeacherLocation } from '@/hooks/useTeacher-location';
 import NewLocation from '../maps/Map/new-mapp';
+import avatar from "@/public/images/avatar.jpg";
 
 interface TeacherLocation {
     teacherId: string;
@@ -58,7 +59,36 @@ export const BusArrival = ({ parentAddress, parentId, teacherId }) => {
     //     };
     // }, [parentId]);
 
+
+    useEffect(() => {
+        const fetchLocation = () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const { latitude, longitude } = position.coords;
+
+                    console.log("Current position:", latitude, longitude);
+                    setTeacherLocation({
+                        teacherId,
+                        teacherName: "Teacher Name", // Replace with actual teacher name if available
+                        teacherImage: avatar, // Replace with actual teacher image URL if available
+                        latitude,
+                        longitude,
+                    });
+                    // console.log("Current coordinates:", { latitude, longitude });
+                    // Send the teacher's location to the server
+                    // await sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name);
+                }, (error) => {
+                    console.error('Error fetching location:', error);
+                    // setIsTracking(false);
+                    window.localStorage.setItem("tracking", "false");
+                });
+            }
+        }
+        fetchLocation()
+    }, []);
+
     useTeacherLocation(teacherId, setTeacherLocation);
+
     // useEffect(() => {
 
     //     const socket = io("http://localhost:3000", {

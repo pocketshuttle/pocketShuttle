@@ -78,8 +78,6 @@ const Navbar = ({ data }: NavbarProps) => {
         }
     }, []);
 
-
-
     /**
      * useEffect hook to start location tracking when the switch is toggled on.
      * Location updates every 10 seconds when tracking is enabled.
@@ -103,61 +101,61 @@ const Navbar = ({ data }: NavbarProps) => {
         }
         fetchLocation()
     }, []);
-
+    /**
+     * updateLocation()
+     *
+     * Purpose:
+     * --------
+     * Sends the teacher's current location to both the real-time channel (Ably) and the server API,
+     * but in a way that balances responsiveness with bandwidth/cost efficiency.
+     *
+     * How it works:
+     * -------------
+     * 1. **Get Current Location**
+     *    - Uses `getCurrentLocation()` to fetch the teacher's latitude & longitude.
+     *
+     * 2. **Throttle Updates by Time**
+     *    - Normally, updates are sent at most every `maxUpdateIntervalMs` (default 10 seconds).
+     *    - Prevents spamming Ably/Pusher and reduces server load.
+     *
+     * 3. **Immediate Update on Significant Movement**
+     *    - If the teacher moves more than `immediateUpdateDistanceM` (default 50 meters)
+     *      before the time limit is reached, we bypass throttling and send immediately.
+     *    - This ensures the map is responsive for fast-moving teachers (e.g., driving).
+     *
+     * 4. **Distance Calculation**
+     *    - Uses `getDistanceMetersFast()` (Equirectangular approximation) for speed over
+     *      the more precise Haversine formula, since accuracy within ~1m is sufficient.
+     *
+     * 5. **Refs for State Between Updates**
+     *    - `lastSentTimeRef` stores the timestamp of the last sent update.
+     *    - `lastCoordsRef` stores the last sent coordinates so we can measure movement.
+     *
+     * 6. **Error Handling**
+     *    - If location permission is denied (error code 1), tracking is disabled
+     *      and `localStorage` is updated so it stays off after refresh.
+     *
+     * Configurable Parameters (future dashboard settings):
+     * -----------------------------------------------------
+     * - `maxUpdateIntervalMs` (default: 10_000 ms / 10 seconds)
+     *   Maximum allowed interval between location updates when moving slowly.
+     *
+     * - `immediateUpdateDistanceM` (default: 50 meters)
+     *   Distance threshold to trigger an immediate update before the time limit.
+     *
+     * Why this matters:
+     * -----------------
+     * This system ensures:
+     * - **Cost efficiency**: Avoids unnecessary updates when stationary or moving slowly.
+     * - **Real-time accuracy**: Sends rapid updates when fast movement is detected.
+     * - **User respect**: Stops tracking immediately if permissions are revoked.
+     */
 
     useEffect(() => {
-        /**
- * updateLocation()
- *
- * Purpose:
- * --------
- * Sends the teacher's current location to both the real-time channel (Ably) and the server API,
- * but in a way that balances responsiveness with bandwidth/cost efficiency.
- *
- * How it works:
- * -------------
- * 1. **Get Current Location**
- *    - Uses `getCurrentLocation()` to fetch the teacher's latitude & longitude.
- *
- * 2. **Throttle Updates by Time**
- *    - Normally, updates are sent at most every `maxUpdateIntervalMs` (default 10 seconds).
- *    - Prevents spamming Ably/Pusher and reduces server load.
- *
- * 3. **Immediate Update on Significant Movement**
- *    - If the teacher moves more than `immediateUpdateDistanceM` (default 50 meters)
- *      before the time limit is reached, we bypass throttling and send immediately.
- *    - This ensures the map is responsive for fast-moving teachers (e.g., driving).
- *
- * 4. **Distance Calculation**
- *    - Uses `getDistanceMetersFast()` (Equirectangular approximation) for speed over
- *      the more precise Haversine formula, since accuracy within ~1m is sufficient.
- *
- * 5. **Refs for State Between Updates**
- *    - `lastSentTimeRef` stores the timestamp of the last sent update.
- *    - `lastCoordsRef` stores the last sent coordinates so we can measure movement.
- *
- * 6. **Error Handling**
- *    - If location permission is denied (error code 1), tracking is disabled
- *      and `localStorage` is updated so it stays off after refresh.
- *
- * Configurable Parameters (future dashboard settings):
- * -----------------------------------------------------
- * - `maxUpdateIntervalMs` (default: 10_000 ms / 10 seconds)
- *   Maximum allowed interval between location updates when moving slowly.
- *
- * - `immediateUpdateDistanceM` (default: 50 meters)
- *   Distance threshold to trigger an immediate update before the time limit.
- *
- * Why this matters:
- * -----------------
- * This system ensures:
- * - **Cost efficiency**: Avoids unnecessary updates when stationary or moving slowly.
- * - **Real-time accuracy**: Sends rapid updates when fast movement is detected.
- * - **User respect**: Stops tracking immediately if permissions are revoked.
- */
 
 
         const updateLocation = async () => {
+
             try {
                 const [longitude, latitude] = await getCurrentLocation();
                 const now = Date.now();
@@ -171,6 +169,7 @@ const Navbar = ({ data }: NavbarProps) => {
                         lng: longitude,
                     });
                     if (moved < 10) return;
+                    console.log("Updating location...");
                 }
 
                 await Promise.all([

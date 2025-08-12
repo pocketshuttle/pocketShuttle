@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import Ably from "ably";
+import { getAblyClient } from "@/ably/ably-client";
 
 export const useTeacherLocation = (
   teacherId: string,
@@ -12,10 +13,7 @@ export const useTeacherLocation = (
   }) => void
 ) => {
   useEffect(() => {
-    const ably = new Ably.Realtime({
-      key: process.env.NEXT_PUBLIC_ABLY_KEY!,
-    });
-
+    const ably = getAblyClient();
     const channel = ably.channels.get(`teacher-location:${teacherId}`);
 
     channel.subscribe("location-update", (message) => {
@@ -25,7 +23,7 @@ export const useTeacherLocation = (
 
     return () => {
       channel.unsubscribe();
-      ably.close();
+      // ably.close();
     };
   }, [teacherId, onUpdate]);
 };
