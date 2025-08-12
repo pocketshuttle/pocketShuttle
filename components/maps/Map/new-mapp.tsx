@@ -32,7 +32,7 @@ const containerStyle = {
 };
 
 const DEFAULT_ZOOM = 12;
-const UPDATE_INTERVAL = 40000; // 10 seconds
+const UPDATE_INTERVAL = 10000;
 const DEBOUNCE_DELAY = 500;
 
 const libraries: Libraries = ['places'];
@@ -56,14 +56,17 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
     });
 
     const fetchRoute = useCallback(async (origin: google.maps.LatLngLiteral, destination: google.maps.LatLngLiteral) => {
+        if (!isLoaded) return;
 
         try {
             const route = await getGoogleMapsRoute(origin, destination);
+            console.log("Fetched route:", route);
 
-            if (route) {
+            if (route && route.routes && route.routes.length > 0) {
                 setDirections(route);
-                const duration = route.legs[0].duration?.text || null;
-                const durationValue = route.legs[0].duration?.value || null;
+                const duration = route.routes[0].legs[0].duration?.text || null;
+
+                const durationValue = route.routes[0].legs[0].duration?.value || null;
                 setEta(duration);
                 if (durationValue) {
                     setStudentEta(Math.floor(durationValue / 60));
@@ -75,18 +78,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         } finally {
             setLoading(false);
         }
-    }, [setStudentEta]);
-
-    useEffect(() => {
-        console.log('Current state:', {
-            isLoaded,
-            coords1,
-            coords2,
-            directions,
-            error,
-            loading
-        });
-    }, [isLoaded, coords1, coords2, directions, error, loading]);
+    }, [isLoaded, setStudentEta]);
 
     useEffect(() => {
         const fetchParentCoordinates = async () => {
@@ -94,9 +86,8 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
                 setLoading(true);
                 const coordinates = await googleFetchCoordinates(parentAddress);
 
-                console.log("Coordinates for parent address:", coordinates);
                 if (coordinates) {
-                    setCoords2(coordinates);
+                    setCoords2({ lat: coordinates[0], lng: coordinates[1] });
                 }
             } catch (err) {
                 setError("Could not geocode parent address");
@@ -109,17 +100,25 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         }
     }, [parentAddress]);
 
+    console.log("coords:", directions);
+    console.log("isLoaded:", isLoaded, "coords1:", coords1, "coords2:", coords2);
 
-    console.log("coords1:", coords1, "coords2:", coords2);
 
     useEffect(() => {
-        if (!coords1 || !coords2) return;
+        if (!coords1 || !coords2 || !isLoaded) return;
+
+        // Validate coordinates
+        if (isNaN(coords1.lat) || isNaN(coords1.lng) || isNaN(coords2.lat) || isNaN(coords2.lng)) {
+            console.warn("Invalid coordinates:", { coords1, coords2 });
+            return;
+        }
+
         const debounceTimer = setTimeout(() => {
             fetchRoute(coords1, coords2);
         }, DEBOUNCE_DELAY);
 
         return () => clearTimeout(debounceTimer);
-    }, [coords1, coords2, fetchRoute]);
+    }, [coords1, coords2, fetchRoute, isLoaded]);
 
     useEffect(() => {
         if (!teacherData) return;
@@ -163,23 +162,21 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         );
     }
 
+    console.log("coords1:", coords1, "coords2:", coords2, "directions:", directions);
+
     if (!isLoaded) return <div>Loading Google Maps...</div>;
     if (loadError) return <div>Error loading maps</div>;
 
+
+    // console.log("directions:", directions);
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+            <div className="flex items-center p-2 bg-gray-50 rounded">
                 {eta && (
                     <div className="font-medium">
                         Estimated Time: <span className="text-blue-600">{eta}</span>
                     </div>
                 )}
-                <button
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-                    onClick={() => setOpenDirection(!openDirection)}
-                >
-                    {openDirection ? "Hide Directions" : "Show Directions"}
-                </button>
             </div>
 
             <GoogleMap
@@ -194,7 +191,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
             >
                 <Marker position={coords1} icon={teacherIcon} />
                 <Marker position={coords2} icon={homeIcon} />
-                {directions && (
+                {directions && directions.routes && directions.routes.length > 0 && (
                     <DirectionsRenderer
                         directions={directions}
                         options={{
@@ -207,21 +204,6 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
                     />
                 )}
             </GoogleMap>
-
-            {/* {openDirection && directions && (
-                <div className="p-4 bg-gray-50 rounded">
-                    <h3 className="font-bold mb-2">Step-by-Step Directions:</h3>
-                    <ol className="space-y-2 list-decimal list-inside">
-                        {directions.routes.legs[0].steps.map((step, index) => (
-                            <li
-                                key={index}
-                                className="text-sm"
-                                dangerouslySetInnerHTML={{ __html: step.instructions }}
-                            />
-                        ))}
-                    </ol>
-                </div>
-            )} */}
         </div>
     );
 };

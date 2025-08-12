@@ -62,26 +62,32 @@ export const getRoute = async (
 export const getGoogleMapsRoute = async (
   origin: google.maps.LatLngLiteral,
   destination: google.maps.LatLngLiteral
-) => {
-  try {
-    //@ts-ignore
-    const destObj = { lat: destination[1], lng: destination[0] };
+): Promise<google.maps.DirectionsResult> => {
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined" || !window.google) {
+      reject(new Error("Google Maps not loaded"));
+      return;
+    }
 
-    const query = new URLSearchParams({
-      origin: `${origin.lat},${origin.lng}`,
-      destination: `${destObj.lat},${destObj.lng}`,
-      mode: "driving",
-    });
-    const response = await fetch(`/api/directions?${query.toString()}`);
-    if (!response.ok) throw new Error("Failed to fetch directions");
+    const directionsService = new google.maps.DirectionsService();
 
-    const data = await response.json();
-
-    return data.routes[0];
-  } catch (error) {
-    console.error("Error fetching directions:", error);
-    throw error;
-  }
+    directionsService.route(
+      {
+        origin: origin,
+        destination: destination,
+        travelMode: google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === google.maps.DirectionsStatus.OK && result) {
+          console.log("Directions result:", result);
+          resolve(result);
+        } else {
+          console.error("Directions request failed:", status);
+          reject(new Error(`Directions request failed: ${status}`));
+        }
+      }
+    );
+  });
 };
 
 const checkPermissions = async () => {
@@ -214,10 +220,10 @@ export const googleFetchCoordinates = async (
 
     if (data.status === "OK" && data.results.length > 0) {
       const location = data.results[0].geometry.location;
-      return [location.lng, location.lat]; // longitude, latitude
+      console.log("Google Maps coordinates:", location);
+      return [location.lat, location.lng]; // longitude, latitude
     }
 
-    console.warn("No coordinates found:", data.status);
     return null;
   } catch (error) {
     console.error("Error fetching coordinates:", error);
