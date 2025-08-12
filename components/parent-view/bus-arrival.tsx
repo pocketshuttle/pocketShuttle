@@ -69,8 +69,8 @@ export const BusArrival = ({ parentAddress, parentId, teacherId }) => {
                     console.log("Current position:", latitude, longitude);
                     setTeacherLocation({
                         teacherId,
-                        teacherName: "Teacher Name", // Replace with actual teacher name if available
-                        teacherImage: avatar, // Replace with actual teacher image URL if available
+                        teacherName: "Teacher Name",
+                        teacherImage: avatar,
                         latitude,
                         longitude,
                     });

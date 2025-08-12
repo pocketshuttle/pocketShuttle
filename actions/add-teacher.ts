@@ -6,15 +6,14 @@ import { revalidateTag } from "next/cache";
 export const addTeacher = async (id: string, busId: string) => {
   try {
     const teacher = await db.teacher.findUnique({
-      where: {
-        id,
-      },
-      include: {
+      where: { id },
+      select: {
+        id: true,
+        full_name: true,
         bus: true,
       },
     });
 
-    // console.log("busID", busId);
     if (!teacher) {
       return { message: "Teacher not found" };
     }
@@ -35,7 +34,9 @@ export const addTeacher = async (id: string, busId: string) => {
 
     revalidateTag("teacher");
 
-    return { message: "Teacher added to bus" };
+    return {
+      message: `${teacher?.full_name} added to bus successfully`,
+    };
   } catch (error) {
     console.error("Error updating attendance:", error);
     return { message: "Error updating attendance" };
