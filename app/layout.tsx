@@ -4,14 +4,6 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster"
 import Provider from "@/components/Provider";
 import QueryProvider from "@/components/webnotifications/query-provider";
-
-import {
-  RecoilRoot,
-  atom,
-  selector,
-  useRecoilState,
-  useRecoilValue,
-} from 'recoil';
 import AblyProviderRoot from "@/ably/ably-provider";
 import OneSignalClient from "@/onesignal/onesignal-client";
 const inter = Inter({ subsets: ["latin"] });
@@ -44,6 +36,7 @@ export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
+
 }>) {
 
   return (
