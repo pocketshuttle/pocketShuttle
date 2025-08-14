@@ -4,74 +4,91 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import avatar from "@/public/images/avatar.jpg";
 import { AttendanceTab } from "./register-tab";
-import { fetchCoordinates, getCurrentLocation, getGoogleMapsRoute, getRoute } from "@/components/maps/lib/utils";
+import { fetchCoordinates, getCurrentLocation, getGoogleMapsRoute, getRoute, googleFetchCoordinates } from "@/components/maps/lib/utils";
+import { useRecoilValue } from "recoil";
+import { studentETA } from "@/atoms/eta";
 
 export const EachStudent = ({ student }: { student: StudentProps }) => {
     const [attendance, SetAttendance] = useState("");
     const [coords1, setCoords1] = useState<[number, number] | null>(null);
     const [coords2, setCoords2] = useState<[number, number] | null>(null);
-    const [eta, setEta] = useState<string | null>(null);
+    // const [eta, setEta] = useState<string | null>(null);
+    const eta = useRecoilValue(studentETA)
+
 
     // Fetch current location on mount
-    useEffect(() => {
-        const fetchMyCoordinate = async () => {
-            const [longitude, latitude] = await getCurrentLocation();
-            setCoords1([longitude, latitude]);
-        };
-        fetchMyCoordinate();
-    }, []);
+    // useEffect(() => {
+    //     const fetchMyCoordinate = async () => {
+    //         const [longitude, latitude] = await getCurrentLocation();
+    //         setCoords1([longitude, latitude]);
+    //     };
+    //     fetchMyCoordinate();
+    // }, []);
 
     // Fetch parent's coordinates when student data is available
-    useEffect(() => {
-        const fetchParentCoordinates = async () => {
-            try {
-                if (student?.address) { 
-                    const coordinates2 = await fetchCoordinates(student.address);
+    // useEffect(() => {
+    //     const fetchParentCoordinates = async () => {
+    //         try {
+    //             if (student?.address) {
+    //                 const coordinates2 = await googleFetchCoordinates(student.address);
 
-                    // console.log("Coordinates for parent address:", coordinates2);
-                    if (coordinates2) {
-                        setCoords2(coordinates2);
-                    } else {
-                        console.error("Coordinates not found for the given address");
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching coordinates:", error);
-            }
-        };
+    //                 // console.log("Coordinates for parent address:", coordinates2);
+    //                 if (coordinates2) {
+    //                     setCoords2(coordinates2);
+    //                 } else {
+    //                     console.error("Coordinates not found for the given address");
+    //                 }
+    //             }
+    //         } catch (error) {
+    //             console.error("Error fetching coordinates:", error);
+    //         }
+    //     };
 
-        // Fetch coordinates when student's address is available
-        fetchParentCoordinates();
-    }, [student?.address]); 
-
+    //     // Fetch coordinates when student's address is available
+    //     fetchParentCoordinates();
+    // }, [student?.address]);
 
 
     // Fetch route and calculate ETA only when both coordinates are available
-    useEffect(() => {
-        // console.log("Coords1:", coords1, "Coords2:", coords2);
+    // useEffect(() => {
+    //     const fetchRouteEta = async () => {
+    //         console.log("Fetching route ETA");
+    //         console.log(coords1, coords2);
+    //         if (coords1 && coords2) {
+    //             try {
+    //                 // getCurrentLocation returns [lng, lat] format
+    //                 // googleFetchCoordinates returns [lat, lng] format
+    //                 const origin = { lat: coords1[1], lng: coords1[0] }; // [lng, lat] -> {lat, lng}
+    //                 const destination = { lat: coords2[0], lng: coords2[1] }; // [lat, lng] -> {lat, lng}
 
+    //                 console.log("Origin:", origin);
+    //                 console.log("Destination:", destination);
 
-        const fetchRouteEta = async () => {
-            if (coords1 && coords2) {
-                // const route = await getRoute(coords1, coords2);
-                const route = await getGoogleMapsRoute(coords1, coords2);
+    //                 const route = await getGoogleMapsRoute(origin, destination);
+    //                 console.log("Route result:", route);
 
-                console.log("Route data:", route);
-                const durationInSeconds = route?.duration;
-                if (durationInSeconds) {
-                    // Calculate hours, minutes, and seconds from duration
-                    const timeInHours = Math.floor(durationInSeconds / 3600);
-                    const timeInMinutes = Math.floor((durationInSeconds % 3600) / 60);
-                    const timeInSeconds = Math.floor(durationInSeconds % 60);
+    //                 if (route && route.routes && route.routes.length > 0) {
+    //                     const durationInSeconds = route.routes[0].legs[0].duration?.value;
+    //                     console.log("Duration in seconds:", durationInSeconds);
 
-                    // Format the time as HH:MM
-                    const formattedEta = `${timeInHours}:${timeInMinutes < 10 ? "0" : ""}${timeInMinutes}am`;
-                    setEta(formattedEta);
-                }
-            }
-        };
-        fetchRouteEta();
-    }, [coords1, coords2]);
+    //                     if (durationInSeconds) {
+    //                         // Calculate hours, minutes, and seconds from duration
+    //                         const timeInHours = Math.floor(durationInSeconds / 3600);
+    //                         const timeInMinutes = Math.floor((durationInSeconds % 3600) / 60);
+
+    //                         // Format the time as HH:MM
+    //                         const formattedEta = `${timeInHours}:${timeInMinutes < 10 ? "0" : ""}${timeInMinutes}am`;
+    //                         setEta(formattedEta);
+    //                         console.log("Formatted ETA:", formattedEta);
+    //                     }
+    //                 }
+    //             } catch (error) {
+    //                 console.error("Error fetching route ETA:", error);
+    //             }
+    //         }
+    //     };
+    //     fetchRouteEta();
+    // }, [coords1, coords2]);
 
 
 
@@ -142,7 +159,9 @@ export const EachStudent = ({ student }: { student: StudentProps }) => {
                 {!eta ? (
                     <span>Please Enable Location</span>
                 ) : (
-                    <span className="text-[#B4B4B4]">{eta}</span>
+                    <span className="text-[#B4B4B4]">
+                        {Math.floor(eta / 60)}:{(eta % 60).toString().padStart(2, '0')}am
+                    </span>
                 )}
             </div>
         </div>

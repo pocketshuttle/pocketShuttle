@@ -85,8 +85,6 @@ const TeacherView = async () => {
         revalidateTag("students");
         revalidateTag("parent");
 
-        console.log("Parent data:", parent);
-
         return (
             <Suspense>
                 <div className={`${mont.className} p-3`}>

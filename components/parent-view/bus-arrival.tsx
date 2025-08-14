@@ -20,6 +20,8 @@ export const BusArrival = ({ parentAddress, parentId, teacherId }) => {
     const [teacherLocation, setTeacherLocation] = useState<TeacherLocation | null>(null);
     const [connectionStatus, setConnectionStatus] = useState<string>("Connecting...");
 
+    console.log("teacherId", parentAddress, parentId, teacherId);
+
     // useEffect(() => {
     //     // Ensure environment variables are set
     //     const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
@@ -60,34 +62,35 @@ export const BusArrival = ({ parentAddress, parentId, teacherId }) => {
     // }, [parentId]);
 
 
-    useEffect(() => {
-        const fetchLocation = () => {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(async (position) => {
-                    const { latitude, longitude } = position.coords;
+    // useEffect(() => {
+    //     const fetchLocation = () => {
+    //         if (navigator.geolocation) {
+    //             navigator.geolocation.getCurrentPosition(async (position) => {
+    //                 const { latitude, longitude } = position.coords;
 
-                    console.log("Current position:", latitude, longitude);
-                    setTeacherLocation({
-                        teacherId,
-                        teacherName: "Teacher Name",
-                        teacherImage: avatar,
-                        latitude,
-                        longitude,
-                    });
-                    // console.log("Current coordinates:", { latitude, longitude });
-                    // Send the teacher's location to the server
-                    // await sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name);
-                }, (error) => {
-                    console.error('Error fetching location:', error);
-                    // setIsTracking(false);
-                    window.localStorage.setItem("tracking", "false");
-                });
-            }
-        }
-        fetchLocation()
-    }, []);
+    //                 setTeacherLocation({
+    //                     teacherId,
+    //                     teacherName: "Teacher Name",
+    //                     teacherImage: avatar,
+    //                     latitude,
+    //                     longitude,
+    //                 });
+    //                 // console.log("Current coordinates:", { latitude, longitude });
+    //                 // Send the teacher's location to the server
+    //                 // await sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name);
+    //             }, (error) => {
+    //                 console.error('Error fetching location:', error);
+    //                 // setIsTracking(false);
+    //                 window.localStorage.setItem("tracking", "false");
+    //             });
+    //         }
+    //     }
+    //     fetchLocation()
+    // }, []);
 
     useTeacherLocation(teacherId, setTeacherLocation);
+
+    console.log("teacherLocation", teacherLocation);
 
     // useEffect(() => {
 
