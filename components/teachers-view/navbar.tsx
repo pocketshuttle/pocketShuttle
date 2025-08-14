@@ -84,23 +84,6 @@ const Navbar = ({ data }: NavbarProps) => {
      */
 
 
-    useEffect(() => {
-        const fetchLocation = () => {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(async (position) => {
-                    const { latitude, longitude } = position.coords;
-                    // console.log("Current coordinates:", { latitude, longitude });
-                    // Send the teacher's location to the server
-                    // await sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name);
-                }, (error) => {
-                    console.error('Error fetching location:', error);
-                    setIsTracking(false);
-                    window.localStorage.setItem("tracking", "false");
-                });
-            }
-        }
-        fetchLocation()
-    }, []);
     /**
      * updateLocation()
      *
@@ -143,16 +126,10 @@ const Navbar = ({ data }: NavbarProps) => {
      * - `immediateUpdateDistanceM` (default: 50 meters)
      *   Distance threshold to trigger an immediate update before the time limit.
      *
-     * Why this matters:
-     * -----------------
-     * This system ensures:
-     * - **Cost efficiency**: Avoids unnecessary updates when stationary or moving slowly.
-     * - **Real-time accuracy**: Sends rapid updates when fast movement is detected.
-     * - **User respect**: Stops tracking immediately if permissions are revoked.
+   
      */
 
     useEffect(() => {
-
 
         const updateLocation = async () => {
 

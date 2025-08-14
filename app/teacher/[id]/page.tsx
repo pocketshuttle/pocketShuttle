@@ -34,8 +34,8 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
                         include: {
                             bus: {
                                 include: {
-                                    teacher: true,  // Include the teacher assigned to the bus
-                                    driver: true,   // Include the driver assigned to the bus
+                                    teacher: true,
+                                    driver: true,
                                 },
                             },
                             parent: true

@@ -39,7 +39,6 @@ export const DriversLocation = () => {
                     setschoolLocation({ latitude, longitude });
                     setSchoolLocation({ latitude, longitude }); // Also set mySchoolLocation
                     // console.log("School location updated:", { latitude, longitude });
-                    console.log("Current position:", latitude, longitude);
                 });
 
                 console.log("Geolocation watchPosition started:", pos);

@@ -13,6 +13,7 @@ import {
   useRecoilValue,
 } from 'recoil';
 import AblyProviderRoot from "@/ably/ably-provider";
+import OneSignalClient from "@/onesignal/onesignal-client";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -49,14 +50,16 @@ export default function RootLayout({
     <html lang="en">
       <Provider>
         < AblyProviderRoot>
-          <body className={inter.className}>
-            < QueryProvider>
-              <main>
-                {children}
-              </main>
-            </QueryProvider>
-            <Toaster />
-          </body>
+          <OneSignalClient>
+            <body className={inter.className}>
+              < QueryProvider>
+                <main>
+                  {children}
+                </main>
+              </QueryProvider>
+              <Toaster />
+            </body>
+          </OneSignalClient>
         </AblyProviderRoot>
       </Provider>
 

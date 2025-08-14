@@ -60,7 +60,6 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
 
         try {
             const route = await getGoogleMapsRoute(origin, destination);
-            // console.log("Fetched route:", route);
 
             if (route && route.routes && route.routes.length > 0) {
                 setDirections(route);
@@ -69,7 +68,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
                 const durationValue = route.routes[0].legs[0].duration?.value || null;
                 setEta(duration);
                 if (durationValue) {
-                    setStudentEta(Math.floor(durationValue / 60));
+                    setStudentEta(durationValue);
                 }
             }
         } catch (err) {
