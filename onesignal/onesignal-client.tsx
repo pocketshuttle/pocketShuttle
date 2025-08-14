@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import OneSignal from 'react-onesignal';
 
+
 export default function OneSignalClient({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const initOneSignal = async () => {
