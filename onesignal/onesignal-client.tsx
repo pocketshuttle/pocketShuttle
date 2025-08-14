@@ -12,8 +12,8 @@ export default function OneSignalClient({ children }: { children: React.ReactNod
                     appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || 'add2db83-a1f1-483c-821d-3bea98d1af6f',
                     safari_web_id: process.env.NEXT_PUBLIC_ONESIGNAL_SAFARI_WEB_ID || "web.onesignal.auto.01b883ce-5cfa-4aca-8569-bf08de600615",
                     allowLocalhostAsSecureOrigin: true,
-                    serviceWorkerPath: "/OneSignalSDKWorker.js",
-                    serviceWorkerParam: { scope: "/" },
+                    // serviceWorkerPath: "/OneSignalSDKWorker.js",
+                    // serviceWorkerParam: { scope: "/" },
                     notifyButton: {
                         enable: true,
                         prenotify: true,
