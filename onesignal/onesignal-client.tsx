@@ -11,6 +11,7 @@ export default function OneSignalClient({ children }: { children: React.ReactNod
                 appId: 'add2db83-a1f1-483c-821d-3bea98d1af6f',
                 safari_web_id: "web.onesignal.auto.01b883ce-5cfa-4aca-8569-bf08de600615",
                 // You can add other initialization options here
+                // @ts-ignore
                 notifyButton: {
                     enable: true,
                 }
