@@ -31,7 +31,7 @@ export const updateStudentAttendance = async (
     });
     revalidateTag("new-parent");
     revalidateTag("students");
-    // console.log(updatedStudent);
+
     if (!updatedStudent) {
       return { message: "Student not found", status: 404 };
     }
@@ -47,6 +47,7 @@ export const updateStudentAttendance = async (
     // if (smsResult.status !== 200) {
     //   console.error("Failed to send SMS:", smsResult.message);
     // }
+
     // const handlePushNotification = async () => {
     //   if (updatedStudent) {
     //     await sendNotification(
@@ -78,13 +79,15 @@ export const updateStudentAttendance = async (
     //   ],
     // });
     revalidateTag("new-parent");
+    
     // Notify connected clients with the attendance update
     broadcastAttendanceUpdate({
       id: updatedStudent.id,
       fullName: updatedStudent.full_name,
       attendance: data,
-      bus: updatedStudent.bus?.bus_product_name || "Unknown bus",
+      bus: updatedStudent.bus?.bus_product_name || "bus",
     });
+    
     return {
       message: "Attendance updated successfully",
       student: updatedStudent,

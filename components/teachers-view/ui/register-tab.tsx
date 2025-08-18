@@ -25,6 +25,9 @@ export const AttendanceTab = ({
     const { updateAtendance, loading, error } = useUpdateAttendance(id, "PATCH");
 
     const handleAttendanceClick = async (value: string) => {
+        if (isPending) return;
+        setLocalAttendance(value);
+        SetAttendance(value);
         //@ts-ignore
         const handleMode = label1 === "Present" || label1 === "Absent" ? updateStudentAttendance(id, value) : label1 === "OTW" || label1 === "Stop" ? updateLocation(id, value) : updateStudentStatus(id, value)
         setLocalAttendance(value);

@@ -24,6 +24,7 @@ export const GET = async (
             full_name: true,
             image: true,
             status: true,
+            presence: true,
             bus: {
               select: {
                 id: true,

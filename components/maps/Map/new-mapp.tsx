@@ -165,7 +165,8 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
     if (loadError) return <div>Error loading maps</div>;
 
 
-    // console.log("directions:", directions);
+    console.log("directions:", directions);
+
     return (
         <div className="space-y-4">
             <div className="flex items-center p-2 bg-gray-50 rounded">

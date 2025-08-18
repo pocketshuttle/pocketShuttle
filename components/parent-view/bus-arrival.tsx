@@ -20,8 +20,6 @@ export const BusArrival = ({ parentAddress, parentId, teacherId }) => {
     const [teacherLocation, setTeacherLocation] = useState<TeacherLocation | null>(null);
     const [connectionStatus, setConnectionStatus] = useState<string>("Connecting...");
 
-    console.log("teacherId", parentAddress, parentId, teacherId);
-
     // useEffect(() => {
     //     // Ensure environment variables are set
     //     const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
@@ -90,7 +88,8 @@ export const BusArrival = ({ parentAddress, parentId, teacherId }) => {
 
     useTeacherLocation(teacherId, setTeacherLocation);
 
-    console.log("teacherLocation", teacherLocation);
+    console.log(teacherLocation, "teachers location based on id")
+
 
     // useEffect(() => {
 

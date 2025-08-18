@@ -16,19 +16,18 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache, no-transform");
   res.setHeader("Connection", "keep-alive");
-  res.setHeader("Access-Control-Allow-Origin", "*"); // Adjust as needed
+  res.setHeader("Access-Control-Allow-Origin", "*");
 
-  res.flushHeaders(); // Send headers immediately
+  res.flushHeaders();
 
   res.write(`data: Test connection established\n\n`);
-  res.end(); // Test single response (Remove for real usage)
+  res.end();
 
   // Add the client to the list of connections
   clients.push(res);
 
   // Handle client disconnect
   req.on("close", () => {
-    console.log("Client disconnected");
     clients = clients.filter((client) => client !== res);
     res.end(); // Close the response stream
   });
@@ -36,7 +35,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   // Optional: Send a heartbeat every 30s to keep the connection alive
   const pingInterval = setInterval(() => {
     if (res.writableEnded) {
-      clearInterval(pingInterval); // Stop if client disconnects
+      clearInterval(pingInterval);
     } else {
       res.write("event: ping\ndata: {}\n\n");
     }
