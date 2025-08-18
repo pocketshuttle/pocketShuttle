@@ -17,6 +17,7 @@ type StudentProps = {
     parent: ParentProps;
     attendance: string
     status: string
+    busId: string
 
 };
 
@@ -41,7 +42,12 @@ type ParentProps = {
 export const GuardianPage = ({ data }: { data: StudentProps }) => {
     const [attendance, SetAttendance] = React.useState("")
 
-    const siblings = data?.parent?.Student?.filter((sibling_id) => sibling_id.id !== data.id)
+
+    //returns siblings in same bus
+    const siblings = data?.parent?.Student?.filter((sibling_id) => {
+        return (sibling_id.id !== data.id && sibling_id.busId === data.busId)
+    })
+
 
     return (
         <main className="px-4 space-y-2 w-full">

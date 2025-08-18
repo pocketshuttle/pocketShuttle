@@ -45,6 +45,8 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
     const teacherData = data
     const [attendance, SetAttendance] = useState("")
 
+    console.log("eta", eta)
+
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">

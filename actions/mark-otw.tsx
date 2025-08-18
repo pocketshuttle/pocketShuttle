@@ -9,8 +9,8 @@ export const updateLocation = async (
     id: string,
     data: StudentPresence
 ) => {
-    console.log("Updating presence with data:", data);
 
+    console.log(data)
     try {
         // Ensure valid data is provided
         if (!data) {
@@ -21,7 +21,7 @@ export const updateLocation = async (
         const updatedStudent = await db.student.update({
             where: { id: id },
             data: {
-                presence: data, 
+                presence: data,
             },
             include: {
                 parent: true,
@@ -32,7 +32,6 @@ export const updateLocation = async (
         // Revalidate the tag to update cached data
         revalidateTag("students");
 
-        // Return success response with updated data
         return {
             message: "Presence updated successfully",
             student: updatedStudent,
