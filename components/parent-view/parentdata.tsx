@@ -46,7 +46,6 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                 const driver = bus?.driver;
                 const teacher = bus?.teacher;
 
-                console.log("Sibling data:", sibling);
 
                 return (
                     <div
@@ -71,17 +70,16 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                                     </h2>
                                 </div>
                                 {/* this will not display if the child has been picked up */}
-                                <div className="w-2/12 flex justify-start ">
-                                    {
-                                        sibling.presence === "ON_THE_WAY" &&
+                                {(sibling.presence === "ON_THE_WAY" || sibling.status === "PICKED") && (
+                                    <div className="w-2/12 flex justify-start">
                                         <DotLottieReact
-                                            src={"/images/arriving.json"}
+                                            src="/images/arriving.json"
                                             loop
                                             autoplay
-                                            style={{ width: '80px', height: '80px', padding: '0px' }}
+                                            style={{ width: 80, height: 80 }}
                                         />
-                                    }
-                                </div>
+                                    </div>
+                                )}
 
 
                                 <div className="w-2/12 flex items-center justify-end space-x-2">
