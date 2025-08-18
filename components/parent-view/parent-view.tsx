@@ -5,6 +5,7 @@ import { BusArrival } from "./bus-arrival"
 import { KidsViewTab } from "./kids-tab"
 import ParentViewData from "./parentdata"
 import { StudentProps } from "@/types"
+import { TeacherLocationTracker } from "../maps/Map/teachersLocation/teacher-parent-map"
 
 export const ParentMainView = ({
     parentAddress,
@@ -56,7 +57,9 @@ export const ParentMainView = ({
                 onSelect={setSelectedStudentId}
             />
 
-            {/* Map only changes when selectedTeacherId changes */}
+            <  TeacherLocationTracker />
+
+            {/* Map only changes when selectedTeacherId changes
             {selectedTeacherId && (
                 <BusArrival
                     key={selectedTeacherId} // Forces re-render only when teacher changes
@@ -64,7 +67,7 @@ export const ParentMainView = ({
                     parentId={parentId}
                     teacherId={selectedTeacherId}
                 />
-            )}
+            )} */}
 
             {/* Additional parent info */}
             <ParentViewData userId={parentId} />
