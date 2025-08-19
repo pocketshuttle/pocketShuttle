@@ -57,13 +57,16 @@ export const ParentMainView = ({
                 onSelect={setSelectedStudentId}
             />
 
+
+
             <  TeacherLocationTracker
                 parentAddress={parentAddress || ""}
                 // parentId={parentId}
                 teacherId={selectedTeacherId || ""}
             />
 
-            {/* Map only changes when selectedTeacherId changes
+            {/* 
+            Map only changes when selectedTeacherId changes
             */}
             {/* {selectedTeacherId && (
                 <BusArrival

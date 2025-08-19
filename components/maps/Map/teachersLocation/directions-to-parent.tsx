@@ -1,6 +1,7 @@
-import { APIProvider, Map, useMapsLibrary, useMap } from '@vis.gl/react-google-maps';
 import { useEffect, useMemo, useState } from 'react';
+import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { googleFetchCoordinates } from '../../lib/utils';
+
 type TeacherLocation = {
     teacherId: string;
     teacherName: string;
@@ -14,116 +15,119 @@ type AddressProps = {
     teacherData: TeacherLocation | undefined;
 };
 
+const UPDATE_INTERVAL = 10000;
+
 export function Directions({ parentAddress, teacherData }: AddressProps) {
-    const map = useMap()
-    const routesLibrary = useMapsLibrary("routes")
+    const map = useMap();
+    const routesLibrary = useMapsLibrary('routes');
+
     const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService>();
     const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer>();
     const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
     const [routesIndex, setRoutesIndex] = useState(0);
+
     const selected = routes[routesIndex];
-    const leg = selected?.legs[0]
-    const [loading, setLoading] = useState(true);
-    const [coords2, setCoords2] = useState<google.maps.LatLngLiteral | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [teacherLocation, setTeacherLocation] = useState<TeacherLocation | null>(null);
+    const leg = selected?.legs[0];
 
     const [coords1, setCoords1] = useState<google.maps.LatLngLiteral | null>(
         teacherData ? { lat: teacherData.latitude, lng: teacherData.longitude } : null
     );
+    const [coords2, setCoords2] = useState<google.maps.LatLngLiteral | null>(null);
 
+    // Icons
     const teacherIcon = useMemo(() => {
-        if (!routesLibrary || !map) return;
+        if (!map || !teacherData) return;
         return {
-            url: teacherData?.teacherImage,
-            style: { borderRadius: "50%" },
+            url: teacherData.teacherImage,
             scaledSize: new window.google.maps.Size(40, 40),
         };
     }, [map, teacherData]);
 
     const homeIcon = useMemo(() => {
-        if (!routesLibrary || !map) return;
+        if (!map) return;
         return {
-            url: "/images/home.png",
+            url: '/images/home.png',
             scaledSize: new window.google.maps.Size(40, 40),
         };
     }, [map]);
 
+    // Poll teacher coords
+    useEffect(() => {
+        if (!teacherData) return;
+        const interval = setInterval(() => {
+            setCoords1({ lat: teacherData.latitude, lng: teacherData.longitude });
+        }, UPDATE_INTERVAL);
+        return () => clearInterval(interval);
+    }, [teacherData]);
+
+    // Geocode parent address → coords2
     useEffect(() => {
         const fetchParentCoordinates = async () => {
+            if (!parentAddress) return;
             try {
-                setLoading(true);
                 const coordinates = await googleFetchCoordinates(parentAddress);
-
                 if (coordinates) {
                     setCoords2({ lat: coordinates[0], lng: coordinates[1] });
                 }
             } catch (err) {
-                setError("Could not geocode parent address");
-                console.error("Geocoding error:", err);
+                console.error('Geocoding error:', err);
             }
         };
-
-        if (parentAddress) {
-            fetchParentCoordinates();
-        }
+        fetchParentCoordinates();
     }, [parentAddress]);
 
-
+    // Init directions service/renderer
     useEffect(() => {
         if (!routesLibrary || !map) return;
         setDirectionsService(new routesLibrary.DirectionsService());
-        setDirectionsRenderer(new routesLibrary.DirectionsRenderer({
-            map: map,
-            // suppressMarkers: true,
-            polylineOptions: {
-                strokeColor: '#3b82f6',
-                strokeWeight: 4,
-            },
-        }));
+        setDirectionsRenderer(
+            new routesLibrary.DirectionsRenderer({
+                map,
+                polylineOptions: {
+                    strokeColor: '#3b82f6',
+                    strokeWeight: 4,
+                },
+            })
+        );
+    }, [routesLibrary, map]);
 
-    }, [routesLibrary, map])
-
+    // Recalculate route whenever coords change
     useEffect(() => {
-        if (!directionsService || !directionsRenderer) return;
+        if (!directionsService || !directionsRenderer || !coords1 || !coords2) return;
+        directionsService
+            .route({
+                origin: coords1,
+                destination: coords2,
+                travelMode: google.maps.TravelMode.DRIVING,
+            })
+            .then((response) => {
+                directionsRenderer.setDirections(response);
+                setRoutes(response.routes);
+            });
+    }, [directionsService, directionsRenderer, coords1, coords2]);
 
-        const origin = new google.maps.LatLng(6.5244, 3.3792);
-        const destination = new google.maps.LatLng(6.5244, 3.3792);
-
-
-        directionsService.route({
-            origin: "military pension board, fo1 kubwa",
-            destination: "NAF Base, Abuja",
-            travelMode: google.maps.TravelMode.DRIVING,
-
-        }).then((response) => {
-            directionsRenderer.setDirections(response);
-            setRoutes(response.routes);
-
-        });
-    }, [directionsService, directionsRenderer]);
-
+    // Render teacher + home markers (update on coords change)
     useEffect(() => {
-        if (!map || !teacherData) return;
+        if (!map || !coords1 || !coords2) return;
 
         let teacherMarker: google.maps.Marker | null = null;
         let homeMarker: google.maps.Marker | null = null;
 
         (async () => {
-            const { Marker } = (await google.maps.importLibrary("marker")) as google.maps.MarkerLibrary;
+            const { Marker } = (await google.maps.importLibrary('marker')) as google.maps.MarkerLibrary;
 
             teacherMarker = new Marker({
-                position: { lat: teacherData.latitude, lng: teacherData.longitude },
+                position: coords1,
                 map,
                 icon: teacherIcon,
-                title: teacherData.teacherName,
+                title: teacherData?.teacherName,
             });
 
             homeMarker = new Marker({
-                position: { lat: 6.5244, lng: 3.3792 }, 
+                position: coords2,
                 map,
                 icon: homeIcon,
-                title: "Home",
+                title: 'Home',
             });
         })();
 
@@ -131,39 +135,33 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
             teacherMarker?.setMap(null);
             homeMarker?.setMap(null);
         };
-    }, [map, teacherData, teacherIcon, homeIcon]);
+    }, [map, coords1, coords2, teacherIcon, homeIcon, teacherData]);
 
-
+    // Allow selecting other routes
     useEffect(() => {
-        if (!directionsRenderer) return
-        directionsRenderer.setRouteIndex(routesIndex)
+        if (!directionsRenderer) return;
+        directionsRenderer.setRouteIndex(routesIndex);
+    }, [routesIndex, directionsRenderer]);
 
-    }, [routes, directionsRenderer])
+    if (!leg) return null;
 
+    return (
+        <div>
+            <h2>{selected?.summary}</h2>
+            <p>
+                {leg?.start_address.split(',')[0]} → {leg?.end_address.split(',')[0]}
+            </p>
+            <p>Distance: {leg?.distance?.text}</p>
+            <p>Duration: {leg?.duration?.text}</p>
 
-    if (!leg) return null
-
-    return <div>
-        <h2>{selected?.summary}</h2>
-        <p>{leg?.start_address.split("")[0]} to {leg?.end_address.split(",")[0]}</p>
-
-        <p>Distance: {leg?.distance?.text}</p>
-        <p>Duration: {leg?.duration?.text}</p>
-
-
-
-        <h2>Other Routes</h2>
-        <ul>
-            {
-                routes.map((route, index) => <li key={route.summary}>
-                    <button onClick={() => setRoutesIndex(index)}>
-                        {
-                            route.summary
-                        }
-                    </button>
-                </li>)
-            }
-        </ul>
-    </div>
-
+            <h2>Other Routes</h2>
+            <ul>
+                {routes.map((route, index) => (
+                    <li key={route.summary}>
+                        <button onClick={() => setRoutesIndex(index)}>{route.summary}</button>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
 }
