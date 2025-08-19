@@ -1,7 +1,20 @@
 import { APIProvider, Map, useMapsLibrary, useMap } from '@vis.gl/react-google-maps';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { googleFetchCoordinates } from '../../lib/utils';
+type TeacherLocation = {
+    teacherId: string;
+    teacherName: string;
+    teacherImage: string;
+    latitude: number;
+    longitude: number;
+};
 
-export function Directions() {
+type AddressProps = {
+    parentAddress: string;
+    teacherData: TeacherLocation | undefined;
+};
+
+export function Directions({ parentAddress, teacherData }: AddressProps) {
     const map = useMap()
     const routesLibrary = useMapsLibrary("routes")
     const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService>();
@@ -10,7 +23,51 @@ export function Directions() {
     const [routesIndex, setRoutesIndex] = useState(0);
     const selected = routes[routesIndex];
     const leg = selected?.legs[0]
+    const [loading, setLoading] = useState(true);
+    const [coords2, setCoords2] = useState<google.maps.LatLngLiteral | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [teacherLocation, setTeacherLocation] = useState<TeacherLocation | null>(null);
 
+    const [coords1, setCoords1] = useState<google.maps.LatLngLiteral | null>(
+        teacherData ? { lat: teacherData.latitude, lng: teacherData.longitude } : null
+    );
+
+    const teacherIcon = useMemo(() => {
+        if (!routesLibrary || !map) return;
+        return {
+            url: teacherData?.teacherImage,
+            style: { borderRadius: "50%" },
+            scaledSize: new window.google.maps.Size(40, 40),
+        };
+    }, [map, teacherData]);
+
+    const homeIcon = useMemo(() => {
+        if (!routesLibrary || !map) return;
+        return {
+            url: "/images/home.png",
+            scaledSize: new window.google.maps.Size(40, 40),
+        };
+    }, [map]);
+
+    useEffect(() => {
+        const fetchParentCoordinates = async () => {
+            try {
+                setLoading(true);
+                const coordinates = await googleFetchCoordinates(parentAddress);
+
+                if (coordinates) {
+                    setCoords2({ lat: coordinates[0], lng: coordinates[1] });
+                }
+            } catch (err) {
+                setError("Could not geocode parent address");
+                console.error("Geocoding error:", err);
+            }
+        };
+
+        if (parentAddress) {
+            fetchParentCoordinates();
+        }
+    }, [parentAddress]);
 
 
     useEffect(() => {
@@ -20,7 +77,7 @@ export function Directions() {
             map: map,
             // suppressMarkers: true,
             polylineOptions: {
-                strokeColor: '#FF0000',
+                strokeColor: '#3b82f6',
                 strokeWeight: 4,
             },
         }));
@@ -38,11 +95,44 @@ export function Directions() {
             origin: "military pension board, fo1 kubwa",
             destination: "NAF Base, Abuja",
             travelMode: google.maps.TravelMode.DRIVING,
+
         }).then((response) => {
             directionsRenderer.setDirections(response);
             setRoutes(response.routes);
+
         });
     }, [directionsService, directionsRenderer]);
+
+    useEffect(() => {
+        if (!map || !teacherData) return;
+
+        let teacherMarker: google.maps.Marker | null = null;
+        let homeMarker: google.maps.Marker | null = null;
+
+        (async () => {
+            const { Marker } = (await google.maps.importLibrary("marker")) as google.maps.MarkerLibrary;
+
+            teacherMarker = new Marker({
+                position: { lat: teacherData.latitude, lng: teacherData.longitude },
+                map,
+                icon: teacherIcon,
+                title: teacherData.teacherName,
+            });
+
+            homeMarker = new Marker({
+                position: { lat: 6.5244, lng: 3.3792 }, 
+                map,
+                icon: homeIcon,
+                title: "Home",
+            });
+        })();
+
+        return () => {
+            teacherMarker?.setMap(null);
+            homeMarker?.setMap(null);
+        };
+    }, [map, teacherData, teacherIcon, homeIcon]);
+
 
     useEffect(() => {
         if (!directionsRenderer) return
