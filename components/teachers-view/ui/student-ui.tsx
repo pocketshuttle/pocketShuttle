@@ -12,8 +12,9 @@ export const EachStudent = ({ student }: { student: StudentProps }) => {
     const [attendance, SetAttendance] = useState("");
     const [coords1, setCoords1] = useState<[number, number] | null>(null);
     const [coords2, setCoords2] = useState<[number, number] | null>(null);
-    // const [eta, setEta] = useState<string | null>(null);
-    const eta = useRecoilValue(studentETA)
+    const stdentEta = useRecoilValue(studentETA);
+
+    console.log(stdentEta)
 
 
     // Fetch current location on mount
@@ -156,11 +157,11 @@ export const EachStudent = ({ student }: { student: StudentProps }) => {
 
             <div className="px-2 py-4 flex items-center justify-between capitalize">
                 <span className="text-[#484848]">Pick up</span>
-                {!eta ? (
+                {!stdentEta ? (
                     <span>Please Enable Location</span>
                 ) : (
                     <span className="text-[#B4B4B4]">
-                        {Math.floor(eta / 60)}:{(eta % 60).toString().padStart(2, '0')}am
+                        {stdentEta}
                     </span>
                 )}
             </div>

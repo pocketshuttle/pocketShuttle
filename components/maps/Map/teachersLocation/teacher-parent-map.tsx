@@ -18,7 +18,7 @@ type TeacherLocation = {
     longitude: number;
 };
 
-const TeacherLocation: TeacherLocation = {
+const TeacherLocations: TeacherLocation = {
     teacherId: 'cm0wc7v7800003827vzhr5m5q',
     teacherName: 'mercy',
     teacherImage: 'https://res.cloudinary.com/du5poiq3l/image/upload/v1725967013/f7sqdmgryzbycgyopwij.jpg',
@@ -28,11 +28,29 @@ const TeacherLocation: TeacherLocation = {
 
 export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProps) => {
 
-    const [teacherLocation, setTeacherLocation] = useState<TeacherLocation | null>(TeacherLocation);
+    // const [teacherLocation, setTeacherLocation] = useState<TeacherLocation | null>(TeacherLocation);
+    const [teacherLocation, setTeacherLocation] = useState<
+        Record<string, { teacherId: string; teacherName: string; teacherImage: string; latitude: number; longitude: number }>
+    >({});
 
-    useTeacherLocation(teacherId, setTeacherLocation);
+    // useTeacherLocation(teacherId, setTeacherLocation);
+    useTeacherLocation(teacherId, (data) => {
+        setTeacherLocation(prev => ({
+            ...prev,
+            [data.teacherId]: {
+                teacherId: data.teacherId,
+                teacherName: data.teacherName,
+                teacherImage: data.teacherImage,
+                latitude: data.latitude,
+                longitude: data.longitude
+            }
+        }));
+    });
 
-    console.log("Selected Teacher ID:", teacherId);
+    const activeTeacher = useMemo(() => {
+        return teacherLocation[teacherId] || null;
+    }, [teacherId, teacherLocation]);
+
 
 
     return (
@@ -50,7 +68,7 @@ export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProp
                         fullscreenControl={false}
                         scrollwheel={false}
                     >
-                        {teacherLocation && <Directions parentAddress={parentAddress} teacherData={teacherLocation} />}
+                        {teacherLocation && <Directions parentAddress={parentAddress} teacherData={activeTeacher} />}
                     </Map>
                 </APIProvider>
             </div>

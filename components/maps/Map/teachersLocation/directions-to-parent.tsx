@@ -68,9 +68,10 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
 
     useEffect(() => {
         if (leg) {
-            setStudentEta(leg.duration?.text || null); // seconds
+            setStudentEta(leg.duration?.text || null);
         }
     }, [leg, setStudentEta]);
+
 
     // geocode parent address → coords2
     useEffect(() => {
@@ -103,8 +104,6 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
         );
     }, [routesLibrary, map]);
 
-
-
     // recalculate route whenever coords change
     useEffect(() => {
         if (!directionsService || !directionsRenderer || !coords1 || !coords2) return;
@@ -118,7 +117,9 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
             .then((response) => {
                 directionsRenderer.setDirections(response);
                 setRoutes(response.routes);
-
+                if (leg?.duration?.value) {
+                    setStudentEta(leg.duration.text); 
+                }
                 const bounds = new google.maps.LatLngBounds();
                 response.routes[0].overview_path.forEach((point) => bounds.extend(point));
                 directionsRenderer.getMap()?.fitBounds(bounds);

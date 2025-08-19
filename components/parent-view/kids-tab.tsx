@@ -13,7 +13,7 @@ export const KidsViewTab = ({ siblings, selectedStudentId, onSelect }: KidsViewT
     const current = selectedStudentId ?? (siblings[0]?.id ?? "")
     const stdentEta = useRecoilValue(studentETA);
 
-    console.log(stdentEta)
+  
 
     return (
         <div>
