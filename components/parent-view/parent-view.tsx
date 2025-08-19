@@ -48,6 +48,8 @@ export const ParentMainView = ({
         return <div>No students found for this parent.</div>
     }
 
+   
+
     return (
         <div className="space-y-4">
             {/* Tab control for kids */}

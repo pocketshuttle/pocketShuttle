@@ -18,34 +18,44 @@ type TeacherLocation = {
     longitude: number;
 };
 
+const TeacherLocation: TeacherLocation = {
+    teacherId: 'cm0wc7v7800003827vzhr5m5q',
+    teacherName: 'mercy',
+    teacherImage: 'https://res.cloudinary.com/du5poiq3l/image/upload/v1725967013/f7sqdmgryzbycgyopwij.jpg',
+    latitude: 9.2177996,
+    longitude: 7.367077,
+}
+
 export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProps) => {
 
-    const [teacherLocation, setTeacherLocation] = useState<TeacherLocation | null>(null);
+    const [teacherLocation, setTeacherLocation] = useState<TeacherLocation | null>(TeacherLocation);
 
     useTeacherLocation(teacherId, setTeacherLocation);
+
+    console.log("Selected Teacher ID:", teacherId);
 
 
     return (
         <div>
-            {
-                teacherLocation && (
+            {/* {
+                teacherLocation && ( */}
 
-                    <div style={{ width: '100%', height: '80vh' }}>
-                        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
-                            <Map
+            <div style={{ width: '100%', height: '80vh' }}>
+                <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+                    <Map
 
-                                defaultCenter={{ lat: 6.5244, lng: 3.3792 }}
-                                zoom={13}
-                                mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID!}
-                                fullscreenControl={false}
-                                scrollwheel={false}
-                            >
-                                {teacherLocation && <Directions parentAddress={parentAddress} teacherData={teacherLocation} />}
-                            </Map>
-                        </APIProvider>
-                    </div>
-                )
-            }
+                        defaultCenter={{ lat: 6.5244, lng: 3.3792 }}
+                        zoom={13}
+                        mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID!}
+                        fullscreenControl={false}
+                        scrollwheel={false}
+                    >
+                        {teacherLocation && <Directions parentAddress={parentAddress} teacherData={teacherLocation} />}
+                    </Map>
+                </APIProvider>
+            </div>
+            {/* )
+            } */}
 
         </div>
 

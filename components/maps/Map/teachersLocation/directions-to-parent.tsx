@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { googleFetchCoordinates } from '../../lib/utils';
+import { useRecoilState, useSetRecoilState } from "recoil";
+import { studentETA } from "@/atoms/eta";
 
 type TeacherLocation = {
     teacherId: string;
@@ -21,6 +23,9 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
     const map = useMap();
     const routesLibrary = useMapsLibrary('routes');
 
+    const [studentEta, setStudentEta] = useRecoilState(studentETA);
+
+
     const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService>();
     const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer>();
     const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
@@ -34,7 +39,7 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
     );
     const [coords2, setCoords2] = useState<google.maps.LatLngLiteral | null>(null);
 
-    // Icons
+    // icon
     const teacherIcon = useMemo(() => {
         if (!map || !teacherData) return;
         return {
@@ -51,16 +56,23 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
         };
     }, [map]);
 
-    // Poll teacher coords
+    // poll teacher coords
     useEffect(() => {
         if (!teacherData) return;
         const interval = setInterval(() => {
             setCoords1({ lat: teacherData.latitude, lng: teacherData.longitude });
+
         }, UPDATE_INTERVAL);
         return () => clearInterval(interval);
     }, [teacherData]);
 
-    // Geocode parent address → coords2
+    useEffect(() => {
+        if (leg) {
+            setStudentEta(leg.duration?.text || null); // seconds
+        }
+    }, [leg, setStudentEta]);
+
+    // geocode parent address → coords2
     useEffect(() => {
         const fetchParentCoordinates = async () => {
             if (!parentAddress) return;
@@ -76,7 +88,7 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
         fetchParentCoordinates();
     }, [parentAddress]);
 
-    // Init directions service/renderer
+    // init directions service/renderer
     useEffect(() => {
         if (!routesLibrary || !map) return;
         setDirectionsService(new routesLibrary.DirectionsService());
@@ -91,7 +103,9 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
         );
     }, [routesLibrary, map]);
 
-    // Recalculate route whenever coords change
+
+
+    // recalculate route whenever coords change
     useEffect(() => {
         if (!directionsService || !directionsRenderer || !coords1 || !coords2) return;
         directionsService
@@ -99,14 +113,19 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
                 origin: coords1,
                 destination: coords2,
                 travelMode: google.maps.TravelMode.DRIVING,
+                provideRouteAlternatives: true,
             })
             .then((response) => {
                 directionsRenderer.setDirections(response);
                 setRoutes(response.routes);
+
+                const bounds = new google.maps.LatLngBounds();
+                response.routes[0].overview_path.forEach((point) => bounds.extend(point));
+                directionsRenderer.getMap()?.fitBounds(bounds);
             });
     }, [directionsService, directionsRenderer, coords1, coords2]);
 
-    // Render teacher + home markers (update on coords change)
+    // render teacher and  home markers
     useEffect(() => {
         if (!map || !coords1 || !coords2) return;
 
@@ -137,7 +156,7 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
         };
     }, [map, coords1, coords2, teacherIcon, homeIcon, teacherData]);
 
-    // Allow selecting other routes
+    // allow selecting other routes
     useEffect(() => {
         if (!directionsRenderer) return;
         directionsRenderer.setRouteIndex(routesIndex);
