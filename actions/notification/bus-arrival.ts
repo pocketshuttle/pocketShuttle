@@ -1,4 +1,5 @@
 "use server";
+import { capitalizeName } from "@/lib/capitalize-name";
 import twilio from "twilio";
 
 const accountSid = process.env.NEXT_PUBLIC_TWILIO_ACCOUNT_SID;
@@ -23,7 +24,7 @@ export const sendSmsForBusArrival = async ({
     const messages = await client.messages.create({
       from: "whatsapp:+14155238886",
       to: "whatsapp:+2348103955096",
-      body: `Hello ${parent_name}\n ${student_name} bus is on its way for pick up\n, bus: ${bus_name}`,
+      body: `Hello ${capitalizeName(parent_name)}\n, ${capitalizeName(student_name)} bus is on its way for pick up\n, bus: ${bus_name}`,
     });
     console.log(messages);
     return { message: "Mesasge sent", status: 200 };
