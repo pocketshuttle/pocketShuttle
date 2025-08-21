@@ -2,7 +2,7 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { StudentProps } from "@/types"
 import { useRecoilValue } from "recoil"
-import { studentETA } from "@/atoms/eta";
+
 type KidsViewTabProps = {
     siblings: StudentProps[]
     selectedStudentId: string | null
@@ -11,9 +11,6 @@ type KidsViewTabProps = {
 
 export const KidsViewTab = ({ siblings, selectedStudentId, onSelect }: KidsViewTabProps) => {
     const current = selectedStudentId ?? (siblings[0]?.id ?? "")
-    const stdentEta = useRecoilValue(studentETA);
-
-  
 
     return (
         <div>

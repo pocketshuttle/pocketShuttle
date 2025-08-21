@@ -1,35 +1,52 @@
 "use server";
-import { StudentAttendance, StudentPresence } from "@prisma/client"; // Import StudentPresence
+import { StudentPresence } from "@prisma/client";
 import { db } from "@/lib/db";
 import { revalidateTag } from "next/cache";
+import { sendSms } from "./notification/send-sms";
+import { sendSmsForBusArrival } from "./notification/bus-arrival";
 
-
-
-export const updateLocation = async (
-    id: string,
-    data: StudentPresence
-) => {
-
-    console.log(data)
+export const updateLocation = async (id: string, data: StudentPresence) => {
     try {
-        // Ensure valid data is provided
         if (!data) {
-            return { message: "Invalid data mapping", status: 400 };
+            return { message: "Invalid presence value", status: 400 };
         }
 
-        // Update the student's presence field in the database
+        console.log("Updating location for student:", id, "with:", data);
+
         const updatedStudent = await db.student.update({
-            where: { id: id },
-            data: {
-                presence: data,
-            },
-            include: {
-                parent: true,
-                bus: true,
+            where: { id },
+            data: { presence: data },
+            select: {
+                id: true,
+                presence: true,
+                full_name: true,
+                parent: {
+                    select: { phoneNumber: true, full_name: true },
+                },
+                bus: {
+                    select: { id: true, bus_product_name: true },
+                },
             },
         });
 
-        // Revalidate the tag to update cached data
+        if (!updatedStudent) {
+            return { message: "Student not found", status: 404 };
+        }
+
+        try {
+            if (data === StudentPresence.ON_THE_WAY) {
+                await sendSmsForBusArrival({
+                    student_name: updatedStudent.full_name ?? "",
+                    parent_name: updatedStudent?.parent?.full_name ?? "",
+                    bus_name: updatedStudent?.bus?.bus_product_name ?? "",
+                    phoneNumber: updatedStudent?.parent?.phoneNumber ?? "",
+                });
+                console.log("Sent bus arrival SMS to", updatedStudent?.parent?.phoneNumber);
+            }
+        } catch (notifyErr) {
+            console.error("Notification failed:", notifyErr);
+        }
+
         revalidateTag("students");
 
         return {
@@ -37,11 +54,8 @@ export const updateLocation = async (
             student: updatedStudent,
             status: 200,
         };
-
     } catch (error) {
-        // Log the error for debugging
         console.error("Error updating presence:", error);
-
         return {
             message: "Error updating presence",
             error: error instanceof Error ? error.message : "Unknown error",

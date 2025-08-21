@@ -6,6 +6,8 @@ import { KidsViewTab } from "./kids-tab"
 import ParentViewData from "./parentdata"
 import { StudentProps } from "@/types"
 import { TeacherLocationTracker } from "../maps/Map/teachersLocation/teacher-parent-map"
+import { studentETA } from "@/atoms/eta";
+import { useRecoilValue } from "recoil"
 
 export const ParentMainView = ({
     parentAddress,
@@ -16,6 +18,10 @@ export const ParentMainView = ({
     parentId: string
     siblings: StudentProps[]
 }) => {
+    const stdentEta = useRecoilValue(studentETA);
+
+    console.log(stdentEta, "stdentEta in ParentMainView")
+
     const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
         siblings.length > 0 ? siblings[0].id : null
     )
@@ -48,7 +54,7 @@ export const ParentMainView = ({
         return <div>No students found for this parent.</div>
     }
 
-   
+
 
     return (
         <div className="space-y-4">
