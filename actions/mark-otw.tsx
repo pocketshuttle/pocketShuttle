@@ -11,8 +11,6 @@ export const updateLocation = async (id: string, data: StudentPresence) => {
             return { message: "Invalid presence value", status: 400 };
         }
 
-        console.log("Updating location for student:", id, "with:", data);
-
         const updatedStudent = await db.student.update({
             where: { id },
             data: { presence: data },
