@@ -8,21 +8,40 @@ import { fetchCoordinates, getCurrentLocation, getETA, getRoute, googleFetchCoor
 import { useAutoUpdateETA } from "@/hooks/use-student-eta";
 import { useRecoilValue } from "recoil";
 import { studentETA } from "@/atoms/eta";
+import { useTeacherLocation } from "@/hooks/useTeacher-location";
 
 
-export const EachStudent = ({ student }: { student: StudentProps }) => {
+export const EachStudent = ({ student, teacherId }: { student: StudentProps, teacherId: string }) => {
     const [attendance, SetAttendance] = useState("");
     const [coords1, setCoords1] = useState<[number, number] | null>(null);
     const [coords2, setCoords2] = useState<[number, number] | null>(null);
+    const [stdentEta, setStudentEta] = useState<string | null>(null);
+    const [teacherLocation, setTeacherLocation] = useState<
+        Record<string, { teacherId: string; teacherName: string; teacherImage: string; latitude: number; longitude: number }>
+    >({});
+
+    // useTeacherLocation(teacherId, setTeacherLocation);
+    useTeacherLocation(teacherId, (data) => {
+        setTeacherLocation(prev => ({
+            ...prev,
+            [data.teacherId]: {
+                teacherId: data.teacherId,
+                teacherName: data.teacherName,
+                teacherImage: data.teacherImage,
+                latitude: data.latitude,
+                longitude: data.longitude
+            }
+        }));
+    });
 
     // Fetch current location on mount
-    useEffect(() => {
-        const fetchMyCoordinate = async () => {
-            const [longitude, latitude] = await getCurrentLocation();
-            setCoords1([longitude, latitude]);
-        };
-        fetchMyCoordinate();
-    }, []);
+    // useEffect(() => {
+    //     const fetchMyCoordinate = async () => {
+    //         const [longitude, latitude] = await getCurrentLocation();
+    //         setCoords1([longitude, latitude]);
+    //     };
+    //     fetchMyCoordinate();
+    // }, []);
 
     // Fetch parent's coordinates when student data is available
     useEffect(() => {
@@ -46,51 +65,32 @@ export const EachStudent = ({ student }: { student: StudentProps }) => {
         fetchParentCoordinates();
     }, [student?.parent?.address]);
 
-    console.log("Coords1:", coords1, "Coords2:", coords2);
-
-    // useEffect(() => {
-    //     const fetchETA = async () => {
-    //         console.log("Fetch ETA with coords1:", coords1, "and coords2:", coords2);
-
-    //         if (coords1 && coords2) {
-    //             console.log("Fetching ETA with coords1:", coords1, "and coords2:", coords2);
-    //             try {
-    //                 const eta = await getETA(coords1, coords2);
-    //                 console.log("ETA fetched:", eta);
-    //             } catch (error) {
-    //                 console.error("Error fetching ETA:", error);
-    //             }
-    //         }
-    //     }
-
-    //     fetchETA();
-
-    //     //      const interval = setInterval(fetchETA, 10000);
-
-    //     // return () => clearInterval(interval);
-    // }, [student?.parent?.address, coords1, coords2]);
     useEffect(() => {
         if (!window.google) return;
+        const teacher = teacherLocation[teacherId] || null;
 
         const service = new google.maps.DistanceMatrixService();
 
         service.getDistanceMatrix(
             {
-                origins: [{ lat: 9.1716, lng: 7.3521 }], // coords
-                destinations: [{ lat: 7.3670, lng: 9.1177 }],
+                // origins: [{ lat: teacher?.latitude, lng: teacher?.longitude }] || [{ lat: "9.171772891650901"  lng: "7.352188010149178" }],
+                origins: [{ lat: 9.171772891650901, lng: 7.352188010149178 }],
+                destinations: coords2 ? [{ lat: coords2[0], lng: coords2[1] }] : [],
                 travelMode: google.maps.TravelMode.DRIVING,
+                region: "NG",
             },
             (response, status) => {
                 if (status === "OK") {
+                    console.log("DistanceMatrix response:", response);
                     const element = response?.rows[0].elements[0];
-                    console.log("Distance:", element?.distance.text);
-                    console.log("Duration:", element?.duration.text);
+                    setStudentEta(element?.duration?.text || "Calculating...");
                 } else {
                     console.error("DistanceMatrix failed:", status);
                 }
             }
         );
-    }, []);
+    }, [coords2]);
+
 
     return (
         <div key={student.id} className="w-full bg-[#606060]/10">
@@ -122,6 +122,7 @@ export const EachStudent = ({ student }: { student: StudentProps }) => {
                             SetAttendance={SetAttendance}
                             attendance={attendance}
                             id={student.id}
+                        eta={stdentEta}
                         />
                     </div>
                     <p className="text-sm text-[#606060] mb-4 capitalize">{student.address}</p>
@@ -156,13 +157,13 @@ export const EachStudent = ({ student }: { student: StudentProps }) => {
 
             <div className="px-2 py-4 flex items-center justify-between capitalize">
                 <span className="text-[#484848]">Pick up</span>
-                {/* {!stdentEta ? (
+                {!stdentEta ? (
                     <span>Please Enable Location</span>
                 ) : (
                     <span className="text-[#B4B4B4]">
                         {stdentEta}
                     </span>
-                )} */}
+                )}
             </div>
         </div>
     );

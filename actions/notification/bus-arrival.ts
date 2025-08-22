@@ -11,6 +11,7 @@ type SMSType = {
   bus_name: string;
   phoneNumber?: string;
   parent_name: string;
+  eta?: string;
 };
 const client = twilio(accountSid, authToken);
 
@@ -19,12 +20,13 @@ export const sendSmsForBusArrival = async ({
   parent_name,
   bus_name,
   phoneNumber,
+  eta,
 }: SMSType) => {
   try {
     const messages = await client.messages.create({
       from: "whatsapp:+14155238886",
       to: "whatsapp:+2348103955096",
-      body: `Hello ${capitalizeName(parent_name)}\n, ${capitalizeName(student_name)} bus is on its way for pick up\n, bus: ${bus_name}`,
+      body: `Hello ${capitalizeName(parent_name)},\n ${capitalizeName(student_name)} bus is on its way for pick up and would arrive in ${eta}\n in  bus: ${bus_name}`,
     });
     console.log(messages);
     return { message: "Mesasge sent", status: 200 };

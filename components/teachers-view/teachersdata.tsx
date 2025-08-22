@@ -37,6 +37,7 @@ interface TeacherLocation {
     latitude: number;
     longitude: number;
 };
+
 export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
     const searchParams = useSearchParams()
     const page = searchParams.get("page")
@@ -93,7 +94,7 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                         data?.bus.students?.map((student: StudentProps) => {
                             return (
                                 <div key={student.id}>
-                                    < EachStudent student={student} />
+                                    < EachStudent student={student} teacherId={userId || ""} />
                                 </div >
                             )
                         })
