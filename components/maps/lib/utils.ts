@@ -306,7 +306,10 @@ export function getETA(
         travelMode: mode,
       },
       (response, status) => {
-        if (status === "OK" && response?.rows[0]?.elements[0]?.status === "OK") {
+        if (
+          status === "OK" &&
+          response?.rows[0]?.elements[0]?.status === "OK"
+        ) {
           const element = response.rows[0].elements[0];
           resolve({
             distance: element.distance?.text || "",

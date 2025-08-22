@@ -28,7 +28,6 @@ const TeacherLocations: TeacherLocation = {
 
 export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProps) => {
 
-    // const [teacherLocation, setTeacherLocation] = useState<TeacherLocation | null>(TeacherLocation);
     const [teacherLocation, setTeacherLocation] = useState<
         Record<string, { teacherId: string; teacherName: string; teacherImage: string; latitude: number; longitude: number }>
     >({});

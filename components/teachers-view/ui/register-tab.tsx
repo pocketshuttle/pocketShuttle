@@ -15,10 +15,11 @@ type RegisterProps = {
     SetAttendance: Dispatch<SetStateAction<string>>;
     attendance: string;
     id: string;
+    eta?: string | null;
 };
 
 export const AttendanceTab = ({
-    id, value1, value2, label1, label2, data, SetAttendance, attendance
+    id, value1, value2, label1, label2, data, SetAttendance, attendance, eta
 }: RegisterProps) => {
     const [localAttendance, setLocalAttendance] = useState(data);
     const [isPending, startTransition] = useTransition()
@@ -29,7 +30,7 @@ export const AttendanceTab = ({
         setLocalAttendance(value);
         SetAttendance(value);
         //@ts-ignore
-        const handleMode = label1 === "Present" || label1 === "Absent" ? updateStudentAttendance(id, value) : label1 === "OTW" || label1 === "Stop" ? updateLocation(id, value) : updateStudentStatus(id, value)
+        const handleMode = label1 === "Present" || label1 === "Absent" ? updateStudentAttendance(id, value) : label1 === "OTW" || label1 === "Stop" ? updateLocation(id, value, eta) : updateStudentStatus(id, value)
         setLocalAttendance(value);
         SetAttendance(value);
 

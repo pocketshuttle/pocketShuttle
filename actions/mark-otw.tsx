@@ -5,11 +5,14 @@ import { revalidateTag } from "next/cache";
 import { sendSms } from "./notification/send-sms";
 import { sendSmsForBusArrival } from "./notification/bus-arrival";
 
-export const updateLocation = async (id: string, data: StudentPresence) => {
+export const updateLocation = async (id: string, data: StudentPresence, eta: string) => {
+    console.log("Updating location for student:", id, "with data:", data);
     try {
         if (!data) {
             return { message: "Invalid presence value", status: 400 };
         }
+
+        console.log("Updating location for student:", id, "with:", data);
 
         const updatedStudent = await db.student.update({
             where: { id },
@@ -38,6 +41,7 @@ export const updateLocation = async (id: string, data: StudentPresence) => {
                     parent_name: updatedStudent?.parent?.full_name ?? "",
                     bus_name: updatedStudent?.bus?.bus_product_name ?? "",
                     phoneNumber: updatedStudent?.parent?.phoneNumber ?? "",
+                    eta: eta ?? "unknown",
                 });
                 console.log("Sent bus arrival SMS to", updatedStudent?.parent?.phoneNumber);
             }
