@@ -81,7 +81,6 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
             },
             (response, status) => {
                 if (status === "OK") {
-                    console.log("DistanceMatrix response:", response);
                     const element = response?.rows[0].elements[0];
                     setStudentEta(element?.duration?.text || "Calculating...");
                 } else {
