@@ -6,6 +6,8 @@ import Provider from "@/components/Provider";
 import QueryProvider from "@/components/webnotifications/query-provider";
 import AblyProviderRoot from "@/ably/ably-provider";
 import OneSignalClient from "@/onesignal/onesignal-client";
+import Script from "next/script";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -41,6 +43,13 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        {/* ✅ Load Google Maps JS SDK globally */}
+        <Script
+          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
+          strategy="beforeInteractive"
+        />
+      </head>
       <Provider>
         < AblyProviderRoot>
           <OneSignalClient>

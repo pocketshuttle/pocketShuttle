@@ -1,6 +1,11 @@
 import { atom } from "recoil";
 
-export const studentETA = atom<string | null>({
+export type EtaState = {
+  value: number | null;
+  status: "idle" | "loading" | "success" | "error";
+};
+
+export const studentETA = atom<EtaState>({
   key: "studentETA",
-  default: null,
+  default: { value: null, status: "idle" },
 });

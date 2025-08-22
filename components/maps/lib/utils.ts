@@ -187,8 +187,7 @@ export const googleFetchCoordinates = async (
 
     if (data.status === "OK" && data.results.length > 0) {
       const location = data.results[0].geometry.location;
-      console.log("Google Maps coordinates:", location);
-      return [location.lat, location.lng]; // longitude, latitude
+      return [location.lat, location.lng];
     }
 
     return null;
@@ -280,3 +279,45 @@ export const sendTeacherLocationToServer = async (
     console.error("Error sending location to server:", error);
   }
 };
+
+type LocationInput = string | { lat: number; lng: number };
+
+export function getETA(
+  origin: LocationInput,
+  destination: LocationInput,
+  mode: google.maps.TravelMode = google.maps.TravelMode.DRIVING
+): Promise<{
+  distance: string;
+  duration: string;
+  durationValue: number;
+} | null> {
+  return new Promise((resolve, reject) => {
+    if (!window.google || !window.google.maps) {
+      reject(new Error("Google Maps JS SDK not loaded"));
+      return;
+    }
+
+    const service = new google.maps.DistanceMatrixService();
+
+    service.getDistanceMatrix(
+      {
+        origins: [origin],
+        destinations: [destination],
+        travelMode: mode,
+      },
+      (response, status) => {
+        if (status === "OK" && response?.rows[0]?.elements[0]?.status === "OK") {
+          const element = response.rows[0].elements[0];
+          resolve({
+            distance: element.distance?.text || "",
+            duration: element.duration?.text || "",
+            durationValue: element.duration?.value || 0,
+          });
+        } else {
+          console.error("DistanceMatrix failed:", status, response);
+          resolve(null);
+        }
+      }
+    );
+  });
+}

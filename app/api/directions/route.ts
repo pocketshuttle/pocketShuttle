@@ -5,8 +5,6 @@ export async function GET(request: Request) {
   const origin = searchParams.get("origin");
   const destination = searchParams.get("destination");
 
-  console.log("from Origin:", origin, "Destination:", destination);
-
   if (!origin || !destination) {
     return NextResponse.json(
       { error: "Origin and destination are required" },

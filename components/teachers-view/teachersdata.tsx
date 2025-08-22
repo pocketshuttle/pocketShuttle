@@ -23,7 +23,6 @@ import { Spinner } from "../ui/spinner"
 import Navbar from "./navbar"
 import { StudentProps, TeacherProps } from "@/types"
 import { useRecoilValue } from "recoil"
-import { studentETA } from "@/atoms/eta"
 import { BusArrival } from "../parent-view/bus-arrival"
 import { Separator } from "../ui/separator"
 import { fetchCoordinates, getCurrentLocation, getRoute } from "../maps/lib/utils"
@@ -41,12 +40,8 @@ interface TeacherLocation {
 export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
     const searchParams = useSearchParams()
     const page = searchParams.get("page")
-    const eta = useRecoilValue(studentETA)
     const teacherData = data
     const [attendance, SetAttendance] = useState("")
-
-    console.log("eta", eta)
-
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
@@ -95,11 +90,13 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                     {
                         data?.bus &&
                         data?.bus.students &&
-                        data?.bus.students?.map((student: StudentProps) => (
-                            <div key={student.id}>
-                                < EachStudent student={student} />
-                            </div >
-                        ))
+                        data?.bus.students?.map((student: StudentProps) => {
+                            return (
+                                <div key={student.id}>
+                                    < EachStudent student={student} />
+                                </div >
+                            )
+                        })
                     }
                 </main>
             </div >
