@@ -4,94 +4,93 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import avatar from "@/public/images/avatar.jpg";
 import { AttendanceTab } from "./register-tab";
-import { fetchCoordinates, getCurrentLocation, getGoogleMapsRoute, getRoute, googleFetchCoordinates } from "@/components/maps/lib/utils";
+import { fetchCoordinates, getCurrentLocation, getETA, getRoute, googleFetchCoordinates } from "@/components/maps/lib/utils";
+import { useAutoUpdateETA } from "@/hooks/use-student-eta";
 import { useRecoilValue } from "recoil";
 import { studentETA } from "@/atoms/eta";
+
 
 export const EachStudent = ({ student }: { student: StudentProps }) => {
     const [attendance, SetAttendance] = useState("");
     const [coords1, setCoords1] = useState<[number, number] | null>(null);
     const [coords2, setCoords2] = useState<[number, number] | null>(null);
-    const stdentEta = useRecoilValue(studentETA);
-
-    console.log(stdentEta)
-
 
     // Fetch current location on mount
-    // useEffect(() => {
-    //     const fetchMyCoordinate = async () => {
-    //         const [longitude, latitude] = await getCurrentLocation();
-    //         setCoords1([longitude, latitude]);
-    //     };
-    //     fetchMyCoordinate();
-    // }, []);
+    useEffect(() => {
+        const fetchMyCoordinate = async () => {
+            const [longitude, latitude] = await getCurrentLocation();
+            setCoords1([longitude, latitude]);
+        };
+        fetchMyCoordinate();
+    }, []);
 
     // Fetch parent's coordinates when student data is available
+    useEffect(() => {
+        const fetchParentCoordinates = async () => {
+            try {
+                if (student?.parent?.address) {
+                    const coordinates2 = await googleFetchCoordinates(student?.parent?.address || "");
+
+                    if (coordinates2) {
+                        setCoords2(coordinates2);
+                    } else {
+                        console.log("Coordinates not found for the given address");
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching coordinates:", error);
+            }
+        };
+
+        // Fetch coordinates when student's address is available
+        fetchParentCoordinates();
+    }, [student?.parent?.address]);
+
+    console.log("Coords1:", coords1, "Coords2:", coords2);
+
     // useEffect(() => {
-    //     const fetchParentCoordinates = async () => {
-    //         try {
-    //             if (student?.address) {
-    //                 const coordinates2 = await googleFetchCoordinates(student.address);
+    //     const fetchETA = async () => {
+    //         console.log("Fetch ETA with coords1:", coords1, "and coords2:", coords2);
 
-    //                 // console.log("Coordinates for parent address:", coordinates2);
-    //                 if (coordinates2) {
-    //                     setCoords2(coordinates2);
-    //                 } else {
-    //                     console.error("Coordinates not found for the given address");
-    //                 }
-    //             }
-    //         } catch (error) {
-    //             console.error("Error fetching coordinates:", error);
-    //         }
-    //     };
-
-    //     // Fetch coordinates when student's address is available
-    //     fetchParentCoordinates();
-    // }, [student?.address]);
-
-
-    // Fetch route and calculate ETA only when both coordinates are available
-    // useEffect(() => {
-    //     const fetchRouteEta = async () => {
-    //         console.log("Fetching route ETA");
-    //         console.log(coords1, coords2);
     //         if (coords1 && coords2) {
+    //             console.log("Fetching ETA with coords1:", coords1, "and coords2:", coords2);
     //             try {
-    //                 // getCurrentLocation returns [lng, lat] format
-    //                 // googleFetchCoordinates returns [lat, lng] format
-    //                 const origin = { lat: coords1[1], lng: coords1[0] }; // [lng, lat] -> {lat, lng}
-    //                 const destination = { lat: coords2[0], lng: coords2[1] }; // [lat, lng] -> {lat, lng}
-
-    //                 console.log("Origin:", origin);
-    //                 console.log("Destination:", destination);
-
-    //                 const route = await getGoogleMapsRoute(origin, destination);
-    //                 console.log("Route result:", route);
-
-    //                 if (route && route.routes && route.routes.length > 0) {
-    //                     const durationInSeconds = route.routes[0].legs[0].duration?.value;
-    //                     console.log("Duration in seconds:", durationInSeconds);
-
-    //                     if (durationInSeconds) {
-    //                         // Calculate hours, minutes, and seconds from duration
-    //                         const timeInHours = Math.floor(durationInSeconds / 3600);
-    //                         const timeInMinutes = Math.floor((durationInSeconds % 3600) / 60);
-
-    //                         // Format the time as HH:MM
-    //                         const formattedEta = `${timeInHours}:${timeInMinutes < 10 ? "0" : ""}${timeInMinutes}am`;
-    //                         setEta(formattedEta);
-    //                         console.log("Formatted ETA:", formattedEta);
-    //                     }
-    //                 }
+    //                 const eta = await getETA(coords1, coords2);
+    //                 console.log("ETA fetched:", eta);
     //             } catch (error) {
-    //                 console.error("Error fetching route ETA:", error);
+    //                 console.error("Error fetching ETA:", error);
     //             }
     //         }
-    //     };
-    //     fetchRouteEta();
-    // }, [coords1, coords2]);
+    //     }
 
+    //     fetchETA();
 
+    //     //      const interval = setInterval(fetchETA, 10000);
+
+    //     // return () => clearInterval(interval);
+    // }, [student?.parent?.address, coords1, coords2]);
+    useEffect(() => {
+        if (!window.google) return;
+
+        const service = new google.maps.DistanceMatrixService();
+
+        service.getDistanceMatrix(
+            {
+                origins: [{ lat: 9.1716, lng: 7.3521 }], // coords
+                destinations: [{ lat: 7.3670, lng: 9.1177 }],
+                travelMode: google.maps.TravelMode.DRIVING,
+            },
+            (response, status) => {
+                if (status === "OK") {
+                    const element = response?.rows[0].elements[0];
+                    console.log("Distance:", element?.distance.text);
+                    console.log("Duration:", element?.duration.text);
+                } else {
+                    console.error("DistanceMatrix failed:", status);
+                }
+            }
+        );
+    }, []);
 
     return (
         <div key={student.id} className="w-full bg-[#606060]/10">
@@ -157,13 +156,13 @@ export const EachStudent = ({ student }: { student: StudentProps }) => {
 
             <div className="px-2 py-4 flex items-center justify-between capitalize">
                 <span className="text-[#484848]">Pick up</span>
-                {!stdentEta ? (
+                {/* {!stdentEta ? (
                     <span>Please Enable Location</span>
                 ) : (
                     <span className="text-[#B4B4B4]">
                         {stdentEta}
                     </span>
-                )}
+                )} */}
             </div>
         </div>
     );

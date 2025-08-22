@@ -9,7 +9,6 @@ import {
     useLoadScript,
 } from "@react-google-maps/api";
 import { useRecoilState } from "recoil";
-import { studentETA } from "@/atoms/eta";
 import { getGoogleMapsRoute, googleFetchCoordinates } from "../lib/utils";
 import type { Libraries } from '@react-google-maps/api';
 
@@ -47,7 +46,6 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
     const [openDirection, setOpenDirection] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [studentEta, setStudentEta] = useRecoilState<number | null>(studentETA);
 
 
     const { isLoaded, loadError } = useLoadScript({
@@ -68,7 +66,6 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
                 const durationValue = route.routes[0].legs[0].duration?.value || null;
                 setEta(duration);
                 if (durationValue) {
-                    setStudentEta(durationValue);
                 }
             }
         } catch (err) {
@@ -77,7 +74,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         } finally {
             setLoading(false);
         }
-    }, [isLoaded, setStudentEta]);
+    }, [isLoaded]);
 
     useEffect(() => {
         const fetchParentCoordinates = async () => {

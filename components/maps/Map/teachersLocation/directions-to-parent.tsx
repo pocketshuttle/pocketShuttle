@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { googleFetchCoordinates } from '../../lib/utils';
-import { useRecoilState, useSetRecoilState } from "recoil";
-import { studentETA } from "@/atoms/eta";
 
 type TeacherLocation = {
     teacherId: string;
@@ -22,10 +20,6 @@ const UPDATE_INTERVAL = 10000;
 export function Directions({ parentAddress, teacherData }: AddressProps) {
     const map = useMap();
     const routesLibrary = useMapsLibrary('routes');
-
-    const [studentEta, setStudentEta] = useRecoilState(studentETA);
-
-
     const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService>();
     const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer>();
     const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
@@ -39,7 +33,7 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
     );
     const [coords2, setCoords2] = useState<google.maps.LatLngLiteral | null>(null);
 
-    // icon
+    // iccon
     const teacherIcon = useMemo(() => {
         if (!map || !teacherData) return;
         return {
@@ -65,12 +59,6 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
         }, UPDATE_INTERVAL);
         return () => clearInterval(interval);
     }, [teacherData]);
-
-    useEffect(() => {
-        if (leg) {
-            setStudentEta(leg.duration?.text || null);
-        }
-    }, [leg, setStudentEta]);
 
 
     // geocode parent address → coords2
@@ -117,9 +105,6 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
             .then((response) => {
                 directionsRenderer.setDirections(response);
                 setRoutes(response.routes);
-                if (leg?.duration?.value) {
-                    setStudentEta(leg.duration.text); 
-                }
                 const bounds = new google.maps.LatLngBounds();
                 response.routes[0].overview_path.forEach((point) => bounds.extend(point));
                 directionsRenderer.getMap()?.fitBounds(bounds);
