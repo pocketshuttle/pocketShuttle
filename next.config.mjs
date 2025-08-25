@@ -28,6 +28,7 @@ const nextConfig = {
     return [];
   },
   debug: true,
+  reactStrictMode: false,
 };
 
 export default withPWA(nextConfig);
