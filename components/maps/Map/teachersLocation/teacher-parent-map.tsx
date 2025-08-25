@@ -18,14 +18,6 @@ type TeacherLocation = {
     longitude: number;
 };
 
-const TeacherLocations: TeacherLocation = {
-    teacherId: 'cm0wc7v7800003827vzhr5m5q',
-    teacherName: 'mercy',
-    teacherImage: 'https://res.cloudinary.com/du5poiq3l/image/upload/v1725967013/f7sqdmgryzbycgyopwij.jpg',
-    latitude: 9.2177996,
-    longitude: 7.367077,
-}
-
 export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProps) => {
 
     const [teacherLocation, setTeacherLocation] = useState<
