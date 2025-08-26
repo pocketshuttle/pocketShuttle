@@ -7,6 +7,7 @@ import ParentViewData from "./parentdata"
 import { StudentProps } from "@/types"
 import { TeacherLocationTracker } from "../maps/Map/teachersLocation/teacher-parent-map"
 import { useRecoilValue } from "recoil"
+import { sendPushNotification } from "@/onesignal/send-push"
 
 export const ParentMainView = ({
     parentAddress,
@@ -17,7 +18,7 @@ export const ParentMainView = ({
     parentId: string
     siblings: StudentProps[]
 }) => {
-   
+
 
     const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
         siblings.length > 0 ? siblings[0].id : null
@@ -56,6 +57,7 @@ export const ParentMainView = ({
     return (
         <div className="space-y-4">
             {/* Tab control for kids */}
+
             <KidsViewTab
                 siblings={siblings}
                 selectedStudentId={selectedStudentId}
@@ -69,7 +71,12 @@ export const ParentMainView = ({
                 // parentId={parentId}
                 teacherId={selectedTeacherId || ""}
             />
-
+            <button
+                onClick={() => sendPushNotification("bus coming")}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+            >
+                Send Push Notification
+            </button>
             {/* 
             Map only changes when selectedTeacherId changes
             */}
