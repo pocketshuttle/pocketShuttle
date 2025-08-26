@@ -23,14 +23,14 @@ const GoogleMapView = ({ latitude, longitude, teachersLocation }: Props) => {
     };
 
     const handleMarkerClick = (lat: number, lng: number) => {
-        console.log("Marker clicked at:", lat, lng);
         if (mapRef.current) {
-            mapRef.current.panTo({ lat, lng }); // move center
-            mapRef.current.setZoom(18);         // zoom in
+            mapRef.current.panTo({ lat, lng });
+            mapRef.current.setZoom(18);
         } else {
             console.warn("Map not loaded yet.");
         }
     };
+    
     const center = { lat: latitude, lng: longitude };
     return (
         <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
