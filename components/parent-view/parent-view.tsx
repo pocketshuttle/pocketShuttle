@@ -71,12 +71,12 @@ export const ParentMainView = ({
                 // parentId={parentId}
                 teacherId={selectedTeacherId || ""}
             />
-            {/* <button
+            <button
                 onClick={() => sendPushNotification("bus coming")}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg"
             >
                 Send Push Notification
-            </button> */}
+            </button>
             {/* 
             Map only changes when selectedTeacherId changes
             */}

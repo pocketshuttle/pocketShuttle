@@ -18,7 +18,6 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps; tea
         Record<string, { teacherId: string; teacherName: string; teacherImage: string; latitude: number; longitude: number }>
     >({});
 
-    // 🔥 live teacher location updates
     useTeacherLocation(teacherId, (data) => {
         setTeacherLocation((prev) => ({
             ...prev,
