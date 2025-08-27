@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { BusArrival } from "./bus-arrival"
 import { KidsViewTab } from "./kids-tab"
 import ParentViewData from "./parentdata"
@@ -8,6 +8,8 @@ import { StudentProps } from "@/types"
 import { TeacherLocationTracker } from "../maps/Map/teachersLocation/teacher-parent-map"
 import { useRecoilValue } from "recoil"
 import { sendPushNotification } from "@/onesignal/send-push"
+import OneSignal from "react-onesignal";
+
 
 export const ParentMainView = ({
     parentAddress,
@@ -18,6 +20,26 @@ export const ParentMainView = ({
     parentId: string
     siblings: StudentProps[]
 }) => {
+
+    useEffect(() => {
+        if (!parentId) return;
+
+        const loginToOneSignal = async () => {
+            try {
+                // Make sure SDK is initialized before trying login
+                await OneSignal.User.PushSubscription.optIn();
+                await OneSignal.login(parentId);
+                console.log(" OneSignal logged in:", parentId);
+            } catch (err) {
+                console.error(" OneSignal login failed:", err);
+            }
+        };
+
+        // Small delay to ensure SDK has finished bootstrapping
+        const timer = setTimeout(loginToOneSignal, 500);
+
+        return () => clearTimeout(timer);
+    }, [parentId]);
 
 
     const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
@@ -71,12 +93,12 @@ export const ParentMainView = ({
                 // parentId={parentId}
                 teacherId={selectedTeacherId || ""}
             />
-            <button
-                onClick={() => sendPushNotification("bus coming")}
+            {/* <button
+                onClick={() => sendPushNotification("bus coming", parentId)}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg"
             >
                 Send Push Notification
-            </button>
+            </button> */}
             {/* 
             Map only changes when selectedTeacherId changes
             */}

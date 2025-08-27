@@ -4,15 +4,14 @@ import { db } from "@/lib/db";
 import { revalidateTag } from "next/cache";
 import { sendSms } from "./notification/send-sms";
 import { sendSmsForBusArrival } from "./notification/bus-arrival";
+import { sendPushNotification } from "@/onesignal/send-push";
 
 export const updateLocation = async (id: string, data: StudentPresence, eta: string) => {
-    console.log("Updating location for student:", id, "with data:", data);
     try {
         if (!data) {
             return { message: "Invalid presence value", status: 400 };
         }
 
-        console.log("Updating location for student:", id, "with:", data);
 
         const updatedStudent = await db.student.update({
             where: { id },
@@ -22,7 +21,7 @@ export const updateLocation = async (id: string, data: StudentPresence, eta: str
                 presence: true,
                 full_name: true,
                 parent: {
-                    select: { phoneNumber: true, full_name: true },
+                    select: { phoneNumber: true, full_name: true, id: true },
                 },
                 bus: {
                     select: { id: true, bus_product_name: true },
@@ -43,7 +42,8 @@ export const updateLocation = async (id: string, data: StudentPresence, eta: str
                     phoneNumber: updatedStudent?.parent?.phoneNumber ?? "",
                     eta: eta ?? "unknown",
                 });
-                console.log("Sent bus arrival SMS to", updatedStudent?.parent?.phoneNumber);
+
+                await sendPushNotification(`Hi ${updatedStudent?.parent?.full_name}, ${updatedStudent?.bus?.bus_product_name} is on the way`, updatedStudent?.parent?.id!);
             }
         } catch (notifyErr) {
             console.error("Notification failed:", notifyErr);
