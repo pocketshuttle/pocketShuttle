@@ -1,14 +1,14 @@
 const url = "https://api.onesignal.com/notifications?c=push";
-// const ONE_SIGNAL_APP_ID = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID!;
-// const ONE_SIGNAL_REST_KEY = process.env.ONESIGNAL_REST_API_KEY!;
-const ONE_SIGNAL_APP_ID = "facc1574-ca01-42f2-b23f-d7596abe8643";
+const ONE_SIGNAL_APP_ID = process.env.NEXT_PUBLIC_APP_ID!;
+const ONE_SIGNAL_REST_KEY = process.env.ONE_SIGNAL!;
 
-const ONE_SIGNAL_REST_KEY =
-  "os_v2_app_7lgbk5gkafbpfmr725mwvpugip3o6pxdp57uinfwdeny5hujn6tcwrr5h3v6frzzhb2vrnbf4lbsrk3tshmcs2vknhpokijxmifha";
+console.log("ONE_SIGNAL_APP_ID:", ONE_SIGNAL_APP_ID);
+console.log("ONE_SIGNAL_REST_KEY:", ONE_SIGNAL_REST_KEY ? "Exists" : "Missing");
 
 import { NextRequest, NextResponse } from "next/server";
 export const POST = async (req: NextRequest) => {
   const data = await req.json();
+  console.log("Received data:", data);
 
   if (!data.message) {
     return NextResponse.json({
@@ -21,7 +21,7 @@ export const POST = async (req: NextRequest) => {
     const response = await fetch(url, {
       method: "POST",
       headers: {
-        Authorization: `Key os_v2_app_7lgbk5gkafbpfmr725mwvpugip3o6pxdp57uinfwdeny5hujn6tcwrr5h3v6frzzhb2vrnbf4lbsrk3tshmcs2vknhpokijxmifha5a`,
+        Authorization: `Key ${process.env.ONE_SIGNAL!}`,
         "Content-Type": "application/json",
       },
 
@@ -31,7 +31,10 @@ export const POST = async (req: NextRequest) => {
         excluded_segments: [],
         headings: { en: "PocketShuttle" },
         contents: { en: data.message },
-        included_segments: ["All"],
+        include_aliases: {
+          external_id: [data.userId],
+        },
+        // included_segments: ["All"],
         // include_player_ids: ["your_player_id_here"],
         data: { foo: "bar" },
         ios_badgeType: "Increase",

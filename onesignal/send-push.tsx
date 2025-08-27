@@ -1,11 +1,11 @@
-export async function sendPushNotification(message: string) {
+export async function sendPushNotification(message: string, userId: string) {
     try {
         const response = await fetch("/api/send-push", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ message }),
+            body: JSON.stringify({ message, userId }),
         });
 
         const data = await response.json();

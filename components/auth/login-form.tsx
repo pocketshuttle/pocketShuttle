@@ -37,6 +37,7 @@ export const LoginForm = () => {
  @Usage:
  This setup enables the form to use `LoginSchema` for validating the email and password fields.
 */}
+
     const form = useForm<z.infer<typeof LoginSchema>>({
         resolver: zodResolver(LoginSchema),
         defaultValues: {
@@ -45,6 +46,7 @@ export const LoginForm = () => {
             role: selectedRole || ""
         }
     })
+
     const onSubmit = (values: z.infer<typeof LoginSchema>) => {
         setIsError("")
         setIsSuccess("")
@@ -52,13 +54,11 @@ export const LoginForm = () => {
         startTransition(() => {
             Login(values, callbackUrl).then((data) => {
                 setIsError(data?.error)
-                // setIsSuccess(data?.success)
             })
         })
     }
     const handleSelectRole = (value: string) => {
         setSelectedRole(value)
-        console.log(value)
         form.setValue("role", value)
     }
 
@@ -121,8 +121,6 @@ export const LoginForm = () => {
                                         <AddRoles handleSelectChange={handleSelectRole} />
                                     </div>
                                     <FormMessage />
-
-                                    {/* <Image src={eye} alt="eye" /> */}
                                 </FormItem>
                             )}
                         >

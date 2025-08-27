@@ -45,7 +45,6 @@ export const Login = async (
 
   //   return { success: "Confirmation email sent, please verify your account!" };
   // }
-  
 
   // Check password validity
   const isPasswordValid = await bcrypt.compare(password, existingUser.password);
@@ -72,17 +71,16 @@ export const Login = async (
       path: "/",
     });
   } catch (error: unknown) {
-    console.log(error);
-
     return { error: "Invalid Credentials!" };
   }
+
   // Determine redirect URL
   const redirectTo =
     role === "parent"
       ? DEFAULT_PARENT_ROLE
       : role === "teacher"
-      ? DEFAULT_USER_ROLE
-      : callbackUrl || DEFAULT_LOGIN_REDIRECT;
+        ? DEFAULT_USER_ROLE
+        : callbackUrl || DEFAULT_LOGIN_REDIRECT;
 
   redirect(redirectTo);
 };
