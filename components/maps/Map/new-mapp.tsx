@@ -161,6 +161,13 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         requestAnimationFrame(move);
     };
 
+    const openInGoogleMaps = () => {
+        if (!coords1 || !coords2) return;
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${coords1.lat},${coords1.lng}&destination=${coords2.lat},${coords2.lng}&travelmode=driving`;
+
+        window.open(url, "_blank");
+    }
+
 
     useEffect(() => {
         if (!teacherData) return;
@@ -186,13 +193,6 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
             scaledSize: new window.google.maps.Size(40, 40),
         };
     }, [isLoaded]);
-    const busIcon = useMemo(() => {
-        if (!isLoaded) return undefined;
-        return {
-            url: "/images/bus.svg",
-            scaledSize: new window.google.maps.Size(40, 40),
-        };
-    }, [isLoaded]);
 
     if (error) {
         return (
@@ -215,12 +215,19 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center p-2 bg-gray-50 rounded">
+
+            <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
                 {eta && (
-                    <div className="font-medium">
-                        Estimated Time: <span className="text-blue-600">{eta}</span>
-                    </div>
+                    <p className="font-medium text-blue-600">
+                        ETA <span className="text-blue-600">{eta}</span>
+                    </p>
                 )}
+                <button
+                    onClick={openInGoogleMaps}
+                    className="px-4 py-2 text-sm md:text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                    View in Google Maps
+                </button>
             </div>
 
             <GoogleMap
