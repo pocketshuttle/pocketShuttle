@@ -3,14 +3,13 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
     GoogleMap,
-    LoadScript,
     Marker,
     DirectionsRenderer,
     useLoadScript,
+    OverlayView,
 } from "@react-google-maps/api";
-import { useRecoilState } from "recoil";
 import { getGoogleMapsRoute, googleFetchCoordinates } from "../lib/utils";
-import type { Libraries } from '@react-google-maps/api';
+import type { Libraries } from "@react-google-maps/api";
 
 type AddressProps = {
     parentAddress: string;
@@ -34,7 +33,7 @@ const DEFAULT_ZOOM = 12;
 const UPDATE_INTERVAL = 10000;
 const DEBOUNCE_DELAY = 500;
 
-const libraries: Libraries = ['places'];
+const libraries: Libraries = ["places"];
 
 const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
     const [coords1, setCoords1] = useState<google.maps.LatLngLiteral | null>(
@@ -43,38 +42,37 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
     const [coords2, setCoords2] = useState<google.maps.LatLngLiteral | null>(null);
     const [eta, setEta] = useState<string | null>(null);
     const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
-    const [openDirection, setOpenDirection] = useState(false);
+    const [teacherMarker, setTeacherMarker] = useState<google.maps.Marker | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
+    const [heading, setHeading] = useState<number>(0);
 
     const { isLoaded, loadError } = useLoadScript({
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
         libraries,
     });
 
-    const fetchRoute = useCallback(async (origin: google.maps.LatLngLiteral, destination: google.maps.LatLngLiteral) => {
-        if (!isLoaded) return;
+    const fetchRoute = useCallback(
+        async (origin: google.maps.LatLngLiteral, destination: google.maps.LatLngLiteral) => {
+            if (!isLoaded) return;
 
-        try {
-            const route = await getGoogleMapsRoute(origin, destination);
+            try {
+                const route = await getGoogleMapsRoute(origin, destination);
 
-            if (route && route.routes && route.routes.length > 0) {
-                setDirections(route);
-                const duration = route.routes[0].legs[0].duration?.text || null;
-
-                const durationValue = route.routes[0].legs[0].duration?.value || null;
-                setEta(duration);
-                if (durationValue) {
+                if (route && route.routes && route.routes.length > 0) {
+                    setDirections(route);
+                    const duration = route.routes[0].legs[0].duration?.text || null;
+                    setEta(duration);
                 }
+            } catch (err) {
+                setError("Failed to fetch route directions");
+                console.error("Route fetching error:", err);
+            } finally {
+                setLoading(false);
             }
-        } catch (err) {
-            setError("Failed to fetch route directions");
-            console.error("Route fetching error:", err);
-        } finally {
-            setLoading(false);
-        }
-    }, [isLoaded]);
+        },
+        [isLoaded]
+    );
 
     useEffect(() => {
         const fetchParentCoordinates = async () => {
@@ -96,16 +94,11 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         }
     }, [parentAddress]);
 
-    // console.log("coords:", directions);
-    // console.log("isLoaded:", isLoaded, "coords1:", coords1, "coords2:", coords2);
-
-
     useEffect(() => {
         if (!coords1 || !coords2 || !isLoaded) return;
 
-        // Validate coordinates
         if (isNaN(coords1.lat) || isNaN(coords1.lng) || isNaN(coords2.lat) || isNaN(coords2.lng)) {
-            console.warn("Invalid coordinates:", { coords1, coords2 });
+            console.warn("Invalid c oordinates:", { coords1, coords2 });
             return;
         }
 
@@ -116,28 +109,87 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         return () => clearTimeout(debounceTimer);
     }, [coords1, coords2, fetchRoute, isLoaded]);
 
+    function computeHeading(from: google.maps.LatLngLiteral, to: google.maps.LatLngLiteral): number {
+        const lat1 = (from.lat * Math.PI) / 180;
+        const lat2 = (to.lat * Math.PI) / 180;
+        const dLng = ((to.lng - from.lng) * Math.PI) / 180;
+
+        const y = Math.sin(dLng) * Math.cos(lat2);
+        const x =
+            Math.cos(lat1) * Math.sin(lat2) -
+            Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+
+        return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+    }
+
+    const animateMarker = (
+        marker: google.maps.Marker,
+        toPosition: google.maps.LatLngLiteral,
+        duration = 1000
+    ) => {
+        if (!marker) return;
+        const fromPosition = marker.getPosition();
+        if (!fromPosition) return;
+
+        const startLat = fromPosition.lat();
+        const startLng = fromPosition.lng();
+        const deltaLat = toPosition.lat - startLat;
+        const deltaLng = toPosition.lng - startLng;
+
+        const startTime = performance.now();
+        const newHeading = computeHeading({ lat: startLat, lng: startLng }, toPosition);
+        setHeading(newHeading); // ✅ update state here
+
+        const easeInOutQuad = (t: number) =>
+            t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+        const move = (time: number) => {
+            const elapsed = time - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easedProgress = easeInOutQuad(progress);
+
+            const lat = startLat + deltaLat * easedProgress;
+            const lng = startLng + deltaLng * easedProgress;
+
+            marker.setPosition(new google.maps.LatLng(lat, lng));
+
+            if (progress < 1) {
+                requestAnimationFrame(move);
+            }
+        };
+
+        requestAnimationFrame(move);
+    };
+
+
     useEffect(() => {
         if (!teacherData) return;
+
         const interval = setInterval(() => {
-            setCoords1({ lat: teacherData.latitude, lng: teacherData.longitude });
+            const newPosition = { lat: teacherData.latitude, lng: teacherData.longitude };
+
+            if (teacherMarker) {
+                animateMarker(teacherMarker, newPosition);
+            } else {
+                setCoords1(newPosition);
+            }
         }, UPDATE_INTERVAL);
 
         return () => clearInterval(interval);
-    }, [teacherData]);
+    }, [teacherData, teacherMarker]);
 
-    const teacherIcon = useMemo(() => {
-        if (!isLoaded || !teacherData) return undefined;
-        return {
-            url: teacherData.teacherImage,
-            style: { borderRadius: "50%" },
-            scaledSize: new window.google.maps.Size(40, 40),
-        };
-    }, [isLoaded, teacherData]);
-
+    // Icons
     const homeIcon = useMemo(() => {
         if (!isLoaded) return undefined;
         return {
             url: "/images/home.png",
+            scaledSize: new window.google.maps.Size(40, 40),
+        };
+    }, [isLoaded]);
+    const busIcon = useMemo(() => {
+        if (!isLoaded) return undefined;
+        return {
+            url: "/images/bus.svg",
             scaledSize: new window.google.maps.Size(40, 40),
         };
     }, [isLoaded]);
@@ -161,9 +213,6 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
     if (!isLoaded) return <div>Loading Google Maps...</div>;
     if (loadError) return <div>Error loading maps</div>;
 
-
-    console.log("directions:", directions);
-
     return (
         <div className="space-y-4">
             <div className="flex items-center p-2 bg-gray-50 rounded">
@@ -184,8 +233,31 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
                     fullscreenControl: false,
                 }}
             >
-                <Marker position={coords1} icon={teacherIcon} />
+                {/* Teacher marker (animated) */}
+                {/* <Marker
+                    position={coords1}
+                    onLoad={(marker) => setTeacherMarker(marker)}
+                    icon={busIcon}
+                /> */}
+                {coords1 && (
+                    <OverlayView
+                        position={coords1}
+                        mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+                    >
+                        <div
+                            style={{
+                                transform: `rotate(${heading}deg)`,
+                                transformOrigin: "center",
+                                width: "40px",
+                                height: "40px",
+                            }}
+                        >
+                            <img src="/images/bus.svg" width={40} height={40} alt="bus" />
+                        </div>
+                    </OverlayView>
+                )}
                 <Marker position={coords2} icon={homeIcon} />
+
                 {directions && directions.routes && directions.routes.length > 0 && (
                     <DirectionsRenderer
                         directions={directions}
