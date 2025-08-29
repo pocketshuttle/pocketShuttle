@@ -111,9 +111,8 @@ export const LoginForm = () => {
 
                                         />
                                     </FormControl>
-                                    <div className="flex justify-between items-center">
-
-                                        <Button variant="link" size="sm" asChild className="px-0 font-normal">
+                                    <div className="flex justify-between space-x-2 items-center">
+                                        <Button variant="link" size="sm" asChild className="px-0 text-sm font-normal">
                                             <Link href="/reset">
                                                 Forgot Password?
                                             </Link>
