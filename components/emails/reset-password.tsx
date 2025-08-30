@@ -16,9 +16,7 @@ interface PocketshuttleResetPasswordEmailProps {
     resetPasswordLink?: string;
 }
 
-const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "https://app.pocketshuttle.com";
+const baseUrl = "https://app.pocketshuttle.com";
 
 export const PocketshuttleResetPasswordEmail = ({
     resetPasswordLink,
@@ -26,14 +24,14 @@ export const PocketshuttleResetPasswordEmail = ({
     return (
         <Html>
             <Head />
-            <Preview>Pocketshuttle reset your password</Preview>
+            <Preview>Pocketshuttle reset your Password</Preview>
             <Body style={main}>
                 <Container style={container}>
                     <Img
                         src={`${baseUrl}/images/pslogo.png`}
                         width="200"
                         height="33"
-                        alt="Dropbox"
+                        alt="pocketshuttle"
                     />
                     <Section>
                         <Text style={text}>Hi,</Text>
@@ -42,7 +40,7 @@ export const PocketshuttleResetPasswordEmail = ({
                             account. If this was you, you can set a new password here:
                         </Text>
                         <Button style={button} href={resetPasswordLink}>
-                            Reset password
+                            Reset Password
                         </Button>
                         <Text style={text}>
                             If you don&apos;t want to change your password or didn&apos;t
@@ -55,7 +53,7 @@ export const PocketshuttleResetPasswordEmail = ({
                                 more security tips.
                             </Link>
                         </Text>
-                        <Text style={text}>Happy Traveling!</Text>
+                        <Text style={text}>Happy Tracking!</Text>
                     </Section>
                 </Container>
             </Body>

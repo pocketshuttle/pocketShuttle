@@ -25,7 +25,6 @@ export const newPassword = async (
   const { password } = validatedFields.data;
 
   const existingToken = await getResetPasswordTokenByToken(token);
-  console.log("existing token", existingToken);
 
   if (!existingToken) {
     return { error: "Invalid Token!" };
@@ -52,8 +51,10 @@ export const newPassword = async (
     data: {
       emailVerified: new Date(),
       email: existingToken.email,
+      password: hashedPassword,
     },
   });
+  
   await db.resetPasswordToken.delete({ where: { id: existingToken.id } });
 
   return { success: "Password reset successfully!" };

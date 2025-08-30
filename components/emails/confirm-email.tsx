@@ -18,9 +18,8 @@ interface PocketshuttleLoginCodeEmailProps {
     verificationLink: string;
 }
 
-const baseUrl = process.env.VERCEL_URL
-    ? `https://app.pocketshuttle.com`
-    : "";
+const baseUrl = `https://app.pocketshuttle.com`
+
 
 export const PocketshuttleLoginCodeEmail = ({
     verificationLink,
@@ -31,10 +30,10 @@ export const PocketshuttleLoginCodeEmail = ({
         <Body style={main}>
             <Container style={container}>
                 <Img
-                    src={`${baseUrl}/static/linear-logo.png`}
+                    src={`${baseUrl}/icon-256x256.png`}
                     width="42"
                     height="42"
-                    alt="Linear"
+                    alt="pocketshuttle"
                     style={logo}
                 />
                 <Heading style={heading}>Your login link for Pocketshuttle</Heading>
@@ -49,7 +48,7 @@ export const PocketshuttleLoginCodeEmail = ({
                 </Text>
                 <Hr style={hr} />
                 <Link href="app.pocketshuttle.com" style={reportLink}>
-                    Linear
+                    Pocketshuttle via Meshboc
                 </Link>
             </Container>
         </Body>
