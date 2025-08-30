@@ -36,10 +36,15 @@ export const PocketshuttleResetPasswordEmail = ({
                     <Section>
                         <Text style={text}>Hi,</Text>
                         <Text style={text}>
-                            Someone recently requested a password change for your Pockershuttle
+                            Someone recently requested a password change for your Pocketshuttle
                             account. If this was you, you can set a new password here:
                         </Text>
-                        <Button style={button} href={resetPasswordLink}>
+                        <Button
+                            style={button}
+                            href={resetPasswordLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
                             Reset Password
                         </Button>
                         <Text style={text}>
@@ -54,6 +59,10 @@ export const PocketshuttleResetPasswordEmail = ({
                             </Link>
                         </Text>
                         <Text style={text}>Happy Tracking!</Text>
+                        <Text style={{ ...text, fontSize: "12px", color: "#888", marginTop: "20px" }}>
+                            You’re receiving this email because a password reset was requested for your Pocketshuttle account.
+                            If this wasn’t you, you can safely ignore it.
+                        </Text>
                     </Section>
                 </Container>
             </Body>
