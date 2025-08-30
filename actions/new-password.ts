@@ -36,10 +36,15 @@ export const newPassword = async (
   }
 
   const existingUser = await getUserByEmail(existingToken.email);
-  console.log("existing user", existingUser);
 
-  if (!existingUser) {
+  if (!existingUser || !existingUser.password) {
     return { error: "Email not found!" };
+  }
+
+  const isSamePassword = await bcrypt.compare(password, existingUser.password);
+
+  if (isSamePassword) {
+    return { error: "You cannot use your previous password!" };
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -54,7 +59,7 @@ export const newPassword = async (
       password: hashedPassword,
     },
   });
-  
+
   await db.resetPasswordToken.delete({ where: { id: existingToken.id } });
 
   return { success: "Password reset successfully!" };
