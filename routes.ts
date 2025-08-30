@@ -3,7 +3,7 @@
  * @type string
  *
  */
-export const publicRoutes = ["/", "/new-verification"];
+export const publicRoutes = ["/", "/new-verification", "/confirm-email"];
 
 /**
  *  An array of auth routes,

@@ -28,23 +28,25 @@ export const Login = async (
   const { email, password, role: userRole } = validatedFields.data;
 
   const existingUser = await getUserByEmail(email, userRole);
+
   // Check if user exists
   if (!existingUser || !existingUser.password || !existingUser.email) {
     return { error: "Invalid Credentials!" };
   }
+
   // Verify email if needed
-  // if (!existingUser.emailVerified) {
-  //   const verificationToken = await generateVerificationToken(
-  //     existingUser.email
-  //   );
+  if (!existingUser.emailVerified) {
+    const verificationToken = await generateVerificationToken(
+      existingUser.email
+    );
+    await sendVerificationEmail(
+      verificationToken.email,
+      verificationToken.token
+    );
 
-  //   await sendVerificationEmail(
-  //     verificationToken.email,
-  //     verificationToken.token
-  //   );
-
-  //   return { success: "Confirmation email sent, please verify your account!" };
-  // }
+    // Redirect instead of just returning a message
+    redirect("/confirm-email");
+  }
 
   // Check password validity
   const isPasswordValid = await bcrypt.compare(password, existingUser.password);

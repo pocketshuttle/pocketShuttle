@@ -45,8 +45,8 @@ export const RegisterForm = () => {
         // using the useTransition hook from react
         startTransition(() => {
             register(values).then((data) => {
-                setIsError(data.error)
-                setIsSuccess(data.success)
+                setIsError(data?.error)
+                // setIsSuccess(data.success)
             })
         })
     }
@@ -134,7 +134,7 @@ export const RegisterForm = () => {
                         </FormField>
                     </div>
                     <FormError message={isError} />
-                    
+
                     <Button
                         disabled={isPending}
                         size="lg" className="w-full" type="submit">Join Us</Button>
