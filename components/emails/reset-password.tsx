@@ -28,7 +28,7 @@ export const PocketshuttleResetPasswordEmail = ({
             <Body style={main}>
                 <Container style={container}>
                     <Img
-                        src={`${baseUrl}/images/pslogo.png`}
+                        src={`${baseUrl}/icon-256x256.png`}
                         width="200"
                         height="33"
                         alt="pocketshuttle"
