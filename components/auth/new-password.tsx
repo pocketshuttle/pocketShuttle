@@ -23,6 +23,7 @@ export const NewPasswordForm = () => {
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState<string | undefined>("")
     const [isSuccess, setIsSuccess] = useState<string | undefined>("")
+
     {/**
      Initialize the form with react-hook-form, integrating Zod for validation
  - The form's validation schema is defined using Zod's `NewPasswordSchema`
@@ -32,6 +33,7 @@ export const NewPasswordForm = () => {
  @Usage:
  This setup enables the form to use `NewPasswordSchema` for validating the email and password fields.
 */}
+
     const form = useForm<z.infer<typeof NewPasswordSchema>>({
         resolver: zodResolver(NewPasswordSchema),
         defaultValues: {
@@ -41,7 +43,7 @@ export const NewPasswordForm = () => {
     const onSubmit = (values: z.infer<typeof NewPasswordSchema>) => {
         setIsError("")
         setIsSuccess("")
-        console.log(values)
+
         // using the useTransition hook from react
         startTransition(() => {
             newPassword(values, token).then((data) => {
@@ -53,7 +55,7 @@ export const NewPasswordForm = () => {
 
     return (
         <CardWrapper
-            headLabel="Forgot your password"
+            headLabel="Forgot your password ?"
             backButtonLabel="Back to Login?"
             backButtonHref="/login"
         >
