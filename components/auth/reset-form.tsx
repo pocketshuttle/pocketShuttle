@@ -38,7 +38,6 @@ export const ResetPasswordForm = () => {
     const onSubmit = (values: z.infer<typeof ResetPasswordSchema>) => {
         setIsError("")
         setIsSuccess("")
-        console.log(values)
         // using the useTransition hook from react
         startTransition(() => {
             reset(values).then((data) => {

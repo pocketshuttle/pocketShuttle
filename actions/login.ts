@@ -33,18 +33,18 @@ export const Login = async (
     return { error: "Invalid Credentials!" };
   }
   // Verify email if needed
-  // if (!existingUser.emailVerified) {
-  //   const verificationToken = await generateVerificationToken(
-  //     existingUser.email
-  //   );
+  if (!existingUser.emailVerified) {
+    const verificationToken = await generateVerificationToken(
+      existingUser.email
+    );
 
-  //   await sendVerificationEmail(
-  //     verificationToken.email,
-  //     verificationToken.token
-  //   );
+    await sendVerificationEmail(
+      verificationToken.email,
+      verificationToken.token
+    );
 
-  //   return { success: "Confirmation email sent, please verify your account!" };
-  // }
+    return { success: "Confirmation email sent, please verify your account!" };
+  }
 
   // Check password validity
   const isPasswordValid = await bcrypt.compare(password, existingUser.password);
