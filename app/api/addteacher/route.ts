@@ -6,6 +6,7 @@ import { TeacherSchema } from "@/schemas";
 import bcrypt from "bcryptjs";
 import NewUser from "@/(models)/NewUser";
 import { db } from "@/lib/db";
+import { revalidateTag } from "next/cache";
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -75,6 +76,8 @@ export const POST = async (req: NextRequest) => {
         },
       });
     }
+
+    revalidateTag("teacher");
 
     return Response.json(
       { message: "Teacher added Succesfully " },

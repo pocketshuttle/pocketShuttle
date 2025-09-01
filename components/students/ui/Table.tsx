@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table"
 
 import { SelectProperty } from "@/components/ui/select-wrapper"
-import { grades } from "@/data/schooldata"
+import { BusesProps, grades } from "@/data/schooldata"
 import { SelectPassengerBus } from "@/components/ui/select-bus-wrapper"
 import {
     AlertDialog,
@@ -51,8 +51,8 @@ import { removeStudentFromBus } from "@/actions/remove-student-bus"
 type IdProps = {
     studentsData: StudentProps[]
     totalCount: number
+    busData: BusesProps[]
 }
-//  @ts-ignore  
 export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => {
     const [isPending, startTransition] = useTransition()
     const [filterGrade, setFilterGrade] = useState<string>("")
@@ -212,6 +212,7 @@ export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => 
                                                         < SelectPassengerBus
                                                             placeholder="Select Bus"
                                                             label="Select Bus"
+                                                            // @ts-ignore
                                                             data={busData}
                                                             studentId={student.id}
                                                         />
