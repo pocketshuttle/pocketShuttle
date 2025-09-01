@@ -184,7 +184,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                                         <FormControl>
                                                             <Input
                                                                 {...field}
-                                                                placeholder="johndoe@email.com"
+                                                                placeholder="08123456789"
                                                                 type="text"
                                                                 disabled={isPending}
                                                                 className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"

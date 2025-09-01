@@ -28,8 +28,6 @@ export const AddressComponent = ({
         if (autocompleteRef.current) {
             const place = autocompleteRef.current.getPlace();
 
-            console.log("Selected place:", place);
-
             const address = place.formatted_address;
             const location = place.geometry?.location;
 
@@ -51,7 +49,6 @@ export const AddressComponent = ({
         <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
             libraries={["places"]}
         >
-
             <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
                 <input
                     type="text"
