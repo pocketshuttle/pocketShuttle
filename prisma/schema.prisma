@@ -104,6 +104,7 @@ model Teacher {
   bus           Buses?    @relation(fields: [busId], references: [id])
   NewUser       NewUser[]
   Student       Student[]
+  Pickup        Pickup[]
 }
 
 model Driver {
@@ -137,6 +138,7 @@ model Parent {
   NewUser       NewUser[]
   Student       Student[]
   notifications ParentNotification[]
+  Pickup        Pickup[]
 }
 
 model Student {
@@ -159,6 +161,7 @@ model Student {
   busId      String?
   bus        Buses?             @relation("BusStudents", fields: [busId], references: [id])
   Buses      Buses[]
+  Pickup     Pickup[]
 }
 
 model Route {
@@ -221,4 +224,18 @@ model ResetPasswordToken {
   expires DateTime
 
   @@unique([email, token])
+}
+
+model Pickup {
+  id          String   @id @default(cuid())
+  studentId   String
+  teacherId   String
+  parentId    String
+  pickUpTime  DateTime @default(now())
+  confirmedBy String?
+
+  // Relations
+  Parent  Parent  @relation(fields: [parentId], references: [id])
+  Student Student @relation(fields: [studentId], references: [id])
+  Teacher Teacher @relation(fields: [teacherId], references: [id])
 }
