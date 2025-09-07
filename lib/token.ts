@@ -5,9 +5,12 @@ import { getVerificationTokenByEmail } from "@/data/verification-token";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "./db";
 
-export const generateVerificationToken = async (email: string) => {
+export const generateVerificationToken = async (
+  email: string,
+  role: string
+) => {
   const token = uuidv4();
- 
+
   // it expires in one hour
   const expires = new Date(Date.now() + 3600 * 1000);
 
@@ -24,6 +27,7 @@ export const generateVerificationToken = async (email: string) => {
   const verificationToken = await db.verificationToken.create({
     data: {
       email,
+      role,
       token,
       expires,
     },

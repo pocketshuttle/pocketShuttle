@@ -14,12 +14,14 @@ import { FormSuccess } from "@/components/errorsandsuccess/form-success"
 import Link from "next/link"
 import { reset } from "@/actions/reset"
 import { Poppins } from "next/font/google"
+import { AddRoles } from "../ui/add-role"
 const poppins = Poppins({ weight: "400", subsets: ["latin"] });
 
 export const ResetPasswordForm = () => {
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState<string | undefined>("")
     const [isSuccess, setIsSuccess] = useState<string | undefined>("")
+    const [selectedRole, setSelectedRole] = useState<string>("")
     {/**
      Initialize the form with react-hook-form, integrating Zod for validation
  - The form's validation schema is defined using Zod's `ResetPasswordSchema`
@@ -33,8 +35,14 @@ export const ResetPasswordForm = () => {
         resolver: zodResolver(ResetPasswordSchema),
         defaultValues: {
             email: "",
+            role: ""
         }
     })
+
+    const handleSelectRole = (value: string) => {
+        setSelectedRole(value)
+        form.setValue("role", value)
+    }
     const onSubmit = (values: z.infer<typeof ResetPasswordSchema>) => {
         setIsError("")
         setIsSuccess("")
@@ -76,6 +84,10 @@ export const ResetPasswordForm = () => {
                             )}
                         >
                         </FormField>
+                    </div>
+                    <div>
+                        <AddRoles handleSelectChange={handleSelectRole} />
+
                     </div>
                     <FormError message={isError} />
                     <FormSuccess message={isSuccess} />

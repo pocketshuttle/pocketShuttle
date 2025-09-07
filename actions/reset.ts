@@ -17,9 +17,9 @@ export const reset = async (values: z.infer<typeof ResetPasswordSchema>) => {
     return { error: "Invalid email!" };
   }
 
-  const { email } = validatedFields.data;
+  const { email, role } = validatedFields.data;
 
-  const existingUser = await getUserByEmail(email);
+  const existingUser = await getUserByEmail(email, role);
 
   if (!existingUser) {
     return { error: "User not found!" };

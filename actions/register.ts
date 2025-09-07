@@ -37,7 +37,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
 
     // await createSession(user.id);
 
-    const verificationToken = await generateVerificationToken(email);
+    const verificationToken = await generateVerificationToken(email, "ADMIN");
 
     await sendVerificationEmail(
       verificationToken.email,

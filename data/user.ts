@@ -5,9 +5,8 @@ export const getUserByEmail = async (email: string, role?: string) => {
   try {
     let user;
 
-    if (role) {
+    if (role && role.toLowerCase() !== "admin") {
       if (role === "parent") {
-        // user = await Parent.findOne({ email: email });
         user = await db.parent.findUnique({
           where: {
             email,
@@ -21,7 +20,6 @@ export const getUserByEmail = async (email: string, role?: string) => {
         });
       }
     } else {
-      // user = await User.findOne({ email: email });
       user = await db.user.findUnique({
         where: {
           email,

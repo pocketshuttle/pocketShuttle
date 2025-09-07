@@ -9,7 +9,6 @@ import { connectToDB } from "@/utils/connect-to-db";
 
 export const newVerification = async (token: string) => {
   const existingToken = await getVerificationTokenByToken(token);
-  console.log("existing token", existingToken);
 
   if (!existingToken) {
     return { error: "Token not found" };
@@ -19,26 +18,45 @@ export const newVerification = async (token: string) => {
   if (hasExpired) {
     return { error: "Token expired" };
   }
+  console.log(existingToken, "from new verifcation token");
 
   const existingUser = await getUserByEmail(
     existingToken.email,
-    //@ts-ignore
-    existingToken.role
+    existingToken.role.toLowerCase()
   );
+
+  console.log(existingUser, "from new verification");
 
   if (!existingUser) {
     return { error: "Email does not exist" };
   }
 
-  await db.user.update({
-    where: {
-      id: existingUser.id,
-    },
-    data: {
-      emailVerified: new Date(),
-      email: existingToken.email,
-    },
-  });
+  if ("role" in existingUser && existingUser.role === "PARENT") {
+    await db.parent.update({
+      where: { id: existingUser.id },
+      data: {
+        emailVerified: new Date(),
+        email: existingToken.email,
+      },
+    });
+  } else if ("role" in existingUser && existingUser.role === "ADMIN") {
+    await db.user.update({
+      where: { id: existingUser.id },
+      data: {
+        emailVerified: new Date(),
+        email: existingToken.email,
+      },
+    });
+  } else {
+    await db.teacher.update({
+      where: { id: existingUser.id },
+      data: {
+        emailVerified: new Date(),
+        email: existingToken.email,
+      },
+    });
+  }
+
   await db.verificationToken.delete({ where: { id: existingToken.id } });
 
   return { success: "Email verified!" };

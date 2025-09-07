@@ -33,12 +33,13 @@ export const Login = async (
   if (!existingUser || !existingUser.password || !existingUser.email) {
     return { error: "Invalid Credentials!" };
   }
-
   // Verify email if needed
   if (!existingUser.emailVerified) {
     const verificationToken = await generateVerificationToken(
-      existingUser.email
+      existingUser.email,
+      existingUser.role
     );
+
     await sendVerificationEmail(
       verificationToken.email,
       verificationToken.token
@@ -53,6 +54,8 @@ export const Login = async (
   if (!isPasswordValid) {
     return { error: "Invalid Credentials!" };
   }
+
+  console.log(isPasswordValid);
   // Prepare session data
   const id = existingUser?.id;
   const role = existingUser?.role;
