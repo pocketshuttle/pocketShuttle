@@ -1,7 +1,4 @@
-import NewUser from "@/(models)/NewUser";
-import Parent from "@/(models)/Parent";
-import Teacher from "@/(models)/Teachers";
-import User from "@/(models)/User";
+"use server";
 import { db } from "@/lib/db";
 
 export const getUserByEmail = async (email: string, role?: string) => {
