@@ -211,6 +211,7 @@ model ParentNotification {
 model verificationToken {
   id      String   @id @default(cuid())
   email   String
+  role    String
   token   String   @unique
   expires DateTime
 
@@ -220,6 +221,7 @@ model verificationToken {
 model ResetPasswordToken {
   id      String   @id @default(cuid())
   email   String
+  role    String?
   token   String   @unique
   expires DateTime
 

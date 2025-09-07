@@ -27,6 +27,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "worker/index.js"
-, "app/api/events/attendance-events.ts"  ],
+, "app/api/events/attendance-events.ts", "prisma/seed.mjs", "prisma/seed.mjs"  ],
   "exclude": ["node_modules"]
 }

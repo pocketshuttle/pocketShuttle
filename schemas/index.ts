@@ -26,6 +26,9 @@ export const ResetPasswordSchema = z.object({
   email: z.string().email({
     message: "Invalid email",
   }),
+  role: z.string().min(2, {
+    message: "Role is required",
+  }),
 });
 export const NewPasswordSchema = z.object({
   password: z.string().min(6, {

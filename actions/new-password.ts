@@ -18,6 +18,8 @@ export const newPassword = async (
   }
   const validatedFields = NewPasswordSchema.safeParse(values);
 
+  console.log(validatedFields, "validated fields");
+
   if (!validatedFields.success) {
     return { error: "Invalid fields!" };
   }
