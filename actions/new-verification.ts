@@ -10,6 +10,7 @@ import { connectToDB } from "@/utils/connect-to-db";
 export const newVerification = async (token: string) => {
   const existingToken = await getVerificationTokenByToken(token);
   console.log("existing token", existingToken);
+
   if (!existingToken) {
     return { error: "Token not found" };
   }
@@ -19,9 +20,14 @@ export const newVerification = async (token: string) => {
     return { error: "Token expired" };
   }
 
-  const existingUser = await getUserByEmail(existingToken.email);
+  const existingUser = await getUserByEmail(
+    existingToken.email,
+    //@ts-ignore
+    existingToken.role
+  );
+
   if (!existingUser) {
-    return { error: "email doesnt exist" };
+    return { error: "Email does not exist" };
   }
 
   await db.user.update({
