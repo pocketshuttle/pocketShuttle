@@ -85,7 +85,7 @@ export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }: ImageProp
                         src={newAvatar || avatar}
                         alt="avatar"
                         fill
-                        className="cursor-pointer rounded-md object-cover" // or object-contain / object-fill
+                        className="cursor-pointer rounded-md object-cover" 
                         onClick={() => handleCameraClick()}
                     />
                 )}
