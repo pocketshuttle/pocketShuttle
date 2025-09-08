@@ -23,6 +23,11 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
 
   description: "location bus service for school and parent",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
   openGraph: {
     title: "pocketshuttle",
     description: "location bus service for school and parent",
