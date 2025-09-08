@@ -75,17 +75,20 @@ export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }: ImageProp
                 style={{ display: 'none' }}
                 onChange={handleCameraInputChange}
             />
-            <div className=' w-[300px] h-[300px]'>
-                {
-                    isLoading ?
-                        <div
-                            className='w-[300px] h-[300px] mr-[0.2rem] flex items-center justify-center'
-                        >
-                            <LottieAnimation isHovering={true} animationData={upload} />
-
-                        </div> :
-                        <Image src={newAvatar || avatar} alt="avatar" width={300} height={300} className="cursor-pointer rounded-md  w-full  object-fill" onClick={() => handleCameraClick()} />
-                }
+            <div className="w-[300px] h-[300px] relative">
+                {isLoading ? (
+                    <div className="w-full h-full flex items-center justify-center">
+                        <LottieAnimation isHovering={true} animationData={upload} />
+                    </div>
+                ) : (
+                    <Image
+                        src={newAvatar || avatar}
+                        alt="avatar"
+                        fill
+                        className="cursor-pointer rounded-md object-cover" // or object-contain / object-fill
+                        onClick={() => handleCameraClick()}
+                    />
+                )}
             </div>
         </div>
     )
