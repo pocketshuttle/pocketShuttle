@@ -16,17 +16,8 @@ type SelectProps = {
     setFilterGrade?: Dispatch<SetStateAction<string>>;
     data?: any
 };
-const data = [
-    {
-        value: "parent",
-        label: "Parent",
-    },
-    {
-        value: "teacher",
-        label: "Teacher",
-    },
-];
-export const AddRoles = ({ handleSelectChange }: SelectProps) => {
+
+export const AddRoles = ({ handleSelectChange, data }: SelectProps) => {
 
     return (
         <Select onValueChange={handleSelectChange}>

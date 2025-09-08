@@ -31,6 +31,20 @@ export const ResetPasswordForm = () => {
  @Usage:
  This setup enables the form to use `ResetPasswordSchema` for validating the email and password fields.
 */}
+    const data = [
+        {
+            value: "admin",
+            label: "Admin"
+        },
+        {
+            value: "parent",
+            label: "Parent",
+        },
+        {
+            value: "teacher",
+            label: "Teacher",
+        },
+    ];
     const form = useForm<z.infer<typeof ResetPasswordSchema>>({
         resolver: zodResolver(ResetPasswordSchema),
         defaultValues: {
@@ -87,7 +101,7 @@ export const ResetPasswordForm = () => {
                         </FormField>
                     </div>
                     <div>
-                        <AddRoles handleSelectChange={handleSelectRole} />
+                        <AddRoles handleSelectChange={handleSelectRole} data={data} />
 
                     </div>
                     <FormError message={isError} />

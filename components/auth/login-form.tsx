@@ -37,6 +37,17 @@ export const LoginForm = () => {
  @Usage:
  This setup enables the form to use `LoginSchema` for validating the email and password fields.
 */}
+    const data = [
+
+        {
+            value: "parent",
+            label: "Parent",
+        },
+        {
+            value: "teacher",
+            label: "Teacher",
+        },
+    ];
 
     const form = useForm<z.infer<typeof LoginSchema>>({
         resolver: zodResolver(LoginSchema),
@@ -117,7 +128,7 @@ export const LoginForm = () => {
                                                 Forgot Password?
                                             </Link>
                                         </Button>
-                                        <AddRoles handleSelectChange={handleSelectRole} />
+                                        <AddRoles handleSelectChange={handleSelectRole} data={data} />
                                     </div>
                                     <FormMessage />
                                 </FormItem>
