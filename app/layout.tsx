@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     images: "/logo.png",
     type: "website",
   },
-  keywords: ["school delivery", "school", "bus service for kids", "meshboc"],
+  keywords: ["school delivery", "drop off kids", "school", "bus service for kids", "meshboc"],
 };
 
 export default function RootLayout({
