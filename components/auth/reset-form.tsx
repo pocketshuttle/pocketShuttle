@@ -35,7 +35,7 @@ export const ResetPasswordForm = () => {
         resolver: zodResolver(ResetPasswordSchema),
         defaultValues: {
             email: "",
-            role: ""
+            role: "admin"
         }
     })
 
@@ -46,6 +46,7 @@ export const ResetPasswordForm = () => {
     const onSubmit = (values: z.infer<typeof ResetPasswordSchema>) => {
         setIsError("")
         setIsSuccess("")
+
         // using the useTransition hook from react
         startTransition(() => {
             reset(values).then((data) => {
@@ -70,7 +71,7 @@ export const ResetPasswordForm = () => {
                             name="email"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Email</FormLabel>
+                                    <FormLabel>Please enter your Email:</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}

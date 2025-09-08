@@ -18,13 +18,11 @@ export const newPassword = async (
   }
   const validatedFields = NewPasswordSchema.safeParse(values);
 
-  console.log(validatedFields, "validated fields");
-
   if (!validatedFields.success) {
     return { error: "Invalid fields!" };
   }
 
-  const { password } = validatedFields.data;
+  const { password, role } = validatedFields.data;
 
   const existingToken = await getResetPasswordTokenByToken(token);
 
@@ -37,7 +35,10 @@ export const newPassword = async (
     return { error: "Token has expired!" };
   }
 
-  const existingUser = await getUserByEmail(existingToken.email);
+  const existingUser = await getUserByEmail(
+    existingToken.email,
+    existingToken.role || ""
+  );
 
   if (!existingUser || !existingUser.password) {
     return { error: "Email not found!" };
@@ -51,16 +52,42 @@ export const newPassword = async (
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  await db.user.update({
-    where: {
-      id: existingUser.id,
-    },
-    data: {
-      emailVerified: new Date(),
-      email: existingToken.email,
-      password: hashedPassword,
-    },
-  });
+  if (role && role.toLowerCase() !== "admin") {
+    if (role === "teacher") {
+      await db.teacher.update({
+        where: {
+          id: existingUser.id,
+        },
+        data: {
+          emailVerified: new Date(),
+          email: existingToken.email,
+          password: hashedPassword,
+        },
+      });
+    } else if (role === "parent") {
+      await db.parent.update({
+        where: {
+          id: existingUser.id,
+        },
+        data: {
+          emailVerified: new Date(),
+          email: existingToken.email,
+          password: hashedPassword,
+        },
+      });
+    }
+  } else {
+    await db.user.update({
+      where: {
+        id: existingUser.id,
+      },
+      data: {
+        emailVerified: new Date(),
+        email: existingToken.email,
+        password: hashedPassword,
+      },
+    });
+  }
 
   await db.resetPasswordToken.delete({ where: { id: existingToken.id } });
 

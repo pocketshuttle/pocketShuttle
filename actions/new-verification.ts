@@ -18,14 +18,10 @@ export const newVerification = async (token: string) => {
   if (hasExpired) {
     return { error: "Token expired" };
   }
-  console.log(existingToken, "from new verifcation token");
-
   const existingUser = await getUserByEmail(
     existingToken.email,
     existingToken.role.toLowerCase()
   );
-
-  console.log(existingUser, "from new verification");
 
   if (!existingUser) {
     return { error: "Email does not exist" };
