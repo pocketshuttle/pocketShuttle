@@ -153,8 +153,7 @@ export const ParentData = ({ parentData, totalCount, studentData }) => {
                                                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                                                         <AlertDialogDescription className="text-gray-500 text-md capitalize">
                                                             {` You're about to delete 
-                                                                 ${parent.full_name} ?
-        `}
+                                                                 ${parent.full_name} ?`}
                                                         </AlertDialogDescription>
                                                     </AlertDialogHeader>
                                                     <AlertDialogFooter>
