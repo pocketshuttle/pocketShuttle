@@ -12,6 +12,7 @@ import { sendResetPasswordEmail, sendVerificationEmail } from "@/lib/mail";
 
 export const reset = async (values: z.infer<typeof ResetPasswordSchema>) => {
   const validatedFields = ResetPasswordSchema.safeParse(values);
+  console.log(validatedFields, "from validated fieldss");
 
   if (!validatedFields.success) {
     return { error: "Invalid email!" };
@@ -26,7 +27,8 @@ export const reset = async (values: z.infer<typeof ResetPasswordSchema>) => {
   }
 
   const resetPasswordToken = await generatePasswordResetToken(
-    existingUser.email || ""
+    existingUser.email || "",
+    role
   );
 
   await sendResetPasswordEmail(

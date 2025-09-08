@@ -36,7 +36,10 @@ export const generateVerificationToken = async (
   return verificationToken;
 };
 
-export const generatePasswordResetToken = async (email: string) => {
+export const generatePasswordResetToken = async (
+  email: string,
+  role: string
+) => {
   const token = uuidv4();
   // it expires in one hour
   const expires = new Date(Date.now() + 3600 * 1000);
@@ -51,7 +54,7 @@ export const generatePasswordResetToken = async (email: string) => {
   }
 
   const resetPasswordToken = await db.resetPasswordToken.create({
-    data: { email, token, expires },
+    data: { email, role, token, expires },
   });
 
   return resetPasswordToken;

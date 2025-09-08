@@ -18,6 +18,12 @@ export const getUserByEmail = async (email: string, role?: string) => {
             email,
           },
         });
+      } else if (role === "admin") {
+        user = await db.user.findUnique({
+          where: {
+            email,
+          },
+        });
       }
     } else {
       user = await db.user.findUnique({

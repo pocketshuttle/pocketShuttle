@@ -14,6 +14,7 @@ import { FormSuccess } from "@/components/errorsandsuccess/form-success"
 import { useSearchParams } from "next/navigation"
 import { newPassword } from "@/actions/new-password"
 import { Poppins } from "next/font/google"
+import { AddRoles } from "../ui/add-role"
 const poppins = Poppins({ weight: "400", subsets: ["latin"] });
 
 export const NewPasswordForm = () => {
@@ -23,6 +24,7 @@ export const NewPasswordForm = () => {
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState<string | undefined>("")
     const [isSuccess, setIsSuccess] = useState<string | undefined>("")
+    const [selectedRole, setSelectedRole] = useState<string>("")
 
     {/**
      Initialize the form with react-hook-form, integrating Zod for validation
@@ -38,8 +40,13 @@ export const NewPasswordForm = () => {
         resolver: zodResolver(NewPasswordSchema),
         defaultValues: {
             password: "",
+            role: "admin"
         }
     })
+    const handleSelectRole = (value: string) => {
+        setSelectedRole(value)
+        form.setValue("role", value)
+    }
     const onSubmit = (values: z.infer<typeof NewPasswordSchema>) => {
         setIsError("")
         setIsSuccess("")
@@ -82,6 +89,10 @@ export const NewPasswordForm = () => {
                             )}
                         >
                         </FormField>
+                    </div>
+                    <div>
+                        <small className="text-sm text-red-300 py-2">If your an admin, ignore this</small>
+                        <AddRoles handleSelectChange={handleSelectRole} />
                     </div>
                     <FormError message={isError} />
                     <FormSuccess message={isSuccess} />

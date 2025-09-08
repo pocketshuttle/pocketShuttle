@@ -55,7 +55,6 @@ export const Login = async (
     return { error: "Invalid Credentials!" };
   }
 
-  console.log(isPasswordValid);
   // Prepare session data
   const id = existingUser?.id;
   const role = existingUser?.role;
