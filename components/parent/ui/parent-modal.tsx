@@ -40,6 +40,16 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
     const session = useSession()
     const userId = session?.id
 
+    const roleData = [
+        {
+            value: "parent",
+            label: "Parent",
+        },
+        {
+            value: "teacher",
+            label: "Teacher",
+        },
+    ];
 
 
     const { data, loading, errorMessage, success } = usePost("/api/addparent", submittedData, "POST")
@@ -225,7 +235,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                             />
                                         </div>
                                         <div className="w-2/6 mt-7">
-                                            <AddRoles handleSelectChange={handleSelectRole} />
+                                            <AddRoles handleSelectChange={handleSelectRole} data={roleData} />
                                         </div>
                                     </div>
                                     <div className="space-y-4">

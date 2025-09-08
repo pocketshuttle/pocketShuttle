@@ -35,6 +35,20 @@ export const NewPasswordForm = () => {
  @Usage:
  This setup enables the form to use `NewPasswordSchema` for validating the email and password fields.
 */}
+    const data = [
+        {
+            value: "admin",
+            label: "Admin",
+        },
+        {
+            value: "parent",
+            label: "Parent",
+        },
+        {
+            value: "teacher",
+            label: "Teacher",
+        },
+    ];
 
     const form = useForm<z.infer<typeof NewPasswordSchema>>({
         resolver: zodResolver(NewPasswordSchema),
@@ -91,8 +105,7 @@ export const NewPasswordForm = () => {
                         </FormField>
                     </div>
                     <div>
-                        <small className="text-sm text-red-300 py-2">If your an admin, ignore this</small>
-                        <AddRoles handleSelectChange={handleSelectRole} />
+                        <AddRoles handleSelectChange={handleSelectRole} data={data} />
                     </div>
                     <FormError message={isError} />
                     <FormSuccess message={isSuccess} />
