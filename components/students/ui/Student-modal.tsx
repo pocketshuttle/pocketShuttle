@@ -133,10 +133,8 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                     action={() => handleCloseModal()}
                 >
                     <div className=" flex  ">
-                        <div className=" w-[40%] items-center border-[1.5px] border-dashed border-gray-300 shadow-md    p-2 rounded-md" >
-                            {/* @ts-ignore */}
-                            < UploadImage form={form} newAvatar={newAvatar} setNewAvatar={setNewAvatar} avatar={avatar} />
-                        </div>
+                        {/* @ts-ignore */}
+                        < UploadImage form={form} newAvatar={newAvatar} setNewAvatar={setNewAvatar} avatar={avatar} />
                         <div className="flex-1 px-5 text-gray-900 ">
 
                             <Form {...form}>
