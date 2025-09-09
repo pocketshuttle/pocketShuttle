@@ -7,7 +7,7 @@ import { AttendanceTab } from "./register-tab";
 import { getCurrentLocation, googleFetchCoordinates } from "@/components/maps/lib/utils";
 
 import { useTeacherLocation } from "@/hooks/useTeacher-location";
-// import { checkBusArrival } from "@/actions/report-folder/get-bus-arrival";
+import { checkBusArrival } from "@/actions/report-folder/get-bus-arrival";
 
 
 export const EachStudent = ({ student, teacherId }: { student: StudentProps, teacherId: string }) => {
@@ -35,6 +35,7 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
     // });
 
     // Fetch current location on mount
+
     useEffect(() => {
         if (!tracking) return;
         const intervalId = setInterval(() => {
@@ -50,17 +51,17 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
 
     }, [tracking]);
 
-    // useEffect(() => {
-    //     if (!coords2 || !tracking) return;
-    //     (async () => {
-    //         const result = await checkBusArrival(coords2, coords1, student, teacherId);
-    //         console.log(result)
-    //         if (result) {
-    //             // 🚨 stop tracking this student
-    //             setTracking(false);
-    //         }
-    //     })()
-    // }, [coords2, coords1, student, tracking]);
+    useEffect(() => {
+        if (!coords2 || !tracking) return;
+        (async () => {
+            const result = await checkBusArrival(coords2, coords1, student, teacherId);
+            console.log(result)
+            if (result) {
+                // 🚨 stop tracking this student
+                setTracking(false);
+            }
+        })()
+    }, [coords2, coords1, student, tracking]);
 
     // Fetch parent's coordinates when student data is available
     useEffect(() => {
@@ -141,7 +142,7 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
                             attendance={attendance}
                             id={student.id}
                             eta={stdentEta}
-                            // onOTW={() => setTracking(true)}
+                            onOTW={() => setTracking(true)}
                         />
                     </div>
                     <p className="text-sm text-[#606060] mb-4 capitalize">{student.address}</p>
@@ -187,3 +188,7 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
         </div>
     );
 };
+
+
+
+
