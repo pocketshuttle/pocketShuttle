@@ -30,9 +30,37 @@ enum StudentPresence {
   NONE
 }
 
+enum SubscriptionPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
 enum UserRole {
   ADMIN
   USER
+}
+
+model SuperUser {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  password  String
+  role      String   @default("SUPERADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  actions SuperUserAction[]
+}
+
+model SuperUserAction {
+  id          String    @id @default(cuid())
+  superUserId String
+  action      String // create and enum for this when im ready "DELETE_SCHOOL", "CREATE_SCHOOL", "RESET_PASSWORD"
+  targetId    String? // the id of the school (User) being acted on
+  createdAt   DateTime  @default(now())
+  metadata    Json?
+  superUser   SuperUser @relation(fields: [superUserId], references: [id])
 }
 
 model User {
@@ -43,16 +71,42 @@ model User {
   image         String?
   role          UserRole  @default(ADMIN)
   password      String?
-  accounts      Account[]
-  teachers      Teacher[]
-  NewUser       NewUser[]
-  Parent        Parent[]
-  Student       Student[]
-  Route         Route[]
-  Buses         Buses[]
-  Driver        Driver[]
+
+  Subscription Subscription[]
+  NewUser      NewUser[]
+  Account      Account[]
+  Teacher      Teacher[]
+  Driver       Driver[]
+  Parent       Parent[]
+  Student      Student[]
+  Route        Route[]
+  Buses        Buses[]
+  Payment      Payment[]
 
   @@map("users")
+}
+
+model Plan {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  price         Float
+  duration      Int // in days
+  description   String?
+  features      Json?
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id               String           @id @default(cuid())
+  userId           String
+  planId           String
+  startDate        DateTime         @default(now())
+  endDate          DateTime
+  status           String           @default("ACTIVE")
+  subscriptionPlan SubscriptionPlan @default(FREE)
+  user             User             @relation(fields: [userId], references: [id])
+  plan             Plan             @relation(fields: [planId], references: [id])
+  Payment          Payment[]
 }
 
 model NewUser {
@@ -62,9 +116,10 @@ model NewUser {
   teacherId String?
   teacher   Teacher? @relation(fields: [teacherId], references: [id])
   schoolId  String
-  school    User     @relation(fields: [schoolId], references: [id])
+  school    User     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   parent    Parent?  @relation(fields: [parentId], references: [id])
   parentId  String?
+  userId    String?
 }
 
 model Account {
@@ -99,12 +154,13 @@ model Teacher {
   phoneNumber   String?
   address       String
   schoolId      String?
-  school        User?     @relation(fields: [schoolId], references: [id])
+  school        User?     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   busId         String?   @unique
-  bus           Buses?    @relation(fields: [busId], references: [id])
+  bus           Buses?    @relation(fields: [busId], references: [id], onDelete: Cascade)
   NewUser       NewUser[]
   Student       Student[]
   Pickup        Pickup[]
+  userId        String?
 }
 
 model Driver {
@@ -119,7 +175,7 @@ model Driver {
   schoolId      String?
   busId         String?   @unique
   bus           Buses?    @relation(fields: [busId], references: [id])
-  school        User?     @relation(fields: [schoolId], references: [id])
+  school        User?     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 }
 
 model Parent {
@@ -133,7 +189,7 @@ model Parent {
   phoneNumber   String?
   address       String?
   schoolId      String
-  school        User                 @relation(fields: [schoolId], references: [id])
+  school        User                 @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   busId         String?
   NewUser       NewUser[]
   Student       Student[]
@@ -157,7 +213,7 @@ model Student {
   schoolId   String
   teacherId  String?
   teacher    Teacher?           @relation(fields: [teacherId], references: [id])
-  school     User               @relation(fields: [schoolId], references: [id])
+  school     User               @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   busId      String?
   bus        Buses?             @relation("BusStudents", fields: [busId], references: [id])
   Buses      Buses[]
@@ -169,7 +225,7 @@ model Route {
   route_name        String
   schoolId          String
   route_description String
-  school            User    @relation(fields: [schoolId], references: [id])
+  school            User    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   Buses             Buses[]
 }
 
@@ -180,7 +236,7 @@ model Buses {
   seat_number      Int
   color            String?
   schoolId         String
-  school           User      @relation(fields: [schoolId], references: [id])
+  school           User      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   routeId          String
   studentId        String?
   students         Student[] @relation("BusStudents")
@@ -229,15 +285,38 @@ model ResetPasswordToken {
 }
 
 model Pickup {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   studentId   String
   teacherId   String
   parentId    String
-  pickUpTime  DateTime @default(now())
+  pickUpTime  DateTime  @default(now())
+  arrivalTime DateTime?
   confirmedBy String?
 
   // Relations
   Parent  Parent  @relation(fields: [parentId], references: [id])
   Student Student @relation(fields: [studentId], references: [id])
   Teacher Teacher @relation(fields: [teacherId], references: [id])
+}
+
+//FUTURE WORK FLOW
+model Payment {
+  id             String   @id @default(cuid())
+  userId         String
+  subscriptionId String?
+  amount         Float
+  currency       String   @default("NGN")
+  status         String
+  transactionId  String   @unique
+  createdAt      DateTime @default(now())
+
+  user         User          @relation(fields: [userId], references: [id])
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
 }
