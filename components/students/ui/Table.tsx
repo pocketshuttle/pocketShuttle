@@ -207,7 +207,7 @@ export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => 
                                                 </div> : <div className="w-full">
                                                     {
                                                         busData &&
-                                                        < SelectPassengebrBus
+                                                        < SelectPassengerBus
                                                             placeholder="Select Bus"
                                                             label="Select Bus"
                                                             // @ts-ignore
