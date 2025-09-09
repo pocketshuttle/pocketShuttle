@@ -198,7 +198,7 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                     </div> */}
                                     <Button
                                         disabled={isPending}
-                                        size="lg" className="w-full bg-[teal] p-5" type="submit">Add Bus
+                                        size="lg" className="w-full bg-[#1d146d] p-5" type="submit">Add Bus
                                     </Button>
                                 </form>
                             </Form>

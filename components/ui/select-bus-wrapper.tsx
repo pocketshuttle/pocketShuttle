@@ -38,7 +38,7 @@ export const SelectPassengerBus = ({ placeholder, label, data, studentId }: Sele
 
     return (
         <Select onValueChange={handleSelectBus}>
-            <SelectTrigger className={` text-gray-200`}>
+            <SelectTrigger className={`text-blue-100 bg-[#1d146d]`}>
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
