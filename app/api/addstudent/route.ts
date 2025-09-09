@@ -1,8 +1,10 @@
+import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Student from "@/(models)/Student";
 import { StudentSchema } from "@/schemas";
 import Buses from "@/(models)/Bus";
 import { db } from "@/lib/db";
+import { revalidateTag } from "next/cache";
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -55,14 +57,14 @@ export const POST = async (req: NextRequest) => {
           },
         },
       });
-
-      if (newStudent) {
-        return Response.json(
-          { message: "Student added Succesfully " },
-          { status: 200 }
-        );
-      }
     }
+    if (newStudent) {
+      return Response.json(
+        { message: "Student added Succesfully " },
+        { status: 200 }
+      );
+    }
+    revalidateTag("students");
   } catch (error) {
     // Handle errors
     console.error("Error adding Student:", error);

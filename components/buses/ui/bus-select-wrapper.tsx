@@ -19,7 +19,7 @@ type SelectProps = {
 export const BusSelectWrapper = ({ placeholder, label, data, handleSelectChange }: SelectProps) => {
     return (
         <Select onValueChange={handleSelectChange}>
-            <SelectTrigger className="w-3/6 text-green-200">
+            <SelectTrigger className="w-3/6 text-blue-100 bg-[#1d146d]">
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>

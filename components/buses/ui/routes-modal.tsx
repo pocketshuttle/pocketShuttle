@@ -56,7 +56,7 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
                         headLabel="Add a Route"
                         action={() => handleCloseModal()}
                     >
-                        <div className=" flex justify-center">
+                        <div className=" flex justify-center text-gray-950">
                             <div className="flex-1 px-5 ">
                                 <Form {...form}>
                                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -105,7 +105,7 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
                                                 />
                                             </div>
                                         </div>
-                                        <Button variant="secondary" type="submit" className="bg-green-800 w-full text-green-200 hover:bg-green-900">
+                                        <Button variant="secondary" type="submit" className="bg-[#1d146d] w-full text-green-200 hover:bg-green-900">
                                             Submit
                                         </Button>
                                     </form>

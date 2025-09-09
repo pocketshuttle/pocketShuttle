@@ -79,7 +79,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
         }
         startTransition(() => {
             setSubmittedData(values)
-            setNewAvatar("")
+            // setNewAvatar("")
         });
 
     }
@@ -87,7 +87,6 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
     const handleCloseModal = () => {
         setIsOpenModal(false)
     }
-
 
     const handleGenderChange = (value: string) => {
         setSelectGender(value);
@@ -137,9 +136,9 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                         < UploadImage form={form} newAvatar={newAvatar} setNewAvatar={setNewAvatar} avatar={avatar} />
                         <div className="flex-1 px-5 text-gray-900 ">
 
-                            <Form {...form}>
+                            <Form {...form} >
                                 {/* the handle submit comes from the form constant */}
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" >
                                     <div className="space-y-4">
                                         <FormField
                                             control={form.control}

@@ -59,10 +59,8 @@ export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => 
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
 
     const handleGradeChange = (value: string) => {
-        console.log(value, "grade")
         setFilterGrade(value)
         const updatedGradeQuery = value !== "All" ? `&grade=${value}` : "";
-
     }
 
     const [isHovering, setIsHovering] = useState(false);
@@ -209,7 +207,7 @@ export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => 
                                                 </div> : <div className="w-full">
                                                     {
                                                         busData &&
-                                                        < SelectPassengerBus
+                                                        < SelectPassengebrBus
                                                             placeholder="Select Bus"
                                                             label="Select Bus"
                                                             // @ts-ignore
