@@ -14,7 +14,7 @@ type SelectProps = {
     label?: string;
     handleSelectChange: (value: string) => void;
     setFilterGrade?: Dispatch<SetStateAction<string>>;
-    data?: any
+    data: any
 };
 
 export const AddRoles = ({ handleSelectChange, data }: SelectProps) => {
