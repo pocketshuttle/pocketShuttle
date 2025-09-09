@@ -1,4 +1,3 @@
-import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Student from "@/(models)/Student";
 import { StudentSchema } from "@/schemas";
@@ -7,7 +6,6 @@ import { db } from "@/lib/db";
 
 export const POST = async (req: NextRequest) => {
   try {
-    await connectToDB();
     const data = await req.json();
     const validatedData = StudentSchema.safeParse(data);
 
@@ -57,7 +55,6 @@ export const POST = async (req: NextRequest) => {
           },
         },
       });
-
 
       if (newStudent) {
         return Response.json(
