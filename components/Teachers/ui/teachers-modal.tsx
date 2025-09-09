@@ -54,6 +54,16 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
     const { data: studentData, isPending: studentPending, errorMessage: studentError } = useFetch(`/api/addstudent/${userId}`, userId);
 
+    const roleData = [
+        {
+            value: "parent",
+            label: "Parent",
+        },
+        {
+            value: "teacher",
+            label: "Teacher",
+        },
+    ];
 
     const useSchema = mode === "driver" ? DriverSchema : TeacherSchema
 
@@ -338,7 +348,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                         {
                                             mode === "teacher" &&
                                             <div className="w-full" >
-                                                < AddRoles handleSelectChange={handleSelectRole} />
+                                                < AddRoles handleSelectChange={handleSelectRole} data={roleData} />
                                             </div>
                                         }
                                     </div>
