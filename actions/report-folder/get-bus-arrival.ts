@@ -4,7 +4,7 @@ import haversine from "haversine-distance";
 
 export async function checkBusArrival(
   busCoords: [number, number],
-  studentCoords: [number, number], 
+  studentCoords: [number, number],
   student: StudentProps,
   teacherId: string
 ): Promise<boolean> {
@@ -16,7 +16,7 @@ export async function checkBusArrival(
   );
 
   if (distance <= 100) {
-    await logBusArrival(student.id, teacherId, student?.parentId);
+    await logBusArrival(student.id, teacherId, student?.parentId || "");
     return true;
   }
 

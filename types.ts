@@ -62,6 +62,7 @@ export type StudentProps = {
   status: string;
   presence: string;
   parent?: ParentProps;
+  parentId?: string;
 };
 
 export type SelectProps = {

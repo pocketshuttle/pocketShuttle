@@ -9,6 +9,7 @@ import { connectToDB } from "@/utils/connect-to-db";
 
 export const newVerification = async (token: string) => {
   const existingToken = await getVerificationTokenByToken(token);
+  console.log(existingToken, "existing token ");
 
   if (!existingToken) {
     return { error: "Token not found" };
@@ -23,11 +24,13 @@ export const newVerification = async (token: string) => {
     existingToken.role.toLowerCase()
   );
 
+  console.log(existingUser, "existing user");
+
   if (!existingUser) {
     return { error: "Email does not exist" };
   }
 
-  if ("role" in existingUser && existingUser.role === "PARENT") {
+  if ("role" in existingUser && existingUser.role.toLowerCase() === "parent") {
     await db.parent.update({
       where: { id: existingUser.id },
       data: {
@@ -35,7 +38,10 @@ export const newVerification = async (token: string) => {
         email: existingToken.email,
       },
     });
-  } else if ("role" in existingUser && existingUser.role === "ADMIN") {
+  } else if (
+    "role" in existingUser &&
+    existingUser.role.toLowerCase() === "admin"
+  ) {
     await db.user.update({
       where: { id: existingUser.id },
       data: {
