@@ -54,6 +54,7 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
     useEffect(() => {
         if (!coords2 || !tracking) return;
         (async () => {
+            //@ts-ignore
             const result = await checkBusArrival(coords2, coords1, student, teacherId);
             console.log(result)
             if (result) {
