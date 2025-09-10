@@ -13,7 +13,7 @@ import { Button } from "../ui/button";
 type SelectProps = {
     placeholder: string;
     label?: string;
-    handleSelectChange: (value: string) => void;
+    handleSelectChange: (value: { busId: string, teacherId: string, teacherName: string }) => void;
     setFilterGrade?: Dispatch<SetStateAction<string>>;
     data: any
     mode?: string

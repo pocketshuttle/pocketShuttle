@@ -1,8 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { AveragePickUp } from './bus-times'
-import { PickupTimeFlow } from './pickup-time-flow.tsx'
-import TeachersChart from './teachers-pie-chart'
 import { StudentPickUpPattern } from './student-pickup-pattern'
 import { AlertsAndInsights } from './alerts-insights'
 import { getWeeklyPickupStatsForBus } from '@/actions/report-folder/get-average-pickup'
@@ -10,13 +8,15 @@ import { SelectActiveTeacher } from './select-teacher'
 import { getTeacherPickupCount } from '@/actions/report-folder/get-teacher-pickup-count'
 import { DailyPickupChart } from './daily-pickup'
 import { getDistanceInMeters } from '@/actions/report-folder/utils/get-distance'
+import { PickupTimeFlow } from './pickup-time-flow'
+import TeachersChart from './teachers-pie-chart'
 
-export const MainPickUpPage = ({ data }) => {
-    const [filterBusId, setFilteredBusId] = useState<{}>({})
+export const MainPickUpPage = ({ data }: any) => {
+    const [filterBusId, setFilteredBusId] = useState<{ busId: string, teacherId: string, teacherName: string }>({ busId: "", teacherId: "", teacherName: "" })
     const [pickUpData, setPickupData] = useState<any[]>([])
     const [teacherPickupData, setTeacherPickupData] = useState<any[]>([])
 
-    const handleTeacherBusChange = (value: {}) => {
+    const handleTeacherBusChange = (value: { busId: string, teacherId: string, teacherName: string }) => {
         setFilteredBusId(value)
     }
 
@@ -84,7 +84,7 @@ export const MainPickUpPage = ({ data }) => {
                     < AlertsAndInsights alerts="10 students were picked up late today" />
                 </div>
                 <div className='col-span-1 '>
-                    < TeachersChart />
+                    < TeachersChart data={teacherPickupData} />
                 </div>
             </div>
         </div >

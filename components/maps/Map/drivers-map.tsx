@@ -30,6 +30,9 @@ export const DriversLocation = () => {
 
     const teachers = useSchoolTeacherLocations()
 
+    console.log(teachers)
+    console.log(mySchoolLocation)
+
     useEffect(() => {
 
         function getLocation() {
@@ -37,7 +40,7 @@ export const DriversLocation = () => {
                 const pos = navigator.geolocation.getCurrentPosition(pos => {
                     const { latitude, longitude } = pos.coords;
                     setschoolLocation({ latitude, longitude });
-                    setSchoolLocation({ latitude, longitude }); // Also set mySchoolLocation
+                    setSchoolLocation({ latitude, longitude });
                     // console.log("School location updated:", { latitude, longitude });
                 });
 
