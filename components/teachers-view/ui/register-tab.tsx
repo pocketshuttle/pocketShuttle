@@ -16,10 +16,11 @@ type RegisterProps = {
     attendance: string;
     id: string;
     eta?: string | null;
+    onOTW: () => void
 };
 
 export const AttendanceTab = ({
-    id, value1, value2, label1, label2, data, SetAttendance, attendance, eta
+    id, value1, value2, label1, label2, data, SetAttendance, attendance, eta, onTW
 }: RegisterProps) => {
     const [localAttendance, setLocalAttendance] = useState(data);
     const [isPending, startTransition] = useTransition()
@@ -39,6 +40,7 @@ export const AttendanceTab = ({
                 toast({
                     description: data.message,
                 });
+                
             }).catch((error) => {
                 console.error("Error:", error);
                 toast({
