@@ -37,6 +37,7 @@ export type TeacherProps = {
   address: string;
   image: string;
   bus: BusProps;
+  weeklyTotal?: number;
 };
 export type ParentProps = {
   id: string;
