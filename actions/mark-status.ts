@@ -100,6 +100,8 @@ export const updateStudentStatus = async (id: string, data: StudentStatus) => {
 
     const hours = getCurrentHourInTimeZone("Africa/Lagos");
 
+    await logMorningPickup(updatedStudent, hours);
+
     // Update student presence based on status and time
     await handlePresenceUpdate(id, updatedStudent, hours);
 
