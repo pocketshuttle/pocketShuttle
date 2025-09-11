@@ -51,12 +51,12 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
 
     }, [tracking]);
 
+
     useEffect(() => {
         if (!coords2 || !tracking) return;
         (async () => {
             //@ts-ignore
             const result = await checkBusArrival(coords2, coords1, student, teacherId);
-            console.log(result)
             if (result) {
                 // 🚨 stop tracking this student
                 setTracking(false);
@@ -86,6 +86,7 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
         fetchParentCoordinates();
     }, [student?.parent?.address]);
 
+
     useEffect(() => {
         if (!window.google) return;
         const teacher = teacherLocation[teacherId] || null;
@@ -109,8 +110,9 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
                 }
             }
         );
-    }, [coords2]);
+    }, [coords2, coords1]);
 
+    console.log(stdentEta, "from each student")
 
     return (
         <div key={student.id} className="w-full bg-[#606060]/10">
