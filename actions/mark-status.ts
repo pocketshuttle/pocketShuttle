@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { Knock } from "@knocklabs/node";
 import { StudentStatus } from "@prisma/client";
 import { revalidateTag } from "next/cache";
+import { logMorningPickup } from "./report-folder/log-morning-pickup";
 
 type ParamsProps = {
   id: string;
@@ -86,7 +87,18 @@ export const updateStudentStatus = async (id: string, data: StudentStatus) => {
     const updatedStudent = await db.student.update({
       where: { id: id },
       data: { status: data },
-      include: { parent: true, Buses: true, bus: true },
+      include: {
+        parent: true,
+        bus: {
+          select: {
+            teacher: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     // Revalidate parent and student data
