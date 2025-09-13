@@ -10,7 +10,7 @@ export const AlertsAndInsights: React.FC<AlertsAndInsightsProps> = ({ alerts }) 
             <p className="text-lg text-gray-900 py-2">
                 Alerts & Insights - Coming Soon
             </p>
-            {/* <p className="text-gray-950">{alerts}</p> */}
+            <p className="text-gray-950">{alerts}</p>
         </div>
     )
 }
