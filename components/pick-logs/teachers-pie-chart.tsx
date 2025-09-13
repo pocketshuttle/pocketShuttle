@@ -2,7 +2,8 @@ import * as React from "react";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { TeacherProps } from "@/types";
 
-export default function TeachersChart({ data = [] }: { data: TeacherProps[] }) {
+export default function TeachersChart({ data }: { data: TeacherProps[] }) {
+    console.log(data, "data from teachers pie chart")
     // Teacher names for X-axis
     const xAxisLabels = data?.map((_, i) => `Week ${i + 1}`);
 

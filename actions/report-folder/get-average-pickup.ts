@@ -7,7 +7,6 @@ export async function getWeeklyPickupStatsForBus(
   termStart: Date,
   termEnd: Date
 ) {
-
   // 1. Get all students on the bus
   const bus = await db.buses.findUnique({
     where: { id: busId },
@@ -29,10 +28,7 @@ export async function getWeeklyPickupStatsForBus(
   });
 
   // 3. Group by week + student
-  const weeklyGroups: Record<
-    string, 
-    Record<string, number[]> 
-  > = {};
+  const weeklyGroups: Record<string, Record<string, number[]>> = {};
 
   pickups.forEach((pickup) => {
     const date = new Date(pickup.pickUpTime);
@@ -84,7 +80,7 @@ export async function getWeeklyPickupStatsForBus(
           "0"
         )}:${String(Math.round(s.avgMinutes % 60)).padStart(2, "0")}`,
       })),
-      
+
       fastest: {
         studentId: fastest.studentId,
         time: `${String(Math.floor(fastest.avgMinutes / 60)).padStart(
@@ -108,4 +104,108 @@ export async function getWeeklyPickupStatsForBus(
   });
 
   return weeklyStats;
+}
+
+export async function getWeeklyLatePickupStats(
+  busId: string,
+  termStart: Date,
+  termEnd: Date
+) {
+  // 1. Get all students on the bus
+  const bus = await db.buses.findUnique({
+    where: { id: busId },
+    include: { students: true },
+  });
+
+  if (!bus) throw new Error("Bus not found");
+
+  const studentIds = bus.students.map((s) => s.id);
+
+  // 2. Fetch all pickups with both arrival and pickup times
+  const pickups = await db.pickup.findMany({
+    where: {
+      studentId: { in: studentIds },
+      pickUpTime: { gte: termStart, lte: termEnd },
+      arrivalTime: { not: null },
+    },
+    include: { Student: true },
+    orderBy: { pickUpTime: "asc" },
+  });
+
+  // 3. Group by week and calculate late pickups
+  const weeklyGroups: Record<
+    string,
+    {
+      totalPickups: number;
+      latePickups: number;
+      lateStudents: Set<string>;
+      totalStudents: Set<string>;
+    }
+  > = {};
+
+  pickups.forEach((pickup) => {
+    if (!pickup.arrivalTime || !pickup.pickUpTime) return;
+
+    const date = new Date(pickup.pickUpTime);
+
+    // Skip weekends
+    const dayOfWeek = date.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) return;
+
+    const weekKey = format(
+      startOfWeek(date, { weekStartsOn: 1 }),
+      "yyyy-MM-dd"
+    );
+
+    if (!weeklyGroups[weekKey]) {
+      weeklyGroups[weekKey] = {
+        totalPickups: 0,
+        latePickups: 0,
+        lateStudents: new Set(),
+        totalStudents: new Set(),
+      };
+    }
+
+    // Calculate time difference in minutes
+    const arrivalTime = new Date(pickup.arrivalTime);
+    const pickupTime = new Date(pickup.pickUpTime);
+    const timeDifferenceMinutes =
+      (pickupTime.getTime() - arrivalTime.getTime()) / (1000 * 60);
+
+    console.log(timeDifferenceMinutes, "timeDifferenceMinutes");
+    weeklyGroups[weekKey].totalPickups++;
+    weeklyGroups[weekKey].totalStudents.add(pickup.studentId);
+
+    // Check if pickup was more than 5 minutes after arrival
+    if (timeDifferenceMinutes > 5) {
+      weeklyGroups[weekKey].latePickups++;
+      weeklyGroups[weekKey].lateStudents.add(pickup.studentId);
+    }
+  });
+
+  // 4. Calculate weekly statistics
+  const weeklyLateStats = Object.entries(weeklyGroups).map(([week, data]) => {
+    const latePercentage =
+      data.totalPickups > 0
+        ? Math.round((data.latePickups / data.totalPickups) * 100)
+        : 0;
+
+    const lateStudentsPercentage =
+      data.totalStudents.size > 0
+        ? Math.round((data.lateStudents.size / data.totalStudents.size) * 100)
+        : 0;
+
+    return {
+      week,
+      totalPickups: data.totalPickups,
+      latePickups: data.latePickups,
+      lateStudents: data.lateStudents.size,
+      totalStudents: data.totalStudents.size,
+      latePickupPercentage: latePercentage,
+      lateStudentsPercentage: lateStudentsPercentage,
+      onTimePercentage: 100 - latePercentage,
+    };
+  });
+
+  return weeklyLateStats;
 }

@@ -73,7 +73,7 @@ const TeachersDrivers = async ({ searchParams }: { searchParams: { [key: string]
             return <div className='text-center'>No teacher data found for this user, try again or add a Teacher</div>;
         }
         revalidateTag("teacher")
-
+        revalidateTag("student")
 
         const bus = await db.buses.findMany({
             where: {
