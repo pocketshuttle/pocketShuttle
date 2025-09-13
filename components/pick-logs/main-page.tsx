@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { AveragePickUp } from './bus-times'
 import { StudentPickUpPattern } from './student-pickup-pattern'
 import { AlertsAndInsights } from './alerts-insights'
-import { getWeeklyPickupStatsForBus, getWeeklyLatePickupStats } from '@/actions/report-folder/get-average-pickup'
+import { getWeeklyPickupStatsForBus, getWeeklyLatePickupStats, getLateStudentDetails } from '@/actions/report-folder/get-average-pickup'
 import { SelectActiveTeacher } from './select-teacher'
 import { getTeacherPickupCount } from '@/actions/report-folder/get-teacher-pickup-count'
 import { DailyPickupChart } from './daily-pickup'
@@ -17,6 +17,7 @@ export const MainPickUpPage = ({ data }: any) => {
     const [pickUpData, setPickupData] = useState<any[]>([])
     const [teacherPickupData, setTeacherPickupData] = useState<any[]>([])
     const [latePickupData, setLatePickupData] = useState<any[]>([])
+    const [lateStudentDetails, setLateStudentDetails] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState<boolean>(false)
 
     // Date range state
@@ -29,6 +30,7 @@ export const MainPickUpPage = ({ data }: any) => {
         setPickupData([])
         setTeacherPickupData([])
         setLatePickupData([])
+        setLateStudentDetails([])
         setIsLoading(true)
     }
 
@@ -53,7 +55,6 @@ export const MainPickUpPage = ({ data }: any) => {
 
     }, [filterBusId, startDate, endDate])
 
-    console.log(pickUpData, "pickUpData")
 
     useEffect(() => {
         const fetchTeacherPickupData = async () => {
@@ -88,6 +89,23 @@ export const MainPickUpPage = ({ data }: any) => {
             }
         }
         fetchLatePickupData();
+    }, [filterBusId, startDate, endDate])
+
+    useEffect(() => {
+        const fetchLateStudentDetails = async () => {
+            try {
+                if (filterBusId?.busId) {
+                    const response = await getLateStudentDetails(filterBusId.busId, new Date(startDate), new Date(endDate));
+                    setLateStudentDetails(response);
+                } else {
+                    setLateStudentDetails([]);
+                }
+            } catch (error) {
+                console.error("Error fetching late student details:", error);
+                setLateStudentDetails([]);
+            }
+        }
+        fetchLateStudentDetails();
     }, [filterBusId, startDate, endDate])
 
     return (
@@ -141,7 +159,10 @@ export const MainPickUpPage = ({ data }: any) => {
                     <div className='mt-2 grid grid-cols-1 lg:grid-cols-3 gap-2'>
                         <div className='col-span-2 '>
                             <  DailyPickupChart data={teacherPickupData} />
-                            < AlertsAndInsights alerts={`${latePickupData[0]?.lateStudents ?? 0} students were picked up late this week`} />
+                            < AlertsAndInsights
+                                alerts={`${latePickupData[0]?.lateStudents ?? 0} students were picked up late this week`}
+                                lateStudents={lateStudentDetails}
+                            />
                         </div>
                         <div className='col-span-1 '>
                             < TeachersChart data={teacherPickupData} />

@@ -209,3 +209,89 @@ export async function getWeeklyLatePickupStats(
 
   return weeklyLateStats;
 }
+
+export async function getLateStudentDetails(
+  busId: string,
+  termStart: Date,
+  termEnd: Date
+) {
+  // 1. Get all students on the bus
+  const bus = await db.buses.findUnique({
+    where: { id: busId },
+    include: { students: true },
+  });
+
+  if (!bus) throw new Error("Bus not found");
+
+  const studentIds = bus.students.map((s) => s.id);
+
+  // 2. Fetch all pickups with both arrival and pickup times
+  const pickups = await db.pickup.findMany({
+    where: {
+      studentId: { in: studentIds },
+      pickUpTime: { gte: termStart, lte: termEnd },
+      arrivalTime: { not: null },
+    },
+    include: {
+      Student: {
+        include: {
+          parent: {
+            select: {
+              full_name: true,
+              phoneNumber: true,
+              email: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { pickUpTime: "asc" },
+  });
+
+  // 3. Filter and process late pickups
+  const lateStudents = pickups
+    .filter((pickup) => {
+      if (!pickup.arrivalTime || !pickup.pickUpTime) return false;
+
+      const date = new Date(pickup.pickUpTime);
+      // Skip weekends
+      const dayOfWeek = date.getDay();
+      if (dayOfWeek === 0 || dayOfWeek === 6) return false;
+
+      // Calculate time difference in minutes
+      const arrivalTime = new Date(pickup.arrivalTime);
+      const pickupTime = new Date(pickup.pickUpTime);
+      const timeDifferenceMinutes =
+        (pickupTime.getTime() - arrivalTime.getTime()) / (1000 * 60);
+
+      return timeDifferenceMinutes > 5;
+    })
+    .map((pickup) => {
+      const arrivalTime = new Date(pickup.arrivalTime!);
+      const pickupTime = new Date(pickup.pickUpTime);
+      const timeDifferenceMinutes =
+        (pickupTime.getTime() - arrivalTime.getTime()) / (1000 * 60);
+
+      return {
+        studentId: pickup.studentId,
+        studentName: pickup.Student.full_name,
+        studentImage: pickup.Student.image,
+        parentName: pickup.Student.parent?.full_name || "N/A",
+        parentPhone: pickup.Student.parent?.phoneNumber || "N/A",
+        parentEmail: pickup.Student.parent?.email || "N/A",
+        lateDifferenceMinutes: Math.round(timeDifferenceMinutes),
+        pickupDate: pickup.pickUpTime,
+      };
+    });
+
+  // 4. Group by student and get the latest late pickup for each student
+  const studentMap = new Map();
+  lateStudents.forEach((student) => {
+    const existing = studentMap.get(student.studentId);
+    if (!existing || student.pickupDate > existing.pickupDate) {
+      studentMap.set(student.studentId, student);
+    }
+  });
+
+  return Array.from(studentMap.values());
+}
