@@ -18,7 +18,8 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
     const [teacherLocation, setTeacherLocation] = useState<
         Record<string, { teacherId: string; teacherName: string; teacherImage: string; latitude: number; longitude: number }>
     >({});
-    const [tracking, setTracking] = useState(true);
+    const [tracking, setTracking] = useState(student.presence === "ON_THE_WAY");
+    const [arrivalLogged, setArrivalLogged] = useState(false);
 
     // useTeacherLocation(teacherId, setTeacherLocation);
     // useTeacherLocation(teacherId, (data) => {
@@ -52,17 +53,62 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
     }, [tracking]);
 
 
+
+    // Auto-toggle tracking based on presence/status
     useEffect(() => {
-        if (!coords2 || !tracking) return;
-        (async () => {
-            //@ts-ignore
-            const result = await checkBusArrival(coords2, coords1, student, teacherId);
-            if (result) {
-                // 🚨 stop tracking this student
-                setTracking(false);
+        // Start tracking when teacher marks student ON_THE_WAY
+        if (student.presence === "ON_THE_WAY") {
+            setTracking(true);
+            setArrivalLogged(false);
+
+            console.log("tracking", student?.full_name)
+        }
+        // Stop tracking when student is picked
+        if (student.status === "PICKED") {
+            setTracking(false);
+        }
+    }, [student.presence, student.status]);
+
+    useEffect(() => {
+        if (
+            !coords1 ||
+            !coords2 ||
+            student.status === "PICKED" ||
+            student.presence !== "ON_THE_WAY" ||
+            !tracking ||
+            arrivalLogged
+        ) return;
+
+        console.log(coords1, coords2, student.status, student.presence, tracking, arrivalLogged, "coords1, coords2, student.status, student.presence, tracking, arrivalLogged")
+
+        const check = async () => {
+            const arrived = await checkBusArrival(coords1, coords2, student, teacherId);
+            if (arrived) {
+                console.log(`✅ Arrival logged for ${student.full_name}`);
+                setArrivalLogged(true);
             }
-        })()
-    }, [coords2, coords1, student, tracking]);
+
+            console.log(arrived, "arrived")
+        };
+
+        const interval = setInterval(check, 20_000);
+        return () => clearInterval(interval);
+    }, [coords1, coords2, student.status, student.presence, teacherId, tracking, arrivalLogged]);
+
+    console.log(student, "student")
+
+    // Reset tracking each morning (optional, depends on your use case)
+    useEffect(() => {
+        const today = new Date().toDateString();
+        const lastTracked = localStorage.getItem(`lastTracked-${student.id}`);
+
+        if (lastTracked !== today) {
+            // New day → reset status if needed
+            console.log(` Resetting tracking for ${student.full_name}`);
+            localStorage.setItem(`lastTracked-${student.id}`, today);
+            setArrivalLogged(false); // Reset arrival logged state for new day
+        }
+    }, [student.id]);
 
     // Fetch parent's coordinates when student data is available
     useEffect(() => {
@@ -112,7 +158,6 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
         );
     }, [coords2, coords1]);
 
-    console.log(stdentEta, "from each student")
 
     return (
         <div key={student.id} className="w-full bg-[#606060]/10">

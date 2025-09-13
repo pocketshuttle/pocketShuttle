@@ -28,7 +28,6 @@ export const sendSmsForBusArrival = async ({
       to: "whatsapp:+2348103955096",
       body: `Hello ${capitalizeName(parent_name)},\n ${capitalizeName(student_name)} bus is on its way for pick up and would arrive in ${eta}\n in  bus: ${bus_name}`,
     });
-    console.log(messages);
     return { message: "Mesasge sent", status: 200 };
   } catch (error) {
     return {

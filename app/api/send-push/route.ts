@@ -18,10 +18,26 @@ export const POST = async (req: NextRequest) => {
   }
 
   try {
+    console.log(
+      "ONE_SIGNAL_REST_KEY:",
+      process.env.ONE_SIGNAL ? "Set" : "Missing"
+    );
+    console.log(
+      "ONE_SIGNAL_APP_ID:",
+      process.env.NEXT_PUBLIC_APP_ID ? "Set" : "Missing"
+    );
+
+    if (!process.env.ONE_SIGNAL || !process.env.NEXT_PUBLIC_APP_ID) {
+      return NextResponse.json(
+        { error: "OneSignal configuration missing" },
+        { status: 500 }
+      );
+    }
+
     const response = await fetch(url, {
       method: "POST",
       headers: {
-        Authorization: `Key ${process.env.ONE_SIGNAL!}`,
+        Authorization: `Key ${process.env.ONE_SIGNAL}`,
         "Content-Type": "application/json",
       },
 
