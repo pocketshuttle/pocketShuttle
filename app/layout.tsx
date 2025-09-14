@@ -50,10 +50,10 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* ✅ Load Google Maps JS SDK globally */}
-        <Script
+        {/* <Script
           src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
           strategy="beforeInteractive"
-        />
+        /> */}
         <Script
           src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
           defer

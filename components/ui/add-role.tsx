@@ -21,7 +21,7 @@ export const AddRoles = ({ handleSelectChange, data }: SelectProps) => {
 
     return (
         <Select onValueChange={handleSelectChange}>
-            <SelectTrigger className="w-full text-gray-100">
+            <SelectTrigger className="w-full text-white bg-[#1d146d] hover:bg-[#1d146d]/90">
                 <SelectValue placeholder="Select Roles" />
             </SelectTrigger>
             <SelectContent>
