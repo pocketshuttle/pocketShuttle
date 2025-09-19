@@ -48,12 +48,14 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { removeStudentFromBus } from "@/actions/remove-student-bus"
+import { ImportStudentsForm } from "../batch-student/import-student"
 type IdProps = {
     studentsData: StudentProps[]
     totalCount: number
     busData: BusesProps[]
+    schoolId: string
 }
-export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => {
+export const StudentsData = ({ studentsData, busData, totalCount, schoolId }: IdProps) => {
     const [isPending, startTransition] = useTransition()
     const [filterGrade, setFilterGrade] = useState<string>("")
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
@@ -106,6 +108,7 @@ export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => 
                         <Button variant="link" className="ml-2 text-blue-600">View All Students</Button>
                     </Link>
                     < AddData label="Student" action={handleModal} />
+                    <ImportStudentsForm schoolId={schoolId} />
                 </div>
             </div>
             {
