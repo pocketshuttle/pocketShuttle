@@ -1,3 +1,4 @@
+"use server"
 import LoginButton from "@/components/auth/login-button";
 import { NetworkError } from "@/components/errorsandsuccess/error/error";
 import { StudentsData } from "@/components/students/ui/Table";
@@ -32,6 +33,7 @@ const Students = async ({ searchParams }: { searchParams: { [key: string]: strin
         )
     }
     const userId = user?.id;
+
 
     const query = {
         OR: [
@@ -92,10 +94,11 @@ const Students = async ({ searchParams }: { searchParams: { [key: string]: strin
             revalidateTag("bus")
         }
 
+
         return (
             <div>
                 {/* @ts-ignore */}
-                <StudentsData studentsData={students} totalCount={count} busData={bus} schooldId={userId} />
+                <StudentsData studentsData={students} totalCount={count} busData={bus} schoolId={user?.id} />
             </div>
         )
 
