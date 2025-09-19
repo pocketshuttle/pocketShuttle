@@ -58,6 +58,7 @@
     "cloudinary": "^2.2.0",
     "clsx": "^2.1.1",
     "cmdk": "0.2.1 ",
+    "csv-parse": "^6.1.0",
     "haversine-distance": "^1.2.4",
     "jose": "^5.9.2",
     "leaflet": "^1.9.4",
@@ -95,6 +96,7 @@
     "use-debounce": "^9.0.4",
     "uuid": "^10.0.0",
     "web-push": "^3.6.7",
+    "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {

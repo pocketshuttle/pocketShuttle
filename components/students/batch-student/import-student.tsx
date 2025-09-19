@@ -2,7 +2,6 @@
 import { importStudents } from "@/actions/batch-upload/batch-upload";
 import { toast } from "@/components/ui/use-toast";
 import { useState } from "react";
-// import {} from sonner
 
 export const ImportStudentsForm = ({ schoolId }: { schoolId: string }) => {
     const [msg, setMsg] = useState("")
