@@ -5,11 +5,6 @@ import csv from "csv-parser";
 import fs from "fs";
 import path, { resolve } from "path";
 import { randomUUID } from "crypto";
-import {
-  StudentAttendance,
-  StudentStatus,
-  StudentPresence,
-} from "@prisma/client";
 import { db } from "@/lib/db";
 
 type ImportResult = {
