@@ -95,7 +95,7 @@ const Students = async ({ searchParams }: { searchParams: { [key: string]: strin
         return (
             <div>
                 {/* @ts-ignore */}
-                <StudentsData studentsData={students} totalCount={count} busData={bus} />
+                <StudentsData studentsData={students} totalCount={count} busData={bus} schooldId={userId} />
             </div>
         )
 
