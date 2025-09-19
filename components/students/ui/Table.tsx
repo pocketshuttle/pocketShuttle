@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/tooltip"
 import { removeStudentFromBus } from "@/actions/remove-student-bus"
 import { ImportStudentsForm } from "../batch-student/import-student"
+
 type IdProps = {
     studentsData: StudentProps[]
     totalCount: number
@@ -102,14 +103,12 @@ export const StudentsData = ({ studentsData, busData, totalCount, schoolId }: Id
 
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root))]">
-            <div className="p-4 flex justify-end items-center ">
-                <div className="gap-3 flex">
-                    <Link href="/dashboard/students/allstudents">
-                        <Button variant="link" className="ml-2 text-blue-600">View All Students</Button>
-                    </Link>
-                    < AddData label="Student" action={handleModal} />
-                    <ImportStudentsForm schoolId={schoolId} />
-                </div>
+            <div className="p-4 flex justify-between gap-3 items-center">
+                < AddData label="Student" action={handleModal} />
+                <Link href="/dashboard/students/allstudents">
+                    <Button variant="link" className="ml-2 text-blue-600">View All Students</Button>
+                </Link>
+                <ImportStudentsForm schoolId={schoolId} />
             </div>
             {
                 isOpenModal && <StudentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />

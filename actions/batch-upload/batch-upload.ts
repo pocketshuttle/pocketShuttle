@@ -23,7 +23,6 @@ export async function importStudents(
 ): Promise<ImportResult> {
   const file = formData.get("file") as File;
   const schoolId = formData.get("schoolId") as string;
-
   //validating the files, and schoolId
   if (!file || !schoolId)
     return { success: false, errors: ["Missing file or schoolId"] };
@@ -55,6 +54,7 @@ export async function importStudents(
     }
 
     const students = results.map((row, i) => {
+    //   console.log(row, "the row of students");
       try {
         return {
           schoolId,
@@ -66,6 +66,7 @@ export async function importStudents(
           address: row["Address"] ?? null,
         };
       } catch (err: any) {
+        console.log(err, "error frmo the upload");
         throw new Error(`Row ${i + 1} invalid: ${err.message}`);
       }
     });
