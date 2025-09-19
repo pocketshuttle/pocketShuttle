@@ -22,18 +22,18 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
     const [arrivalLogged, setArrivalLogged] = useState(false);
 
     // useTeacherLocation(teacherId, setTeacherLocation);
-    // useTeacherLocation(teacherId, (data) => {
-    //     setTeacherLocation(prev => ({
-    //         ...prev,
-    //         [data.teacherId]: {
-    //             teacherId: data.teacherId,
-    //             teacherName: data.teacherName,
-    //             teacherImage: data.teacherImage,
-    //             latitude: data.latitude,
-    //             longitude: data.longitude
-    //         }
-    //     }));
-    // });
+    useTeacherLocation(teacherId, (data) => {
+        setTeacherLocation(prev => ({
+            ...prev,
+            [data.teacherId]: {
+                teacherId: data.teacherId,
+                teacherName: data.teacherName,
+                teacherImage: data.teacherImage,
+                latitude: data.latitude,
+                longitude: data.longitude
+            }
+        }));
+    });
 
     // Fetch current location on mount
 
@@ -61,7 +61,7 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
             setTracking(true);
             setArrivalLogged(false);
 
-            console.log("tracking", student?.full_name)
+            // console.log("tracking", student?.full_name)
         }
         // Stop tracking when student is picked
         if (student.status === "PICKED") {
@@ -79,7 +79,7 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
             arrivalLogged
         ) return;
 
-        console.log(coords1, coords2, student.status, student.presence, tracking, arrivalLogged, "coords1, coords2, student.status, student.presence, tracking, arrivalLogged")
+        // console.log(coords1, coords2, student.status, student.presence, tracking, arrivalLogged, "coords1, coords2, student.status, student.presence, tracking, arrivalLogged")
 
         const check = async () => {
             const arrived = await checkBusArrival(coords1, coords2, student, teacherId);
@@ -95,7 +95,7 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
         return () => clearInterval(interval);
     }, [coords1, coords2, student.status, student.presence, teacherId, tracking, arrivalLogged]);
 
-    console.log(student, "student")
+    // console.log(student, "student")
 
     // Reset tracking each morning (optional, depends on your use case)
     useEffect(() => {
@@ -103,8 +103,8 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
         const lastTracked = localStorage.getItem(`lastTracked-${student.id}`);
 
         if (lastTracked !== today) {
-            // New day → reset status if needed
-            console.log(` Resetting tracking for ${student.full_name}`);
+            // New day  reset status if needed
+            // console.log(` Resetting tracking for ${student.full_name}`);
             localStorage.setItem(`lastTracked-${student.id}`, today);
             setArrivalLogged(false); // Reset arrival logged state for new day
         }
@@ -141,8 +141,8 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
 
         service.getDistanceMatrix(
             {
-                // origins: [{ lat: teacher?.latitude, lng: teacher?.longitude }] || [{ lat: "9.171772891650901"  lng: "7.352188010149178" }],
-                origins: [{ lat: 9.171772891650901, lng: 7.352188010149178 }],
+                origins: [{ lat: teacher?.latitude, lng: teacher?.longitude }],
+                // origins: [{ lat: 9.171772891650901, lng: 7.352188010149178 }],
                 destinations: coords2 ? [{ lat: coords2[0], lng: coords2[1] }] : [],
                 travelMode: google.maps.TravelMode.DRIVING,
                 region: "NG",
