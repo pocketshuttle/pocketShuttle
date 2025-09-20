@@ -22,7 +22,6 @@ export const ImportStudentsForm = ({ schoolId }: { schoolId: string }) => {
             toast({
                 description: `${res.errors?.join(", ")}`
             });
-
         }
     }
 
@@ -32,7 +31,6 @@ export const ImportStudentsForm = ({ schoolId }: { schoolId: string }) => {
             <button type="submit" className="ml-2 px-4 py-2 bg-blue-600 text-white rounded">
                 Import
             </button>
-            {/* {msg && <p className="mt-2">{msg}</p>} */}
         </form>
     );
 }
