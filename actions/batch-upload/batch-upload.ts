@@ -73,7 +73,7 @@ export async function importStudents(
       return { success: false, errors: ["Unsupported file type"] };
     }
 
-    // Validate + sanitize
+    // Validate  sanitize
     const students = results.map((row, i) => {
       const full_name = sanitizeString(row["Name"]);
       const grade = sanitizeString(row["Grade"]);
