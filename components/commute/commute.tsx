@@ -37,9 +37,6 @@ const CommuteUI = async () => {
     });
     revalidateTag("bus");
 
-
-    console.log("Bus data:", bus);
-
     return (
         <div>
             <CommuteTable userId={userId} />

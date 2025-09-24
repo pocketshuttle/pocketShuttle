@@ -1,17 +1,16 @@
 "use client"
+
 import * as z from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "@/components/ui/form"
 import { useEffect, useState, useTransition } from "react"
 import { Input } from "@/components/ui/input"
-import { TeacherSchema } from "@/schemas"
+import { ParentSchema, TeacherSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
-import { Textarea } from "@/components/ui/textarea"
 import { usePost } from "@/hooks/usePost"
-import { FormSuccess } from "@/components/ui/form-success"
 import { useFetch } from "@/hooks/useFetch"
 import { usePathname, useSearchParams } from "next/navigation"
 import spinner from "@/public/images/spinner.gif"
@@ -20,23 +19,15 @@ import { Spinner } from "@/components/ui/spinner"
 import { updateParent } from "@/actions/update-parent"
 import { toast } from "@/components/ui/use-toast"
 import { useSession } from "@/hooks/useSession"
-
-
-
+import { AddressComponent } from "@/components/maps/Map/searchbox"
 
 const SingleParentPage = () => {
-
-
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
-    const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState(false)
     const [dataMessage, setDataMessage] = useState("")
-
+    const [addressValue, setAddressValue] = useState("")
     const [newAvatar, setNewAvatar] = useState<string>("")
-
-    const [selectBus, setSelectedBus] = useState<string>("")
-    const [selectStudent, setSelectedStudent] = useState<string>("")
 
     const pathname = usePathname()
     const id = pathname.split('/').pop()
@@ -52,10 +43,11 @@ const SingleParentPage = () => {
     const { data: parentsData, isPending: parentPending, errorMessage } = useFetch(`/api/addparent/${id}`, userId);
 
     const parentData = parentsData
+
     const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
 
-    const form = useForm<z.infer<typeof TeacherSchema>>({
-        resolver: zodResolver(TeacherSchema),
+    const form = useForm<z.infer<typeof ParentSchema>>({
+        resolver: zodResolver(ParentSchema),
         defaultValues: {
             school_id: userId,
             full_name: parentData && parentData?.full_name,
@@ -64,23 +56,37 @@ const SingleParentPage = () => {
             phoneNumber: "",
             address: "",
             image: newAvatar || parentData?.[0]?.image,
-            busId: selectBus || "",
 
         }
     })
+
+    const handleAddressChange = (d: string) => {
+        setAddressValue(d)
+        form.setValue("address", d)
+
+    }
+
+    const handleSuggestionChange = (d: {}) => {
+        // setAddressValue(d)
+        // const selectedValue = d.features?.[0]?.place_name || "";
+        console.log(d)
+        // form.setValue("address", d)
+    }
+
     useEffect(() => {
         if (parentData) {
             form.reset({
                 school_id: userId,
-                full_name: parentData?.full_name,
-                email: parentData?.email,
-                phoneNumber: parentData?.phoneNumber,
-                address: parentData?.address,
-                image: newAvatar || parentData?.image,
-                role: parentData?.role
+                full_name: parentData.full_name || "",
+                email: parentData.email || "",
+                phoneNumber: parentData.phoneNumber || "",
+                address: parentData.address || "",
+                image: newAvatar || parentData.image || "",
+                role: parentData.role || "parent",
             });
         }
-    }, [parentData, form, userId]);
+    }, [parentData, userId, newAvatar, form]);
+
     useEffect(() => {
         if (userId) {
             form.setValue('school_id', userId);  // Set the userId after session is loaded
@@ -91,8 +97,8 @@ const SingleParentPage = () => {
         setNewData(parentData && parentData?.full_name)
     }, [id, parentData])
 
-    const onSubmit = (values: z.infer<typeof TeacherSchema>) => {
-        // console.log(values)
+    const onSubmit = (values: z.infer<typeof ParentSchema>) => {
+
         startTransition(async () => {
             const response = await updateParent(id, values)
             if (response.status === 200) {
@@ -156,7 +162,7 @@ const SingleParentPage = () => {
                 setNewAvatar(data.url)
                 form.setValue("image", data.url)
 
-                window.localStorage.setItem('user_selected_avatar_url', data.url)
+                window.localStorage.setItem(`parent_avatar_${id}`, data.url)
 
             }
         }
@@ -168,7 +174,7 @@ const SingleParentPage = () => {
     }
 
     useEffect(() => {
-        const storedSelectedAvatar = window.localStorage.getItem('user_selected_avatar_url');
+        const storedSelectedAvatar = window.localStorage.getItem(`parent_avatar_${id}`);
         if (storedSelectedAvatar) {
             setNewAvatar(storedSelectedAvatar);
         }
@@ -299,33 +305,18 @@ const SingleParentPage = () => {
 
 
                                 <div className="space-y-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="address"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Address</FormLabel>
-                                                <FormControl>
-                                                    <Textarea
-                                                        {...field}
-                                                        className="py-3 border-none bg-[var(--bgSoft)] outline-none "
-                                                        placeholder="Teachers Address..."
-                                                        disabled={isPending}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
+                                    <FormItem>
+                                        <FormLabel>Students Address</FormLabel>
+                                        <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} handleSuggestionChange={handleSuggestionChange} />
+                                        <FormMessage />
 
-                                                {/* <Image src={eye} alt="eye" /> */}
-                                            </FormItem>
-                                        )}
-                                    >
-                                    </FormField>
+                                    </FormItem>
                                 </div>
                                 {/* <FormError message={isError} /> */}
                                 {/* <FormSuccess message={isSuccess} /> */}
                                 <Button
-                                    // disabled={isPending}
-                                    size="lg" className="w-full" type="submit">Update parent
+                                    // disabled={isPending} 
+                                    size="lg" className="w-full bg-[#1B1464] hover:bg-[#1B1464]/90" type="submit">Update parent
                                 </Button>
                             </form>
                         </Form>

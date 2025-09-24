@@ -52,6 +52,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         libraries,
     });
 
+    //fetch the route from teachers location to parents
     const fetchRoute = useCallback(
         async (origin: google.maps.LatLngLiteral, destination: google.maps.LatLngLiteral) => {
             if (!isLoaded) return;
@@ -94,6 +95,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         }
     }, [parentAddress]);
 
+    //we only fetch a new route when the parent address
     useEffect(() => {
         if (!coords1 || !coords2 || !isLoaded) return;
 
@@ -102,12 +104,20 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
             return;
         }
 
-        const debounceTimer = setTimeout(() => {
-            fetchRoute(coords1, coords2);
-        }, DEBOUNCE_DELAY);
+        fetchRoute(coords1, coords2);
+    }, [coords2, isLoaded]);
 
-        return () => clearTimeout(debounceTimer);
-    }, [coords1, coords2, fetchRoute, isLoaded]);
+    //we check the route every 5min, if teacher is on right route and if not we recalc
+    useEffect(() => {
+        if (!coords1 || !coords2) return
+
+        const interval = setInterval(() => {
+            fetchRoute(coords1, coords2)
+        }, 5 * 60 * 1000)
+
+        return () => clearInterval(interval)
+    }, [coords1, coords2])
+
 
     function computeHeading(from: google.maps.LatLngLiteral, to: google.maps.LatLngLiteral): number {
         const lat1 = (from.lat * Math.PI) / 180;
@@ -138,7 +148,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
 
         const startTime = performance.now();
         const newHeading = computeHeading({ lat: startLat, lng: startLng }, toPosition);
-        setHeading(newHeading); // ✅ update state here
+        setHeading(newHeading);
 
         const easeInOutQuad = (t: number) =>
             t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
@@ -168,7 +178,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         window.open(url, "_blank");
     }
 
-
+    //we animta ethe teacher marker
     useEffect(() => {
         if (!teacherData) return;
 
@@ -190,7 +200,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         if (!isLoaded) return undefined;
         return {
             url: "/images/home.png",
-            scaledSize: new window.google.maps.Size(40, 40),
+            scaledSize: new window.google.maps.Size(30, 30),
         };
     }, [isLoaded]);
 
@@ -255,8 +265,8 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
                             style={{
                                 transform: `rotate(${heading}deg)`,
                                 transformOrigin: "center",
-                                width: "40px",
-                                height: "40px",
+                                width: "30px",
+                                height: "30px",
                             }}
                         >
                             <img src="/images/bus.svg" width={40} height={40} alt="bus" />

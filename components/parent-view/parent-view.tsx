@@ -88,11 +88,11 @@ export const ParentMainView = ({
 
 
 
-            <  TeacherLocationTracker
+            {/* <  TeacherLocationTracker
                 parentAddress={parentAddress || ""}
                 // parentId={parentId}
                 teacherId={selectedTeacherId || ""}
-            />
+            /> */}
             {/* <button
                 onClick={() => sendPushNotification("bus coming", parentId)}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg"
@@ -102,14 +102,14 @@ export const ParentMainView = ({
             {/* 
             Map only changes when selectedTeacherId changes
             */}
-            {/* {selectedTeacherId && (
+            {selectedTeacherId && (
                 <BusArrival
                     key={selectedTeacherId}
                     parentAddress={parentAddress || ""}
                     parentId={parentId}
                     teacherId={selectedTeacherId}
                 />
-            )} */}
+            )}
 
             {/* Additional parent info */}
             <ParentViewData userId={parentId} />

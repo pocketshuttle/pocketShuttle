@@ -20,9 +20,6 @@ export const BusArrival = ({ parentAddress, parentId, teacherId }) => {
     const [teacherLocation, setTeacherLocation] = useState<TeacherLocation | null>(null);
     const [connectionStatus, setConnectionStatus] = useState<string>("Connecting...");
 
-
-    console.log("teacher location", teacherLocation);
-
     useEffect(() => {
         const fetchLocation = () => {
             if (navigator.geolocation) {

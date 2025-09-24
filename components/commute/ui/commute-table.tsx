@@ -32,6 +32,7 @@ import {
 import useSWR from "swr";
 import { FormError } from "@/components/errorsandsuccess/form-error";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getCurrentHourInTimeZone } from "@/lib/utils";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -40,8 +41,10 @@ export const CommuteTable = ({ userId }: { userId: string }) => {
     const { data: busData, error, isLoading } = useSWR<BusProps[]>(
         `/api/addbus/${userId}`,
         fetcher,
-        // { refreshInterval: 5000 } // Refresh every 5 seconds
+        { refreshInterval: 5000 }
     );
+    const hours = getCurrentHourInTimeZone("Africa/Lagos")
+    console.log(hours, "from cummute")
 
     if (error) {
         <FormError message={error} />
@@ -72,11 +75,11 @@ export const CommuteTable = ({ userId }: { userId: string }) => {
                                 </TableCell>
                             </TableRow>
                         )
-
                     }
 
 
                     {busData?.map((bus: BusProps) => {
+                        console.log(bus.students, "bus from commute")
                         const isBusOpen = openBusId === bus.id;
                         return (
                             <React.Fragment key={bus.id}>
@@ -132,11 +135,15 @@ export const CommuteTable = ({ userId }: { userId: string }) => {
                                                                                 </div>
                                                                             </TooltipTrigger>
                                                                             <TooltipContent>
-                                                                                <p>{
-                                                                                    student.presence === "NONE" ? `${student.full_name} is not in school` :
-                                                                                        student.presence === "IN_BUS" ? `${student.full_name} is currently in Bus`
-                                                                                            : `${student.full_name} is currently in School`
-                                                                                }</p>
+
+                                                                                <p>
+                                                                                    {
+                                                                                        student.presence === "NONE" ? `${student.full_name} is not in school` :
+                                                                                            student.presence === "IN_BUS" ? `${student.full_name} is currently in Bus`
+                                                                                                : `${student.full_name} is currently in School`
+                                                                                    }
+                                                                                </p>
+
                                                                             </TooltipContent>
                                                                         </Tooltip>
                                                                     </TooltipProvider>

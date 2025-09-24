@@ -22,12 +22,14 @@ async function handleBusSeatUpdate(
   status: StudentStatus | null,
   busId: string
 ) {
+  //we decrease the bus by one when a child is picked up.
   if (status === "PICKED") {
     await db.buses.update({
       where: { id: busId },
       data: { seat_number: { decrement: 1 } },
     });
   } else if (status === "DROPPED") {
+    //and vice versa
     await db.buses.update({
       where: { id: busId },
       data: { seat_number: { increment: 1 } },
@@ -35,12 +37,14 @@ async function handleBusSeatUpdate(
   }
 }
 
+//this is an important update, when a child is picked in the morning or picked  in thge afternoon
+//which means we've to update our timelines in the afternoon and night
 async function handlePresenceUpdate(
   id: string,
   updatedStudent: any,
   hours: number
 ) {
-  if (updatedStudent.status === "PICKED" && hours >= 6 && hours < 9) {
+  if (updatedStudent.status === "PICKED" && hours >= 4 && hours < 9) {
     await db.student.update({
       where: { id: id },
       data: { presence: "IN_BUS" },
@@ -118,7 +122,7 @@ export const updateStudentStatus = async (id: string, data: StudentStatus) => {
     await handlePresenceUpdate(id, updatedStudent, hours);
 
     // Send notification if student status is PICKED
-    if (updatedStudent.status === "PICKED" && hours >= 6 && hours < 16) {
+    if (updatedStudent.status === "PICKED" && hours >= 4 && hours < 16) {
       await sendKnockNotification(updatedStudent);
     }
 

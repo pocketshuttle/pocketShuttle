@@ -18,7 +18,8 @@ import { revalidateTag } from 'next/cache'
 const StudentView = async ({ params }: { params: { id: string } }) => {
 
     const user = await getUserSession()
-    const teacherId = user?.teacherId || user?.id; // Use teacherId if available, otherwise use user id
+    // Use teacherId if avaiable, else use user id
+    const teacherId = user?.teacherId || user?.id; 
 
     if (!user || !teacherId) {
         // If the user is not authenticated, redirect to the login page

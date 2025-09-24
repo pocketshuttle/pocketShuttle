@@ -11,7 +11,6 @@ export const updateLocation = async (
   data: StudentPresence,
   eta?: string
 ) => {
-  console.log(eta, "id, data, eta");
   try {
     if (!data) {
       return { message: "Invalid presence value", status: 400 };
