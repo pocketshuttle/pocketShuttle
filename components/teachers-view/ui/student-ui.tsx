@@ -36,7 +36,6 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
     });
 
     // Fetch current location on mount
-
     useEffect(() => {
         if (!tracking) return;
         const intervalId = setInterval(() => {
@@ -52,8 +51,6 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
 
     }, [tracking]);
 
-
-
     // Auto-toggle tracking based on presence/status
     useEffect(() => {
         // Start tracking when teacher marks student ON_THE_WAY
@@ -61,7 +58,6 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
             setTracking(true);
             setArrivalLogged(false);
 
-            // console.log("tracking", student?.full_name)
         }
         // Stop tracking when student is picked
         if (student.status === "PICKED") {
@@ -84,7 +80,7 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
         const check = async () => {
             const arrived = await checkBusArrival(coords1, coords2, student, teacherId);
             if (arrived) {
-                console.log(`✅ Arrival logged for ${student.full_name}`);
+                console.log(`Arrival logged for ${student.full_name}`);
                 setArrivalLogged(true);
             }
 
@@ -104,6 +100,7 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
 
         if (lastTracked !== today) {
             // New day  reset status if needed
+
             // console.log(` Resetting tracking for ${student.full_name}`);
             localStorage.setItem(`lastTracked-${student.id}`, today);
             setArrivalLogged(false); // Reset arrival logged state for new day

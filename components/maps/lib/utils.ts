@@ -44,8 +44,8 @@ export const getGoogleMapsRoute = async (
         travelMode: google.maps.TravelMode.DRIVING,
       },
       (result, status) => {
+        console.log(result)
         if (status === google.maps.DirectionsStatus.OK && result) {
-          console.log("Directions result:", result);
           resolve(result);
         } else {
           console.error("Directions request failed:", status);
@@ -214,14 +214,14 @@ export const sendLocationToServer = async (
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ latitude, longitude }), // Send coordinates as JSON
+      body: JSON.stringify({ latitude, longitude }), 
     });
 
     if (!response.ok) {
-      throw new Error("Failed to send location to the server"); // Handle failed responses
+      throw new Error("Failed to send location to the server"); 
     }
   } catch (error) {
-    console.error("Error sending location to server:", error); // Log errors to console
+    console.error("Error sending location to server:", error); 
   }
 };
 

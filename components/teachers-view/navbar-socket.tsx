@@ -20,7 +20,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"; // Tooltip components for displaying extra info
 
-import { getCurrentLocation, sendTeacherLocationToServer } from "../maps/lib/utils"; // Utility functions for geolocation and sending location
+import { getCurrentLocation, sendTeacherLocationToServer } from "../maps/lib/utils"; 
 import { useSession } from "@/hooks/useSession"; // Custom hook for managing user session
 import { io } from "socket.io-client";
 
