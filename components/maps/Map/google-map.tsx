@@ -33,7 +33,7 @@ const GoogleMapView = ({ latitude, longitude, teachersLocation }: Props) => {
     
     const center = { lat: latitude, lng: longitude };
     return (
-        <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+        // <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
             <GoogleMap
                 mapContainerStyle={containerStyle}
                 center={center}
@@ -62,7 +62,7 @@ const GoogleMapView = ({ latitude, longitude, teachersLocation }: Props) => {
                     />
                 ))}
             </GoogleMap>
-        </LoadScript>
+        // </LoadScript>
     )
 }
 
