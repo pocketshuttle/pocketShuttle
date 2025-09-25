@@ -22,7 +22,11 @@ type TeacherLocation = {
     longitude: number;
 };
 
-export const DriversLocation = ({ userId }) => {
+interface SchoolsTeacherInterface {
+    userId: string
+}
+
+export const DriversLocation = ({ userId }: SchoolsTeacherInterface) => {
     const [teachersLocations, setTeachersLocations] = useState<TeacherLocation[]>([]);
     const [mySchoolLocation, setSchoolLocation] = useState({ latitude: 0, longitude: 0 });
     const [schoolLocation, setschoolLocation] = useState({ latitude: 0, longitude: 0 });
@@ -42,7 +46,7 @@ export const DriversLocation = ({ userId }) => {
                 const pos = navigator.geolocation.getCurrentPosition(pos => {
                     const { latitude, longitude } = pos.coords;
                     // Also set mySchoolLocation
-                    setSchoolLocation({ latitude, longitude }); 
+                    setSchoolLocation({ latitude, longitude });
                 });
 
             } else {
@@ -61,7 +65,7 @@ export const DriversLocation = ({ userId }) => {
 };
 
 
-export default function TeachersLocation({ userId }) {
+export default function TeachersLocation({ userId }: SchoolsTeacherInterface) {
     return (
         <ChannelProvider channelName="live-school-channel">
             <DriversLocation userId={userId} />
