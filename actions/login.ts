@@ -61,11 +61,13 @@ export const Login = async (
   //@ts-ignore
   const name = existingUser?.name || existingUser?.full_name;
   const image = existingUser?.image;
+  //@ts-ignore
+  const schoolId = existingUser?.schoolId;
 
   try {
     // Create session cookie
     const expiresAt = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
-    const session = await encrypt({ id, role, name, image });
+    const session = await encrypt({ id, role, name, image, schoolId });
 
     cookies().set("session", session, {
       httpOnly: true,
