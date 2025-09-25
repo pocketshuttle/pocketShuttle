@@ -35,6 +35,13 @@ const DEBOUNCE_DELAY = 500;
 
 const libraries: Libraries = ["places"];
 
+//coords
+//COORDINATE_1 is TEACHER coordinate
+//COORDINATE_2 is PARENT coordinate
+
+//we need to figure out how to changr the teacher's route incase a diiferent teachsr is coming to pick up a different child
+//so we need to consider a case where two different kids has different teahcers coming for pick up
+
 const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
     const [coords1, setCoords1] = useState<google.maps.LatLngLiteral | null>(
         teacherData ? { lat: teacherData.latitude, lng: teacherData.longitude } : null
@@ -67,7 +74,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
                 }
             } catch (err) {
                 setError("Failed to fetch route directions");
-                console.error("Route fetching error:", err);
+                // console.error("Route fetching error:", err);
             } finally {
                 setLoading(false);
             }
@@ -79,6 +86,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         const fetchParentCoordinates = async () => {
             try {
                 setLoading(true);
+                //getting the parent coordainate 
                 const coordinates = await googleFetchCoordinates(parentAddress);
 
                 if (coordinates) {
@@ -225,7 +233,6 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
 
     return (
         <div className="space-y-4">
-
             <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
                 {eta && (
                     <p className="font-medium text-blue-600">

@@ -29,7 +29,8 @@ export const ParentMainView = ({
                 // Make sure SDK is initialized before trying login
                 await OneSignal.User.PushSubscription.optIn();
                 await OneSignal.login(parentId);
-                console.log(" OneSignal logged in:", parentId);
+
+                // console.log(" OneSignal logged in:", parentId);
             } catch (err) {
                 console.error(" OneSignal login failed:", err);
             }
@@ -41,7 +42,7 @@ export const ParentMainView = ({
         return () => clearTimeout(timer);
     }, [parentId]);
 
-
+    //we take the first teahcer
     const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
         siblings.length > 0 ? siblings[0].id : null
     )
@@ -51,9 +52,13 @@ export const ParentMainView = ({
         [siblings, selectedStudentId]
     )
 
-    // Precompute teacher IDs for all siblings
+    // calculate the teacher IDs for all siblings
     const allTeacherIds = useMemo(
         () => siblings.map(s => s.bus?.teacher?.id).filter(Boolean),
+        [siblings]
+    )
+    const allTeacher = useMemo(
+        () => siblings.map(s => s.bus?.teacher).filter(Boolean),
         [siblings]
     )
 
@@ -74,8 +79,6 @@ export const ParentMainView = ({
         return <div>No students found for this parent.</div>
     }
 
-
-
     return (
         <div className="space-y-4">
             {/* Tab control for kids */}
@@ -85,8 +88,6 @@ export const ParentMainView = ({
                 selectedStudentId={selectedStudentId}
                 onSelect={setSelectedStudentId}
             />
-
-
 
             {/* <  TeacherLocationTracker
                 parentAddress={parentAddress || ""}
@@ -108,6 +109,8 @@ export const ParentMainView = ({
                     parentAddress={parentAddress || ""}
                     parentId={parentId}
                     teacherId={selectedTeacherId}
+                    teachers={allTeacher || []}
+                    page="parent_view"
                 />
             )}
 

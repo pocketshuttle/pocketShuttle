@@ -1,11 +1,12 @@
 "use client"
 import Pusher from 'pusher-js';
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Location from '../maps/Map/new-map';
 import { io } from 'socket.io-client';
 import { useTeacherLocation } from '@/hooks/useTeacher-location';
 import NewLocation from '../maps/Map/new-mapp';
 import avatar from "@/public/images/avatar.jpg";
+import { TeacherProps } from '@/types';
 
 interface TeacherLocation {
     teacherId: string;
@@ -15,10 +16,26 @@ interface TeacherLocation {
     longitude: number;
 };
 
-//@ts-expect-error
-export const BusArrival = ({ parentAddress, parentId, teacherId }) => {
+interface BusArrivalInterface {
+    parentAddress: string,
+    parentId: string,
+    teacherId: string,
+    page: string
+    teachers?: TeacherProps[]
+
+}
+
+export const BusArrival = ({ parentAddress, parentId, teacherId, page, teachers }: BusArrivalInterface) => {
     const [teacherLocation, setTeacherLocation] = useState<TeacherLocation | null>(null);
     const [connectionStatus, setConnectionStatus] = useState<string>("Connecting...");
+
+    //we use find becasuee it returns a single element
+    const selectedTeacher = useMemo(
+        () => teachers?.find((t) => t.id === teacherId),
+        [teacherId, teachers]
+    );
+
+    console.log(page, "from bus arrival")
 
     useEffect(() => {
         const fetchLocation = () => {
@@ -28,9 +45,8 @@ export const BusArrival = ({ parentAddress, parentId, teacherId }) => {
 
                     setTeacherLocation({
                         teacherId,
-                        teacherName: "Teacher Name",
-                        //@ts-ignore
-                        teacherImage: avatar,
+                        teacherName: selectedTeacher?.full_name || "",
+                        teacherImage: selectedTeacher?.image || "",
                         latitude,
                         longitude,
                     });
