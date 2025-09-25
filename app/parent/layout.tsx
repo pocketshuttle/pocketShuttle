@@ -1,3 +1,4 @@
+import ParentNavbar from "@/components/parent-view/navbar"
 import Navbar from "@/components/teachers-view/navbar"
 import { getUserSession } from "@/lib/session"
 import { Poppins } from "next/font/google"
@@ -8,7 +9,7 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
     return (
         <div className={`h-screen ${poppins.className}`}>
             <div>
-                <Navbar data={user} />
+                <ParentNavbar data={user} />
             </div>
             {children}
         </div >
