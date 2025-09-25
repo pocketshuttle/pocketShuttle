@@ -19,7 +19,7 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
 
     const user = await getUserSession()
     // Use teacherId if avaiable, else use user id
-    const teacherId = user?.teacherId || user?.id; 
+    const teacherId = user?.teacherId || user?.id;
 
     if (!user || !teacherId) {
         // If the user is not authenticated, redirect to the login page
@@ -57,7 +57,7 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
 
     return (
         <div>
-            <BusArrival parentAddress={studentData?.parent?.address || ""} parentId={studentData?.parent?.id} teacherId={teacherId || ""} />
+            <BusArrival parentAddress={studentData?.parent?.address || ""} parentId={studentData?.parent?.id} teacherId={teacherId || ""} page="coordinator_view" />
             {/* @ts-ignore */}
             <GuardianPage data={studentData} />
         </div>

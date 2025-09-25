@@ -56,7 +56,8 @@ const TeacherView = async () => {
                                     select: {
                                         id: true,
                                         full_name: true,
-                                        phoneNumber: true
+                                        phoneNumber: true,
+                                        image: true
                                     }
                                 },
                                 driver: {

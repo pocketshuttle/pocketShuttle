@@ -135,6 +135,7 @@ const Navbar = ({ data }: NavbarProps) => {
 
             try {
                 const [longitude, latitude] = await getCurrentLocation();
+                console.log(longitude, latitude, "this is from teachser navbar")
                 const now = Date.now();
 
                 // Throttle: only send if 10+ seconds passed AND moved > 10m
@@ -181,12 +182,6 @@ const Navbar = ({ data }: NavbarProps) => {
         }
     }, [isTracking, data]);
 
-    useEffect(() => {
-        const storedTracking = window.localStorage.getItem("tracking");
-        if (storedTracking) {
-            setIsTracking(JSON.parse(storedTracking));
-        }
-    }, []);
 
     return (
         <div className="flex justify-between bg-[var(--bg-root)] h-[60px] w-full items-center px-4 py-4 mb-5 mt-5">
@@ -204,7 +199,8 @@ const Navbar = ({ data }: NavbarProps) => {
                         <small className="text-[#606060]">Good day {data.role}!</small>
                     }
                     <span className="text-[1.1rem] font-medium capitalize text-[#EEEEEE]">
-                        {data?.name || "admin"} {/* Default to "admin" if name isn't provided */}
+                        {data?.name || "Coordinator"} 
+                        {/* Default to "coordinator" if name isn't provided */}
                     </span>
                 </div>
             </div>
