@@ -7,6 +7,7 @@ import QueryProvider from "@/components/webnotifications/query-provider";
 import AblyProviderRoot from "@/ably/ably-provider";
 import OneSignalClient from "@/onesignal/onesignal-client";
 import Script from "next/script";
+import GoogleMapsProvider from "@/components/maps/Map/google-map-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,11 +24,6 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
 
   description: "location bus service for school and parent",
-  icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
-  },
   openGraph: {
     title: "pocketshuttle",
     description: "location bus service for school and parent",
@@ -36,7 +32,7 @@ export const metadata: Metadata = {
     images: "/logo.png",
     type: "website",
   },
-  keywords: ["school delivery", "drop off kids", "school", "bus service for kids", "meshboc"],
+  keywords: ["school delivery", "school", "bus service for kids", "meshboc"],
 };
 
 export default function RootLayout({
@@ -59,20 +55,23 @@ export default function RootLayout({
           defer
         />
       </head>
-      <Provider>
-        < AblyProviderRoot>
-          <OneSignalClient>
-            <body className={inter.className}>
-              < QueryProvider>
-                <main>
-                  {children}
-                </main>
-              </QueryProvider>
-              <Toaster />
-            </body>
-          </OneSignalClient>
-        </AblyProviderRoot>
-      </Provider>
+      <body className={inter.className}>
+        <Provider>
+          < AblyProviderRoot>
+            <OneSignalClient>
+              < GoogleMapsProvider>
+                < QueryProvider>
+                  <main>
+                    {children}
+                  </main>
+                </QueryProvider>
+                <Toaster />
+              </GoogleMapsProvider>
+            </OneSignalClient>
+          </AblyProviderRoot>
+        </Provider>
+      </body>
+
 
     </html >
   );
