@@ -1,4 +1,4 @@
-"use client" // Indicates the component is client-side only in Next.js
+"use client"
 import { useRouter } from "next/navigation"; // Provides router functionalities for navigation
 import { MdNotifications } from "react-icons/md"; // Import notification icon from react-icons
 import LottieAnimation from "../dashboard/sidebar/menuLink/lottie-animation"; // Import Lottie animation component
@@ -25,15 +25,16 @@ import { useSession } from "@/hooks/useSession";
 import { updateLocation } from "@/actions/mark-otw";
 import { publishLocation } from "@/utils/ably-teacher";
 import { useRef } from "react";
+import { connectSocket } from "@/utils/socket-client";
+import { io } from "socket.io-client";
+import { string } from "zod";
 
 type NavbarProps = {
     data: any;
 };
 
-
-
 function getDistanceMetersFast(coord1: any, coord2: any) {
-    const R = 6371000; // Earth radius in meters
+    const R = 6371000;
     const lat1 = coord1.lat * Math.PI / 180;
     const lat2 = coord2.lat * Math.PI / 180;
     const dLat = lat2 - lat1;
@@ -47,8 +48,9 @@ function getDistanceMetersFast(coord1: any, coord2: any) {
 const Navbar = ({ data }: NavbarProps) => {
     const [isHovering, setIsHovering] = useState(false); // Manages hover state for the profile
     const [isTracking, setIsTracking] = useState<boolean>(false); // Manages the location tracking toggle state
-    const router = useRouter(); // Provides router functionalities for navigation
-
+    const [newLocation, setNewLocation] = useState({ teacherId: string, teacherName: string, teacherImage: string, lgt: string, lat: string, schoolId: string })
+    // Provides router functionalities for navigation
+    const router = useRouter();
     const lastSentTimeRef = useRef(0);
     const lastCoordsRef = useRef<{ lat: number; lng: number } | null>(null);
 
@@ -74,9 +76,82 @@ const Navbar = ({ data }: NavbarProps) => {
     useEffect(() => {
         const storedTracking = window.localStorage.getItem("tracking");
         if (storedTracking) {
-            setIsTracking(JSON.parse(storedTracking)); // Restore the switch state from localStorage
+            // Restore the switch state from localStorage
+            setIsTracking(JSON.parse(storedTracking));
         }
     }, []);
+
+    useEffect(() => {
+        const getLocation = async () => {
+            const [longitude, latitude] = await getCurrentLocation();
+            setNewLocation({ teacherId: data?.id, teacherName: data?.name, teacherImage: data?.image, lgt: longitude, lat: latitude, schoolId: data?.schoolId })
+        }
+
+        const intervalId = setInterval(getLocation, 1000000);
+
+        return () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        }
+
+        // getLocation()
+    }, [data])
+
+    console.log(data, "data from teachers navbar")
+
+
+    useEffect(() => {
+        let socket: any;
+        const connectToTeacher = async () => {
+            try {
+                socket = await connectSocket(data?.id, "cmfa3hp6w000cy0hfdhz34f8o");
+
+                // Wait for connection or timeout
+                await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        reject(new Error("Socket connection timeout"));
+                    }, 10000);
+
+                    socket.on("connect", () => {
+                        clearTimeout(timeout);
+                        console.log("Socket connected and ready!", socket.id);
+                        resolve(true);
+                    });
+
+                    socket.on("connect_error", (error: any) => {
+                        console.log(error, "errors from socket")
+                        clearTimeout(timeout);
+                        reject(error);
+                    });
+                });
+                socket.emit("teacher-live-location", {
+                    newLocation
+                });
+
+                socket.on("teacher-location-update", (newLocation: any) => {
+                    console.log(" Teacher location update received:", newLocation);
+                });
+
+                socket.on("disconnect", (reason: any) => {
+                    console.log("🔌 Socket disconnected:", reason);
+                });
+
+                // Store reference for location updates
+
+            } catch (error) {
+                console.error(" Socket connection failed:", error);
+                // You could show a user notification here
+            }
+        };
+
+        if (data?.id) {
+            connectToTeacher();
+        }
+
+
+    }, [data?.id, newLocation, data]);
+
 
     /**
      * useEffect hook to start location tracking when the switch is toggled on.
@@ -107,7 +182,7 @@ const Navbar = ({ data }: NavbarProps) => {
      *    - This ensures the map is responsive for fast-moving teachers (e.g., driving).
      *
      * 4. **Distance Calculation**
-     *    - Uses `getDistanceMetersFast()` (Equirectangular approximation) for speed over
+     *    - Uses `ersFast()` (Equirectangular approximation) for speed over
      *      the more precise Haversine formula, since accuracy within ~1m is sufficient.
      *
      * 5. **Refs for State Between Updates**
@@ -126,7 +201,7 @@ const Navbar = ({ data }: NavbarProps) => {
      * - `immediateUpdateDistanceM` (default: 50 meters)
      *   Distance threshold to trigger an immediate update before the time limit.
      *
-   
+     
      */
 
     useEffect(() => {
@@ -135,7 +210,6 @@ const Navbar = ({ data }: NavbarProps) => {
 
             try {
                 const [longitude, latitude] = await getCurrentLocation();
-                console.log(longitude, latitude, "this is from teachser navbar")
                 const now = Date.now();
 
                 // Throttle: only send if 10+ seconds passed AND moved > 10m
@@ -183,6 +257,7 @@ const Navbar = ({ data }: NavbarProps) => {
     }, [isTracking, data]);
 
 
+
     return (
         <div className="flex justify-between bg-[var(--bg-root)] h-[60px] w-full items-center px-4 py-4 mb-5 mt-5">
             <div
@@ -196,11 +271,10 @@ const Navbar = ({ data }: NavbarProps) => {
                 <div className="flex flex-col items-start">
                     {
                         data &&
-                        <small className="text-[#606060]">Good day {data.role}!</small>
+                        <small className="text-[#606060] capitalize">Good day {data.role}!</small>
                     }
                     <span className="text-[1.1rem] font-medium capitalize text-[#EEEEEE]">
-                        {data?.name || "Coordinator"} 
-                        {/* Default to "coordinator" if name isn't provided */}
+                        {data?.name || "coordinator"}
                     </span>
                 </div>
             </div>
