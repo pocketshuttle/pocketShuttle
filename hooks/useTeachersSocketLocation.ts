@@ -46,7 +46,7 @@ export const useSchoolTeachersLocations = (schoolId?: string) => {
 
           socket.on("connect", () => {
             clearTimeout(timeout);
-            // console.log("School socket connected!", socket.id);
+            console.log("School socket connected!", socket.id);
 
             socket.emit("subscribe-school", { schoolId });
             resolve(true);
