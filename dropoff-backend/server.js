@@ -39,7 +39,6 @@ io.use((socket, next) => {
     const payload = jwt.verify(token, process.env.SOCKET_AUTH_SECRET);
     socket.user = payload;
 
-    console.log(payload, "pay load from server");
     next();
   } catch {
     next(new Error("Invalid or expired token"));
@@ -79,6 +78,7 @@ io.on("connection", (socket) => {
     }
 
     const teacherId = socket.user.id;
+
     // const now = Date.now();
     // const lastUpdate = teacherRateLimitMap.get(teacherId) || 0;
 
@@ -92,7 +92,7 @@ io.on("connection", (socket) => {
 
     const payload = {
       teacherId: socket.user.id,
-      ...data, 
+      ...data,
     };
 
     // 1. Send to parents subscribed to this teacher

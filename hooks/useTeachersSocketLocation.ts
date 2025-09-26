@@ -36,7 +36,6 @@ export const useSchoolTeachersLocations = (schoolId?: string) => {
     const connectToSchool = async () => {
       try {
         socket = await connectSocket("", schoolId);
-        console.log("🏫 Connecting school socket...");
 
         // Wait for connection or timeout
         await new Promise((resolve, reject) => {

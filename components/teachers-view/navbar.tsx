@@ -48,7 +48,7 @@ function getDistanceMetersFast(coord1: any, coord2: any) {
 const Navbar = ({ data }: NavbarProps) => {
     const [isHovering, setIsHovering] = useState(false); // Manages hover state for the profile
     const [isTracking, setIsTracking] = useState<boolean>(false); // Manages the location tracking toggle state
-    const [newLocation, setNewLocation] = useState({ teacherId: string, teacherName: string, teacherImage: string, lgt: string, lat: string, schoolId: string })
+    const [newLocation, setNewLocation] = useState({ teacherId: string, teacherName: string, teacherImage: string, longitude: string, lattitude: string, schoolId: string })
     // Provides router functionalities for navigation
     const router = useRouter();
     const lastSentTimeRef = useRef(0);
@@ -84,10 +84,11 @@ const Navbar = ({ data }: NavbarProps) => {
     useEffect(() => {
         const getLocation = async () => {
             const [longitude, latitude] = await getCurrentLocation();
-            setNewLocation({ teacherId: data?.id, teacherName: data?.name, teacherImage: data?.image, lgt: longitude, lat: latitude, schoolId: data?.schoolId })
+            //@ts-ignore
+            setNewLocation({ teacherId: data?.id, teacherName: data?.name, teacherImage: data?.image, longitude, latitude, schoolId: data?.schoolId })
         }
 
-        const intervalId = setInterval(getLocation, 1000000);
+        const intervalId = setInterval(getLocation, 10000);
 
         return () => {
             if (intervalId) {

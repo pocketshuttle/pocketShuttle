@@ -15,6 +15,8 @@ export async function GET() {
       return NextResponse.json({ error: "Invalid session" }, { status: 401 });
     }
 
+    console.log(session, "from spcket auth");
+
     // Ensure secret is configured
     const secret = process.env.SOCKET_AUTH_SECRET;
     if (!secret) {
@@ -32,11 +34,12 @@ export async function GET() {
         id: session.id,
         role: session.role,
         email: session.email,
-        // schoolId: session.schoolId,
+        schoolId: session.schoolId,
       },
       secret,
       { expiresIn: "1h" }
     );
+
 
     return NextResponse.json({ token: socketToken });
   } catch (err) {
