@@ -1,4 +1,3 @@
-// hooks/useSchoolTeachersLocations.ts
 import { connectSocket } from "@/utils/socket-client";
 import { useEffect, useState, useCallback } from "react";
 
@@ -9,6 +8,9 @@ interface TeacherLocation {
   latitude: number;
   longitude: number;
   timestamp?: number;
+}
+interface TeacherLocationInterface {
+  newLocation: TeacherLocation;
 }
 
 export const useSchoolTeachersLocations = (schoolId?: string) => {
@@ -58,10 +60,16 @@ export const useSchoolTeachersLocations = (schoolId?: string) => {
         });
 
         // Listen for updates from teachers in this school
-        socket.on("teacher-location-update", (location: TeacherLocation) => {
-          console.log("📍 Location update received at school:", location);
-          updateTeacherLocation(location);
-        });
+        socket.on(
+          "teacher-location-update",
+          (location: TeacherLocationInterface) => {
+            console.log("📍 Location update received at school:", location);
+            const loc = location.newLocation
+              ? location.newLocation
+              : location;
+            updateTeacherLocation(loc);
+          }
+        );
 
         socket.on("disconnect", (reason: string) => {
           console.log("🔌 School socket disconnected:", reason);
