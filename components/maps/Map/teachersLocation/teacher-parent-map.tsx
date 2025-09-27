@@ -4,7 +4,7 @@ import { Directions } from './directions-to-parent';
 import { useEffect, useMemo, useState } from 'react';
 import { googleFetchCoordinates } from '../../lib/utils';
 import { useTeacherLocation } from '@/hooks/useTeacher-location';
-import { resolve } from 'path';
+import { connectSocket } from '@/utils/socket-client';
 
 type AddressProps = {
     parentAddress: string;
@@ -27,57 +27,78 @@ export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProp
 
 
     useEffect(() => {
-        let socket: any
-
-        const connectToTeacerLocation = async () => {
+        let socket: any;
+        const connectToTeacher = async () => {
             try {
+                socket = await connectSocket(teacherId, "");
+
                 await new Promise((resolve, reject) => {
-                    const timeOut = setTimeout(() => {
-                        reject(new Error("Socket connection timeout"))
-                    }, 10000)
+                    const timeout = setTimeout(() => {
+                        reject(new Error("Socket Connection Time out"));
+                    }, 1000);
 
                     socket.on("connect", () => {
-                        clearTimeout(timeOut)
-                        console.log("Parent socket connected", socket.id)
+                        clearTimeout(timeout);
+                        // console.log("Socket connected and ready!, from parent", socket.id);
 
-                        //if we join with the teacher Id, doeosnt that mean every parent with teh teacher Id can see the same location
-                        //we join the parent room with the teacherId
-                        socket.emit("subscribe-teacher", teacherId);
-                        resolve(true)
-                    })
+                        //since we using teacher id to subscribe does tha mean, all the parentsa can see all the location?
+                        // subscribe parent to teacher room
+                        socket.emit("subscribe-teacher", { teacherId });
+
+                        resolve(true);
+                    });
 
                     socket.on("connect_error", (error: any) => {
-                        clearTimeout(timeOut)
-                        reject(error)
-                    })
-                })
+                        console.log(error, "errors from socket");
+                        clearTimeout(timeout);
+                        reject(error);
+                    });
+                });
 
-                
+
+                socket.on("teacher-location-update", (location: TeacherLocation) => {
+                    // console.log(" Location update received at parent:", location);
+                    setTeacherLocation((prev) => ({
+                        ...prev,
+                        [location.teacherId]: location,
+                    }));
+                });
+
+                socket.on("disconnect", (reason: string) => {
+                    console.log("Parent socket disconnected:", reason);
+                });
             } catch (error) {
-
+                console.error("Failed to connect parent socket:", error);
             }
-        }
-    }, [teacherId])
+        };
 
+        connectToTeacher();
+
+        return () => {
+            if (socket) socket.disconnect();
+        };
+    }, [teacherId]);
 
 
     // useTeacherLocation(teacherId, setTeacherLocation);
-    useTeacherLocation(teacherId, (data) => {
-        setTeacherLocation(prev => ({
-            ...prev,
-            [data.teacherId]: {
-                teacherId: data.teacherId,
-                teacherName: data.teacherName,
-                teacherImage: data.teacherImage,
-                latitude: data.latitude,
-                longitude: data.longitude
-            }
-        }));
-    });
+    // useTeacherLocation(teacherId, (data) => {
+    //     setTeacherLocation(prev => ({
+    //         ...prev,
+    //         [data.teacherId]: {
+    //             teacherId: data.teacherId,
+    //             teacherName: data.teacherName,
+    //             teacherImage: data.teacherImage,
+    //             latitude: data.latitude,
+    //             longitude: data.longitude
+    //         }
+    //     }));
+    // });
 
     const activeTeacher = useMemo(() => {
         return teacherLocation[teacherId] || null;
     }, [teacherId, teacherLocation]);
+
+    // console.log(activeTeacher?.newLocation, "from parent teacher")
 
 
 
@@ -95,7 +116,8 @@ export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProp
                         fullscreenControl={false}
                         scrollwheel={false}
                     >
-                        {teacherLocation && <Directions parentAddress={parentAddress} teacherData={activeTeacher} />}
+                        {/* @ts-ignore */}
+                        {teacherLocation && <Directions parentAddress={parentAddress} teacherData={activeTeacher?.newLocation} />}
                     </Map>
                 </APIProvider>
             </div>
@@ -108,3 +130,19 @@ export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProp
     )
 };
 
+
+
+
+// useTeacherLocation(teacherId, setTeacherLocation);
+// useTeacherLocation(teacherId, (data) => {
+//     setTeacherLocation(prev => ({
+//         ...prev,
+//         [data.teacherId]: {
+//             teacherId: data.teacherId,
+//             teacherName: data.teacherName,
+//             teacherImage: data.teacherImage,
+//             latitude: data.latitude,
+//             longitude: data.longitude
+//         }
+//     }));
+// });

@@ -79,6 +79,7 @@ export const ParentMainView = ({
         return <div>No students found for this parent.</div>
     }
 
+
     return (
         <div className="space-y-4">
             {/* Tab control for kids */}
@@ -89,11 +90,11 @@ export const ParentMainView = ({
                 onSelect={setSelectedStudentId}
             />
 
-            {/* <  TeacherLocationTracker
+            <  TeacherLocationTracker
                 parentAddress={parentAddress || ""}
                 // parentId={parentId}
                 teacherId={selectedTeacherId || ""}
-            /> */}
+            />
             {/* <button
                 onClick={() => sendPushNotification("bus coming", parentId)}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg"
@@ -103,7 +104,7 @@ export const ParentMainView = ({
             {/* 
             Map only changes when selectedTeacherId changes
             */}
-            {selectedTeacherId && (
+            {/* {selectedTeacherId && (
                 <BusArrival
                     key={selectedTeacherId}
                     parentAddress={parentAddress || ""}
@@ -112,7 +113,7 @@ export const ParentMainView = ({
                     teachers={allTeacher || []}
                     page="parent_view"
                 />
-            )}
+            )} */}
 
             {/* Additional parent info */}
             <ParentViewData userId={parentId} />
