@@ -1,6 +1,5 @@
 "use client"
 import { useRouter } from "next/navigation"; // Provides router functionalities for navigation
-import { MdNotifications } from "react-icons/md"; // Import notification icon from react-icons
 import LottieAnimation from "../dashboard/sidebar/menuLink/lottie-animation"; // Import Lottie animation component
 import { useEffect, useMemo, useState } from "react"; // Hooks for managing component state and side effects
 import userprofile from "@/public/images/userProfile.json"; // Lottie animation data for user profile
@@ -88,7 +87,7 @@ const Navbar = ({ data }: NavbarProps) => {
             setNewLocation({ teacherId: data?.id, teacherName: data?.name, teacherImage: data?.image, longitude, latitude, schoolId: data?.schoolId })
         }
 
-        const intervalId = setInterval(getLocation, 10000);
+        const intervalId = setInterval(getLocation, 1000000);
 
         return () => {
             if (intervalId) {

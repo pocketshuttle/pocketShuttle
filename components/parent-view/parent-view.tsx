@@ -52,7 +52,7 @@ export const ParentMainView = ({
         [siblings, selectedStudentId]
     )
 
-    // calculate the teacher IDs for all siblings
+    // get the teacher IDs for all siblings
     const allTeacherIds = useMemo(
         () => siblings.map(s => s.bus?.teacher?.id).filter(Boolean),
         [siblings]
