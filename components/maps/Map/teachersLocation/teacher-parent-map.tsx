@@ -4,6 +4,7 @@ import { Directions } from './directions-to-parent';
 import { useEffect, useMemo, useState } from 'react';
 import { googleFetchCoordinates } from '../../lib/utils';
 import { useTeacherLocation } from '@/hooks/useTeacher-location';
+import { resolve } from 'path';
 
 type AddressProps = {
     parentAddress: string;
@@ -23,6 +24,42 @@ export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProp
     const [teacherLocation, setTeacherLocation] = useState<
         Record<string, { teacherId: string; teacherName: string; teacherImage: string; latitude: number; longitude: number }>
     >({});
+
+
+    useEffect(() => {
+        let socket: any
+
+        const connectToTeacerLocation = async () => {
+            try {
+                await new Promise((resolve, reject) => {
+                    const timeOut = setTimeout(() => {
+                        reject(new Error("Socket connection timeout"))
+                    }, 10000)
+
+                    socket.on("connect", () => {
+                        clearTimeout(timeOut)
+                        console.log("Parent socket connected", socket.id)
+
+                        //if we join with the teacher Id, doeosnt that mean every parent with teh teacher Id can see the same location
+                        //we join the parent room with the teacherId
+                        socket.emit("subscribe-teacher", teacherId);
+                        resolve(true)
+                    })
+
+                    socket.on("connect_error", (error: any) => {
+                        clearTimeout(timeOut)
+                        reject(error)
+                    })
+                })
+
+                
+            } catch (error) {
+
+            }
+        }
+    }, [teacherId])
+
+
 
     // useTeacherLocation(teacherId, setTeacherLocation);
     useTeacherLocation(teacherId, (data) => {
