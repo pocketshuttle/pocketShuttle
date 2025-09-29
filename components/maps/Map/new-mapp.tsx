@@ -103,7 +103,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         }
     }, [parentAddress]);
 
-    //we only fetch a new route when the parent address
+    //we only fetch a new route when the parent address changes
     useEffect(() => {
         if (!coords1 || !coords2 || !isLoaded) return;
 
@@ -186,7 +186,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         window.open(url, "_blank");
     }
 
-    //we animta ethe teacher marker
+    //we animate the teacher marker
     useEffect(() => {
         if (!teacherData) return;
 

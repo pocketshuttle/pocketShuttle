@@ -35,8 +35,6 @@ export const BusArrival = ({ parentAddress, parentId, teacherId, page, teachers 
         [teacherId, teachers]
     );
 
-    console.log(page, "from bus arrival")
-
     useEffect(() => {
         const fetchLocation = () => {
             if (navigator.geolocation) {
