@@ -5,10 +5,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { googleFetchCoordinates } from '../../lib/utils';
 import { useTeacherLocation } from '@/hooks/useTeacher-location';
 import { connectSocket } from '@/utils/socket-client';
+import { StudentProps } from '@/types';
 
 type AddressProps = {
     parentAddress: string;
     teacherId: string;
+    siblings:StudentProps
 };
 
 type TeacherLocation = {
@@ -21,6 +23,8 @@ type TeacherLocation = {
 
 export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProps) => {
 
+
+    console.log(siblings, "sibling of te united united satate")
     const [teacherLocation, setTeacherLocation] = useState<
         Record<string, { teacherId: string; teacherName: string; teacherImage: string; latitude: number; longitude: number }>
     >({});

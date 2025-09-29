@@ -94,6 +94,7 @@ export const ParentMainView = ({
                 parentAddress={parentAddress || ""}
                 // parentId={parentId}
                 teacherId={selectedTeacherId || ""}
+                siblings={siblings}
             />
             {/* <button
                 onClick={() => sendPushNotification("bus coming", parentId)}

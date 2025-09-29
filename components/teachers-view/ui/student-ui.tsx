@@ -130,6 +130,7 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
     }, [student?.parent?.address]);
 
 
+    //REDUCE THE API CALLS
     useEffect(() => {
         if (!window.google) return;
         const teacher = teacherLocation[teacherId] || null;

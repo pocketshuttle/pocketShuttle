@@ -61,7 +61,7 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
     }, [teacherData]);
 
 
-    // geocode parent address → coords2
+    // geocode parent address => coords2
     useEffect(() => {
         const fetchParentCoordinates = async () => {
             if (!parentAddress) return;
@@ -77,7 +77,7 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
         fetchParentCoordinates();
     }, [parentAddress]);
 
-    // init directions service/renderer
+    // init directions renderer
     useEffect(() => {
         if (!routesLibrary || !map) return;
         setDirectionsService(new routesLibrary.DirectionsService());
