@@ -58,7 +58,7 @@ export default function NewParentPage({
                     y: 0,
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-lg overflow-y-auto"
+                className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-lg overflow-y-auto"
             >
                 {/* Drag handle */}
                 <div className="w-full flex justify-center p-2">
