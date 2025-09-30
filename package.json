@@ -59,6 +59,7 @@
     "clsx": "^2.1.1",
     "cmdk": "0.2.1 ",
     "csv-parse": "^6.1.0",
+    "framer-motion": "^12.23.22",
     "haversine-distance": "^1.2.4",
     "jose": "^5.9.2",
     "leaflet": "^1.9.4",

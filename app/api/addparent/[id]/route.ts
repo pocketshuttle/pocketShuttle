@@ -36,6 +36,7 @@ export const GET = async (
                     id: true,
                     full_name: true,
                     phoneNumber: true,
+                    image: true,
                   },
                 },
                 driver: {

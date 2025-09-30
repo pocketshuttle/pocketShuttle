@@ -10,7 +10,7 @@ import { StudentProps } from '@/types';
 type AddressProps = {
     parentAddress: string;
     teacherId: string;
-    siblings:StudentProps
+    siblings: StudentProps
 };
 
 type TeacherLocation = {
@@ -24,10 +24,12 @@ type TeacherLocation = {
 export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProps) => {
 
 
-    console.log(siblings, "sibling of te united united satate")
+    // console.log(siblings, "sibling of te united united satate")
     const [teacherLocation, setTeacherLocation] = useState<
         Record<string, { teacherId: string; teacherName: string; teacherImage: string; latitude: number; longitude: number }>
     >({});
+
+
 
 
     useEffect(() => {
@@ -83,6 +85,8 @@ export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProp
         };
     }, [teacherId]);
 
+    // console.log(teacherLocation, "this is a teachers location")
+
 
     // useTeacherLocation(teacherId, setTeacherLocation);
     // useTeacherLocation(teacherId, (data) => {
@@ -107,11 +111,11 @@ export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProp
 
 
     return (
-        <div>
+        <div className='rounded-bl-md'>
             {/* {
                 teacherLocation && ( */}
 
-            <div style={{ width: '100%', height: '60vh', borderRadius: "100px" }}>
+            <div style={{ width: '100%', height: '100vh', borderRadius: "100px" }}>
                 <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
                     <Map
                         defaultCenter={{ lat: 6.5244, lng: 3.3792 }}

@@ -38,16 +38,16 @@ export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProp
         }));
     });
 
-    // const activeTeacher = useMemo(() => {
-    //     return teacherLocation[teacherId] || null;
-    // }, [teacherId, teacherLocation]);
+    const activeTeacher = useMemo(() => {
+        return teacherLocation[teacherId] || null;
+    }, [teacherId, teacherLocation]);
 
 
 
     return (
         <div>
 
-            <div style={{ width: '100%', height: '60vh', borderRadius: "100px" }}>
+            <div style={{ width: '100%', height: '100vh', borderRadius: "100px" }}>
                 <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
                     <Map
                         defaultCenter={{ lat: 6.5244, lng: 3.3792 }}

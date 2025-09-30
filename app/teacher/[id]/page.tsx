@@ -25,44 +25,49 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
         // If the user is not authenticated, redirect to the login page
         return <div className='text-center flex items-center '>You are not logged in, please login to view this page.</div>;
     }
-
-    const studentData = await db.student.findUnique({
-        where: { id: params.id },
-        include: {
-            parent: {
-                include: {
-                    Student: {
-                        include: {
-                            bus: {
-                                include: {
-                                    teacher: true,
-                                    driver: true,
+    try {
+        const studentData = await db.student.findUnique({
+            where: { id: params.id },
+            include: {
+                parent: {
+                    include: {
+                        Student: {
+                            include: {
+                                bus: {
+                                    include: {
+                                        teacher: true,
+                                        driver: true,
+                                    },
                                 },
+                                parent: true
                             },
-                            parent: true
                         },
                     },
-                },
+                }
             }
+        })
+
+        // Revalidate the cache for the 'students' tag to ensure real-time data
+        revalidateTag("students")
+
+        if (!studentData?.parent) {
+            // Handle the case where parent data is not found
+            return <div className='text-center flex items-center '>No Parent found for this student, please refresh or contact school admin.</div>;
         }
-    })
 
-    // Revalidate the cache for the 'students' tag to ensure real-time data
-    revalidateTag("students")
+        return (
+            <div>
+                <BusArrival parentAddress={studentData?.parent?.address || ""} parentId={studentData?.parent?.id} teacherId={teacherId || ""} page="coordinator_view" />
+                {/* @ts-ignore */}
+                <GuardianPage data={studentData} />
+            </div>
 
-    if (!studentData?.parent) {
-        // Handle the case where parent data is not found
-        return <div className='text-center flex items-center '>No Parent found for this student, please refresh or contact school admin.</div>;
+        )
+    } catch (error) {
+        console.error("Error fetching students data:", error);
+        return <div className='text-center'>An error occurred while fetching Parents data, please refresh or try again later.</div>;
     }
 
-    return (
-        <div>
-            <BusArrival parentAddress={studentData?.parent?.address || ""} parentId={studentData?.parent?.id} teacherId={teacherId || ""} page="coordinator_view" />
-            {/* @ts-ignore */}
-            <GuardianPage data={studentData} />
-        </div>
-
-    )
 }
 
 export default StudentView

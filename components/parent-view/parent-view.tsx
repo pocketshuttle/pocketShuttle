@@ -81,7 +81,7 @@ export const ParentMainView = ({
 
 
     return (
-        <div className="space-y-4">
+        <div className="">
             {/* Tab control for kids */}
 
             <KidsViewTab
@@ -96,7 +96,12 @@ export const ParentMainView = ({
                 teacherId={selectedTeacherId || ""}
                 siblings={siblings}
             />
-            {/* <button
+        
+            <ParentViewData userId={parentId} />
+        </div>
+    )
+}
+    {/* <button
                 onClick={() => sendPushNotification("bus coming", parentId)}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg"
             >
@@ -117,7 +122,3 @@ export const ParentMainView = ({
             )} */}
 
             {/* Additional parent info */}
-            <ParentViewData userId={parentId} />
-        </div>
-    )
-}
