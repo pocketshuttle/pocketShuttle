@@ -80,7 +80,7 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
         const check = async () => {
             const arrived = await checkBusArrival(coords1, coords2, student, teacherId);
             if (arrived) {
-                console.log(`Arrival logged for ${student.full_name}`);
+                // console.log(`Arrival logged for ${student.full_name}`);
                 setArrivalLogged(true);
             }
 

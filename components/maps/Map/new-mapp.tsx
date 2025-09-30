@@ -26,7 +26,7 @@ type TeacherLocation = {
 
 const containerStyle = {
     width: "100%",
-    height: "400px",
+    height: "90vh",
 };
 
 const DEFAULT_ZOOM = 12;
@@ -232,8 +232,8 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
     if (loadError) return <div>Error loading maps</div>;
 
     return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+        <div className="">
+            <div className="flex justify-between items-center p-2 bg-gray-50 rounded-t-xl">
                 {eta && (
                     <p className="font-medium text-blue-600">
                         ETA <span className="text-blue-600">{eta}</span>
@@ -251,6 +251,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
                 mapContainerStyle={containerStyle}
                 center={coords1}
                 zoom={DEFAULT_ZOOM}
+                
                 options={{
                     streetViewControl: false,
                     mapTypeControl: false,

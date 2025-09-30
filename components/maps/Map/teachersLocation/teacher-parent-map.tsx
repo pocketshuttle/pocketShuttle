@@ -36,7 +36,7 @@ export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProp
         let socket: any;
         const connectToTeacher = async () => {
             try {
-                socket = await connectSocket(teacherId, "");
+                socket = await connectSocket(teacherId, "");                                                                                                                                                                                                                                                                                                                                                                                                                                                    
 
                 await new Promise((resolve, reject) => {
                     const timeout = setTimeout(() => {
@@ -47,7 +47,7 @@ export const TeacherLocationTracker = ({ parentAddress, teacherId }: AddressProp
                         clearTimeout(timeout);
                         // console.log("Socket connected and ready!, from parent", socket.id);
 
-                        //since we using teacher id to subscribe does tha mean, all the parentsa can see all the location?
+                        //since we using teacher id to subscribe does tha mean, all the parentsa can see all the location? fix this potential error
                         // subscribe parent to teacher room
                         socket.emit("subscribe-teacher", { teacherId });
 

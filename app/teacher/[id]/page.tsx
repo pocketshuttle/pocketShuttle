@@ -1,8 +1,8 @@
 import Location from '@/components/maps/Map/new-map'
 import { BusArrival } from '@/components/parent-view/bus-arrival'
-import { SocketDebugPanel } from '@/components/socket/socket-debug-panel'
 // import Location from '@/components/maps/Map/Map'
 import { GuardianPage } from '@/components/teachers-view/student-view/guardian'
+import { StudentHomePage } from '@/components/teachers-view/student-view/student-home-page'
 import { db } from '@/lib/db'
 import { getUserSession } from '@/lib/session'
 import { revalidateTag } from 'next/cache'
@@ -14,6 +14,7 @@ import { revalidateTag } from 'next/cache'
  * each child can have just one parent, but parents can have multiple kids
  * @returns 
  */
+
 
 const StudentView = async ({ params }: { params: { id: string } }) => {
 
@@ -56,10 +57,13 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
         }
 
         return (
+            // <div>
+            //     <BusArrival parentAddress={studentData?.parent?.address || ""} parentId={studentData?.parent?.id} teacherId={teacherId || ""} page="coordinator_view" />
+            //     {/* @ts-ignore */}
+            //     <GuardianPage data={studentData} />
+            // </div>
             <div>
-                <BusArrival parentAddress={studentData?.parent?.address || ""} parentId={studentData?.parent?.id} teacherId={teacherId || ""} page="coordinator_view" />
-                {/* @ts-ignore */}
-                <GuardianPage data={studentData} />
+                <StudentHomePage studentData={studentData} teacherId={teacherId} />
             </div>
 
         )

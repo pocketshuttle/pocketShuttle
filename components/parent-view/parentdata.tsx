@@ -52,7 +52,7 @@ const ParentViewData = ({ userId }: { userId: string }) => {
         <main className=" " >
             {/* <StudentNotificationBar /> */}
             {
-                studentPresense?.map((studentBus)=>(
+                studentPresense?.map((studentBus) => (
                     <TeacherDetailsForParentPage bus={studentBus?.bus} />
                 ))
             }
@@ -81,51 +81,52 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                                 />
                             </div>
 
-                            <div className="py-4  w-full">
-                                <div className="flex items-center space-x-4  w-full">
-                                    <div className=" w-8/12 ">
-                                        <h2 className="text-xl font-semibold text-gray-900 capitalize">
-                                            {sibling.full_name}
-                                        </h2>
-                                    </div>
-                                    {/* this will not display if the child has been picked up */}
-                                    {(sibling.presence === "ON_THE_WAY" || sibling.status === "PICKED") && (
-                                        <div className="w-2/12 flex justify-start">
+                            <div className="w-full py-4 border-b border-gray-200">
+                                {/* Top row: Child name, animation, status */}
+                                <div className="flex items-center justify-between mb-2">
+                                    <h2 className="text-lg font-semibold text-gray-900 capitalize">
+                                        {sibling.full_name}
+                                    </h2>
+
+                                    <div className="flex items-center gap-3">
+                                        {(sibling.presence === "ON_THE_WAY" || sibling.status === "PICKED") && (
                                             <DotLottieReact
                                                 src="/images/arriving.json"
                                                 loop
                                                 autoplay
-                                                style={{ width: 80, height: 80 }}
+                                                style={{ width: 50, height: 50 }}
                                             />
-                                        </div>
-                                    )}
-
-
-                                    <div className="w-2/12 flex items-center justify-end space-x-2">
+                                        )}
                                         <Badge
                                             variant="outline"
-                                            className={`text-[#EEEEEE] text-[0.5rem] ${sibling.status === "PICKED" ? "bg-[crimson]" : "bg-[teal]"
+                                            className={`px-3 py-1 rounded-full text-xs font-medium tracking-wide ${sibling.status === "PICKED"
+                                                    ? "bg-[crimson] text-white"
+                                                    : "bg-teal-600 text-white"
                                                 }`}
                                         >
                                             {sibling.status}
                                         </Badge>
                                     </div>
-
-
-
                                 </div>
-                                <p className="capitalize text-gray-500">
+
+                                {/* Bus info */}
+                                <p className="text-sm text-gray-500 capitalize">
                                     {bus?.color} {bus?.bus_product_name} {bus?.bus_number}
                                 </p>
-                                <p className="space-x-2 capitalize text-gray-600">
-                                    <small>{driver?.full_name}</small>
-                                    <small className="ml-2 text-lg">{driver?.phoneNumber}</small>
-                                </p>
-                                <p className="space-x-2 capitalize text-gray-800">
-                                    <small>{teacher?.full_name}</small>
-                                    <small className="ml-2 text-lg">{teacher?.phoneNumber}</small>
-                                </p>
+
+                                {/* Driver info */}
+                                <div className="flex justify-between text-sm text-gray-700 mt-1">
+                                    <span className="capitalize">{driver?.full_name}</span>
+                                    <span className="font-medium">{driver?.phoneNumber}</span>
+                                </div>
+
+                                {/* Teacher info */}
+                                <div className="flex justify-between text-sm text-gray-800 mt-1">
+                                    <span className="capitalize">{teacher?.full_name}</span>
+                                    <span className="font-medium">{teacher?.phoneNumber}</span>
+                                </div>
                             </div>
+
                         </div>
                     );
                 })}
