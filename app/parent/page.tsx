@@ -10,6 +10,7 @@ import { revalidateTag } from 'next/cache'
 import { Montserrat } from 'next/font/google'
 import React, { Suspense } from 'react'
 import { ParentMainView } from '@/components/parent-view/parent-view'
+import NewParentPage from '@/components/parent-view/new-parent-view'
 
 // Load Montserrat font
 const mont = Montserrat({ subsets: ["latin"], weight: "500" })
@@ -88,8 +89,9 @@ const TeacherView = async () => {
 
         return (
             <Suspense>
-                <div className={`${mont.className} p-3`}>
-                    <ParentMainView parentAddress={parent.address ?? ''} parentId={id} siblings={parent.Student as any} />
+                <div className={`${mont.className}`}>
+                    < NewParentPage parentAddress={parent.address ?? ''} parentId={id} siblings={parent.Student as any} />
+                    {/* <ParentMainView parentAddress={parent.address ?? ''} parentId={id} siblings={parent.Student as any} /> */}
                 </div>
             </Suspense>
         )

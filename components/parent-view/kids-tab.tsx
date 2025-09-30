@@ -15,7 +15,7 @@ export const KidsViewTab = ({ siblings, selectedStudentId, onSelect }: KidsViewT
     //   "background_color": "#16171c",
     return (
         <div>
-            <Tabs value={current} onValueChange={onSelect} className="w-full ">
+            <Tabs value={current} onValueChange={onSelect} className="w-full mb-3">
                 <TabsList className="flex flex-wrap gap-2">
                     {siblings.map((sibling) => (
                         <TabsTrigger key={sibling.id} value={sibling.id} className="capitalize text-gray-100">
