@@ -5,7 +5,7 @@ import { GuardianPage } from './guardian'
 import { motion, useMotionValue, useTransform } from 'framer-motion'
 import { useState } from 'react'
 interface StudentHomePageProps {
-    studendData: StudentProps
+    studentData: StudentProps
     teacherId: string
 }
 export const StudentHomePage = ({ studentData, teacherId }: StudentHomePageProps) => {
@@ -23,7 +23,7 @@ export const StudentHomePage = ({ studentData, teacherId }: StudentHomePageProps
         <div className='relative w-full h-screen overflow-hidden'>
             {/* Map at full screen */}
             <div className="absolute inset-0">
-                <BusArrival parentAddress={studentData?.parent?.address || ""} parentId={studentData?.parent?.id} teacherId={teacherId || ""} page="coordinator_view" />
+                <BusArrival parentAddress={studentData?.parent?.address || ""} parentId={studentData?.parent?.id || ""} teacherId={teacherId || ""} page="coordinator_view" />
             </div>
 
             {
@@ -58,13 +58,10 @@ export const StudentHomePage = ({ studentData, teacherId }: StudentHomePageProps
                 <div className="w-full flex justify-center p-2">
                     <div className="w-12 h-1.5 bg-gray-400 rounded-full" />
                 </div>
+                {/* @ts-ignore */}
                 <GuardianPage data={studentData} />
             </motion.div>
 
         </div>
     )
 }
-//  <div>
-//                 {/* @ts-ignore */}
-//                
-//             </div>

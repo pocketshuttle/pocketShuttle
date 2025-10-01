@@ -12,11 +12,10 @@ import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { Textarea } from "@/components/ui/textarea"
 import { usePost } from "@/hooks/usePost"
-import { FormSuccess } from "@/components/ui/form-success"
+
 import { useFetch } from "@/hooks/useFetch"
 import { usePathname, useSearchParams } from "next/navigation"
-import { SelectTrigger } from "@/components/ui/select"
-import { SelectProperty } from "@/components/ui/select-wrapper"
+
 import spinner from "@/public/images/spinner.gif"
 import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"

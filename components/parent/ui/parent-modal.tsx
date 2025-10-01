@@ -36,7 +36,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
     const [selectStudent, setselectStudent] = useState<string>("")
     const [selectRole, setSelectedRole] = useState<string>("")
     const [addressValue, setAddressValue] = useState("")
-
+    const [addressValueCoords, setAddressValueCoords] = useState<{ lat: number; lng: number } | null>(null)
     const session = useSession()
     const userId = session?.id
 
@@ -52,7 +52,6 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
     ];
 
 
-    const { data, loading, errorMessage, success } = usePost("/api/addparent", submittedData, "POST")
     const form = useForm<z.infer<typeof ParentSchema>>({
         resolver: zodResolver(ParentSchema),
         defaultValues: {
@@ -63,6 +62,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
             password: "",
             phoneNumber: "",
             address: "",
+            addressCoords: {},
             email: "",
             role: selectRole || ""
         }
@@ -114,12 +114,20 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
         form.setValue("role", value)
     }
 
-    const handleAddressChange = (d: string) => {
-        setAddressValue(d)
+    // const handleAddressChange = (d: string) => {
+    //     setAddressValue(d)
 
-        form.setValue("address", d)
+    //     form.setValue("address", d)
+    // }
+
+    //  handle address selection (geocode once)
+    const handleSuggestionChange = (suggestion: { address: string; lat: number; lng: number }) => {
+        setAddressValue(suggestion.address)
+        setAddressValueCoords({ lat: suggestion.lat, lng: suggestion.lng })
+
+        form.setValue("address", suggestion.address)
+        form.setValue("addressCoords", { latitude: suggestion.lat, longitude: suggestion.lng })
     }
-
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
             <div className="relative bg-gray-100  rounded-md w-5/6 text-gray-950">
@@ -221,12 +229,10 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                                         <FormControl>
                                                             <Input
                                                                 {...field}
-                                                                placeholder="johndoe@email.com"
+                                                                placeholder="**********"
                                                                 type="password"
                                                                 disabled={isPending}
                                                                 className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
-
-                                                            // onChange={e => field.onChange(Number(e.target.value))}
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
@@ -241,7 +247,11 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                     <div className="space-y-4">
                                         <FormItem>
                                             <FormLabel>Parent Address</FormLabel>
-                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} />
+                                            <AddressComponent
+                                                value={form.watch("address")}
+                                                handleAddressChange={(v) => form.setValue("address", v)}
+                                                handleSuggestionChange={handleSuggestionChange}
+                                            />
                                             <FormMessage />
 
                                         </FormItem>

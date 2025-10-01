@@ -27,6 +27,7 @@ export const TeacherDetailsForParentPage = ({ bus }: PageProps) => {
     //             travelMode: google.maps.TravelMode.DRIVING,
     //             region: "NG",
     //         },
+    
     //         (response, status) => {
     //             if (status === "OK") {
     //                 const element = response?.rows[0].elements[0];
@@ -37,6 +38,7 @@ export const TeacherDetailsForParentPage = ({ bus }: PageProps) => {
     //         }
     //     );
     // }, [coords2, coords1]);
+
     return (
         <div className=' text-gray-700 space-y-3 px-2'>
             <header className=' text-gray-950 text-2xl font-medium border-b-4 border-[#38BDF8] py-2 mt-4 mb-4 '>

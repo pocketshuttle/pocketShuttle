@@ -20,6 +20,7 @@ export const addNewParent = async (values: z.infer<typeof ParentSchema>) => {
       email,
       phoneNumber,
       address,
+      addressCoords,
       studentId,
       image,
       password,
@@ -39,6 +40,7 @@ export const addNewParent = async (values: z.infer<typeof ParentSchema>) => {
         phoneNumber,
         password: hashPassword,
         address,
+        addressCoords,
         ...(studentId && {
           Student: {
             connect: { id: studentId },

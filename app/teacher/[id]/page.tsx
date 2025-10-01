@@ -5,6 +5,7 @@ import { GuardianPage } from '@/components/teachers-view/student-view/guardian'
 import { StudentHomePage } from '@/components/teachers-view/student-view/student-home-page'
 import { db } from '@/lib/db'
 import { getUserSession } from '@/lib/session'
+import { StudentProps } from '@/types'
 import { revalidateTag } from 'next/cache'
 
 
@@ -20,14 +21,16 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
 
     const user = await getUserSession()
     // Use teacherId if avaiable, else use user id
-    const teacherId = user?.teacherId || user?.id;
+    //@ts-ignore
+    const teacherId: string = user?.teacherId || user?.id;
 
     if (!user || !teacherId) {
         // If the user is not authenticated, redirect to the login page
         return <div className='text-center flex items-center '>You are not logged in, please login to view this page.</div>;
     }
     try {
-        const studentData = await db.student.findUnique({
+        //@ts-ignore
+        const studentData: StudentProps = await db.student.findUnique({
             where: { id: params.id },
             include: {
                 parent: {

@@ -6,73 +6,51 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "@/components/ui/form"
 import { useEffect, useState, useTransition } from "react"
 import { Input } from "@/components/ui/input"
-import { ParentSchema, TeacherSchema } from "@/schemas"
+import { ParentSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
 import { usePost } from "@/hooks/usePost"
 import { useFetch } from "@/hooks/useFetch"
-import { usePathname, useSearchParams } from "next/navigation"
+import { usePathname } from "next/navigation"
 import spinner from "@/public/images/spinner.gif"
-import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { Spinner } from "@/components/ui/spinner"
 import { updateParent } from "@/actions/update-parent"
 import { toast } from "@/components/ui/use-toast"
 import { useSession } from "@/hooks/useSession"
 import { AddressComponent } from "@/components/maps/Map/searchbox"
+import { googleFetchCoordinates } from "@/components/maps/lib/utils"
 
 const SingleParentPage = () => {
     const [isPending, startTransition] = useTransition()
-    const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
-    const [isSuccess, setIsSuccess] = useState(false)
-    const [dataMessage, setDataMessage] = useState("")
-    const [addressValue, setAddressValue] = useState("")
     const [newAvatar, setNewAvatar] = useState<string>("")
-
+    const [isLoadingImage, setIsLoadingImage] = useState<boolean>(false)
+    const [addressValue, setAddressValue] = useState("")
+    const [addressValueCoords, setAddressValueCoords] = useState<{ lat: number; lng: number } | null>(null)
     const pathname = usePathname()
-    const id = pathname.split('/').pop()
-
+    const id = pathname.split("/").pop()
     const session = useSession()
     const userId = session?.id
 
-    // const { data: studentData, isPending: studentPending, errorMessage: studentError } = useFetch(`/api/addstudent/${userId}`, userId);
-
-    const [newData, setNewData] = useState(null)
-
-    const { data, loading, errorMessage: ParentError, success } = usePost(`/api/addteacher/${id}`, submittedData, "PATCH")
-    const { data: parentsData, isPending: parentPending, errorMessage } = useFetch(`/api/addparent/${id}`, userId);
-
+    const { data: parentsData, isPending: parentPending } = useFetch(`/api/addparent/${id}`, userId)
     const parentData = parentsData
-
-    const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
 
     const form = useForm<z.infer<typeof ParentSchema>>({
         resolver: zodResolver(ParentSchema),
         defaultValues: {
             school_id: userId,
-            full_name: parentData && parentData?.full_name,
+            full_name: "",
             email: "",
             password: "",
             phoneNumber: "",
             address: "",
-            image: newAvatar || parentData?.[0]?.image,
-
-        }
+            addressCoords: {},
+            image: "",
+            role: "parent",
+        },
     })
 
-    const handleAddressChange = (d: string) => {
-        setAddressValue(d)
-        form.setValue("address", d)
-
-    }
-
-    const handleSuggestionChange = (d: {}) => {
-        // setAddressValue(d)
-        // const selectedValue = d.features?.[0]?.place_name || "";
-        console.log(d)
-        // form.setValue("address", d)
-    }
-
+    //  Reset form with existing parent data
     useEffect(() => {
         if (parentData) {
             form.reset({
@@ -81,248 +59,176 @@ const SingleParentPage = () => {
                 email: parentData.email || "",
                 phoneNumber: parentData.phoneNumber || "",
                 address: parentData.address || "",
+                addressCoords: parentData.addressCoords || {},
                 image: newAvatar || parentData.image || "",
                 role: parentData.role || "parent",
             });
+            setAddressValue(parentData.address || "")
+            if (parentData.addressCoords) {
+                setAddressValueCoords(parentData.addressCoords)
+            }
         }
     }, [parentData, userId, newAvatar, form]);
 
-    useEffect(() => {
-        if (userId) {
-            form.setValue('school_id', userId);  // Set the userId after session is loaded
-        }
-    }, [userId, form]);
+    //  handle address selection (geocode once)
+    const handleSuggestionChange = (suggestion: { address: string; lat: number; lng: number }) => {
+        setAddressValue(suggestion.address)
+        setAddressValueCoords({ lat: suggestion.lat, lng: suggestion.lng })
 
-    useEffect(() => {
-        setNewData(parentData && parentData?.full_name)
-    }, [id, parentData])
+        form.setValue("address", suggestion.address)
+        form.setValue("addressCoords", { latitude: suggestion.lat, longitude: suggestion.lng })
+    }
 
     const onSubmit = (values: z.infer<typeof ParentSchema>) => {
-
         startTransition(async () => {
-            const response = await updateParent(id, values)
+            const response = await updateParent(id!, values)
             if (response.status === 200) {
-                toast({
-                    description: response.message,
-                });
+                toast({ description: response.message })
             } else {
-                toast({
-                    description: "An error occurred. Please try again.",
-                });
+                toast({ description: "An error occurred. Please try again." })
             }
-        });
-
-    };
-
-    useEffect(() => {
-        if (success && data) {
-            setIsSuccess(success);
-
-            //@ts-ignore
-            setDataMessage(data.message);
-        }
-    }, [success]);
-
-
-
-    const handleCameraClick = () => {
-        const inputElement = document.getElementById("cameraInput")
-        inputElement?.click()
-        // console.log(inputElement)
+        })
     }
+
+    //  avatar upload
+    const handleCameraClick = () => {
+        document.getElementById("cameraInput")?.click()
+    }
+
     const handleCameraInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
-
         if (file) {
-            const reader = new FileReader()
-            reader.onload = async () => {
-                await uploadFile(file)
-            }
-            if (reader.readyState === FileReader.EMPTY) {
-                reader.readAsDataURL(file);
-            } else {
-                console.error('FileReader is busy reading another file.');
-            }
-        }
-    }
-
-    const uploadFile = async (file: any) => {
-        setisLoadingImage(true)
-        try {
             const data = new FormData()
-            data.append('file', file)
+            data.append("file", file)
 
-            const res = await fetch(`/api/upload/`, {
-                method: 'POST',
-                body: data,
-            })
-
-            if (res.ok) {
-                const data = await res.json()
-                setNewAvatar(data.url)
-                form.setValue("image", data.url)
-
-                window.localStorage.setItem(`parent_avatar_${id}`, data.url)
-
+            setIsLoadingImage(true)
+            try {
+                const res = await fetch(`/api/upload/`, { method: "POST", body: data })
+                if (res.ok) {
+                    const result = await res.json()
+                    setNewAvatar(result.url)
+                    form.setValue("image", result.url)
+                    window.localStorage.setItem(`parent_avatar_${id}`, result.url)
+                }
+            } catch (error) {
+                console.error(error)
+            } finally {
+                setIsLoadingImage(false)
             }
-        }
-        catch (error) {
-            console.log(error);
-        } finally {
-            setisLoadingImage(false)
         }
     }
 
     useEffect(() => {
-        const storedSelectedAvatar = window.localStorage.getItem(`parent_avatar_${id}`);
-        if (storedSelectedAvatar) {
-            setNewAvatar(storedSelectedAvatar);
-        }
-    }, [])
+        const storedAvatar = window.localStorage.getItem(`parent_avatar_${id}`)
+        if (storedAvatar) setNewAvatar(storedAvatar)
+    }, [id])
 
     return (
-        <div >
-            <div >
-                <div>
-                    <h1 className="text-center p-3 text-xl">Update Parent</h1>
-                </div>
-                {parentPending ? <Spinner /> : (<div className=" flex ">
-                    <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[14.5rem] p-2 rounded-md" >
+        <div>
+            <h1 className="text-center p-3 text-xl">Update Parent</h1>
+            {parentPending ? (
+                <Spinner />
+            ) : (
+                <div className="flex">
+                    {/* Avatar */}
+                    <div className="w-[25%] bg-[var(--bgSoft)] h-[16.5rem] p-2 rounded-md">
                         <input
                             id="cameraInput"
                             type="file"
                             accept="image/*"
-                            capture="environment"
-                            style={{ display: 'none' }}
+                            style={{ display: "none" }}
                             onChange={handleCameraInputChange}
                         />
-
-                        <Image src={
-                            newAvatar ? isLoadingImage ? spinner : newAvatar :
-                                parentData && parentData?.image ?
-                                    parentData?.image : avatar
-                        } alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[13.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
+                        <Image
+                            src={newAvatar ? (isLoadingImage ? spinner : newAvatar) : parentData?.image || avatar}
+                            alt="avatar"
+                            width={180}
+                            height={260}
+                            className="cursor-pointer rounded-md h-[16rem] w-full object-fill"
+                            onClick={handleCameraClick}
+                        />
                     </div>
-                    <div className="flex-1 px-5 ">
+
+                    {/* Form */}
+                    <div className="flex-1 px-5">
                         <Form {...form}>
-                            {/* the handle submit comes from the form constant */}
                             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                                <div className="space-y-4">
+                                <FormField
+                                    control={form.control}
+                                    name="full_name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Full Name</FormLabel>
+                                            <FormControl>
+                                                <Input {...field} type="text" disabled={isPending} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <div className="flex space-x-4">
                                     <FormField
                                         control={form.control}
-                                        name="full_name"
+                                        name="email"
                                         render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Full Name</FormLabel>
+                                            <FormItem className="w-1/2">
+                                                <FormLabel>Email</FormLabel>
                                                 <FormControl>
-                                                    <Input
-                                                        {...field}
-                                                        placeholder="ciroma@email.com"
-                                                        type="text"
-                                                        disabled={isPending}
-                                                        className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                    />
+                                                    <Input {...field} type="email" disabled={isPending} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
-                                    >
-
-                                    </FormField>
-                                </div>
-                                <div className="space-x-4 flex items-center w-full justify-between">
-                                    <div className="w-3/6">
-                                        <FormField
-                                            control={form.control}
-                                            name="email"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Email</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            placeholder="ciroma@email.com"
-                                                            type="email"
-                                                            disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-
-                                    <div className="w-3/6">
-                                        <FormField
-                                            control={form.control}
-                                            name="phoneNumber"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Phone Number</FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            placeholder="08012345678"
-                                                            type="number"
-                                                            disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-
-                                                    {/* <Image src={eye} alt="eye" /> */}
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-
-                                </div>
-                                <div className="space-y-4">
+                                    />
                                     <FormField
                                         control={form.control}
-                                        name="password"
+                                        name="phoneNumber"
                                         render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Password</FormLabel>
+                                            <FormItem className="w-1/2">
+                                                <FormLabel>Phone Number</FormLabel>
                                                 <FormControl>
-                                                    <Input
-                                                        {...field}
-                                                        placeholder="******"
-                                                        type="password"
-                                                        disabled={isPending}
-                                                        className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                    />
+                                                    <Input {...field} type="tel" disabled={isPending} />
                                                 </FormControl>
                                                 <FormMessage />
-
-                                                {/* <Image src={eye} alt="eye" /> */}
                                             </FormItem>
                                         )}
-                                    >
-                                    </FormField>
+                                    />
                                 </div>
 
+                                <FormField
+                                    control={form.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Password</FormLabel>
+                                            <FormControl>
+                                                <Input {...field} type="password" disabled={isPending} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                                <div className="space-y-4">
-                                    <FormItem>
-                                        <FormLabel>Students Address</FormLabel>
-                                        <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} handleSuggestionChange={handleSuggestionChange} />
-                                        <FormMessage />
+                                {/* Address with coords */}
+                                <FormItem>
+                                    <FormLabel>Student Address</FormLabel>
+                                    <AddressComponent
+                                        value={form.watch("address")}
+                                        handleAddressChange={(v) => form.setValue("address", v)}
+                                        handleSuggestionChange={handleSuggestionChange}
+                                    />
+                                    <FormMessage />
+                                </FormItem>
 
-                                    </FormItem>
-                                </div>
-                                {/* <FormError message={isError} /> */}
-                                {/* <FormSuccess message={isSuccess} /> */}
-                                <Button
-                                    // disabled={isPending} 
-                                    size="lg" className="w-full bg-[#1B1464] hover:bg-[#1B1464]/90" type="submit">Update parent
+                                <Button size="lg" className="w-full bg-[#1B1464]" type="submit" disabled={isPending}>
+                                    {isPending ? "Updating..." : "Update Parent"}
                                 </Button>
                             </form>
                         </Form>
                     </div>
-                </div>)}
-            </div>
+                </div>
+            )}
         </div>
     )
 }

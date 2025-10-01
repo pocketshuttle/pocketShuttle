@@ -46,19 +46,16 @@ export const AddressComponent = ({
 
 
     return (
-        <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-            libraries={["places"]}
-        >
-            <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
-                <input
-                    type="text"
-                    className="py-3 px-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12 w-full"
 
-                    placeholder="Please add your address, be precise as much as possible or use a landmark"
-                    value={value}
-                    onChange={(e) => handleAddressChange(e.target.value)}
-                />
-            </Autocomplete>
-        </LoadScript>
+        <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
+            <input
+                type="text"
+                className="py-3 px-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12 w-full"
+
+                placeholder="Please add your address, be precise as much as possible or use a landmark"
+                value={value}
+                onChange={(e) => handleAddressChange(e.target.value)}
+            />
+        </Autocomplete>
     );
 };
