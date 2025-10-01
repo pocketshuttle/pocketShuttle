@@ -74,6 +74,7 @@ export const TeacherSchema = z.object({
   address: z.string().min(1, {
     message: "Please add the teacher's address",
   }),
+
   busId: z
     .string()
     .transform((value) => (value === "" ? undefined : value))
@@ -147,6 +148,15 @@ export const ParentSchema = z.object({
   address: z.string().min(1, {
     message: "Please add the teacher's address",
   }),
+  addressCoords: z
+    .object({
+      latitude: z.number().min(-90).max(90, { message: "Invalid latitude" }),
+      longitude: z
+        .number()
+        .min(-180)
+        .max(180, { message: "Invalid longitude" }),
+    })
+    .optional(),
   studentId: z
     .string()
     .transform((value) => (value === "" ? undefined : value))

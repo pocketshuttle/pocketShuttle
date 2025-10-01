@@ -188,6 +188,7 @@ model Parent {
   password      String?
   phoneNumber   String?
   address       String?
+  addressCoords Json?
   schoolId      String
   school        User                 @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   busId         String?

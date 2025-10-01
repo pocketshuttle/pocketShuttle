@@ -14,7 +14,7 @@ import { StudentNotificationBar } from "./notification-bar";
 import { TeacherDetailsForParentPage } from "./teacher-details";
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-//we only show the teacher dertails when the student has OTW marked
+//we only show the teacher details when the student has OTW marked
 
 const ParentViewData = ({ userId }: { userId: string }) => {
     const { data: parentData, error, isLoading } = useSWR<ParentProps>(
@@ -63,7 +63,7 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                     const driver = bus?.driver;
                     const teacher = bus?.teacher;
 
-
+                    console.log(sibling?.image, "from parent page")
                     return (
 
                         <div
@@ -100,8 +100,8 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                                         <Badge
                                             variant="outline"
                                             className={`px-3 py-1 rounded-full text-xs font-medium tracking-wide ${sibling.status === "PICKED"
-                                                    ? "bg-[crimson] text-white"
-                                                    : "bg-teal-600 text-white"
+                                                ? "bg-[crimson] text-white"
+                                                : "bg-teal-600 text-white"
                                                 }`}
                                         >
                                             {sibling.status}

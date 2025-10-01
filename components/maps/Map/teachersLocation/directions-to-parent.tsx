@@ -152,14 +152,14 @@ export function Directions({ parentAddress, teacherData }: AddressProps) {
 
     return (
         <div>
-            <h2>{selected?.summary}</h2>
+            {/* <h2>{selected?.summary}</h2>
             <p>
                 {leg?.start_address.split(',')[0]} → {leg?.end_address.split(',')[0]}
             </p>
             <p>Distance: {leg?.distance?.text}</p>
             <p>Duration: {leg?.duration?.text}</p>
 
-            <h2>Other Routes</h2>
+            <h2>Other Routes</h2> */}
             <ul>
                 {routes.map((route, index) => (
                     <li key={route.summary}>
