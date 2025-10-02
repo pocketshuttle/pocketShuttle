@@ -5,44 +5,44 @@ import callIcon from "@/public/images/call.svg"
 import commentIcon from "@/public/images/comment.svg"
 import schoolbus from "@/public/images/school-bus.svg"
 import { BusProps } from '@/types'
+import { useRecoilValue } from 'recoil'
+import { studentETA, studentETASelector } from '@/atoms/eta'
 
 interface PageProps {
     bus: BusProps | undefined
+    userId: string
 }
 
-export const TeacherDetailsForParentPage = ({ bus }: PageProps) => {
-    const [studentEta, setStudentEta] = useState()
+export const TeacherDetailsForParentPage = ({ bus, userId }: PageProps) => {
+    // const openInGoogleMaps = () => {
+    //         if (!coords1 || !coords2) return;
+    //         const url = `https://www.google.com/maps/dir/?api=1&origin=${coords1.lat},${coords1.lng}&destination=${coords2.lat},${coords2.lng}&travelmode=driving`;
+    {/* <button
+                    onClick={openInGoogleMaps}
+                    className="px-4 py-2 text-sm md:text-lg bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                    View in Google Maps
+                </button> */}
+    //         window.open(url, "_blank");
+    //     }
 
-    // useEffect(() => {
-    //     if (!window.google) return;
-    //     const teacher = teacherLocation[teacherId] || null;
+    const eta = useRecoilValue(studentETASelector(userId));
 
-    //     const service = new google.maps.DistanceMatrixService();
+    // const eta = etas[userId] ?? { value: null, status: "idle" };
 
-    //     service.getDistanceMatrix(
-    //         {
-    //             origins: [{ lat: teacher?.latitude, lng: teacher?.longitude }],
-    //             // origins: [{ lat: 9.171772891650901, lng: 7.352188010149178 }],
-    //             destinations: coords2 ? [{ lat: coords2[0], lng: coords2[1] }] : [],
-    //             travelMode: google.maps.TravelMode.DRIVING,
-    //             region: "NG",
-    //         },
-    
-    //         (response, status) => {
-    //             if (status === "OK") {
-    //                 const element = response?.rows[0].elements[0];
-    //                 setStudentEta(element?.duration?.text || "Calculating...");
-    //             } else {
-    //                 console.error("DistanceMatrix failed:", status);
-    //             }
-    //         }
-    //     );
-    // }, [coords2, coords1]);
+    // if (eta.status === "loading") {
+    //     return <p>Calculating ETA...</p>;
+    // }
+
+    console.log(eta, "eta from teacher details for parent page")
 
     return (
         <div className=' text-gray-700 space-y-3 px-2'>
-            <header className=' text-gray-950 text-2xl font-medium border-b-4 border-[#38BDF8] py-2 mt-4 mb-4 '>
-                Bus arriving in 10 mins...
+            <header className="text-gray-950 text-xl font-medium border-b-4 border-[#38BDF8] py-2 mt-4 mb-4">
+                {eta.status === "loading" && "Calculating ETA..."}
+                {eta.status === "success" && `Bus arriving in ${eta.value} mins...`}
+                {eta.status === "error" && "Unable to calculate ETA"}
+                {eta.status === "idle" && "Waiting for location..."}
             </header>
             <section className='space-y-3'>
 

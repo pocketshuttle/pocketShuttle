@@ -11,7 +11,9 @@ type AddressProps = {
     parentAddress: string;
     teacherId: string;
     siblings: StudentProps
-    teacherLocation: TeacherLocation
+    teacherLocation: { [teacherId: string]: TeacherLocation }
+    parentAddressCoords?: { lat: number, lng: number }
+    userId: string
 };
 
 type TeacherLocation = {
@@ -22,22 +24,7 @@ type TeacherLocation = {
     longitude: number;
 };
 
-export const TeacherLocationTracker = ({ parentAddress, teacherId, teacherLocation }: AddressProps) => {
-
-
-    // useTeacherLocation(teacherId, setTeacherLocation);
-    // useTeacherLocation(teacherId, (data) => {
-    //     setTeacherLocation(prev => ({
-    //         ...prev,
-    //         [data.teacherId]: {
-    //             teacherId: data.teacherId,
-    //             teacherName: data.teacherName,
-    //             teacherImage: data.teacherImage,
-    //             latitude: data.latitude,
-    //             longitude: data.longitude
-    //         }
-    //     }));
-    // });
+export const TeacherLocationTracker = ({ parentAddressCoords, teacherId, teacherLocation, userId }: AddressProps) => {
 
     const activeTeacher = useMemo(() => {
         return teacherLocation[teacherId] || null;
@@ -58,11 +45,11 @@ export const TeacherLocationTracker = ({ parentAddress, teacherId, teacherLocati
                         scrollwheel={false}
                     >
                         {/* @ts-ignore */}
-                        {teacherLocation && <Directions parentAddress={parentAddress} teacherData={activeTeacher?.newLocation} />}
+                        {teacherLocation && <Directions parentAddressCoords={parentAddressCoords} teacherData={activeTeacher?.newLocation} userId={userId} />}
                     </Map>
                 </APIProvider>
             </div>
-            
+
 
         </div>
 
