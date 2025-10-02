@@ -41,6 +41,7 @@ const TeacherView = async () => {
             select: {
                 id: true,
                 address: true,
+                addressCoords: true,
                 Student: {
                     select: {
                         id: true,
@@ -74,6 +75,7 @@ const TeacherView = async () => {
                 }
             }
         });
+
         if (!parent) {
             // Handle case where no parent data is found
             return (
@@ -90,7 +92,7 @@ const TeacherView = async () => {
         return (
             <Suspense>
                 <div className={`${mont.className}`}>
-                    < NewParentPage parentAddress={parent.address ?? ''} parentId={id} siblings={parent.Student as any} />
+                    < NewParentPage parentAddress={parent.address ?? ''} parentAddressCoords={parent?.addressCoords} parentId={id} siblings={parent.Student as any} />
                     {/* <ParentMainView parentAddress={parent.address ?? ''} parentId={id} siblings={parent.Student as any} /> */}
                 </div>
             </Suspense>

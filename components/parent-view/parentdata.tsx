@@ -53,7 +53,7 @@ const ParentViewData = ({ userId }: { userId: string }) => {
             {/* <StudentNotificationBar /> */}
             {
                 studentPresense?.map((studentBus) => (
-                    <TeacherDetailsForParentPage bus={studentBus?.bus} />
+                    <TeacherDetailsForParentPage bus={studentBus?.bus} userId={userId} />
                 ))
             }
             <h3 className="text-center text-gray-950 font-medium text-xl rounded-tl-lg p-5 ">All kids</h3>
@@ -63,7 +63,6 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                     const driver = bus?.driver;
                     const teacher = bus?.teacher;
 
-                    console.log(sibling?.image, "from parent page")
                     return (
 
                         <div

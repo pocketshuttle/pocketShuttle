@@ -1,10 +1,13 @@
 "use client";
 
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ParentViewData from "./parentdata";
 import { TeacherLocationTracker } from "../maps/Map/teachersLocation/teacher-parent-map";
 import { connectSocket } from "@/utils/socket-client";
+import OneSignal from "react-onesignal";
+import { KidsViewTab } from "./kids-tab";
+import { StudentProps } from "@/types";
 
 type TeacherLocation = {
     teacherId: string;
@@ -15,13 +18,65 @@ type TeacherLocation = {
 };
 export default function NewParentPage({
     parentAddress,
+    parentAddressCoords,
     parentId,
-    selectedTeacherId,
     siblings,
 }: any) {
     const [teacherLocation, setTeacherLocation] = useState<
         Record<string, { teacherId: string; teacherName: string; teacherImage: string; latitude: number; longitude: number }>
     >({});
+
+    useEffect(() => {
+        if (!parentId) return;
+
+        const loginToOneSignal = async () => {
+            try {
+                // Make sure SDK is initialized before trying login
+                await OneSignal.User.PushSubscription.optIn();
+                await OneSignal.login(parentId);
+
+                // console.log(" OneSignal logged in:", parentId);
+            } catch (err) {
+                console.error(" OneSignal login failed:", err);
+            }
+        };
+
+        // Small delay to ensure SDK has finished bootstrapping
+        const timer = setTimeout(loginToOneSignal, 500);
+
+        return () => clearTimeout(timer);
+    }, [parentId]);
+
+    //we take the first teahcer
+    const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+        siblings.length > 0 ? siblings[0].id : null
+    )
+
+    const selectedSibling = useMemo(
+        () => siblings.find((s: StudentProps) => s.id === selectedStudentId) || null,
+        [siblings, selectedStudentId]
+    )
+
+    // get the teacher IDs for all siblings
+    const allTeacherIds = useMemo(
+        () => siblings.map((s: StudentProps) => s.bus?.teacher?.id).filter(Boolean),
+        [siblings]
+    )
+    const uniqueTeacherIds = useMemo(
+        () => new Set(allTeacherIds),
+        [allTeacherIds]
+    )
+
+    // Decide the teacher ID to use for the map
+    const selectedTeacherId = useMemo(() => {
+        if (!selectedSibling) return null
+        return uniqueTeacherIds.size === 1
+            ? allTeacherIds[0] ?? null
+            : selectedSibling.bus?.teacher?.id || null
+    }, [uniqueTeacherIds, allTeacherIds, selectedSibling])
+
+    console.log(selectedTeacherId, "selected teacher id from new parent page")
+
 
     const y = useMotionValue(0);
     const [expanded, setExpanded] = useState(true);
@@ -31,9 +86,6 @@ export default function NewParentPage({
 
     // Background overlay opacity
     const overlayOpacity = useTransform(y, [0, 300], [0.5, 0]);
-
-    // console.log(siblings, "sibling of te united united satate")
-
 
     useEffect(() => {
         let socket: any;
@@ -66,7 +118,7 @@ export default function NewParentPage({
 
 
                 socket.on("teacher-location-update", (location: TeacherLocation) => {
-                    // console.log(" Location update received at parent:", location);
+                    console.log(" Location update received at parent:", location);
                     setTeacherLocation((prev) => ({
                         ...prev,
                         [location.teacherId]: location,
@@ -87,31 +139,6 @@ export default function NewParentPage({
             if (socket) socket.disconnect();
         };
     }, [selectedTeacherId]);
-
-
-    useEffect(() => {
-        if (!parentId) return;
-        const currentLocation = localStorage.getItem(`${parentId}-parentLocation`);
-        if (currentLocation) {
-            const parsedLocation = JSON.parse(currentLocation);
-            setTeacherLocation((prev) => ({
-                ...prev,
-                [parsedLocation.teacherId]: parsedLocation,
-            }));
-        }
-
-        navigator.geolocation.getCurrentPosition((position) => {
-            const { latitude, longitude } = position.coords;
-            window.localStorage.setItem(`${parentId}-parentLocation`, JSON.stringify({
-                parentId: parentId,
-                latitude,
-                longitude,
-            }));
-            console.log("Current coordinates:", { latitude, longitude });
-        })
-
-    }, [parentId])
-
 
     // useEffect(() => {
     //     if (!window.google) return;
@@ -140,54 +167,65 @@ export default function NewParentPage({
     // }, [coords2, coords1]);
 
     return (
-        <div className="relative w-full h-screen overflow-hidden">
-            {/* Map at full screen */}
-            <div className="absolute inset-0">
-                <TeacherLocationTracker
-                    parentAddress={parentAddress || ""}
-                    teacherId={selectedTeacherId || ""}
-                    siblings={siblings}
-                    teacherLocation={teacherLocation}
-                />
-            </div>
+        <div>
 
-            {/* Semi-transparent backdrop (for clicking outside to collapse) */}
-            {expanded && (
-                <motion.div
-                    className="absolute inset-0 bg-black"
-                    style={{ opacity: overlayOpacity }}
-                    onClick={() => setExpanded(false)}
-                />
-            )}
-
-            {/* Bottom sheet */}
-            <motion.div
-                drag="y"
-                dragConstraints={{ top: 0, bottom: 0 }}
-                dragElastic={0.2}
-                onDragEnd={(_, info) => {
-                    if (info.offset.y > 100) {
-                        setExpanded(false);
-                    } else {
-                        setExpanded(true);
-                    }
-                }}
-                initial={{ y: 0 }}
-                animate={{
-                    height: expanded ? expandedHeight : collapsedHeight,
-                    y: 0,
-                }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-lg overflow-y-auto"
-            >
-                {/* Drag handle */}
-                <div className="w-full flex justify-center p-2">
-                    <div className="w-12 h-1.5 bg-gray-400 rounded-full" />
+            <KidsViewTab
+                siblings={siblings}
+                selectedStudentId={selectedStudentId}
+                onSelect={setSelectedStudentId}
+            />
+            <div className="relative w-full h-[90vh] overflow-hidden">
+                {/* Map at full screen */}
+                <div className="absolute inset-0">
+                    <TeacherLocationTracker
+                        parentAddress={parentAddress || ""}
+                        parentAddressCoords={parentAddressCoords}
+                        teacherId={selectedTeacherId || ""}
+                        siblings={siblings}
+                        teacherLocation={teacherLocation}
+                        userId={parentId}
+                    />
                 </div>
 
-                {/* Parent kids data */}
-                <ParentViewData userId={parentId} />
-            </motion.div>
+                {/* Semi-transparent backdrop (for clicking outside to collapse) */}
+                {expanded && (
+                    <motion.div
+                        className="absolute inset-0 bg-black"
+                        style={{ opacity: overlayOpacity }}
+                        onClick={() => setExpanded(false)}
+                    />
+                )}
+
+                {/* Bottom sheet */}
+                <motion.div
+                    drag="y"
+                    dragConstraints={{ top: 0, bottom: 0 }}
+                    dragElastic={0.2}
+                    onDragEnd={(_, info) => {
+                        if (info.offset.y > 100) {
+                            setExpanded(false);
+                        } else {
+                            setExpanded(true);
+                        }
+                    }}
+                    initial={{ y: 0 }}
+                    animate={{
+                        height: expanded ? expandedHeight : collapsedHeight,
+                        y: 0,
+                    }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-lg overflow-y-auto"
+                >
+                    {/* Drag handle */}
+                    <div className="w-full flex justify-center p-2">
+                        <div className="w-12 h-1.5 bg-gray-400 rounded-full" />
+                    </div>
+
+                    {/* Parent kids data */}
+                    <ParentViewData userId={parentId} />
+                </motion.div>
+            </div>
         </div>
+
     );
 }

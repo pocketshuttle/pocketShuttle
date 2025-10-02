@@ -87,7 +87,7 @@ const Navbar = ({ data }: NavbarProps) => {
             setNewLocation({ teacherId: data?.id, teacherName: data?.name, teacherImage: data?.image, longitude, latitude, schoolId: data?.schoolId })
         }
 
-        const intervalId = setInterval(getLocation, 1000000);
+        const intervalId = setInterval(getLocation, 10000);
 
         return () => {
             if (intervalId) {
@@ -97,9 +97,6 @@ const Navbar = ({ data }: NavbarProps) => {
 
         // getLocation()
     }, [data])
-
-    console.log(data, "data from teachers navbar")
-
 
     useEffect(() => {
         let socket: any;
