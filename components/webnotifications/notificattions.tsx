@@ -62,8 +62,9 @@ export default function NotificationRequest() {
 			userVisibleOnly: true,
 		};
 
-		console.log(session?.user?.id, "session")
+		// console.log(session?.user?.id, "session")
 		try {
+			// @ts-ignore
 			const subscription = await registration.pushManager.subscribe(options);
 
 			const subscriptionData = {
