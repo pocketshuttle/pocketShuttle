@@ -6,7 +6,7 @@ import db from "@/packages/db/client";
 export const POST = async (req: NextRequest) => {
   try {
     const data = await req.json();
-    console.log("Received data:", data);
+    // console.log("Received data:", data);
 
     const validatedData = DriverSchema.safeParse(data);
     if (!validatedData.success) {

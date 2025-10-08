@@ -1,8 +1,6 @@
-import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Driver from "@/(models)/Driver";
 import db from "@/packages/db/client";
-import { Prisma } from "@prisma/client";
 
 type ParamProp = {
   id: string;
@@ -17,7 +15,10 @@ export const GET = async (
 
     const url = new URL(req.url).searchParams;
     const searchDriver = url.get("q") || "";
-    const query: Prisma.DriverWhereInput = {
+    type DriverWhere = NonNullable<
+      Parameters<typeof db.driver.findMany>[0]
+    >["where"];
+    const query: DriverWhere = {
       OR: [{ schoolId: id }, { id: id }],
       ...(searchDriver && {
         full_name: { contains: searchDriver, mode: "insensitive" },
