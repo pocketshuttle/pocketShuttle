@@ -6,6 +6,9 @@
 .pnp.js
 .yarn/install-state.gz
 /dropoff-backend/node_modules
+/dropoff-backend/.env
+/packages/db/node_modules
+/packages/db/.env
 # testing
 /coverage
 
