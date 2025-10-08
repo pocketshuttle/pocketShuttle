@@ -5,8 +5,6 @@ import { TeachersTable } from '@/components/Teachers/ui/TeacherTable'
 import { Button } from '@/components/ui/button'
 import { getUserSession } from '@/lib/session'
 import db from '@/packages/db/client'
-import { Prisma } from '@prisma/client'
-import React from 'react'
 
 const Drivers = async ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
     const user = await getUserSession()
@@ -30,7 +28,9 @@ const Drivers = async ({ searchParams }: { searchParams: { [key: string]: string
     const searchQuery = typeof searchParams.q === "string" ? searchParams.q : ""
     const ITEM_PER_PAGE = 10;
 
-    const queryClause: Prisma.DriverWhereInput = {
+    type DriverWhere = NonNullable<Parameters<typeof db.driver.findMany>[0]>['where']
+
+    const queryClause: DriverWhere = {
         OR: [
             {
                 schoolId: userId
