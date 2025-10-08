@@ -2,8 +2,8 @@ import LoginButton from '@/components/auth/login-button'
 import { Teachers } from '@/components/Teachers/teachers'
 import { TeachersTable } from '@/components/Teachers/ui/TeacherTable'
 import { Button } from '@/components/ui/button'
-import { db } from '@/dropoff-backend/lib/db'
 import { getUserSession } from '@/lib/session'
+import db from '@/packages/db/client'
 import { Prisma } from '@prisma/client'
 import { revalidateTag } from 'next/cache'
 import React from 'react'
@@ -30,7 +30,7 @@ const TeachersDrivers = async ({ searchParams }: { searchParams: { [key: string]
     const searchQuery = typeof searchParams.q === "string" ? searchParams.q : ""
     const ITEM_PER_PAGE = 10;
 
-    const queryClause: Prisma.TeacherWhereInput = {
+    const queryClause = {
         OR: [
             {
                 schoolId: userId,
