@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { revalidateTag } from "next/cache";
 
 export const addTeacher = async (id: string, busId: string) => {

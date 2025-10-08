@@ -1,8 +1,8 @@
 "use server";
 
-import { db } from "@/lib/db";
+import db, { StudentPresence } from "@/packages/db/client";
 import { updateLocation } from "../mark-otw";
-import { StudentPresence } from "@prisma/client";
+// import { StudentPresence } from "@prisma/client";
 
 export async function logMorningPickup(student: any, hours: number) {
   if (student.status === "PICKED") {
@@ -40,7 +40,7 @@ export async function logMorningPickup(student: any, hours: number) {
           confirmedBy: "TEACHER",
         },
       });
-      await updateLocation(student.id, StudentPresence.NONE);
+      await updateLocation(student.id, "NONE");
       console.log(`✅ Updated pickup time for ${student.full_name}`);
     } else {
       // Create new record if none exists

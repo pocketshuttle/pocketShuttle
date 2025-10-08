@@ -20,6 +20,7 @@
     "paths": {
       "@/*": ["./*"]
     }
+    // "typeRoots": ["./node_modules/@types", "./packages/db/node_modules/.prisma"]
   },
   "include": [
     "next-env.d.ts",
@@ -30,7 +31,9 @@
     "app/api/events/attendance-events.ts",
     "prisma/seed.mjs",
     "prisma/seed.mjs",
-    "components/pick-logs/pickup-time-flow.tsx"
+    "components/pick-logs/pickup-time-flow.tsx",
+    "dropoff-backend/lib/db.js",
+    "dropoff-backend/server.js"
   ],
   "exclude": ["node_modules"]
 }

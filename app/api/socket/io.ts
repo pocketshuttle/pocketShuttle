@@ -3,7 +3,7 @@ import { Server as NetServer } from "http";
 import { NextApiRequest } from "next";
 import { Server as SocketIOServer } from "socket.io";
 import { NextApiResponseServerIO } from "@/types/next";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { instrument } from "@socket.io/admin-ui";
 import cors from "cors";
 

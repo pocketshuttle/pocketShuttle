@@ -3,7 +3,7 @@ import { DashboardWrapper } from "@/components/dashboard/wrapper/dashboard-Wrapp
 import ActiveCommute from "@/components/dashboard/activecommute/active"
 import { Charts } from "@/components/dashboard/chart/charts"
 import { CommuteTable } from "@/components/commute/ui/commute-table"
-import { db } from "@/lib/db"
+import { db } from "@/dropoff-backend/lib/db"
 import LoginButton from "@/components/auth/login-button"
 import { Button } from "@/components/ui/button"
 import { getUserSession } from "@/lib/session"

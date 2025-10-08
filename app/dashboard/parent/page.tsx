@@ -1,11 +1,10 @@
 import LoginButton from '@/components/auth/login-button'
 import { ParentData } from '@/components/parent/ui/parent-table'
 import { Button } from '@/components/ui/button'
-import { db } from '@/lib/db'
 import { getUserSession } from '@/lib/session'
-import { Prisma } from '@prisma/client'
 import { revalidateTag } from 'next/cache'
-import React from 'react'
+import db, { Prisma } from "@/packages/db/client";
+
 
 const Parents = async ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
     const user = await getUserSession()

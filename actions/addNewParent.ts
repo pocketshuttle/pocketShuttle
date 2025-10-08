@@ -1,6 +1,6 @@
 "use server";
 import bcrypt from "bcryptjs";
-import { db } from "@/lib/db";
+import  db  from "@/packages/db/client";
 import { ParentSchema } from "@/schemas";
 import { revalidateTag } from "next/cache";
 import * as z from "zod";

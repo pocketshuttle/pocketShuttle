@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { format, startOfWeek } from "date-fns";
 
 export const getTeacherPickupCount = async (
@@ -21,7 +21,7 @@ export const getTeacherPickupCount = async (
   const weeklyRecord: Record<
     string,
     {
-      daily: Record<string, number>; 
+      daily: Record<string, number>;
       weeklyTotal: number;
     }
   > = {};

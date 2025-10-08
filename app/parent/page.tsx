@@ -4,13 +4,14 @@ import Location from '@/components/maps/Map/new-map'
 import { BusArrival } from '@/components/parent-view/bus-arrival'
 import ParentViewData from '@/components/parent-view/parentdata'
 import { Button } from '@/components/ui/button'
-import { db } from '@/lib/db'
+// import { db } from '@/dropoff-backend/lib/db'
 import { getUserSession } from '@/lib/session'
 import { revalidateTag } from 'next/cache'
 import { Montserrat } from 'next/font/google'
 import React, { Suspense } from 'react'
 import { ParentMainView } from '@/components/parent-view/parent-view'
 import NewParentPage from '@/components/parent-view/new-parent-view'
+import db from '@/packages/db/client'
 
 // Load Montserrat font
 const mont = Montserrat({ subsets: ["latin"], weight: "500" })

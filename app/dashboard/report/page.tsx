@@ -2,7 +2,7 @@
 import LoginButton from '@/components/auth/login-button';
 import { MainPickUpPage } from '@/components/pick-logs/main-page'
 import { Button } from '@/components/ui/button';
-import { db } from '@/lib/db';
+import { db } from '@/dropoff-backend/lib/db';
 import { getUserSession } from '@/lib/session';
 import React from 'react'
 

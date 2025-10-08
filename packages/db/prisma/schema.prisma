@@ -1,4 +1,5 @@
 // prisma/schema.prisma
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -6,6 +7,29 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum ActionType {
+  CREATE_SCHOOL
+  DELETE_SCHOOL
+  RESET_PASSWORD
+  UPDATE_SUBSCRIPTION
+  MODIFY_SETTINGS
+}
+
+enum NotificationType {
+  PICKUP
+  DROPOFF
+  LOCATION_UPDATE
+  SYSTEM
 }
 
 enum BusStatus {
@@ -48,7 +72,7 @@ model SuperUser {
   password  String
   role      String   @default("SUPERADMIN")
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now()) @updatedAt
 
   actions SuperUserAction[]
 }
@@ -72,16 +96,18 @@ model User {
   role          UserRole  @default(ADMIN)
   password      String?
 
-  Subscription Subscription[]
-  NewUser      NewUser[]
-  Account      Account[]
-  Teacher      Teacher[]
-  Driver       Driver[]
-  Parent       Parent[]
-  Student      Student[]
-  Route        Route[]
-  Buses        Buses[]
-  Payment      Payment[]
+  Subscription   Subscription[]
+  NewUser        NewUser[]
+  Account        Account[]
+  Teacher        Teacher[]
+  Driver         Driver[]
+  Parent         Parent[]
+  Student        Student[]
+  Route          Route[]
+  Buses          Buses[]
+  Payment        Payment[]
+  SchoolSettings SchoolSettings?
+  AuditLog       AuditLog[]
 
   @@map("users")
 }
@@ -161,6 +187,11 @@ model Teacher {
   Student       Student[]
   Pickup        Pickup[]
   userId        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([email, schoolId])
 }
 
 model Driver {
@@ -176,6 +207,9 @@ model Driver {
   busId         String?   @unique
   bus           Buses?    @relation(fields: [busId], references: [id])
   school        User?     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model Parent {
@@ -196,6 +230,11 @@ model Parent {
   Student       Student[]
   notifications ParentNotification[]
   Pickup        Pickup[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([schoolId])
 }
 
 model Student {
@@ -219,6 +258,9 @@ model Student {
   bus        Buses?             @relation("BusStudents", fields: [busId], references: [id])
   Buses      Buses[]
   Pickup     Pickup[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model Route {
@@ -302,22 +344,37 @@ model Pickup {
 
 //FUTURE WORK FLOW
 model Payment {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   userId         String
   subscriptionId String?
   amount         Float
-  currency       String   @default("NGN")
-  status         String
-  transactionId  String   @unique
-  createdAt      DateTime @default(now())
+  currency       String        @default("NGN")
+  status         PaymentStatus @default(PENDING)
+  transactionId  String        @unique
+  createdAt      DateTime      @default(now())
 
   user         User          @relation(fields: [userId], references: [id])
   subscription Subscription? @relation(fields: [subscriptionId], references: [id])
 }
 
-model Setting {
+model SchoolSettings {
+  id             String   @id @default(cuid())
+  schoolId       String
+  pickupWindow   Int      @default(15)
+  notifyDistance Int      @default(500)
+  school         User     @relation(fields: [schoolId], references: [id])
+  updatedAt      DateTime @updatedAt
+
+  @@unique([schoolId])
+}
+
+model AuditLog {
   id        String   @id @default(cuid())
-  key       String   @unique
-  value     String
-  updatedAt DateTime @updatedAt
+  userId    String
+  action    String
+  details   Json?
+  timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, timestamp])
 }

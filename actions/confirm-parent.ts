@@ -1,5 +1,5 @@
 "use server";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { revalidateTag } from "next/cache";
 
 export const confirmParent = async (
@@ -10,7 +10,7 @@ export const confirmParent = async (
   try {
     const student = await db.student.findUnique({
       where: { id: studentId },
-      include: { parent: true }, 
+      include: { parent: true },
     });
 
     if (!student) {

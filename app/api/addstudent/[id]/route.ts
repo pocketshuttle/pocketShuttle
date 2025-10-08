@@ -1,7 +1,7 @@
 import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Student from "@/(models)/Student";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { revalidatePath } from "next/cache";
 import { revalidateTag } from "next/cache";
 import { Prisma } from "@prisma/client";

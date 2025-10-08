@@ -23,7 +23,7 @@ export const StudentHomePage = ({ studentData, teacherId }: StudentHomePageProps
         <div className='relative w-full h-screen overflow-hidden'>
             {/* Map at full screen */}
             <div className="absolute inset-0">
-                <BusArrival parentAddress={studentData?.parent?.address || ""} parentId={studentData?.parent?.id || ""} teacherId={teacherId || ""} page="coordinator_view" />
+                <BusArrival parentAddress={studentData?.parent?.address || ""} parentAddressCoords={studentData?.parent?.addressCoords} parentId={studentData?.parent?.id || ""} teacherId={teacherId || ""} page="coordinator_view" />
             </div>
 
             {

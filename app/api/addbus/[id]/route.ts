@@ -2,7 +2,7 @@ import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Buses from "@/(models)/Bus";
 import { BusSchema } from "@/schemas";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { revalidateTag } from "next/cache";
 
 type ParamProp = {

@@ -1,5 +1,5 @@
 import { revalidateTag } from "next/cache";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { Prisma } from "@prisma/client";
 
 export const getTeachers = async (
