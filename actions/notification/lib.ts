@@ -7,7 +7,7 @@ export const generateSubscribeEndPoint = async (
   registration: ServiceWorkerRegistration
 ) => {
   const user = await getUserSession();
-  if (!user || user?.id !== "string") {
+  if (!user || typeof user.id !== "string") {
     toast({
       description: "User session not found. Please log in.",
     });
@@ -17,8 +17,8 @@ export const generateSubscribeEndPoint = async (
   const applicationServerKey = urlB64ToUint8Array(
     process.env.NEXT_PUBLIC_VAPID_KEY!
   );
-  const options = {
-    applicationServerKey,
+  const options: PushSubscriptionOptionsInit = {
+    applicationServerKey: applicationServerKey as unknown as BufferSource,
     userVisibleOnly: true,
   };
 
