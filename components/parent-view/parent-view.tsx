@@ -94,6 +94,7 @@ export const ParentMainView = ({
                 parentAddress={parentAddress || ""}
                 // parentId={parentId}
                 teacherId={selectedTeacherId || ""}
+                // @ts-ignore
                 siblings={siblings}
             />
         
