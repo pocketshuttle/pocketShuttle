@@ -1,6 +1,6 @@
 "use  server"
 import { BusData } from "@/components/buses/ui/Table"
-import { db } from "@/dropoff-backend/lib/db"
+import db from "@/packages/db/client"
 import { getUserSession } from "@/lib/session"
 import { Button } from "../ui/button"
 import LoginButton from "../auth/login-button"

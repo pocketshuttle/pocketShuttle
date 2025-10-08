@@ -2,8 +2,8 @@
 import LoginButton from '@/components/auth/login-button';
 import { MainPickUpPage } from '@/components/pick-logs/main-page'
 import { Button } from '@/components/ui/button';
-import { db } from '@/dropoff-backend/lib/db';
 import { getUserSession } from '@/lib/session';
+import db from '@/packages/db/client';
 import React from 'react'
 
 const ReportPage = async () => {

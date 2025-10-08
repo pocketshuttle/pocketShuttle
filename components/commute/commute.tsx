@@ -1,7 +1,7 @@
 import React from 'react'
 import { CommuteTable } from './ui/commute-table'
 import { getUserSession } from '@/lib/session'
-import { db } from '@/dropoff-backend/lib/db'
+import db from '@/packages/db/client'
 import { revalidateTag } from 'next/cache'
 import LoginButton from '../auth/login-button'
 import { Button } from '../ui/button'
