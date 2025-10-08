@@ -1,5 +1,3 @@
-import ResetPasswordToken from "@/(models)/ResetPassword";
-import VerificationToken from "@/(models)/VerificationToken";
 import { getResetPasswordTokenByEmail } from "@/data/password-reset-token";
 import { getVerificationTokenByEmail } from "@/data/verification-token";
 import db from "@/packages/db/client";
