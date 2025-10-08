@@ -174,7 +174,7 @@ const Location = ({ parentAddress, teacherData }: AddressProps) => {
                         style={{ width: '100%', height: '400px' }}
                         mapStyle='mapbox://styles/mapbox/streets-v11'
                         ref={mapRef}
-                        mapboxAccessToken={mapboxgl.accessToken}
+                        mapboxAccessToken={mapboxgl.accessToken!}
                     >
                         <Marker longitude={coords1[0]} latitude={coords1[1]} color='blue'>
                             <img
