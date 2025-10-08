@@ -1,6 +1,5 @@
 import { revalidateTag } from "next/cache";
 import db from "@/packages/db/client";
-import { Prisma } from "@prisma/client";
 
 export const getTeachers = async (
   id: string,
@@ -13,7 +12,11 @@ export const getTeachers = async (
     const searchName = searchParams.get("q") || "";
     const page = parseInt(searchParams.get("page") || "1", 10);
 
-    const whereClause: Prisma.TeacherWhereInput = {
+    type TeacherWhere = NonNullable<
+      Parameters<typeof db.teacher.findMany>[0]
+    >["where"];
+
+    const whereClause: TeacherWhere = {
       OR: [{ schoolId: id }, { id: id }],
       ...(searchName && {
         full_name: {
