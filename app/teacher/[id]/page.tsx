@@ -3,8 +3,9 @@ import { BusArrival } from '@/components/parent-view/bus-arrival'
 // import Location from '@/components/maps/Map/Map'
 import { GuardianPage } from '@/components/teachers-view/student-view/guardian'
 import { StudentHomePage } from '@/components/teachers-view/student-view/student-home-page'
-import { db } from '@/lib/db'
+// import { db } from '@/dropoff-backend/lib/db'
 import { getUserSession } from '@/lib/session'
+import db from '@/packages/db/client'
 import { StudentProps } from '@/types'
 import { revalidateTag } from 'next/cache'
 
@@ -60,11 +61,6 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
         }
 
         return (
-            // <div>
-            //     <BusArrival parentAddress={studentData?.parent?.address || ""} parentId={studentData?.parent?.id} teacherId={teacherId || ""} page="coordinator_view" />
-            //     {/* @ts-ignore */}
-            //     <GuardianPage data={studentData} />
-            // </div>
             <div>
                 <StudentHomePage studentData={studentData} teacherId={teacherId} />
             </div>

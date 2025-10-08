@@ -45,6 +45,7 @@ export type ParentProps = {
   email: string;
   phoneNumber: string;
   address: string;
+  addressCoords?: { latitude: number; longitude: number };
   image: string;
   bus: BusProps;
   Student: StudentProps[];

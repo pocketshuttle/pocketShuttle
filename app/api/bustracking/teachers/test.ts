@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { PUSHER_EVENTS } from "@/lib/pusher-constants";
 import { getPusherInstance } from "@/pusher/server";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -35,7 +35,6 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
     const { latitude, longitude, teacherId, teacherImage, teacherName } =
       (await req.json()) as LocationUpdatePayload;
 
-  
     // Ensure latitude and longitude are valid numbers
     if (typeof latitude !== "number" || typeof longitude !== "number") {
       return NextResponse.json(

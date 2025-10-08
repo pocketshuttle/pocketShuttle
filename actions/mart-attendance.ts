@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidateTag } from "next/cache";
-import { db } from "@/lib/db";
-import { StudentAttendance } from "@prisma/client";
+import db, { StudentAttendance } from "@/packages/db/client";
+// import { StudentAttendance } from "@prisma/client";
 import { Knock } from "@knocklabs/node";
 import { sendNotification } from "./send-notifications";
 import { sendSms } from "./notification/send-sms";
@@ -79,7 +79,7 @@ export const updateStudentAttendance = async (
     //   ],
     // });
     revalidateTag("new-parent");
-    
+
     // Notify connected clients with the attendance update
     broadcastAttendanceUpdate({
       id: updatedStudent.id,
@@ -87,7 +87,7 @@ export const updateStudentAttendance = async (
       attendance: data,
       bus: updatedStudent.bus?.bus_product_name || "bus",
     });
-    
+
     return {
       message: "Attendance updated successfully",
       student: updatedStudent,

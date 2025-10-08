@@ -1,5 +1,6 @@
 "use server";
-import { db } from "@/lib/db";
+
+import db from "@/packages/db/client";
 
 export const addDriver = async (id: string, busId: string) => {
   try {

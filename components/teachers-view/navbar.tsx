@@ -17,7 +17,7 @@ import {
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-} from "@/components/ui/tooltip"; // Tooltip components for displaying extra info
+} from "@/components/ui/tooltip"; 
 
 import { getCurrentLocation, sendTeacherLocationToServer } from "../maps/lib/utils"; // Utility functions for geolocation and sending location
 import { useSession } from "@/hooks/useSession";
@@ -87,7 +87,7 @@ const Navbar = ({ data }: NavbarProps) => {
             setNewLocation({ teacherId: data?.id, teacherName: data?.name, teacherImage: data?.image, longitude, latitude, schoolId: data?.schoolId })
         }
 
-        const intervalId = setInterval(getLocation, 10000);
+        const intervalId = setInterval(getLocation, 1000000);
 
         return () => {
             if (intervalId) {

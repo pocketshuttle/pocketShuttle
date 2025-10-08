@@ -5,7 +5,7 @@ import Buses from "@/(models)/Bus";
 import { TeacherSchema } from "@/schemas";
 import bcrypt from "bcryptjs";
 import NewUser from "@/(models)/NewUser";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { revalidateTag } from "next/cache";
 
 export const POST = async (req: NextRequest) => {

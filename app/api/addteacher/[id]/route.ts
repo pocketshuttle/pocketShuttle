@@ -1,7 +1,7 @@
 import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Teacher from "@/(models)/Teachers";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import bcrypt from "bcryptjs";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { Prisma } from "@prisma/client";

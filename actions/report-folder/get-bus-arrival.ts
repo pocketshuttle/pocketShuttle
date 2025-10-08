@@ -2,7 +2,7 @@
 import { StudentProps } from "@/types";
 import { logBusArrival } from "./log-bus-arrival";
 import haversine from "haversine-distance";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 
 export async function checkBusArrival(
   busCoords: [number, number],
@@ -20,7 +20,7 @@ export async function checkBusArrival(
     today.getMonth(),
     today.getDate()
   );
-  
+
   const endOfDay = new Date(
     today.getFullYear(),
     today.getMonth(),
@@ -47,7 +47,7 @@ export async function checkBusArrival(
   //   { lat: busCoords[0], lng: busCoords[1] },
   //   { lat: studentCoords[0], lng: studentCoords[1] }
   // );
-  
+
   const distance = 70;
 
   console.log(distance, "distance from bus arrival");

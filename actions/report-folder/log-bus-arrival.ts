@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 
 export async function logBusArrival(
   studentId: string,

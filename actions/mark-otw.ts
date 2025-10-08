@@ -1,6 +1,6 @@
 "use server";
-import { StudentPresence } from "@prisma/client";
-import { db } from "@/lib/db";
+// import { StudentPresence } from "@prisma/client";
+import db, { StudentPresence } from "@/packages/db/client";
 import { revalidateTag } from "next/cache";
 import { sendSms } from "./notification/send-sms";
 import { sendSmsForBusArrival } from "./notification/bus-arrival";
@@ -32,13 +32,12 @@ export const updateLocation = async (
       },
     });
 
-
     if (!updatedStudent) {
       return { message: "Student not found", status: 404 };
     }
 
     try {
-      if (data === StudentPresence.ON_THE_WAY) {
+      if (data === "ON_THE_WAY") {
         await sendSmsForBusArrival({
           student_name: updatedStudent.full_name ?? "",
           parent_name: updatedStudent?.parent?.full_name ?? "",

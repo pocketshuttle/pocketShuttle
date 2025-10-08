@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 
 type ParamsProps = {
   id: string;

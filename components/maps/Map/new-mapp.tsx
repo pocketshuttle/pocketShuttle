@@ -12,7 +12,7 @@ import { getGoogleMapsRoute, googleFetchCoordinates } from "../lib/utils";
 import type { Libraries } from "@react-google-maps/api";
 
 type AddressProps = {
-    parentAddress: string;
+    parentAddressCoords?: { latitude: number; longitude: number };
     teacherData: TeacherLocation | undefined;
 };
 
@@ -42,11 +42,11 @@ const libraries: Libraries = ["places"];
 //we need to figure out how to changr the teacher's route incase a diiferent teachsr is coming to pick up a different child
 //so we need to consider a case where two different kids has different teahcers coming for pick up
 
-const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
+const NewLocation = ({ parentAddressCoords, teacherData }: AddressProps) => {
     const [coords1, setCoords1] = useState<google.maps.LatLngLiteral | null>(
         teacherData ? { lat: teacherData.latitude, lng: teacherData.longitude } : null
     );
-    const [coords2, setCoords2] = useState<google.maps.LatLngLiteral | null>(null);
+    // const [coords2, setCoords2] = useState<google.maps.LatLngLiteral | null>(null);
     const [eta, setEta] = useState<string | null>(null);
     const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
     const [teacherMarker, setTeacherMarker] = useState<google.maps.Marker | null>(null);
@@ -58,6 +58,17 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
         libraries,
     });
+
+    const coords2 = useMemo<google.maps.LatLngLiteral | null>(
+        () =>
+            parentAddressCoords
+                ? {
+                    lat: parentAddressCoords.latitude,
+                    lng: parentAddressCoords.longitude,
+                }
+                : null,
+        [parentAddressCoords]
+    );
 
     //fetch the route from teachers location to parents
     const fetchRoute = useCallback(
@@ -81,27 +92,6 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
         },
         [isLoaded]
     );
-
-    useEffect(() => {
-        const fetchParentCoordinates = async () => {
-            try {
-                setLoading(true);
-                //getting the parent coordainate 
-                const coordinates = await googleFetchCoordinates(parentAddress);
-
-                if (coordinates) {
-                    setCoords2({ lat: coordinates[0], lng: coordinates[1] });
-                }
-            } catch (err) {
-                setError("Could not geocode parent address");
-                console.error("Geocoding error:", err);
-            }
-        };
-
-        if (parentAddress) {
-            fetchParentCoordinates();
-        }
-    }, [parentAddress]);
 
     //we only fetch a new route when the parent address changes
     useEffect(() => {
@@ -251,7 +241,7 @@ const NewLocation = ({ parentAddress, teacherData }: AddressProps) => {
                 mapContainerStyle={containerStyle}
                 center={coords1}
                 zoom={DEFAULT_ZOOM}
-                
+
                 options={{
                     streetViewControl: false,
                     mapTypeControl: false,

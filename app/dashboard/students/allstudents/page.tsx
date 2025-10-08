@@ -5,7 +5,7 @@ import StudentCard from "@/components/students/ui/student-card";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useFetch } from "@/hooks/useFetch";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { getUserSession } from "@/lib/session";
 import { StudentProps } from "@/types";
 import { useSession } from "next-auth/react"
@@ -108,7 +108,7 @@ const AllStudents = async ({ searchParams }: { searchParams: { [key: string]: st
             </div>
         )
 
-    } catch (error:any) {
+    } catch (error: any) {
         if (error.message.includes("Can't reach database server at")) {
             return <div className=" flex items-center justify-center">
                 <NetworkError error="Connection" />

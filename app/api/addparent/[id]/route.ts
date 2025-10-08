@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 type ParamProp = {

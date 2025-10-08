@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RouteSchema } from "@/schemas";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 
 export const POST = async (req: NextRequest) => {
   try {

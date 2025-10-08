@@ -1,7 +1,7 @@
 import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Driver from "@/(models)/Driver";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { Prisma } from "@prisma/client";
 
 type ParamProp = {

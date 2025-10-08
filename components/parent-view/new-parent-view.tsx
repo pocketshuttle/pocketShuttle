@@ -16,6 +16,12 @@ type TeacherLocation = {
     latitude: number;
     longitude: number;
 };
+
+const shouldTrackTeacher = (siblings: StudentProps[], selectedStudentId: string | null) => {
+    //if student has been picked up, we stop tracking
+    const selectedStudent = siblings.find((s) => s.id === selectedStudentId);
+    return selectedStudent?.status !== "PICKED";
+}
 export default function NewParentPage({
     parentAddress,
     parentAddressCoords,
@@ -75,8 +81,6 @@ export default function NewParentPage({
             : selectedSibling.bus?.teacher?.id || null
     }, [uniqueTeacherIds, allTeacherIds, selectedSibling])
 
-    console.log(selectedTeacherId, "selected teacher id from new parent page")
-
 
     const y = useMotionValue(0);
     const [expanded, setExpanded] = useState(true);
@@ -93,6 +97,11 @@ export default function NewParentPage({
             try {
                 socket = await connectSocket(selectedTeacherId, "");
 
+                if (!selectedTeacherId || !shouldTrackTeacher(siblings, selectedTeacherId)) {
+                    console.log("Teacher tracking stopped - student picked up");
+                    return;
+                }
+
                 await new Promise((resolve, reject) => {
                     const timeout = setTimeout(() => {
                         reject(new Error("Socket Connection Time out"));
@@ -104,7 +113,7 @@ export default function NewParentPage({
 
                         //since we using teacher id to subscribe does tha mean, all the parentsa can see all the location? fix this potential error
                         // subscribe parent to teacher room
-                        socket.emit("subscribe-teacher", { selectedTeacherId });
+                        socket.emit("subscribe-teacher", { selectedTeacherId, parentId });
 
                         resolve(true);
                     });
@@ -132,6 +141,7 @@ export default function NewParentPage({
                 console.error("Failed to connect parent socket:", error);
             }
         };
+
 
         connectToTeacher();
 

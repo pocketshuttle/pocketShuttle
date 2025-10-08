@@ -3,7 +3,7 @@ import LoginButton from "@/components/auth/login-button";
 import { NetworkError } from "@/components/errorsandsuccess/error/error";
 import { StudentsData } from "@/components/students/ui/Table";
 import { Button } from "@/components/ui/button";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { getUserSession } from "@/lib/session";
 import { revalidateTag } from "next/cache";
 

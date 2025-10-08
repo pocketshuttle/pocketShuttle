@@ -4,8 +4,9 @@ import LoginButton from '@/components/auth/login-button';
 import { NetworkError } from '@/components/errorsandsuccess/error/error';
 import { TeachersViewData } from '@/components/teachers-view/teachersdata';
 import { Button } from '@/components/ui/button';
-import { db } from '@/lib/db';
+// import { db } from '@/dropoff-backend/lib/db';
 import { getUserSession } from '@/lib/session';
+import db from '@/packages/db/client';
 import React from 'react';
 
 const TeacherView = async () => {

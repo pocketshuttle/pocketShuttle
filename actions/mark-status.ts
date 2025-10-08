@@ -1,8 +1,8 @@
 "use server";
 
-import { db } from "@/lib/db";
+import db, { StudentStatus } from "@/packages/db/client";
 import { Knock } from "@knocklabs/node";
-import { StudentStatus } from "@prisma/client";
+// import { StudentStatus } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 import { logMorningPickup } from "./report-folder/log-morning-pickup";
 

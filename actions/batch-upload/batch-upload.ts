@@ -1,7 +1,7 @@
 "use server";
 // export const  runtime = "edge";
 
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 
 type ImportResult = {
   success: boolean;

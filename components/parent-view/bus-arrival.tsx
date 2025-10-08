@@ -18,6 +18,7 @@ interface TeacherLocation {
 
 interface BusArrivalInterface {
     parentAddress: string,
+    parentAddressCoords?: { latitude: number; longitude: number },
     parentId: string,
     teacherId: string,
     page: string
@@ -25,7 +26,7 @@ interface BusArrivalInterface {
 
 }
 
-export const BusArrival = ({ parentAddress, parentId, teacherId, page, teachers }: BusArrivalInterface) => {
+export const BusArrival = ({ parentAddress, parentAddressCoords, parentId, teacherId, page, teachers }: BusArrivalInterface) => {
     const [teacherLocation, setTeacherLocation] = useState<TeacherLocation | null>(null);
     const [connectionStatus, setConnectionStatus] = useState<string>("Connecting...");
 
@@ -38,7 +39,7 @@ export const BusArrival = ({ parentAddress, parentId, teacherId, page, teachers 
     useEffect(() => {
         const fetchLocation = () => {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(async (position) => {
+                navigator.geolocation.watchPosition(async (position) => {
                     const { latitude, longitude } = position.coords;
 
                     setTeacherLocation({
@@ -104,7 +105,7 @@ export const BusArrival = ({ parentAddress, parentId, teacherId, page, teachers 
                 //     teacherData={teacherLocation}
                 // />
                 <NewLocation
-                    parentAddress={parentAddress}
+                    parentAddressCoords={parentAddressCoords}
                     teacherData={teacherLocation}
                 />
             )}

@@ -5,6 +5,7 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 import dotenv from "dotenv";
+import db from "@dropoff/db";
 
 dotenv.config();
 
@@ -58,12 +59,28 @@ io.on("connection", (socket) => {
   /**
    * Parents subscribe to a specific teacher (their child's teacher)
    */
-  socket.on("subscribe-teacher", ({ teacherId }) => {
+  socket.on("subscribe-teacher", async ({ teacherId, parentId }) => {
     if (!teacherId) return;
-    socket.join(`teacher-${teacherId}`);
-    console.log(
-      `Parent socket ${socket.id} subscribed to teacher-${teacherId}`
+
+    const parent = await db.parent.findUnique({
+      where: { id: parentId },
+      include: {
+        Student: { include: { bus: { include: { teacher: true } } } },
+      },
+    });
+
+    // 2. Check if any of parent’s kids belong to this teacher's buss
+    const allowed = parent?.Student.some(
+      (student) => student.bus?.teacher?.id === teacherId
     );
+
+    if (allowed) {
+      socket.join(`teacher:${teacherId}`);
+      console.log(`Parent ${parentId} joined teacher ${teacherId}`);
+    } else {
+      console.warn(`Unauthorized subscription attempt by ${parentId}`);
+      socket.emit("error", "Not authorized for this teacher.");
+    }
   });
 
   /**

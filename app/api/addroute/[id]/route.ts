@@ -2,7 +2,7 @@ import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import Route from "@/(models)/Route";
 import { RouteSchema } from "@/schemas";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 
 type ParamProp = {
   id: string;
@@ -20,8 +20,6 @@ export const GET = async (
         OR: [{ id: id }, { schoolId: id }],
       },
     });
-
-    
 
     if (!route) {
       return new Response(JSON.stringify({ message: "Route not found" }), {

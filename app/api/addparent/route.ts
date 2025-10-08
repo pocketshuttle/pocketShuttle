@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Parent from "@/(models)/Parent";
 import bcrypt from "bcryptjs";
 import { ParentSchema } from "@/schemas";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -63,7 +63,6 @@ export const POST = async (req: NextRequest) => {
         },
       },
     });
-
 
     return Response.json(
       { message: "Parent added Succesfully " },

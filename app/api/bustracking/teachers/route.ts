@@ -1,5 +1,5 @@
 import Ably from "ably";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { NextRequest, NextResponse } from "next/server";
 
 interface LocationUpdatePayload {

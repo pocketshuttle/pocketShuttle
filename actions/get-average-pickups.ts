@@ -1,5 +1,5 @@
 "use server";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { format, startOfWeek } from "date-fns";
 
 export async function getWeeklyPickupStatsForBus(
