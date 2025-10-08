@@ -64,9 +64,8 @@ export const useSchoolTeachersLocations = (schoolId?: string) => {
           "teacher-location-update",
           (location: TeacherLocationInterface) => {
             console.log("📍 Location update received at school:", location);
-            const loc = location.newLocation
-              ? location.newLocation
-              : location;
+            const loc = location.newLocation ? location.newLocation : location;
+            //@ts-ignore
             updateTeacherLocation(loc);
           }
         );
