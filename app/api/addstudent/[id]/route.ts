@@ -21,7 +21,10 @@ export const GET = async (
     const page: number = (url.get("page") as unknown as number) || 1;
 
     const { id } = params;
-    const query: Prisma.StudentWhereInput = {
+    type StudentWhere = NonNullable<
+      Parameters<typeof db.student.findMany>[0]
+    >["where"];
+    const query: StudentWhere = {
       OR: [
         {
           schoolId: id,
