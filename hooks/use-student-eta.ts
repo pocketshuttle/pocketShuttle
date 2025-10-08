@@ -31,20 +31,20 @@ export function useAutoUpdateETA(origin, destination) {
           const leg = response.routes?.[0]?.legs?.[0];
           console.log("ETA fetched:", duration);
           console.log("Leg details:", leg);
-          setEta({
-            value: leg?.duration?.value ?? null,
-            status: leg ? "success" : "error",
-          });
+          // setEta({
+          //   value: leg?.duration?.value ?? null,
+          //   status: leg ? "success" : "error",
+          // });
         } else {
-          setEta({ value: null, status: "error" });
+          // setEta({ value: null, status: "error" });
         }
       } catch (error) {
         console.error("Error fetching route:", error);
-        setEta({ value: null, status: "error" });
+        // setEta({ value: null, status: "error" });
       }
     };
 
-    setEta({ value: null, status: "loading" });
+    // setEta({ value: null, status: "loading" });
     fetchETA();
     const interval = setInterval(fetchETA, 10000);
 
