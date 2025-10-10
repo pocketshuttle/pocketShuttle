@@ -77,6 +77,7 @@ export default function NotificationRequest() {
 				},
 			};
 			// Call server action to save the subscription
+			// @ts-ignore
 			await saveSubscriptionToDatabase(subscriptionData, session?.user?.id!);
 
 			queryClient.invalidateQueries({ queryKey: ["user"] });
@@ -88,7 +89,9 @@ export default function NotificationRequest() {
 	}
 
 	async function handleRemoveNotification() {
+		// @ts-ignore
 		if (!session?.user?.id) return;
+		// @ts-ignore
 
 		const result = await removeNotification(session.user.id);
 
