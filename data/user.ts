@@ -1,4 +1,5 @@
 "use server";
+
 import db from "@/packages/db/client";
 
 export const getUserByEmail = async (email: string, role?: string) => {

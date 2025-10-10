@@ -111,7 +111,7 @@ export default function NewParentPage({
                         clearTimeout(timeout);
                         // console.log("Socket connected and ready!, from parent", socket.id);
 
-                        //since we using teacher id to subscribe does tha mean, all the parentsa can see all the location? fix this potential error
+                        //since we using teacher id to subscribe does that mean, all the parentsa can see all the location? fix this potential error
                         // subscribe parent to teacher room
                         socket.emit("subscribe-teacher", { selectedTeacherId, parentId });
 

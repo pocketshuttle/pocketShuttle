@@ -19,6 +19,7 @@ export const Login = async (
   values: z.infer<typeof LoginSchema>,
   callbackUrl?: string | null
 ) => {
+  console.log(values, "values from login");
   //validating the data
   const validatedFields = LoginSchema.safeParse(values);
 
@@ -28,6 +29,8 @@ export const Login = async (
   const { email, password, role: userRole } = validatedFields.data;
 
   const existingUser = await getUserByEmail(email, userRole);
+
+  console.log(existingUser, "existingUser from login");
 
   // Check if user exists
   if (!existingUser || !existingUser.password || !existingUser.email) {

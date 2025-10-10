@@ -2,11 +2,13 @@
   "name": "@dropoff/db",
   "version": "1.0.0",
   "private": true,
-  "main": "client.ts",
+  "main": "dist/client.js",
   "types": "index.d.ts",
   "scripts": {
     "generate": "prisma generate --schema=prisma/schema.prisma",
-    "migrate": "prisma migrate dev"
+    "migrate": "prisma migrate dev",
+    "build": "tsc -p tsconfig.json",
+    "studio": "prisma studio --schema=packages/db/prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",
