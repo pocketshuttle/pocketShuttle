@@ -1,4 +1,4 @@
-import { PrismaClient } from "./node_modules/.prisma/client";
+import { PrismaClient } from ".prisma/client";
 export type { Prisma } from ".prisma/client";
 export type { StudentAttendance } from ".prisma/client";
 export type { StudentStatus } from ".prisma/client";
