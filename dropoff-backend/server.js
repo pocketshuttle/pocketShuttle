@@ -1,15 +1,15 @@
-// server.js
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 import dotenv from "dotenv";
-import db from "@dropoff/db";
+import { PrismaClient } from "../packages/db/node_modules/.prisma/client/index.js";
 
 dotenv.config();
 
 const app = express();
+const db = new PrismaClient();
 
 app.use(
   cors({
@@ -20,6 +20,9 @@ app.use(
 );
 
 const server = http.createServer(app);
+
+// console.log(server, "from socket");
+// console.log("hello world");
 
 const io = new Server(server, {
   cors: {
@@ -32,12 +35,16 @@ const io = new Server(server, {
 const teacherRateLimitMap = new Map();
 const RATE_LIMIT_MS = 1000;
 
+// console.log(io, "from socket");
+
 io.use((socket, next) => {
   const token = socket.handshake.auth?.token;
+  // console.log(token, "from socket.io");
   if (!token) return next(new Error("Authentication required"));
 
   try {
     const payload = jwt.verify(token, process.env.SOCKET_AUTH_SECRET);
+    // console.log(payload, "from socket.io");
     socket.user = payload;
 
     next();
@@ -60,7 +67,7 @@ io.on("connection", (socket) => {
    * Parents subscribe to a specific teacher (their child's teacher)
    */
   socket.on("subscribe-teacher", async ({ teacherId, parentId }) => {
-    if (!teacherId) return;
+    if (!teacherId || !parentId) return;
 
     const parent = await db.parent.findUnique({
       where: { id: parentId },
@@ -69,18 +76,20 @@ io.on("connection", (socket) => {
       },
     });
 
-    // 2. Check if any of parent’s kids belong to this teacher's buss
-    const allowed = parent?.Student.some(
-      (student) => student.bus?.teacher?.id === teacherId
-    );
+    console.log(parent, "parent from subscribe teacher");
 
-    if (allowed) {
-      socket.join(`teacher:${teacherId}`);
-      console.log(`Parent ${parentId} joined teacher ${teacherId}`);
-    } else {
-      console.warn(`Unauthorized subscription attempt by ${parentId}`);
-      socket.emit("error", "Not authorized for this teacher.");
-    }
+    // // 2. Check if any of parent’s kids belong to this teacher's buss
+    // const allowed = parent?.Student.some(
+    //   (student: any) => student.bus?.teacher?.id === teacherId
+    // );
+
+    // if (allowed) {
+    //   socket.join(`teacher:${teacherId}`);
+    //   console.log(`Parent ${parentId} joined teacher ${teacherId}`);
+    // } else {
+    //   console.warn(`Unauthorized subscription attempt by ${parentId}`);
+    //   socket.emit("error", "Not authorized for this teacher.");
+    // }
   });
 
   /**
@@ -95,6 +104,8 @@ io.on("connection", (socket) => {
     }
 
     const teacherId = socket.user.id;
+
+    console.log(teacherId, "teachert Idf");
 
     // const now = Date.now();
     // const lastUpdate = teacherRateLimitMap.get(teacherId) || 0;
@@ -123,6 +134,8 @@ io.on("connection", (socket) => {
       "teacher-location-update",
       payload
     );
+
+    console.log(payload,"paylaod from teachewr")
   });
 
   socket.on("disconnect", () => {

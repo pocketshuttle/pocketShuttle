@@ -1,4 +1,6 @@
-import { StudentAttendance } from "@prisma/client";
+// import { StudentAttendance } from "@prisma/client";
+
+import { StudentAttendance } from "./packages/db/client";
 
 export type DriversProps = {
   _id: string;
@@ -39,6 +41,7 @@ export type TeacherProps = {
   bus: BusProps;
   weeklyTotal?: number;
 };
+
 export type ParentProps = {
   id: string;
   full_name: string;
