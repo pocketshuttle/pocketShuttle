@@ -17,7 +17,7 @@ import {
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-} from "@/components/ui/tooltip"; 
+} from "@/components/ui/tooltip";
 
 import { getCurrentLocation, sendTeacherLocationToServer } from "../maps/lib/utils"; // Utility functions for geolocation and sending location
 import { useSession } from "@/hooks/useSession";
@@ -47,7 +47,15 @@ function getDistanceMetersFast(coord1: any, coord2: any) {
 const Navbar = ({ data }: NavbarProps) => {
     const [isHovering, setIsHovering] = useState(false); // Manages hover state for the profile
     const [isTracking, setIsTracking] = useState<boolean>(false); // Manages the location tracking toggle state
-    const [newLocation, setNewLocation] = useState({ teacherId: string, teacherName: string, teacherImage: string, longitude: string, lattitude: string, schoolId: string })
+    const [newLocation, setNewLocation] = useState({
+        teacherId: '',
+        teacherName: '',
+        teacherImage: '',
+        longitude: 0,
+        latitude: 0,
+        schoolId: ''
+    });
+
     // Provides router functionalities for navigation
     const router = useRouter();
     const lastSentTimeRef = useRef(0);
@@ -82,27 +90,46 @@ const Navbar = ({ data }: NavbarProps) => {
 
     useEffect(() => {
         const getLocation = async () => {
-            const [longitude, latitude] = await getCurrentLocation();
-            //@ts-ignore
-            setNewLocation({ teacherId: data?.id, teacherName: data?.name, teacherImage: data?.image, longitude, latitude, schoolId: data?.schoolId })
-        }
+            try {
+                const [longitude, latitude] = await getCurrentLocation();
+                console.log("Location from navbar:", { longitude, latitude });
 
+                if (!data?.id) {
+                    console.log("No teacher data available");
+                    return;
+                }
+
+                setNewLocation({
+                    teacherId: data.id,
+                    teacherName: data.name || '',
+                    teacherImage: data.image || '',
+                    longitude,
+                    latitude,
+                    schoolId: data.schoolId || ''
+                });
+            } catch (error) {
+                console.error("Error getting location:", error);
+            }
+        };
+
+        // Initial location fetch
+        getLocation();
+
+        // Update every 1 mins (100000ms)
         const intervalId = setInterval(getLocation, 1000000);
 
         return () => {
             if (intervalId) {
                 clearInterval(intervalId);
             }
-        }
-
-        // getLocation()
+        };
     }, [data])
 
     useEffect(() => {
         let socket: any;
         const connectToTeacher = async () => {
             try {
-                socket = await connectSocket(data?.id, "cmfa3hp6w000cy0hfdhz34f8o");
+                socket = await connectSocket(data?.id, data?.schoolId);
 
                 // Wait for connection or timeout
                 await new Promise((resolve, reject) => {

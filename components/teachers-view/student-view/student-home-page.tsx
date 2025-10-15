@@ -15,7 +15,6 @@ export const StudentHomePage = ({ studentData, teacherId }: StudentHomePageProps
     const expandedHeight = "70vh";
     const collapsedHeight = "30vh"
 
-    //background overlay
     const overlayOpacity = useTransform(y, [0, 300], [0.5, 0])
 
 

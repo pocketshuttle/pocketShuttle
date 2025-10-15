@@ -62,6 +62,8 @@ export const BusArrival = ({ parentAddress, parentAddressCoords, parentId, teach
         fetchLocation()
     }, []);
 
+
+    // console.log("selectedTeacher", teacherLocation);
     // useTeacherLocation(teacherId, setTeacherLocation);
 
 

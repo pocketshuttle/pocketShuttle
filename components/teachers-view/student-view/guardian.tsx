@@ -51,7 +51,9 @@ export const GuardianPage = ({ data }: { data: StudentProps }) => {
 
 
     return (
-        <main className=" space-y-2 w-full">
+        <main className=" space-y-2 w-full"
+            style={{ scrollBehavior: 'smooth', fontFamily: 'Arial, sans-serif' }}
+        >
             <h2 className="text-gray-950 text-2xl font-medium text-center py-4">Guardian Profile</h2>
             {data &&
                 <div
@@ -67,7 +69,7 @@ export const GuardianPage = ({ data }: { data: StudentProps }) => {
                         />
                         <div className="py-2 ">
                             <h2 className="capitalize text-xl font-medium">{data?.parent?.full_name}</h2>
-                            <p className="text-sm text-gray-950/30 ">
+                            <p className="text-[16px] text-gray-950/30 ">
                                 {data.parent?.email}
                             </p>
                             <p className="text-sm ">
@@ -92,7 +94,6 @@ export const GuardianPage = ({ data }: { data: StudentProps }) => {
             <div>
                 <h3 className="text-center p-5 text-gray-950 text-xl capitalize">{data?.full_name} Siblings</h3>
                 {siblings?.map((sibling: StudentProps) => {
-                    console.log(sibling?.image)
                     return (
                         <div
                             key={sibling.id}

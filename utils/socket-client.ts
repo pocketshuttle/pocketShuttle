@@ -1,8 +1,11 @@
 import { io } from "socket.io-client";
 
-export async function connectSocket(teacherId: string, schoolId: string) {
-
-//we fetch the auth from the socket api 
+export async function connectSocket(
+  teacherId: string,
+  schoolId: string,
+  parentId?: string
+) {
+  //we fetch the auth from the socket api
   const res = await fetch("/api/socket-auth", {
     method: "GET",
     credentials: "include",
@@ -10,7 +13,6 @@ export async function connectSocket(teacherId: string, schoolId: string) {
   if (!res.ok) throw new Error("Failed to get socket token");
 
   const { token } = await res.json();
-
 
   const SOCKET_URL =
     process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000";
@@ -25,8 +27,8 @@ export async function connectSocket(teacherId: string, schoolId: string) {
     // console.log("socket connected", socket.id);
 
     if (teacherId) {
-      socket.emit("subscribe-teacher", { teacherId });
-      // console.log(`📡 Subscribed to teacher-${teacherId}`);
+      const payload = parentId ? { teacherId, parentId } : { teacherId };
+      socket.emit("subscribe-teacher", payload);
     }
 
     if (schoolId) {
@@ -34,8 +36,6 @@ export async function connectSocket(teacherId: string, schoolId: string) {
       // console.log(`🏫 Subscribed to school-${schoolId}`);
     }
   });
-
-  
 
   socket.on("teacher-location-update", (data) => {
     console.log(" Teacher location update:", data);

@@ -19,7 +19,8 @@ export const metadata: Metadata = {
     default: "School bus",
   },
   authors: {
-    name: "meshboc",
+    name: "meshboc,abusomwansantos",
+
   },
   manifest: "/manifest.webmanifest",
 
@@ -32,7 +33,7 @@ export const metadata: Metadata = {
     images: "/logo.png",
     type: "website",
   },
-  keywords: ["school delivery", "school", "bus service for kids", "meshboc"],
+  keywords: ["school delivery", "school", "bus service for kids", "meshboc",],
 };
 
 export default function RootLayout({
@@ -45,17 +46,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* ✅ Load Google Maps JS SDK globally */}
-        {/* <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
-          strategy="beforeInteractive"
-        /> */}
         <Script
           src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
           defer
         />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className}
+        style={{
+          fontFamily: "Arial, sans-serif "
+        }}
+      >
         <Provider>
           < AblyProviderRoot>
             <OneSignalClient>

@@ -76,20 +76,21 @@ io.on("connection", (socket) => {
       },
     });
 
-    console.log(parent, "parent from subscribe teacher");
-
     // // 2. Check if any of parent’s kids belong to this teacher's buss
-    // const allowed = parent?.Student.some(
-    //   (student: any) => student.bus?.teacher?.id === teacherId
-    // );
+    const allowed = parent?.Student.some(
+      (student) => student.bus?.teacher?.id === teacherId
+    );
 
-    // if (allowed) {
-    //   socket.join(`teacher:${teacherId}`);
-    //   console.log(`Parent ${parentId} joined teacher ${teacherId}`);
-    // } else {
-    //   console.warn(`Unauthorized subscription attempt by ${parentId}`);
-    //   socket.emit("error", "Not authorized for this teacher.");
-    // }
+    console.log(allowed, "allowed from subscribe teacher");
+
+
+    if (allowed) {
+      socket.join(`teacher-${teacherId}`);
+      console.log(`Parent ${parentId} joined teacher ${teacherId}`);
+    } else {
+      console.warn(`Unauthorized subscription attempt by ${parentId}`);
+      socket.emit("error", "Not authorized for this teacher.");
+    }
   });
 
   /**
@@ -105,7 +106,7 @@ io.on("connection", (socket) => {
 
     const teacherId = socket.user.id;
 
-    console.log(teacherId, "teachert Idf");
+    // console.log(teacherId, "teachert Idf");
 
     // const now = Date.now();
     // const lastUpdate = teacherRateLimitMap.get(teacherId) || 0;
@@ -135,7 +136,7 @@ io.on("connection", (socket) => {
       payload
     );
 
-    console.log(payload,"paylaod from teachewr")
+    // console.log(payload, "paylaod from teachewr");
   });
 
   socket.on("disconnect", () => {
