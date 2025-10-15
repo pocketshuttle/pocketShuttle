@@ -32,6 +32,36 @@ export default function NewParentPage({
         Record<string, { teacherId: string; teacherName: string; teacherImage: string; latitude: number; longitude: number }>
     >({});
 
+    //we take the first teacher
+    const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+        siblings.length > 0 ? siblings[0].id : null
+    )
+
+    useEffect(() => {
+        //resttore the last selcected on mount
+        const savedId = localStorage.getItem("selectedStudentId")
+        if (savedId && siblings.some((s: StudentProps) => s.id === savedId)) {
+            setSelectedStudentId(savedId)
+        } else if (siblings.length > 0) {
+            setSelectedStudentId(siblings[0]?.id)
+            localStorage.setItem("selectedStudentId", siblings[0].id)
+        }
+    }, [siblings])
+
+    // Persist student selection to localStorage
+    useEffect(() => {
+        if (selectedStudentId) {
+            localStorage.setItem("selectedStudentId", selectedStudentId);
+        }
+    }, [selectedStudentId]);
+
+    // Persist student selection to localStorage
+    useEffect(() => {
+        if (selectedStudentId) {
+            localStorage.setItem("selectedStudentId", selectedStudentId);
+        }
+    }, [selectedStudentId]);
+
     useEffect(() => {
         if (!parentId) return;
 
@@ -53,15 +83,13 @@ export default function NewParentPage({
         return () => clearTimeout(timer);
     }, [parentId]);
 
-    //we take the first teahcer
-    const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
-        siblings.length > 0 ? siblings[0].id : null
-    )
 
     const selectedSibling = useMemo(
         () => siblings.find((s: StudentProps) => s.id === selectedStudentId) || null,
         [siblings, selectedStudentId]
     )
+
+    // console.log(selectedStudentId, "selected student id")
 
     // get the teacher IDs for all siblings
     const allTeacherIds = useMemo(
@@ -92,63 +120,94 @@ export default function NewParentPage({
     const overlayOpacity = useTransform(y, [0, 300], [0.5, 0]);
 
     useEffect(() => {
+        if (!selectedTeacherId || !parentId) return;
+        if (!("geolocation" in navigator)) {
+            console.warn("Geolocation not supported by this browser");
+            return;
+        }
+
         let socket: any;
+        let isMounted = true;
+        let reconnectTimer: NodeJS.Timeout;
+
         const connectToTeacher = async () => {
             try {
-                socket = await connectSocket(selectedTeacherId, "");
+                // Check location permission before connecting
+                const permission = await navigator.permissions
+                    .query({ name: "geolocation" as PermissionName })
+                    .catch(() => null);
 
-                if (!selectedTeacherId || !shouldTrackTeacher(siblings, selectedTeacherId)) {
+                if (permission && permission.state === "denied") {
+                    console.warn("Geolocation permission denied");
+                    return;
+                }
+
+                // Skip tracking if the student was picked up
+                if (!shouldTrackTeacher(siblings, selectedSibling?.id)) {
                     console.log("Teacher tracking stopped - student picked up");
                     return;
                 }
 
-                await new Promise((resolve, reject) => {
-                    const timeout = setTimeout(() => {
-                        reject(new Error("Socket Connection Time out"));
-                    }, 1000);
+                // Connect socket
+                socket = await connectSocket(selectedTeacherId, "", parentId);
+
+                await new Promise<void>((resolve, reject) => {
+                    const timeout = setTimeout(() => reject(new Error("Socket Connection Timeout")), 3000);
 
                     socket.on("connect", () => {
                         clearTimeout(timeout);
-                        // console.log("Socket connected and ready!, from parent", socket.id);
-
-                        //since we using teacher id to subscribe does that mean, all the parentsa can see all the location? fix this potential error
-                        // subscribe parent to teacher room
+                        if (!isMounted) return;
+                        console.log("Parent socket connected:", socket.id);
                         socket.emit("subscribe-teacher", { selectedTeacherId, parentId });
-
-                        resolve(true);
+                        resolve();
                     });
 
                     socket.on("connect_error", (error: any) => {
-                        console.log(error, "errors from socket");
+                        console.error("Socket connect_error:", error);
                         clearTimeout(timeout);
                         reject(error);
                     });
                 });
 
-
+                // Handle teacher location updates
                 socket.on("teacher-location-update", (location: TeacherLocation) => {
-                    console.log(" Location update received at parent:", location);
-                    setTeacherLocation((prev) => ({
+                    if (!isMounted) return;
+                    setTeacherLocation(prev => ({
                         ...prev,
                         [location.teacherId]: location,
                     }));
                 });
 
+                // Auto resubscribe on reconnect
+                socket.io.on("reconnect", () => {
+                    console.log("Reconnected, resubscribing to teacher room");
+                    socket.emit("subscribe-teacher", { selectedTeacherId, parentId });
+                });
+
                 socket.on("disconnect", (reason: string) => {
                     console.log("Parent socket disconnected:", reason);
+                    // Optional retry on unexpected disconnect
+                    if (isMounted && reason !== "io client disconnect") {
+                        reconnectTimer = setTimeout(connectToTeacher, 5000);
+                    }
                 });
             } catch (error) {
                 console.error("Failed to connect parent socket:", error);
             }
         };
 
-
         connectToTeacher();
 
         return () => {
-            if (socket) socket.disconnect();
+            isMounted = false;
+            if (reconnectTimer) clearTimeout(reconnectTimer);
+            if (socket) {
+                socket.off("teacher-location-update");
+                socket.disconnect();
+            }
         };
-    }, [selectedTeacherId]);
+    }, [selectedTeacherId, parentId, siblings]);
+
 
     // useEffect(() => {
     //     if (!window.google) return;

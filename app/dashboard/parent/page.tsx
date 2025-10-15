@@ -3,7 +3,8 @@ import { ParentData } from '@/components/parent/ui/parent-table'
 import { Button } from '@/components/ui/button'
 import { getUserSession } from '@/lib/session'
 import { revalidateTag } from 'next/cache'
-import db, { Prisma } from "@/packages/db/client";
+import db from "@/packages/db/client";
+import { Prisma } from "@prisma/client";
 
 
 const Parents = async ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {

@@ -80,8 +80,8 @@ model SuperUser {
 model SuperUserAction {
   id          String    @id @default(cuid())
   superUserId String
-  action      String // create and enum for this when im ready "DELETE_SCHOOL", "CREATE_SCHOOL", "RESET_PASSWORD"
-  targetId    String? // the id of the school (User) being acted on
+  action      String 
+  targetId    String? 
   createdAt   DateTime  @default(now())
   metadata    Json?
   superUser   SuperUser @relation(fields: [superUserId], references: [id])
