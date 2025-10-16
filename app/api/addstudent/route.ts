@@ -2,9 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { StudentSchema } from "@/schemas";
 import db from "@/packages/db/client";
 import { revalidateTag } from "next/cache";
+import { getUserSession } from "@/lib/session";
 
 export const POST = async (req: NextRequest) => {
   try {
+    const user = await getUserSession();
+
+    if (!user || !["admin", "school", "ADMIN"].includes(user.role as string)) {
+      return NextResponse.json(
+        {
+          message: "Unauthorized: Only admins or school staff can add parents.",
+        },
+        { status: 403 }
+      );
+    }
+
     const data = await req.json();
     const validatedData = StudentSchema.safeParse(data);
 
@@ -61,6 +73,18 @@ export const POST = async (req: NextRequest) => {
         { status: 200 }
       );
     }
+    await db.auditLog.create({
+      data: {
+        userId: String(user.id ?? ""),
+        action: "CREATE_STUDENT",
+        details: {
+          createdBy: String(user.email ?? ""),
+          student: full_name,
+          schoolId: school_id,
+          timestamp: new Date().toISOString(),
+        },
+      },
+    });
     revalidateTag("students");
   } catch (error) {
     // Handle errors

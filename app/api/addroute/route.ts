@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { RouteSchema } from "@/schemas";
 import db from "@/packages/db/client";
 import { getUserSession } from "@/lib/session";
-import { Prisma } from "@prisma/client";
 
 export const POST = async (req: NextRequest) => {
   try {
-    // 1. Authentication & authorization
+    //  Authentication & authorization
     const user = await getUserSession();
     if (!user || !["admin", "ADMIN"].includes(user.role as string)) {
       return NextResponse.json(
@@ -15,7 +14,7 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    //  2. Validate request body
+    //   Validate request body
     const body = await req.json();
     const validated = RouteSchema.safeParse(body);
 
@@ -28,7 +27,7 @@ export const POST = async (req: NextRequest) => {
 
     const { school_id, route_description, route_name } = validated.data;
 
-    // 3. Prevent duplicate route names within the same school
+    //  Prevent duplicate route names within the same school
     const existingRoute = await db.route.findFirst({
       where: {
         route_name: {
@@ -70,16 +69,6 @@ export const POST = async (req: NextRequest) => {
     );
   } catch (error) {
     console.error(" Error adding Route:", error);
-
-    // ✅ 6. Handle known Prisma errors for safer debugging
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2003") {
-        return NextResponse.json(
-          { message: "Invalid school reference. Please check the school_id." },
-          { status: 400 }
-        );
-      }
-    }
 
     return NextResponse.json(
       {

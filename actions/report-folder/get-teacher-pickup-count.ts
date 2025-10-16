@@ -1,5 +1,6 @@
 "use server";
 
+import { getUserSession } from "@/lib/session";
 import db from "@/packages/db/client";
 import { format, startOfWeek } from "date-fns";
 
@@ -8,6 +9,10 @@ export const getTeacherPickupCount = async (
   termStart: Date,
   termEnd: Date
 ) => {
+  const user = await getUserSession();
+  if (!user || !["teacher", "admin", "ADMIN"].includes(user.role as string)) {
+    return { message: "Unauthorized", status: 401 };
+  }
   // 1. Get all pickups for this teacher in range
   const pickups = await db.pickup.findMany({
     where: {

@@ -1,4 +1,5 @@
 "use server";
+import { getUserSession } from "@/lib/session";
 import db from "@/packages/db/client";
 import { format, startOfWeek } from "date-fns";
 
@@ -7,22 +8,20 @@ export async function getWeeklyPickupStatsForBus(
   termStart: Date,
   termEnd: Date
 ) {
-  //   console.log(
-  //     "Fetching weekly pickup stats for bus:",
-  //     busId,
-  //     "from",
-  //     termStart,
-  //     "to",
-  //     termEnd
-  //   );
-
   // 1. Get all students on the bus
   const bus = await db.buses.findUnique({
     where: { id: busId },
     include: { students: true }, // students in this bus
   });
+  const user = await getUserSession();
+  if (!user) {
+    return { message: "Unauthorized: Please log in", status: 401 };
+  }
 
-  //   console.log("Bus data:", bus);
+  //  Authorization
+  if (!["admin", "school", "ADMIN"].includes(user.role as string)) {
+    return { message: "Forbidden: You do not have permission", status: 403 };
+  }
 
   if (!bus) throw new Error("Bus not found");
 

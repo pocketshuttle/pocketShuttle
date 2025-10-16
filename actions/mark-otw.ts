@@ -5,6 +5,7 @@ import { revalidateTag } from "next/cache";
 import { sendSms } from "./notification/send-sms";
 import { sendSmsForBusArrival } from "./notification/bus-arrival";
 import { sendPushNotification } from "@/onesignal/send-push";
+import { getUserSession } from "@/lib/session";
 
 export const updateLocation = async (
   id: string,
@@ -12,6 +13,10 @@ export const updateLocation = async (
   eta?: string
 ) => {
   try {
+    const user = await getUserSession();
+    if (!user || !["teacher", "admin", "ADMIN"].includes(user.role as string)) {
+      return { message: "Unauthorized", status: 401 };
+    }
     if (!data) {
       return { message: "Invalid presence value", status: 400 };
     }

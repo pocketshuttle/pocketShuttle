@@ -1,4 +1,5 @@
 "use server";
+import { getUserSession } from "@/lib/session";
 import db from "@/packages/db/client";
 import { revalidateTag } from "next/cache";
 
@@ -8,6 +9,14 @@ export const addParent = async (
   confirmation?: string
 ) => {
   try {
+    const user = await getUserSession();
+
+    if (!user || !["admin", "school", "ADMIN"].includes(user.role as string)) {
+      return {
+        message: "Unauthorized: Only admins or school staff can add Parent.",
+        status: 403,
+      };
+    }
     const available = await db.student.findUnique({
       where: { id: studentId },
     });

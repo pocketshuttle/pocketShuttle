@@ -1,10 +1,15 @@
 "use server";
+import { getUserSession } from "@/lib/session";
 import db from "@/packages/db/client";
 import { ParentProps } from "@/types";
 import bcrypt from "bcryptjs";
 
 export const updateParent = async (parentId: string | undefined, data: any) => {
   try {
+    const user = await getUserSession();
+    if (!user || !["teacher", "admin", "ADMIN"].includes(user.role as string)) {
+      return { message: "Unauthorized", status: 401 };
+    }
     if (data.email) {
       const existingParent = await db.parent.findUnique({
         where: { email: data.email },

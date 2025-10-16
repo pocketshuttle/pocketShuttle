@@ -11,7 +11,7 @@ export const POST = async (req: NextRequest) => {
     //  1. Verify user session & role
     const user = await getUserSession();
 
-    if (!user || !["admin", "school", "Admin"].includes(user.role as string)) {
+    if (!user || !["admin", "school", "ADMIN"].includes(user.role as string)) {
       return NextResponse.json(
         {
           message: "Unauthorized: Only admins or school staff can add parents.",
@@ -22,11 +22,12 @@ export const POST = async (req: NextRequest) => {
     const data = await req.json();
     const validatedData = ParentSchema.safeParse(data);
 
-    if (!validatedData.success) {
-      return NextResponse.json(
-        { message: "Validation error", errors: validatedData.error.errors },
-        { status: 400 }
-      );
+   if (!validatedData.success) {
+      return {
+        message: "Validation failed",
+        errors: validatedData.error.flatten().fieldErrors,
+        status: 400,
+      };
     }
 
     const {
@@ -41,7 +42,7 @@ export const POST = async (req: NextRequest) => {
       role,
     } = validatedData.data;
 
-    // ✅ 3. Prevent duplicate parent
+    // Prevent duplicate parent
     const existingParent = await db.parent.findUnique({
       where: { email: email.toLowerCase() },
     });

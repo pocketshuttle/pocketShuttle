@@ -1,6 +1,7 @@
 import Ably from "ably";
 import db from "@/packages/db/client";
 import { NextRequest, NextResponse } from "next/server";
+import { getUserSession } from "@/lib/session";
 
 interface LocationUpdatePayload {
   latitude: number;
@@ -28,6 +29,11 @@ async function broadcastLocationUpdate(
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getUserSession();
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const { latitude, longitude, teacherId, teacherImage, teacherName } =
       (await req.json()) as LocationUpdatePayload;
 

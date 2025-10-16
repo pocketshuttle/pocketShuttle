@@ -2,10 +2,15 @@ import { getPusherInstance } from "@/pusher/server";
 import { NextApiRequest, NextApiResponse } from "next";
 import { NextRequest, NextResponse } from "next/server";
 import Ably from "ably";
-
+import { getUserSession } from "@/lib/session";
 
 export async function POST(req: NextRequest, res: NextApiResponse) {
   try {
+    const user = await getUserSession();
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const { latitude, longitude } = await req.json();
 
     if (typeof latitude !== "number" || typeof longitude !== "number") {

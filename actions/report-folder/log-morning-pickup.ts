@@ -2,9 +2,14 @@
 
 import db, { StudentPresence } from "@/packages/db/client";
 import { updateLocation } from "../mark-otw";
+import { getUserSession } from "@/lib/session";
 // import { StudentPresence } from "@prisma/client";
 
 export async function logMorningPickup(student: any, hours: number) {
+  const user = await getUserSession();
+  if (!user || !["teacher", "admin", "ADMIN"].includes(user.role as string)) {
+    return { message: "Unauthorized", status: 401 };
+  }
   if (student.status === "PICKED") {
     const today = new Date();
     const startOfDay = new Date(

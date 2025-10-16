@@ -7,9 +7,20 @@ import bcrypt from "bcryptjs";
 import NewUser from "@/(models)/NewUser";
 import db from "@/packages/db/client";
 import { revalidateTag } from "next/cache";
+import { getUserSession } from "@/lib/session";
 
 export const POST = async (req: NextRequest) => {
   try {
+    const user = await getUserSession();
+
+    if (!user || !["admin", "school", "ADMIN"].includes(user.role as string)) {
+      return NextResponse.json(
+        {
+          message: "Unauthorized: Only admins or school staff can add parents.",
+        },
+        { status: 403 }
+      );
+    }
     const data = await req.json();
     const validatedData = TeacherSchema.safeParse(data);
 
@@ -32,6 +43,17 @@ export const POST = async (req: NextRequest) => {
       password,
       role,
     } = validatedData.data;
+
+    const existingTeacher = await db.teacher.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    if (existingTeacher) {
+      return NextResponse.json(
+        { message: "A teacher with this email already exists." },
+        { status: 409 }
+      );
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -76,6 +98,18 @@ export const POST = async (req: NextRequest) => {
         },
       });
     }
+    await db.auditLog.create({
+      data: {
+        userId: String(user.id ?? ""),
+        action: "CREATE_TEACHER",
+        details: {
+          createdBy: String(user.email ?? ""),
+          teacherEmail: email,
+          schoolId: school_id,
+          timestamp: new Date().toISOString(),
+        },
+      },
+    });
 
     revalidateTag("teacher");
 

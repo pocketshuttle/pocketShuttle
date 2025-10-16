@@ -33,7 +33,7 @@ export const GET = async (
       );
     }
 
-    const allowedRoles = ["parent", "admin"];
+    const allowedRoles = ["parent", "admin", "ADMIN"];
     if (!allowedRoles.includes(user.role as string)) {
       return NextResponse.json(
         { message: "Unauthorized. Insufficient permissions." },

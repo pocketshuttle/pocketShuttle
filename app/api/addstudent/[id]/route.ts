@@ -5,22 +5,47 @@ import db from "@/packages/db/client";
 import { revalidatePath } from "next/cache";
 import { revalidateTag } from "next/cache";
 import { Prisma } from "@prisma/client";
+import { getUserSession } from "@/lib/session";
+import z from "zod";
 type ParamProp = {
   id: string;
 };
+const ParamsSchema = z.object({
+  id: z.string().cuid(),
+});
+
 export const GET = async (
   req: NextRequest,
   { params }: { params: ParamProp }
 ) => {
   try {
+    const parsedResult = ParamsSchema.safeParse(params);
+
+    if (!parsedResult.success) {
+      return NextResponse.json(
+        { message: "Invalid parent ID" },
+        { status: 400 }
+      );
+    }
+    const { id } = parsedResult.data;
+    const user = await getUserSession();
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const allowedRoles = ["admin", "ADMIN", "Admin"];
+    if (!allowedRoles.includes(user.role as string)) {
+      return NextResponse.json(
+        { message: "Unauthorized. Insufficient permissions." },
+        { status: 403 }
+      );
+    }
     const ITEM_PER_PAGE = 4;
     const url = new URL(req.url).searchParams;
-
     const searchQuery = url.get("q") || "";
     const gradeQuery = url.get("grade") || "";
     const page: number = (url.get("page") as unknown as number) || 1;
 
-    const { id } = params;
     type StudentWhere = NonNullable<
       Parameters<typeof db.student.findMany>[0]
     >["where"];
@@ -40,9 +65,6 @@ export const GET = async (
       ...(gradeQuery && gradeQuery !== "All" && { grade: gradeQuery }),
     };
 
-    // if (gradeQuery && gradeQuery !== "All") {
-    //   query.grade = gradeQuery;
-    // }
     //limit, shows the total number of users per page
     //skip, shows the next page- 1 then multiplied by the total number that was first displayed
     //then skip that total number
@@ -75,6 +97,9 @@ export const GET = async (
 
     return new Response(JSON.stringify({ students, count }), {
       status: 200,
+      headers: {
+        "Cache-Control": "no-store",
+      },
     });
   } catch (error) {
     // Handle errors
@@ -94,8 +119,21 @@ export const PATCH = async (
   { params }: { params: ParamProp }
 ) => {
   try {
+    const user = await getUserSession();
+    if (!user || !["admin", "teacher", "ADMIN"].includes(user.role as string)) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
     const { id } = params;
     const data = await req.json();
+
+    //ensuring student exists
+    const existingStudent = await db.student.findUnique({ where: { id } });
+    if (!existingStudent) {
+      return NextResponse.json(
+        { message: "Student not found" },
+        { status: 404 }
+      );
+    }
 
     const updatedStudent = await db.student.update({
       where: { id: id },
@@ -155,13 +193,17 @@ export const DELETE = async (
   { params }: { params: ParamProp }
 ) => {
   try {
-    await connectToDB();
+    const user = await getUserSession();
+    if (!user || !["admin", "teacher", "ADMIN"].includes(user.role as string)) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = params;
-    const deletedStudent = await db.student.delete({
+    const existingStudent = await db.student.delete({
       where: { id: id },
     });
 
-    if (!deletedStudent) {
+    if (!existingStudent) {
       return new Response(JSON.stringify({ message: "Student not found" }), {
         status: 404,
       });
