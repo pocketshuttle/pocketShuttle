@@ -36,6 +36,8 @@ export function Directions({ parentAddressCoords, teacherData, userId }: Address
     const setStudentETA = useSetRecoilState(studentETA);
 
 
+
+
     const coords2 = useMemo<google.maps.LatLngLiteral | null>(
         () =>
             parentAddressCoords
@@ -91,7 +93,6 @@ export function Directions({ parentAddressCoords, teacherData, userId }: Address
     // place home marker once
     useEffect(() => {
         if (!map || !coords2) return;
-
 
         (async () => {
             const { Marker } = (await google.maps.importLibrary(
@@ -172,6 +173,8 @@ export function Directions({ parentAddressCoords, teacherData, userId }: Address
                         const duration = response.routes[0]?.legs[0]?.duration?.value;
                         const minutes = duration ? Math.round(duration / 60) : null;
 
+                        console.log(minutes, "from directions api");
+
                         if (minutes !== null) {
                             // setEta(`${minutes} mins`);
                             setStudentETA((prev) => ({
@@ -221,9 +224,6 @@ export function Directions({ parentAddressCoords, teacherData, userId }: Address
     }, [routesIndex, directionsRenderer]);
 
     if (!routes.length) return null;
-
-
-    console.log(eta, "eta value")
 
     return (
         <div>

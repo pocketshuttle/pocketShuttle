@@ -92,7 +92,7 @@ const Navbar = ({ data }: NavbarProps) => {
         const getLocation = async () => {
             try {
                 const [longitude, latitude] = await getCurrentLocation();
-                console.log("Location from navbar:", { longitude, latitude });
+                // console.log("Location from navbar:", { longitude, latitude });
 
                 if (!data?.id) {
                     console.log("No teacher data available");
@@ -116,7 +116,7 @@ const Navbar = ({ data }: NavbarProps) => {
         getLocation();
 
         // Update every 1 mins (100000ms)
-        const intervalId = setInterval(getLocation, 1000000);
+        const intervalId = setInterval(getLocation, 100000);
 
         return () => {
             if (intervalId) {

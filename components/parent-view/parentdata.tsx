@@ -50,7 +50,7 @@ const ParentViewData = ({ userId }: { userId: string }) => {
 
     return (
         <main className=" " >
-            {/* <StudentNotificationBar /> */}
+            <StudentNotificationBar />
             {
                 studentPresense?.map((studentBus) => (
                     <TeacherDetailsForParentPage bus={studentBus?.bus} userId={userId} />
