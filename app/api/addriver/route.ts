@@ -2,15 +2,21 @@ import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
 import { DriverSchema } from "@/schemas";
 import db from "@/packages/db/client";
+import { getUserSession } from "@/lib/session";
 
 export const POST = async (req: NextRequest) => {
   try {
+    const user = await getUserSession();
+    if (!user || !["admin", "ADMIN"].includes(user.role as string)) {
+      return NextResponse.json(
+        { message: "Unauthorized access" },
+        { status: 401 }
+      );
+    }
     const data = await req.json();
-    // console.log("Received data:", data);
 
     const validatedData = DriverSchema.safeParse(data);
     if (!validatedData.success) {
-      console.log("Validation error:", validatedData.error.errors);
       return NextResponse.json(
         { message: "Validation error", errors: validatedData.error.errors },
         { status: 400 }
@@ -19,6 +25,19 @@ export const POST = async (req: NextRequest) => {
 
     const { school_id, full_name, phoneNumber, image, address, email, busId } =
       validatedData.data;
+
+    const existingDriver = await db.driver.findFirst({
+      where: {
+        OR: [{ email }, { phoneNumber }],
+      },
+    });
+
+    if (existingDriver) {
+      return NextResponse.json(
+        { message: "Driver already exists with this email or phone" },
+        { status: 409 }
+      );
+    }
 
     const newDriver = await db.driver.create({
       data: {
