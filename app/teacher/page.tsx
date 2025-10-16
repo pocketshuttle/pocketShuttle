@@ -7,16 +7,17 @@ import { Button } from '@/components/ui/button';
 // import { db } from '@/dropoff-backend/lib/db';
 import { getUserSession } from '@/lib/session';
 import db from '@/packages/db/client';
+import { revalidateTag } from 'next/cache';
 import React from 'react';
 
 const TeacherView = async () => {
     const user = await getUserSession();
 
-    if (!user || typeof user.id !== 'string') {
+    if (!user?.id || typeof user.id !== "string") {
         return (
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center min-h-screen text-center">
                 <div>
-                    User session is not available. Please log in.
+                    <p className="mb-4 text-gray-700">User session is not available. Please log in.</p>
                     <LoginButton>
                         <Button size="lg">Login</Button>
                     </LoginButton>
@@ -50,13 +51,19 @@ const TeacherView = async () => {
                 },
             },
         });
+        revalidateTag("teacher");
+
 
         if (!teacherData) {
-            return <div>No teacher data found for this user.</div>;
+            return (
+                <div className="flex items-center justify-center min-h-screen">
+                    <p className="text-gray-600">No teacher data found for this user.</p>
+                </div>
+            );
         }
 
         return (
-            <div>
+            <div className="min-h-screen">
                 {/* @ts-ignore */}
                 <TeachersViewData userId={user.id} user={user} data={teacherData} />
             </div>
@@ -70,8 +77,8 @@ const TeacherView = async () => {
             );
         }
         return (
-            <div className="flex items-center justify-center">
-                An error occurred. Please refresh.
+            <div className="flex items-center justify-center min-h-screen text-red-600">
+                <p>An error occurred. Please refresh or try again later.</p>
             </div>
         );
     }

@@ -22,6 +22,7 @@ const shouldTrackTeacher = (siblings: StudentProps[], selectedStudentId: string 
     const selectedStudent = siblings.find((s) => s.id === selectedStudentId);
     return selectedStudent?.status !== "PICKED";
 }
+
 export default function NewParentPage({
     parentAddress,
     parentAddressCoords,
@@ -89,13 +90,12 @@ export default function NewParentPage({
         [siblings, selectedStudentId]
     )
 
-    // console.log(selectedStudentId, "selected student id")
-
     // get the teacher IDs for all siblings
     const allTeacherIds = useMemo(
         () => siblings.map((s: StudentProps) => s.bus?.teacher?.id).filter(Boolean),
         [siblings]
     )
+
     const uniqueTeacherIds = useMemo(
         () => new Set(allTeacherIds),
         [allTeacherIds]
@@ -206,8 +206,7 @@ export default function NewParentPage({
                 socket.disconnect();
             }
         };
-    }, [selectedTeacherId, parentId, siblings]);
-
+    }, [selectedTeacherId, parentId, siblings, selectedStudentId]);
 
     // useEffect(() => {
     //     if (!window.google) return;

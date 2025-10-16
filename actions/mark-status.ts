@@ -2,9 +2,10 @@
 
 import db, { StudentStatus } from "@/packages/db/client";
 import { Knock } from "@knocklabs/node";
-// import { StudentStatus } from "@prisma/client";
 import { revalidateTag } from "next/cache";
 import { logMorningPickup } from "./report-folder/log-morning-pickup";
+import z from "zod";
+import { getUserSession } from "@/lib/session";
 
 type ParamsProps = {
   id: string;
@@ -18,10 +19,28 @@ function getCurrentHourInTimeZone(timezone: string): number {
   return tz.getHours();
 }
 
+const StudentStatusSchema = z.enum([
+  "PICKED",
+  "DROPPED",
+  "IN_BUS",
+  "AT_SCHOOL",
+  "NONE",
+  "ABSENT",
+]);
+
 async function handleBusSeatUpdate(
   status: StudentStatus | null,
   busId: string
 ) {
+  const bus = await db.buses.findUnique({
+    where: { id: busId },
+    select: { seat_number: true },
+  });
+
+  if (!bus) {
+    console.warn(`Bus with ID ${busId} not found.`);
+    return;
+  }
   //we decrease the bus by one when a child is picked up.
   if (status === "PICKED") {
     await db.buses.update({
@@ -37,7 +56,7 @@ async function handleBusSeatUpdate(
   }
 }
 
-//this is an important update, when a child is picked in the morning or picked  in thge afternoon
+//this is an important update, when a child is picked in the morning or picked in the afternoon
 //which means we've to update our timelines in the afternoon and night
 async function handlePresenceUpdate(
   id: string,
@@ -49,12 +68,12 @@ async function handlePresenceUpdate(
       where: { id: id },
       data: { presence: "IN_BUS" },
     });
-  } else if (updatedStudent.status === "PICKED" && hours >= 9 && hours < 16) {
+  } else if (updatedStudent.status === "PICKED" && hours >= 9 && hours < 15) {
     await db.student.update({
       where: { id: id },
       data: { presence: "AT_SCHOOL" },
     });
-  } else if (updatedStudent.status === "DROPPED" && hours >= 17 && hours < 19) {
+  } else if (updatedStudent.status === "DROPPED" && hours >= 16 && hours < 19) {
     await db.student.update({
       where: { id: id },
       data: { presence: "NONE" },
@@ -83,9 +102,37 @@ async function sendKnockNotification(updatedStudent: any) {
 }
 
 export const updateStudentStatus = async (id: string, data: StudentStatus) => {
+  const user = await getUserSession();
+  if (!user || !["teacher", "admin"].includes(user?.role)) {
+    return { message: "Unauthorized", status: 401 };
+  }
+  revalidateTag("teacher");
+
   try {
     if (!data) {
       return { message: "No data provided", status: 400 };
+    }
+
+    const parsedStatus = StudentStatusSchema.safeParse(data);
+    if (!parsedStatus.success) {
+      return { status: 400, message: "Invalid status" };
+    }
+
+    const existingStudent = await db.student.findUnique({
+      where: { id: id },
+      select: { status: true, busId: true },
+    });
+
+    if (!existingStudent) {
+      return { message: "Student not found", status: 404 };
+    }
+
+    if (existingStudent.status === data) {
+      return {
+        message: `Status is already ${data}`,
+        student: existingStudent,
+        status: 200,
+      };
     }
 
     const updatedStudent = await db.student.update({

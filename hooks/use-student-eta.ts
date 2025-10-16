@@ -29,6 +29,7 @@ export function useAutoUpdateETA(origin, destination) {
         if (response && response.routes && response.routes.length > 0) {
           const duration = response.routes[0].legs[0].duration?.text || null;
           const leg = response.routes?.[0]?.legs?.[0];
+          
           console.log("ETA fetched:", duration);
           console.log("Leg details:", leg);
           // setEta({
