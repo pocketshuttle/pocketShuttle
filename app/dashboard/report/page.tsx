@@ -1,5 +1,6 @@
 "use server"
 import LoginButton from '@/components/auth/login-button';
+import { NetworkError } from '@/components/errorsandsuccess/error/error';
 import { MainPickUpPage } from '@/components/pick-logs/main-page'
 import { Button } from '@/components/ui/button';
 import { getUserSession } from '@/lib/session';
@@ -22,38 +23,54 @@ const ReportPage = async () => {
         );
     }
 
-    const teacherData = await db.teacher.findMany({
-        where: { schoolId: user.id },
-        select: {
-            Student: {
-                select: {
-                    parent: { select: { address: true } },
-                },
-            },
-            bus: {
-                include: {
-                    students: {
-                        include: { parent: { select: { address: true } } }
+    try {
+        const teacherData = await db.teacher.findMany({
+            where: { schoolId: user.id },
+            select: {
+                Student: {
+                    select: {
+                        parent: { select: { address: true } },
                     },
-                    driver: true,
                 },
+                bus: {
+                    include: {
+                        students: {
+                            include: { parent: { select: { address: true } } }
+                        },
+                        driver: true,
+                    },
+                },
+                full_name: true,
+                id: true,
+                busId: true
             },
-            full_name: true,
-            id: true,
-            busId: true
-        },
-    });
+        });
 
 
-    if (!teacherData) {
-        return <div>No report generated yet for this user.</div>;
+        if (!teacherData) {
+            return <div>No report generated yet for this user.</div>;
+        }
+
+        return (
+            <div>
+                <MainPickUpPage data={teacherData} />
+            </div>
+        )
+    } catch (error: any) {
+        if (error.message.includes("Can't reach database server at")) {
+            return (
+                <div className="flex items-center justify-center">
+                    <NetworkError error="Connection" />
+                </div>
+            );
+        }
+        return (
+            <div className="flex items-center justify-center min-h-screen text-red-600">
+                <p>An error occurred. Please refresh or try again later.</p>
+            </div>
+        );
     }
 
-    return (
-        <div>
-            <MainPickUpPage data={teacherData} />
-        </div>
-    )
 }
 
 export default ReportPage

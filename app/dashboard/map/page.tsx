@@ -1,5 +1,6 @@
 "use server"
 import LoginButton from '@/components/auth/login-button'
+import { NetworkError } from '@/components/errorsandsuccess/error/error'
 import TeachersLocation, { DriversLocation } from '@/components/maps/Map/drivers-map'
 import { Button } from '@/components/ui/button'
 import { getUserSession } from '@/lib/session'
@@ -21,11 +22,27 @@ const page = async () => {
             </div>
         )
     }
-    return (
-        <div>
-            < TeachersLocation userId={user?.id} />
-        </div>
-    )
+    try {
+        return (
+            <div>
+                < TeachersLocation userId={user?.id} />
+            </div>
+        )
+    } catch (error: any) {
+        if (error.message.includes("Can't reach database server at")) {
+            return (
+                <div className="flex items-center justify-center">
+                    <NetworkError error="Connection" />
+                </div>
+            );
+        }
+        return (
+            <div className="flex items-center justify-center min-h-screen text-red-600">
+                <p>An error occurred. Please refresh or try again later.</p>
+            </div>
+        );
+    }
+
 }
 
 export default page
