@@ -103,7 +103,7 @@ async function sendKnockNotification(updatedStudent: any) {
 
 export const updateStudentStatus = async (id: string, data: StudentStatus) => {
   const user = await getUserSession();
-  if (!user || !["teacher", "admin"].includes(user.role as string)) {
+  if (!user || !["teacher", "admin", "ADMIN"].includes(user.role as string)) {
     return { message: "Unauthorized", status: 401 };
   }
   revalidateTag("teacher");

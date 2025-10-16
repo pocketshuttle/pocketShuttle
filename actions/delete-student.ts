@@ -1,9 +1,23 @@
 "use server";
+import { getUserSession } from "@/lib/session";
 import db from "@/packages/db/client";
 import { revalidatePath, revalidateTag } from "next/cache";
 
 export const handleDelete = async (id: string, mode: string) => {
   try {
+    const user = await getUserSession();
+    if (!user) {
+      return { message: "Unauthorized: Please log in", status: 401 };
+    }
+
+    //  Authorization
+    if (!["admin", "school", "ADMIN"].includes(user.role as string)) {
+      return { message: "Forbidden: You do not have permission", status: 403 };
+    }
+
+    if (!id || !mode) {
+      return { message: "Invalid request parameters", status: 400 };
+    }
     if (mode === "student") {
       await db.student.delete({
         where: {

@@ -7,11 +7,16 @@ import { Knock } from "@knocklabs/node";
 import { sendNotification } from "./send-notifications";
 import { sendSms } from "./notification/send-sms";
 import { broadcastAttendanceUpdate } from "@/app/api/events/attendance-events";
+import { getUserSession } from "@/lib/session";
 
 export const updateStudentAttendance = async (
   id: string,
   data: StudentAttendance
 ) => {
+  const user = await getUserSession();
+  if (!user || !["teacher", "admin", "ADMIN"].includes(user.role as string)) {
+    return { message: "Unauthorized", status: 401 };
+  }
   const knock = new Knock(process.env.KNOCK_SECRET_API_SECRET);
 
   try {

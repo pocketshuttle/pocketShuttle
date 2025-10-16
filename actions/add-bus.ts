@@ -1,12 +1,22 @@
 "use server";
 
-import  db  from "@/packages/db/client";
+import { getUserSession } from "@/lib/session";
+import db from "@/packages/db/client";
 import { BusSchema } from "@/schemas";
 import { revalidateTag } from "next/cache";
 import * as z from "zod";
 
 export const addBus = async (values: z.infer<typeof BusSchema>) => {
   try {
+    const user = await getUserSession();
+
+    if (!user || !["admin", "school", "ADMIN"].includes(user.role as string)) {
+      return {
+        message: "Unauthorized: Only admins or school staff can add buses.",
+        status: 403,
+      };
+    }
+
     // Validate the input data using Zod schema
     const validatedData = BusSchema.safeParse(values);
     if (!validatedData.success) {

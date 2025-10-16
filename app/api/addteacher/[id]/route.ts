@@ -4,22 +4,49 @@ import Teacher from "@/(models)/Teachers";
 import db from "@/packages/db/client";
 import bcrypt from "bcryptjs";
 import { revalidatePath, revalidateTag } from "next/cache";
+import { getUserSession } from "@/lib/session";
+import z from "zod";
 
 type ParamProp = {
   id: string;
 };
+const ParamsSchema = z.object({
+  id: z.string().cuid(),
+});
 
 export const GET = async (
   req: NextRequest,
   { params }: { params: ParamProp }
 ) => {
   try {
+    const parsedResult = ParamsSchema.safeParse(params);
+
+    if (!parsedResult.success) {
+      return NextResponse.json(
+        { message: "Invalid parent ID" },
+        { status: 400 }
+      );
+    }
+    const { id } = parsedResult.data;
+    const user = await getUserSession();
+
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const allowedRoles = ["admin", "ADMIN", "Admin"];
+    if (!allowedRoles.includes(user.role as string)) {
+      return NextResponse.json(
+        { message: "Unauthorized. Insufficient permissions." },
+        { status: 403 }
+      );
+    }
+
     const ITEM_PER_PAGE = 2;
 
     const url = new URL(req.url).searchParams;
     const searchName = url.get("q") || "";
     const page: number = parseInt(url.get("page") || "1", 10);
-    const { id } = params;
 
     type TeacherWhere = NonNullable<
       Parameters<typeof db.teacher.findMany>[0]
@@ -75,6 +102,9 @@ export const GET = async (
 
     return new Response(JSON.stringify({ teacher, count }), {
       status: 200,
+      headers: {
+        "Cache-Control": "no-store",
+      },
     });
   } catch (error) {
     console.error(error);
@@ -93,6 +123,10 @@ export const PATCH = async (
   { params }: { params: ParamProp }
 ) => {
   try {
+    const user = await getUserSession();
+    if (!user || !["admin", "ADMIN"].includes(user.role as string)) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
     const { id } = params;
     const data = await req.json();
 
@@ -160,7 +194,11 @@ export const DELETE = async (
   { params }: { params: ParamProp }
 ) => {
   try {
-    await connectToDB();
+    const user = await getUserSession();
+    if (!user || !["admin", "ADMIN"].includes(user.role as string)) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+    
     const { id } = params;
     const deletedTeacher = await Teacher.findByIdAndDelete(id);
 

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { RouteSchema } from "@/schemas";
 import db from "@/packages/db/client";
 import { getUserSession } from "@/lib/session";
-import { Prisma } from "@prisma/client";
 
 type ParamProp = {
   id: string;
@@ -90,13 +89,6 @@ export const PATCH = async (
   } catch (error) {
     console.error(" Error updating route:", error);
 
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2025"
-    ) {
-      return NextResponse.json({ message: "Route not found" }, { status: 404 });
-    }
-
     return NextResponse.json(
       {
         message: "Error updating route",
@@ -132,13 +124,6 @@ export const DELETE = async (
     );
   } catch (error) {
     console.error("Error deleting route:", error);
-
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2025"
-    ) {
-      return NextResponse.json({ message: "Route not found" }, { status: 404 });
-    }
 
     return NextResponse.json(
       {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import db from "@/packages/db/client";
+import { getUserSession } from "@/lib/session";
 
 type ParamsProps = {
   id: string;
@@ -11,6 +12,11 @@ export const PATCH = async (
   { params }: { params: ParamsProps }
 ) => {
   try {
+    const user = await getUserSession();
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = params;
     const data = await req.json();
 

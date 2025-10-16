@@ -1,10 +1,20 @@
 "use server";
 
+import { getUserSession } from "@/lib/session";
 import db from "@/packages/db/client";
 import { revalidateTag } from "next/cache";
 
 export const addTeacher = async (id: string, busId: string) => {
   try {
+    const user = await getUserSession();
+    if (!user || !["admin", "school", "ADMIN"].includes(user.role as string)) {
+      return {
+        message:
+          "Unauthorized: Only admins or school staff can add teachers to bus.",
+        status: 403,
+      };
+    }
+
     const teacher = await db.teacher.findUnique({
       where: { id },
       select: {

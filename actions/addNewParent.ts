@@ -1,17 +1,31 @@
 "use server";
+
 import bcrypt from "bcryptjs";
-import  db  from "@/packages/db/client";
+import db from "@/packages/db/client";
 import { ParentSchema } from "@/schemas";
 import { revalidateTag } from "next/cache";
 import * as z from "zod";
-import { NextResponse } from "next/server";
+import { getUserSession } from "@/lib/session";
 
 export const addNewParent = async (values: z.infer<typeof ParentSchema>) => {
   try {
-    // Validate the input data using Zod schema
+    // Authenticate and authorize the user
+    const user = await getUserSession();
+    if (!user || !["admin", "school", "ADMIN"].includes(user.role as string)) {
+      return {
+        message: "Unauthorized: Only admins or school staff can add parents.",
+        status: 403,
+      };
+    }
+
+    //  Validate input using Zod
     const validatedData = ParentSchema.safeParse(values);
     if (!validatedData.success) {
-      return { message: validatedData.error.errors, status: 500 };
+      return {
+        message: "Validation failed",
+        errors: validatedData.error.flatten().fieldErrors,
+        status: 400,
+      };
     }
 
     const {
@@ -27,50 +41,65 @@ export const addNewParent = async (values: z.infer<typeof ParentSchema>) => {
       role,
     } = validatedData.data;
 
-    const hashPassword = await bcrypt.hash(password, 10);
+    // 3Check for existing email to prevent duplicates
+    const existingParent = await db.parent.findUnique({ where: { email } });
+    if (existingParent) {
+      return { message: "Email already in use", status: 409 };
+    }
 
-    // Create a new parent entry in the database
-    const newParent = await db.parent.create({
-      data: {
-        school: {
-          connect: { id: school_id },
+    const [schoolExists, studentExists] = await Promise.all([
+      db.user.findUnique({ where: { id: school_id } }),
+      studentId ? db.student.findUnique({ where: { id: studentId } }) : null,
+    ]);
+
+    if (!schoolExists) return { message: "Invalid school ID", status: 404 };
+    if (studentId && !studentExists)
+      return { message: "Invalid student ID", status: 404 };
+
+    const hashPassword = await bcrypt.hash(password, 12);
+
+    const result = await db.$transaction(async (tx) => {
+      const newParent = await tx.parent.create({
+        data: {
+          school: { connect: { id: school_id } },
+          full_name,
+          email: email.toLowerCase(),
+          phoneNumber,
+          password: hashPassword,
+          address,
+          addressCoords,
+          ...(studentId && { Student: { connect: { id: studentId } } }),
+          image,
+          role: role || "PARENT",
         },
-        full_name,
-        email,
-        phoneNumber,
-        password: hashPassword,
-        address,
-        addressCoords,
-        ...(studentId && {
-          Student: {
-            connect: { id: studentId },
-          },
-        }),
-        image,
-        role,
-      },
+      });
+
+      await tx.newUser.create({
+        data: {
+          school: { connect: { id: school_id } },
+          email: email.toLowerCase(),
+          password: hashPassword,
+          parent: { connect: { id: newParent.id } },
+        },
+      });
+
+      return newParent;
     });
 
-    await db.newUser.create({
-      data: {
-        school: {
-          connect: { id: school_id },
-        },
-        email,
-        password: hashPassword,
-        parent: {
-          connect: { id: newParent.id },
-        },
-      },
-    });
-
-    // Revalidate bus-related caches after adding a bus
     revalidateTag("parent");
 
-    return { message: "Parent added Succesfully ", status: 200 };
-  } catch (error) {
-    // Handle errors
-    console.error("Error adding Parent:", error);
-    return { message: "Error adding Parent", status: 500 };
+    return { message: "Parent added successfully", status: 200, id: result.id };
+  } catch (error: any) {
+    console.error(" Error adding Parent:", error);
+
+    // Handle known Prisma or validation errors gracefully
+    if (error.code === "P2002") {
+      return { message: "Duplicate entry (e.g. email)", status: 409 };
+    }
+    if (error.code === "P2003") {
+      return { message: "Invalid relation reference", status: 400 };
+    }
+
+    return { message: "Internal server error", status: 500 };
   }
 };
