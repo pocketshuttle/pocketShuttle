@@ -23,25 +23,31 @@ const CommuteUI = async () => {
     }
     const userId = user?.id
 
+    try {
+        const bus = await db.buses.findMany({
+            where: {
+                OR: [{ id: userId }, { schoolId: userId }],
+            },
+            include: {
+                route: true,
+                teacher: true,
+                students: true,
+                driver: true,
+            },
+        });
+        revalidateTag("bus");
 
-    const bus = await db.buses.findMany({
-        where: {
-            OR: [{ id: userId }, { schoolId: userId }],
-        },
-        include: {
-            route: true,
-            teacher: true,
-            students: true,
-            driver: true,
-        },
-    });
-    revalidateTag("bus");
+        return (
+            <div>
+                <CommuteTable userId={userId} />
+            </div>
+        )
+    } catch (error) {
 
-    return (
-        <div>
-            <CommuteTable userId={userId} />
-        </div>
-    )
+    }
+
+
+
 }
 
 export default CommuteUI

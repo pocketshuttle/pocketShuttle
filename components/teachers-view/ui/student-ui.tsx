@@ -91,7 +91,6 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
         return () => clearInterval(interval);
     }, [coords1, coords2, student.status, student.presence, teacherId, tracking, arrivalLogged]);
 
-    // console.log(student, "student")
 
     // Reset tracking each morning (optional, depends on your use case)
     useEffect(() => {
