@@ -11,9 +11,8 @@ export default function Loading() {
                     src="/images/arriving.json"
                     loop
                     autoplay
-                    style={{ width: 100, height: 100 }}
+                    style={{ width: 400, height: 400 }}
                 />
-                {/* <span className="text-sm text-muted-foreground">Loading...</span> */}
             </div>
         </div>
     );

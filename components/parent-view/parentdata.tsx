@@ -9,9 +9,12 @@ import useSWR from "swr";
 import { FormError } from "../errorsandsuccess/form-error";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
-import arriving from "@/public/images/arriving.json";
 import { StudentNotificationBar } from "./notification-bar";
 import { TeacherDetailsForParentPage } from "./teacher-details";
+import home from "@/public/images/home.svg";
+import inbus from "@/public/images/inbus.svg";
+import classimage from "@/public/images/classimage.svg";
+
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 //we only show the teacher details when the student has OTW marked
@@ -25,7 +28,6 @@ const ParentViewData = ({ userId }: { userId: string }) => {
             revalidateOnFocus: true,
         }
     );
-
 
     if (error) return <FormError message="Error fetching data" />;
 
@@ -43,7 +45,6 @@ const ParentViewData = ({ userId }: { userId: string }) => {
         );
     }
 
-    //then we filter the kids that their teacher or bus is currently on the way
     const studentPresense = parentData?.Student?.filter((student: StudentProps) => (
         student.presence === "ON_THE_WAY"
     ))
@@ -64,8 +65,6 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                     const teacher = bus?.teacher;
 
                     console.log(sibling, "sibling data in parent view");
-
-
                     return (
 
                         <div
@@ -76,7 +75,7 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                             <div className="relative">
                                 <Image
                                     className="w-24 h-24 mb-3 rounded-sm shadow-lg"
-                                    src={sibling?.image || avatar}
+                                    src={sibling.image || avatar}
                                     alt={`${sibling.full_name}'s avatar`}
                                     width={200}
                                     height={200}
@@ -91,15 +90,42 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                                     </h2>
 
                                     <div className="flex items-center gap-3">
-                                        {(sibling.presence === "ON_THE_WAY" || sibling.status === "PICKED") && (
+
+                                        {sibling.presence === "ON_THE_WAY" ? (
                                             <DotLottieReact
                                                 src="/images/arriving.json"
                                                 loop
                                                 autoplay
                                                 style={{ width: 50, height: 50 }}
                                             />
-                                        )}
-                                        <Badge
+                                        ) : sibling.presence === "AT_SCHOOL" ? (
+                                            <Image
+                                                className="w-10 h-10 rounded-sm "
+                                                src={classimage}
+                                                alt="At school"
+                                                width={40}
+                                                height={40}
+                                            />
+                                        ) : sibling.presence === "IN_BUS" ? (
+                                            <Image
+                                                className="w-10 h-10 rounded-sm "
+                                                src={inbus}
+                                                alt="In bus"
+                                                width={40}
+                                                height={40}
+                                            />
+                                        ) : sibling.presence === "NONE" ? (
+                                            <Image
+                                                className="w-10 h-10 rounded-sm "
+                                                src={home}
+                                                alt="At home"
+                                                width={40}
+                                                height={40}
+                                            />
+                                        ) : null}
+
+
+                                        {/* <Badge
                                             variant="outline"
                                             className={`px-3 py-1 rounded-full text-xs font-medium tracking-wide ${sibling.status === "PICKED"
                                                 ? "bg-[crimson] text-white"
@@ -107,7 +133,7 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                                                 }`}
                                         >
                                             {sibling.status}
-                                        </Badge>
+                                        </Badge> */}
                                     </div>
                                 </div>
 
