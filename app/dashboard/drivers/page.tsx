@@ -1,5 +1,6 @@
 import LoginButton from '@/components/auth/login-button'
 import { DriverTable } from '@/components/driver/ui/Table'
+import { NetworkError } from '@/components/errorsandsuccess/error/error'
 import { Teachers } from '@/components/Teachers/teachers'
 import { TeachersTable } from '@/components/Teachers/ui/TeacherTable'
 import { Button } from '@/components/ui/button'
@@ -55,7 +56,7 @@ const Drivers = async ({ searchParams }: { searchParams: { [key: string]: string
                 schoolId: userId
             }
         })
-        console.log("count", driverCount)
+       
 
         const driverData = await db.driver.findMany({
             where: queryClause,
@@ -76,9 +77,19 @@ const Drivers = async ({ searchParams }: { searchParams: { [key: string]: string
             </div>
         )
 
-    } catch (error) {
-        console.error("Error fetching Parents data:", error);
-        return <div className='text-center'>An error occurred while fetching Parents data, please refresh or try again later.</div>;
+    } catch (error: any) {
+        if (error.message.includes("Can't reach database server at")) {
+            return (
+                <div className="flex items-center justify-center">
+                    <NetworkError error="Connection" />
+                </div>
+            );
+        }
+        return (
+            <div className="flex items-center justify-center min-h-screen text-red-600">
+                <p>An error occurred. Please refresh or try again later.</p>
+            </div>
+        );
     }
 
 

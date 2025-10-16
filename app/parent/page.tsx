@@ -4,7 +4,6 @@ import Location from '@/components/maps/Map/new-map'
 import { BusArrival } from '@/components/parent-view/bus-arrival'
 import ParentViewData from '@/components/parent-view/parentdata'
 import { Button } from '@/components/ui/button'
-// import { db } from '@/dropoff-backend/lib/db'
 import { getUserSession } from '@/lib/session'
 import { revalidateTag } from 'next/cache'
 import { Montserrat } from 'next/font/google'
@@ -101,14 +100,17 @@ const TeacherView = async () => {
 
     } catch (error: any) {
         if (error.message.includes("Can't reach database server at")) {
-            return <div className=" flex items-center justify-center">
-                <NetworkError error="Connection" />
-            </div>
-        } else {
-            <div className="flex items-center justify-center ">
-                please refresh
-            </div>
+            return (
+                <div className="flex items-center justify-center">
+                    <NetworkError error="Connection" />
+                </div>
+            );
         }
+        return (
+            <div className="flex items-center justify-center min-h-screen text-red-600">
+                <p>An error occurred. Please refresh or try again later.</p>
+            </div>
+        );
     }
 }
 
