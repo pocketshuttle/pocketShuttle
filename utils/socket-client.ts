@@ -19,8 +19,12 @@ export async function connectSocket(
 
   const socket = io(SOCKET_URL, {
     auth: { token },
-    transports: ["websocket"],
-    timeout: 5000,
+    transports: ["websocket", "polling"], // Allow fallback to polling if websocket fails
+    timeout: 10000, // Increase timeout
+    reconnection: true, // Enable reconnection
+    reconnectionAttempts: 5, // Number of reconnection attempts
+    reconnectionDelay: 1000, // Start with 1s delay
+    reconnectionDelayMax: 5000, // Max delay of 5s
   });
 
   socket.on("connect", () => {

@@ -26,6 +26,7 @@ const ParentViewData = ({ userId }: { userId: string }) => {
         }
     );
 
+
     if (error) return <FormError message="Error fetching data" />;
 
     if (isLoading) {
@@ -41,7 +42,6 @@ const ParentViewData = ({ userId }: { userId: string }) => {
             </div>
         );
     }
-
 
     //then we filter the kids that their teacher or bus is currently on the way
     const studentPresense = parentData?.Student?.filter((student: StudentProps) => (
@@ -62,6 +62,9 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                     const { bus } = sibling;
                     const driver = bus?.driver;
                     const teacher = bus?.teacher;
+
+                    console.log(sibling, "sibling data in parent view");
+
 
                     return (
 

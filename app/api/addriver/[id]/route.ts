@@ -1,17 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
 import Driver from "@/(models)/Driver";
 import db from "@/packages/db/client";
+import { getUserSession } from "@/lib/session";
+import z from "zod";
 
 type ParamProp = {
   id: string;
 };
+const ParamsSchema = z.object({
+  id: z.string().cuid(),
+});
 
 export const GET = async (
   req: NextRequest,
   { params }: { params: ParamProp }
 ) => {
   try {
-    const { id } = params;
+    const parsedResult = ParamsSchema.safeParse(params);
+    if (!parsedResult.success) {
+      return NextResponse.json(
+        { message: "Invalid school ID" },
+        { status: 400 }
+      );
+    }
+    const { id } = parsedResult.data;
+
+    const user = await getUserSession();
+
+    console.log(user, "from admin");
+
+    if (!user || !["admin", "Admin", "ADMIN"].includes(user.role as string)) {
+      return new Response(
+        JSON.stringify({ message: "Unauthorized. Please log in." }),
+        { status: 401 }
+      );
+    }
+
 
     const url = new URL(req.url).searchParams;
     const searchDriver = url.get("q") || "";
@@ -70,7 +94,6 @@ export const PATCH = async (
     const { id } = params;
     const data = await req.json();
 
-    console.log(data);
     const updatedDriver = await db.driver.update({
       where: { id: id },
       data: {
@@ -95,6 +118,9 @@ export const PATCH = async (
       { message: "Driver updated Successfully" },
       {
         status: 200,
+        headers: {
+          "Cache-Control": "no-store",
+        },
       }
     );
   } catch (error) {

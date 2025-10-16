@@ -144,9 +144,12 @@ const Navbar = ({ data }: NavbarProps) => {
                     });
 
                     socket.on("connect_error", (error: any) => {
-                        console.log(error, "errors from socket")
-                        clearTimeout(timeout);
-                        reject(error);
+                        console.log("Socket connection error:", error.message);
+                        // Don't reject immediately, let the reconnection logic work
+                        if (socket.reconnectionAttempts === socket.io.opts.reconnectionAttempts) {
+                            clearTimeout(timeout);
+                            reject(error);
+                        }
                     });
                 });
                 socket.emit("teacher-live-location", {
