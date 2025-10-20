@@ -23,11 +23,13 @@ export const POST = async (req: NextRequest) => {
     const validatedData = ParentSchema.safeParse(data);
 
     if (!validatedData.success) {
-      return {
-        message: "Validation failed",
-        errors: validatedData.error.flatten().fieldErrors,
-        status: 400,
-      };
+      return NextResponse.json(
+        {
+          message: "Validation failed",
+          errors: validatedData.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
     }
 
     const {
