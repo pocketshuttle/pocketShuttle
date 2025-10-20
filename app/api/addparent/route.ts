@@ -22,7 +22,7 @@ export const POST = async (req: NextRequest) => {
     const data = await req.json();
     const validatedData = ParentSchema.safeParse(data);
 
-   if (!validatedData.success) {
+    if (!validatedData.success) {
       return {
         message: "Validation failed",
         errors: validatedData.error.flatten().fieldErrors,
@@ -102,7 +102,7 @@ export const POST = async (req: NextRequest) => {
       },
     });
 
-    return Response.json(
+    return NextResponse.json(
       { message: "Parent added Succesfully " },
       {
         status: 200,
