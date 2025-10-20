@@ -61,6 +61,7 @@ export const MainPickUpPage = ({ data }: any) => {
             try {
                 if (filterBusId?.teacherId) {
                     const response = await getTeacherPickupCount(filterBusId.teacherId, new Date(startDate), new Date(endDate));
+                    //@ts-ignore
                     setTeacherPickupData(response);
                 } else {
                     setTeacherPickupData([]);
