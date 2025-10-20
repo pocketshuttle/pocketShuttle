@@ -6,7 +6,8 @@
   "scripts": {
     "build": "echo 'No build step needed for JS backend'",
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "postinstall": "prisma generate --schema=packages/db/prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
