@@ -4,7 +4,8 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 import dotenv from "dotenv";
-import { PrismaClient } from "../packages/db/node_modules/.prisma/client/index.js";
+// import { PrismaClient } from "../packages/db/node_modules/.prisma/client/index.js";
+import { PrismaClient } from "@prisma/client";
 
 dotenv.config();
 
