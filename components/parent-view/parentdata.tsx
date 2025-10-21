@@ -64,7 +64,7 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                     const driver = bus?.driver;
                     const teacher = bus?.teacher;
 
-                    console.log(sibling, "sibling data in parent view");
+                    // console.log(sibling, "sibling data in parent view");
                     return (
 
                         <div

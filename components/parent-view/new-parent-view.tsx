@@ -8,6 +8,7 @@ import { connectSocket } from "@/utils/socket-client";
 import OneSignal from "react-onesignal";
 import { KidsViewTab } from "./kids-tab";
 import { StudentProps } from "@/types";
+import { io } from "socket.io-client";
 
 type TeacherLocation = {
     teacherId: string;
@@ -108,7 +109,6 @@ export default function NewParentPage({
             ? allTeacherIds[0] ?? null
             : selectedSibling.bus?.teacher?.id || null
     }, [uniqueTeacherIds, allTeacherIds, selectedSibling])
-
 
     const y = useMotionValue(0);
     const [expanded, setExpanded] = useState(true);
