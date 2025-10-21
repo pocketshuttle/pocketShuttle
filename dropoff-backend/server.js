@@ -12,6 +12,16 @@ dotenv.config();
 const app = express();
 const db = new PrismaClient();
 
+app.get("/", (req, res) => {
+  res.json({ message: "Backend live!", time: new Date().toISOString() });
+});
+
+//testing an auth route
+app.get("/parents/:id", authMiddleware, async (req, res) => {
+  const parent = await db.parent.findUnique({ where: { id: req.params.id } });
+  res.json(parent);
+});
+
 app.use(
   cors({
     origin: [process.env.FRONTEND_ORIGIN || "http://localhost:3000"],
@@ -83,7 +93,6 @@ io.on("connection", (socket) => {
     );
 
     console.log(allowed, "allowed from subscribe teacher");
-
 
     if (allowed) {
       socket.join(`teacher-${teacherId}`);
