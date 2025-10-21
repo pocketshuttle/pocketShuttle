@@ -18,7 +18,11 @@ app.get("/", (req, res) => {
 
 app.use(
   cors({
-    origin: [process.env.FRONTEND_ORIGIN || "http://localhost:3000"],
+    origin: [
+      process.env.FRONTEND_ORIGIN,
+      "https://app.pocketshuttle.com",
+      "http://localhost:3000",
+    ],
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -31,7 +35,11 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: [process.env.FRONTEND_ORIGIN || "http://localhost:3000"],
+    origin: [
+      process.env.FRONTEND_ORIGIN,
+      "https://app.pocketshuttle.com",
+      "http://localhost:3000",
+    ],
     methods: ["GET", "POST"],
     credentials: true,
   },

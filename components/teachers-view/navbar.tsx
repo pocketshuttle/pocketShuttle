@@ -45,8 +45,8 @@ function getDistanceMetersFast(coord1: any, coord2: any) {
 }
 
 const Navbar = ({ data }: NavbarProps) => {
-    const [isHovering, setIsHovering] = useState(false); // Manages hover state for the profile
-    const [isTracking, setIsTracking] = useState<boolean>(false); // Manages the location tracking toggle state
+    const [isHovering, setIsHovering] = useState(false);
+    const [isTracking, setIsTracking] = useState<boolean>(false);
     const [newLocation, setNewLocation] = useState({
         teacherId: '',
         teacherName: '',
@@ -92,11 +92,22 @@ const Navbar = ({ data }: NavbarProps) => {
         const getLocation = async () => {
             try {
                 const [longitude, latitude] = await getCurrentLocation();
-                // console.log("Location from navbar:", { longitude, latitude });
-
                 if (!data?.id) {
                     console.log("No teacher data available");
                     return;
+                }
+                // console.log("Location from navbar:", { longitude, latitude });
+                const now = Date.now();
+
+                //throttlin, so we spend every min and if teacher/coordinator has moved  > 10m
+                if (now - lastSentTimeRef.current < 20000) return
+
+                if (lastCoordsRef.current) {
+                    const moved = getDistanceMetersFast(lastCoordsRef.current, {
+                        lat: latitude,
+                        lng: longitude,
+                    });
+                    if (moved < 10) return;
                 }
 
                 setNewLocation({
@@ -107,23 +118,33 @@ const Navbar = ({ data }: NavbarProps) => {
                     latitude,
                     schoolId: data.schoolId || ''
                 });
-            } catch (error) {
+
+                lastSentTimeRef.current = now
+                lastCoordsRef.current = { lat: latitude, lng: longitude }
+
+            } catch (error: any) {
                 console.error("Error getting location:", error);
+                if (error.code === 1) {
+                    setIsTracking(false);
+                    window.localStorage.setItem("tracking", "false");
+                }
             }
         };
 
         // Initial location fetch
-        getLocation();
+        if (isTracking) {
+            getLocation();
 
-        // Update every 1 mins (100000ms)
-        const intervalId = setInterval(getLocation, 100000);
+            // Update every 1 mins (100000ms)
+            const intervalId = setInterval(getLocation, 100000);
 
-        return () => {
-            if (intervalId) {
-                clearInterval(intervalId);
+            return () => {
+                if (intervalId) {
+                    clearInterval(intervalId);
+                }
             }
         };
-    }, [data])
+    }, [data,isTracking])
 
     useEffect(() => {
         let socket: any;
@@ -231,57 +252,57 @@ const Navbar = ({ data }: NavbarProps) => {
      
      */
 
-    useEffect(() => {
+    // useEffect(() => {
 
-        const updateLocation = async () => {
+    //     const updateLocation = async () => {
 
-            try {
-                const [longitude, latitude] = await getCurrentLocation();
-                const now = Date.now();
+    //         try {
+    //             const [longitude, latitude] = await getCurrentLocation();
+    //             const now = Date.now();
 
-                // Throttle: only send if 10+ seconds passed AND moved > 10m
-                if (now - lastSentTimeRef.current < 10000) return;
+    //             // Throttle: only send if 10+ seconds passed AND moved > 10m
+    //             if (now - lastSentTimeRef.current < 10000) return;
 
-                if (lastCoordsRef.current) {
-                    const moved = getDistanceMetersFast(lastCoordsRef.current, {
-                        lat: latitude,
-                        lng: longitude,
-                    });
-                    if (moved < 10) return;
-                    console.log("Updating location...");
-                }
+    //             if (lastCoordsRef.current) {
+    //                 const moved = getDistanceMetersFast(lastCoordsRef.current, {
+    //                     lat: latitude,
+    //                     lng: longitude,
+    //                 });
+    //                 if (moved < 10) return;
+    //                 // console.log("Updating location...");
+    //             }
 
-                await Promise.all([
-                    publishLocation(latitude, longitude, data.id, data.name, data.image),
-                    sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name),
-                ]);
+    //             await Promise.all([
+    //                 publishLocation(latitude, longitude, data.id, data.name, data.image),
+    //                 sendTeacherLocationToServer(latitude, longitude, data.id, data.image, data.name),
+    //             ]);
 
-                lastSentTimeRef.current = now;
-                lastCoordsRef.current = { lat: latitude, lng: longitude };
+    //             lastSentTimeRef.current = now;
+    //             lastCoordsRef.current = { lat: latitude, lng: longitude };
 
-                console.log("Location sent:", latitude, longitude);
-            } catch (error: any) {
-                console.error("Error fetching location:", error);
-                if (error.code === 1) {
-                    setIsTracking(false);
-                    window.localStorage.setItem("tracking", "false");
-                }
-            }
-        };
+    //             console.log("Location sent:", latitude, longitude);
+    //         } catch (error: any) {
+    //             console.error("Error fetching location:", error);
+    //             if (error.code === 1) {
+    //                 setIsTracking(false);
+    //                 window.localStorage.setItem("tracking", "false");
+    //             }
+    //         }
+    //     };
 
 
-        if (isTracking) {
-            updateLocation();
+    //     if (isTracking) {
+    //         updateLocation();
 
-            const intervalId = setInterval(updateLocation, 10000);
+    //         const intervalId = setInterval(updateLocation, 10000);
 
-            return () => {
-                if (intervalId) {
-                    clearInterval(intervalId);
-                }
-            }
-        }
-    }, [isTracking, data]);
+    //         return () => {
+    //             if (intervalId) {
+    //                 clearInterval(intervalId);
+    //             }
+    //         }
+    //     }
+    // }, [isTracking, data]);
 
 
 

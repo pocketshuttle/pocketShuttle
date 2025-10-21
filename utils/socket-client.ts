@@ -14,12 +14,13 @@ export async function connectSocket(
 
   const { token } = await res.json();
 
-  const SOCKET_URL =
-    process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000";
+  const SOCKET_URL = "https://pocketshuttle.onrender.com";
+
+  // console.log("Connecting to socket at:", SOCKET_URL);
 
   const socket = io(SOCKET_URL, {
     auth: { token },
-    transports: ["websocket", "polling"], // Allow fallback to polling if websocket fails
+    transports: ["websocket", "polling"], 
     timeout: 10000, // Increase timeout
     reconnection: true, // Enable reconnection
     reconnectionAttempts: 5, // Number of reconnection attempts

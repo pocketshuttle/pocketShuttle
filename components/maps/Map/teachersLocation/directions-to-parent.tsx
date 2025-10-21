@@ -32,7 +32,6 @@ export function Directions({ parentAddressCoords, teacherData, userId }: Address
     const teacherMarkerRef = useRef<google.maps.Marker | null>(null);
     const homeMarkerRef = useRef<google.maps.Marker | null>(null);
     const lastCoordsRef = useRef<google.maps.LatLngLiteral | null>(null);
-    const [eta, setEta] = useState<string | null>(null);
     const setStudentETA = useSetRecoilState(studentETA);
 
 
@@ -118,12 +117,6 @@ export function Directions({ parentAddressCoords, teacherData, userId }: Address
     useEffect(() => {
         if (!map || !teacherData) return;
 
-        // mark ETA as loading initially
-        // setStudentETA((prev) => ({
-        //     ...prev,
-        //     [userId]: { value: null, status: "loading" },
-        // }));
-
         const updateMarker = async () => {
             const coords1 = { lat: teacherData.latitude, lng: teacherData.longitude };
 
@@ -173,7 +166,7 @@ export function Directions({ parentAddressCoords, teacherData, userId }: Address
                         const duration = response.routes[0]?.legs[0]?.duration?.value;
                         const minutes = duration ? Math.round(duration / 60) : null;
 
-                        console.log(minutes, "from directions api");
+                        // console.log(minutes, "from directions api");
 
                         if (minutes !== null) {
                             // setEta(`${minutes} mins`);

@@ -26,6 +26,8 @@ type TeacherLocation = {
 
 export const TeacherLocationTracker = ({ parentAddressCoords, teacherId, teacherLocation, userId }: AddressProps) => {
 
+    console.log("Rendering TeacherLocationTracker with teacherId:", teacherLocation);
+
     const activeTeacher = useMemo(() => {
         return teacherLocation[teacherId] || null;
     }, [teacherId, teacherLocation]);
