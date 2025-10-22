@@ -43,7 +43,6 @@ type ParentProps = {
 export const GuardianPage = ({ data }: { data: StudentProps }) => {
     const [attendance, SetAttendance] = React.useState("")
 
-    // console.log(data, "from parents page")
     //returns siblings in same bus
     const siblings = data?.parent?.Student?.filter((sibling_id) => {
         return (sibling_id.id !== data.id && sibling_id.busId === data.busId)
@@ -57,38 +56,45 @@ export const GuardianPage = ({ data }: { data: StudentProps }) => {
             <h2 className="text-gray-950 text-2xl font-medium text-center py-4">Guardian Profile</h2>
             {data &&
                 <div
-                    className="grid grid-cols-5 items-center text-gray-950 space-x-2 rounded-md p-2"
+                    className="max-w-xl mx-auto flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-all"
                 >
-                    <div className=" flex col-span-4 gap-2 ">
+                    {/* Left: Image + Info */}
+                    <div className="flex items-center gap-4">
+                        {/* Avatar */}
                         <Image
                             src={data?.parent?.image || avatar}
                             alt={data?.parent?.full_name}
-                            className="rounded-md object-cover w-24 h-24 shadow-lg"
-                            width={100}
-                            height={100}
+                            className="rounded-xl object-cover w-20 h-20 shadow-md"
+                            width={80}
+                            height={80}
                         />
-                        <div className="py-2 ">
-                            <h2 className="capitalize text-xl font-medium">{data?.parent?.full_name}</h2>
-                            <p className="text-[16px] text-gray-950/30 ">
-                                {data.parent?.email}
-                            </p>
-                            <p className="text-sm ">
-                                {data.parent?.address}
+
+                        {/* Info */}
+                        <div className="space-y-1">
+                            <h2 className="capitalize text-lg font-semibold text-gray-900">
+                                {data?.parent?.full_name}
+                            </h2>
+
+                            <p className="text-sm text-gray-500 truncate max-w-[200px]">
+                                {data?.parent?.email}
                             </p>
 
+                            <p className="text-sm text-gray-700 leading-snug">
+                                {data?.parent?.address}
+                            </p>
                         </div>
                     </div>
-                    <div className=" flex justify-end">
-                        <a
-                            href={`tel:${data.parent?.phoneNumber}`}
-                            aria-label="Call teacher"
-                            className="bg-gray-100 hover:bg-gray-200 rounded-full p-5 transition inline-flex"
-                        >
-                            <Image src={callIcon} height={30} width={30} alt="Call" />
-                        </a>
-                    </div>
 
+                    {/* Right: Call Button */}
+                    <a
+                        href={`tel:${data?.parent?.phoneNumber}`}
+                        aria-label="Call parent"
+                        className="bg-gray-50 hover:bg-gray-100 rounded-full p-4 transition shadow-sm"
+                    >
+                        <Image src={callIcon} height={24} width={24} alt="Call" />
+                    </a>
                 </div>
+
             }
 
             <div>

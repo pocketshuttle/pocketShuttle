@@ -43,7 +43,7 @@ export async function connectSocket(
   });
 
   socket.on("teacher-location-update", (data) => {
-    console.log(" Teacher location update:", data);
+    // console.log(" Teacher location update:", data);
   });
 
   socket.on("unauthorized", (err) => {

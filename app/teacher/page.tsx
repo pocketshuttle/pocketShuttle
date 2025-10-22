@@ -63,7 +63,7 @@ const TeacherView = async () => {
         }
 
         return (
-            <div className="min-h-screen">
+            <div className="min-h-screen ">
                 {/* @ts-ignore */}
                 <TeachersViewData userId={user.id} user={user} data={teacherData} />
             </div>

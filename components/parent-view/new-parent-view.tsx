@@ -21,7 +21,7 @@ type TeacherLocation = {
 const shouldTrackTeacher = (siblings: StudentProps[], selectedStudentId: string | null) => {
     //if student has been picked up, we stop tracking
     const selectedStudent = siblings.find((s) => s.id === selectedStudentId);
-    return selectedStudent?.status !== "PICKED";
+    return selectedStudent?.status !== "PICKED" || selectedStudent?.presence === "ON_THE_WAY";
 }
 
 export default function NewParentPage({

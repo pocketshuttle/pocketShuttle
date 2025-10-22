@@ -144,7 +144,7 @@ const Navbar = ({ data }: NavbarProps) => {
                 }
             }
         };
-    }, [data,isTracking])
+    }, [data, isTracking])
 
     useEffect(() => {
         let socket: any;
@@ -178,7 +178,7 @@ const Navbar = ({ data }: NavbarProps) => {
                 });
 
                 socket.on("teacher-location-update", (newLocation: any) => {
-                    console.log(" Teacher location update received:", newLocation);
+                    // console.log(" Teacher location update received:", newLocation);
                 });
 
                 socket.on("disconnect", (reason: any) => {
@@ -307,33 +307,47 @@ const Navbar = ({ data }: NavbarProps) => {
 
 
     return (
-        <div className="flex justify-between bg-[var(--bg-root)] h-[60px] w-full items-center px-4 py-4 mb-5 mt-5">
+        <div className="flex justify-between items-center bg-gradient-to-r from-[var(--bg-root)] to-gray-900 h-[64px] w-full px-5 py-5 shadow-sm   mb-6  transition-all duration-200">
+            {/* Left section: Avatar + Greeting */}
             <div
-                className="flex space-x-2 items-center justify-center cursor-pointer"
-                // onClick={() => router.back()} // Navigates back to the previous page
-                onMouseEnter={() => setIsHovering(true)} // Enable hover effect
-                onMouseLeave={() => setIsHovering(false)} // Disable hover effect
+                className="flex items-center gap-3 cursor-pointer group"
+                onMouseEnter={() => setIsHovering(true)}
+                onMouseLeave={() => setIsHovering(false)}
             >
-                <Avatar>{avatarContent}</Avatar>
+                <div className="relative">
+                    <Avatar className="ring-2 ring-gray-700 group-hover:ring-blue-500 transition duration-200">
+                        {avatarContent}
+                    </Avatar>
+                    {isHovering && (
+                        <span className="absolute -bottom-1 -right-1 h-3 w-3 bg-green-500 rounded-full border border-gray-900" />
+                    )}
+                </div>
 
-                <div className="flex flex-col items-start">
-                    {
-                        data &&
-                        <small className="text-[#606060] capitalize">Good day {data.role}!</small>
-                    }
-                    <span className="text-[1.1rem] font-medium capitalize text-[#EEEEEE]">
-                        {data?.name || "coordinator"}
+                <div className="flex flex-col">
+                    {data && (
+                        <small className="text-gray-400 capitalize leading-none">
+                            Good day, {data.role}!
+                        </small>
+                    )}
+                    <span className="text-base font-semibold capitalize text-white">
+                        {data?.name || "Coordinator"}
                     </span>
                 </div>
             </div>
 
-            <div className="flex space-x-2 items-center justify-center">
+            {/* Right section: Controls */}
+            <div className="flex items-center gap-4">
                 {data.role === "teacher" && (
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <div className="flex items-center space-x-1 flex-col">
-                                    <Switch id="location-toggle" onClick={toggleTracking} checked={isTracking} />
+                                <div className="flex items-center">
+                                    <Switch
+                                        id="location-toggle"
+                                        onClick={toggleTracking}
+                                        checked={isTracking}
+                                        className="data-[state=checked]:bg-blue-600"
+                                    />
                                 </div>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -342,12 +356,17 @@ const Navbar = ({ data }: NavbarProps) => {
                         </Tooltip>
                     </TooltipProvider>
                 )}
-                <NotificationFeed />
-                <span className="cursor-pointer">
+
+                <div className="relative">
+                    <NotificationFeed />
+                </div>
+
+                <button className="hover:bg-red-600/20 transition-colors duration-200 rounded-full p-2">
                     <Logout />
-                </span>
+                </button>
             </div>
         </div>
+
     );
 };
 

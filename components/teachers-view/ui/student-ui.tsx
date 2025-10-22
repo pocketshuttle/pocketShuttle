@@ -157,30 +157,38 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
 
 
     return (
-        <div key={student.id} className="w-full bg-[#606060]/10">
-            <div className="flex items-center justify-center py-2 px-4 space-x-4 rounded-md border-b-[1px] border-dashed border-[#2A2A2A]">
+        <div
+            key={student.id}
+            className="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-4 transition hover:shadow-md"
+        >
+            {/* Header Section */}
+            <div className="flex items-center gap-4 p-4 border-b border-dashed border-gray-200">
                 <Link href={`teacher/${student.id}`}>
                     <Image
                         src={student.image || avatar}
                         alt={student.full_name}
-                        className="rounded-md object-cover w-24 h-24"
+                        className="rounded-xl object-cover w-20 h-20 shadow-sm"
                         width={100}
                         height={100}
                     />
                 </Link>
 
-                <div className="mb-4 w-full">
-                    <div className="flex justify-between items-center space-x-4">
-                        <h2 className="space-x-2 capitalize text-lg">
-                            {student.full_name}
-                            <small className="ml-2 text-[#606060] text-xs">{student.age}</small>
-                            <small className="text-[#606060] text-sx">{student.grade}</small>
-                        </h2>
+                <div className="flex-1">
+                    {/* Name + Attendance Toggle */}
+                    <div className="flex justify-between items-center mb-2">
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-900 capitalize">
+                                {student.full_name}
+                            </h2>
+                            <p className="text-sm text-gray-500">
+                                {student.age} yrs • {student.grade}
+                            </p>
+                        </div>
 
                         <AttendanceTab
                             label1="OTW"
                             label2="Stop"
-                            data={student.presence ? student.presence : "No presence recorded"}
+                            data={student.presence || "No presence recorded"}
                             value1="ON_THE_WAY"
                             value2="NONE"
                             SetAttendance={SetAttendance}
@@ -190,47 +198,52 @@ export const EachStudent = ({ student, teacherId }: { student: StudentProps, tea
                             onOTW={() => setTracking(true)}
                         />
                     </div>
-                    <p className="text-sm text-[#606060] mb-4 capitalize">{student.address}</p>
 
-                    <div className="flex space-x-3">
-                        <AttendanceTab
-                            label1="Present"
-                            label2="Absent"
-                            data={student.attendance ? student.attendance : "No attendance recorded"}
-                            value1="PRESENT"
-                            value2="ABSENT"
-                            SetAttendance={SetAttendance}
-                            attendance={attendance}
-                            id={student.id}
-                        />
-
-                        {(student.attendance === "PRESENT" || student.presence === "ON_THE_WAY") && (
-                            <AttendanceTab
-                                label1="Dropped"
-                                label2="Picked"
-                                data={student.status}
-                                value1="DROPPED"
-                                value2="PICKED"
-                                SetAttendance={SetAttendance}
-                                attendance={attendance}
-                                id={student.id}
-                            />
-                        )}
-                    </div>
+                    {/* Address */}
+                    <p className="text-sm text-gray-600 leading-snug capitalize truncate max-w-[250px]">
+                        {student.address}
+                    </p>
                 </div>
             </div>
 
-            <div className="px-2 py-4 flex items-center justify-between capitalize">
-                <span className="text-[#484848]">Pick up</span>
+            {/* Attendance Controls */}
+            <div className="flex gap-3 px-4 py-3 border-b border-gray-100 bg-gray-50/40">
+                <AttendanceTab
+                    label1="Present"
+                    label2="Absent"
+                    data={student.attendance || "No attendance recorded"}
+                    value1="PRESENT"
+                    value2="ABSENT"
+                    SetAttendance={SetAttendance}
+                    attendance={attendance}
+                    id={student.id}
+                />
+
+                {(student.attendance === "PRESENT" || student.presence === "ON_THE_WAY") && (
+                    <AttendanceTab
+                        label1="Dropped"
+                        label2="Picked"
+                        data={student.status}
+                        value1="DROPPED"
+                        value2="PICKED"
+                        SetAttendance={SetAttendance}
+                        attendance={attendance}
+                        id={student.id}
+                    />
+                )}
+            </div>
+
+            {/* Footer - Pickup Info */}
+            <div className="flex items-center justify-between px-4 py-3 text-sm bg-gray-50 capitalize">
+                <span className="text-gray-700 font-medium">Pick up</span>
                 {!stdentEta ? (
-                    <span>Please Enable Location</span>
+                    <span className="text-red-400">Please enable location</span>
                 ) : (
-                    <span className="text-[#B4B4B4]">
-                        {stdentEta}
-                    </span>
+                    <span className="text-gray-500">{stdentEta}</span>
                 )}
             </div>
         </div>
+
     );
 };
 

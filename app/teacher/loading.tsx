@@ -1,14 +1,18 @@
+"use client"
 import React from 'react'
 import { Skeleton } from "@/components/ui/skeleton"
+import { DotLottieReact } from '@lottiefiles/dotlottie-react'
 
 const loading = () => {
     return (
         <div className="flex flex-col w-full items-center space-y-1">
-            <Skeleton className="h-4 w-5/6" />
-            <Skeleton className="h-4 w-5/6" />
-            <Skeleton className="h-4 w-5/6" />
-            <div className="space-y-2">
-                <Skeleton className="h-[105px] w-5/6 rounded-xl" />
+            <div className="flex items-center gap-2 m-auto">
+                <DotLottieReact
+                    src="/images/parentload.json"
+                    loop
+                    autoplay
+                    style={{ width: 400, height: 400 }}
+                />
             </div>
         </div>
     )

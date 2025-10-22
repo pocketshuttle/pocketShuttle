@@ -1,10 +1,7 @@
 "use client"
-import { APIProvider, Map, useMapsLibrary, useMap } from '@vis.gl/react-google-maps';
+import { APIProvider, Map } from '@vis.gl/react-google-maps';
 import { Directions } from './directions-to-parent';
-import { useEffect, useMemo, useState } from 'react';
-import { googleFetchCoordinates } from '../../lib/utils';
-import { useTeacherLocation } from '@/hooks/useTeacher-location';
-import { connectSocket } from '@/utils/socket-client';
+import { useMemo } from 'react';
 import { StudentProps } from '@/types';
 
 type AddressProps = {
@@ -26,19 +23,12 @@ type TeacherLocation = {
 
 export const TeacherLocationTracker = ({ parentAddressCoords, teacherId, teacherLocation, userId }: AddressProps) => {
 
-   const activeTeacher = useMemo(() => {
+    const activeTeacher = useMemo(() => {
         return teacherLocation[teacherId] || null;
     }, [teacherId, teacherLocation]);
 
-    // useEffect(()=>{
-
-    // },[])
-
     return (
         <div className='rounded-bl-md'>
-            {/* {
-                teacherLocation && ( */}
-
             <div style={{ width: '100%', height: '100vh', borderRadius: "100px" }}>
                 <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
                     <Map
