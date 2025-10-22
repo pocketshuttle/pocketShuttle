@@ -1,9 +1,7 @@
-import Location from '@/components/maps/Map/new-map'
-import { BusArrival } from '@/components/parent-view/bus-arrival'
-// import Location from '@/components/maps/Map/Map'
-import { GuardianPage } from '@/components/teachers-view/student-view/guardian'
+import LoginButton from '@/components/auth/login-button'
+import { NetworkError } from '@/components/errorsandsuccess/error/error'
 import { StudentHomePage } from '@/components/teachers-view/student-view/student-home-page'
-// import { db } from '@/dropoff-backend/lib/db'
+import { Button } from '@/components/ui/button'
 import { getUserSession } from '@/lib/session'
 import db from '@/packages/db/client'
 import { StudentProps } from '@/types'
@@ -22,12 +20,19 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
 
     const user = await getUserSession()
     // Use teacherId if avaiable, else use user id
-    //@ts-ignore
-    const teacherId: string = user?.teacherId || user?.id;
+    const teacherId = user?.teacherId || user?.id;
 
     if (!user || !teacherId) {
-        // If the user is not authenticated, redirect to the login page
-        return <div className='text-center flex items-center '>You are not logged in, please login to view this page.</div>;
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                    <p>User session is not available. Please log in.</p>
+                    <LoginButton>
+                        <Button size="lg">Login</Button>
+                    </LoginButton>
+                </div>
+            </div>
+        )
     }
     try {
         //@ts-ignore
@@ -62,13 +67,24 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
 
         return (
             <div>
-                <StudentHomePage studentData={studentData} teacherId={teacherId} />
+                <StudentHomePage studentData={studentData} teacherId={teacherId as string} />
             </div>
 
         )
-    } catch (error) {
-        console.error("Error fetching students data:", error);
-        return <div className='text-center'>An error occurred while fetching Parents data, please refresh or try again later.</div>;
+    } catch (error :any) {
+        if (error.message.includes("Can't reach database server at")) {
+            return (
+                <div className="flex items-center justify-center">
+                    <NetworkError error="Connection" />
+                </div>
+            );
+        } else {
+            return (
+                <div className="flex items-center justify-center min-h-screen text-red-600">
+                    <p>An error occurred. Please refresh or try again later.</p>
+                </div>
+            );
+        }
     }
 
 }

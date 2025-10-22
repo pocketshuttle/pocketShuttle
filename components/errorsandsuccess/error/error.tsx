@@ -22,12 +22,12 @@ export const NetworkError = ({ error }: { error: string }) => {
     <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-6 space-y-6 animate-fadeIn">
       {/* Error Heading */}
       <div className="space-y-2">
-        <p className="text-3xl font-semibold text-gray-800">
+        <p className="text-4xl font-semibold text-red-500">
           {error} Error
         </p>
-        <p className="text-gray-600">
+        {/* <p className="text-gray-600">
           Looks like we took a wrong turn. Let’s get you back on track!
-        </p>
+        </p> */}
       </div>
 
       {/* Error Illustration */}

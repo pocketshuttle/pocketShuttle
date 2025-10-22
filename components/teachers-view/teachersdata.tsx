@@ -47,44 +47,70 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
             <div className="lg:hidden w-full">
-                <header className="px-4 py-6 rounded-lg shadow-sm">
+                <header className="px-6 py-5 bg-white rounded-2xl shadow-sm border border-gray-100">
                     {data?.bus === null ? (
-                        <div className="text-center p-4 bg-yellow-50 rounded border border-yellow-200 text-yellow-700">
-                            <span>Teacher hasn't been assigned a bus. Please contact admin.</span>
+                        <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200 text-yellow-700">
+                            <span>Teacher hasn’t been assigned a bus. Please contact admin.</span>
                         </div>
                     ) : (
-                        <div className="space-y-4">
-                            <h3 className="text-xl font-medium text-gray-400 mb-2">Bus Information</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
+                        <div className="space-y-5">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-semibold text-gray-900">Bus Information</h3>
+                                <span className="text-sm px-3 py-1 bg-gray-100 rounded-full text-gray-600 capitalize">
+                                    {data?.bus?.bus_number || "N/A"}
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Column 1 */}
+                                <div className="space-y-3">
                                     <p className="flex items-center space-x-2">
-                                        <span className="text-sm font-medium text-gray-300">Bus Name:</span>
-                                        <span className="text-gray-200 font-medium capitalize">
-                                            {data?.bus?.bus_product_name || 'N/A'}
+                                        <span className="text-sm font-medium text-gray-500">Bus Name:</span>
+                                        <span className="text-gray-800 font-medium capitalize">
+                                            {data?.bus?.bus_product_name || "N/A"}
                                         </span>
                                     </p>
+
                                     <p className="flex items-center space-x-2">
-                                        <span className="text-sm font-medium text-gray-300">Driver:</span>
-                                        <span className="text-gray-200 font-medium capitalize">
-                                            {data?.bus?.driver?.full_name || 'N/A'}
+                                        <span className="text-sm font-medium text-gray-500">Driver:</span>
+                                        <span className="text-gray-800 font-medium capitalize">
+                                            {data?.bus?.driver?.full_name || "N/A"}
                                         </span>
                                     </p>
                                 </div>
-                                <div className="space-y-2">
+
+                                {/* Column 2 */}
+                                <div className="space-y-3">
                                     <p className="flex items-center space-x-2">
-                                        <span className="text-sm font-medium text-gray-300">Driver Contact:</span>
-                                        <a
-                                            href={`tel:${data?.bus?.driver?.phoneNumber}`}
-                                            className="text-blue-600 hover:text-blue-800 hover:underline"
-                                        >
-                                            {data?.bus?.driver?.phoneNumber || 'N/A'}
-                                        </a>
+                                        <span className="text-sm font-medium text-gray-500">Driver Contact:</span>
+                                        {data?.bus?.driver?.phoneNumber ? (
+                                            <a
+                                                href={`tel:${data?.bus?.driver?.phoneNumber}`}
+                                                className="text-blue-600 hover:text-blue-800 font-medium transition"
+                                            >
+                                                {data?.bus?.driver?.phoneNumber}
+                                            </a>
+                                        ) : (
+                                            <span className="text-gray-400">N/A</span>
+                                        )}
+                                    </p>
+
+                                    <p className="flex items-center space-x-2">
+                                        <span className="text-sm font-medium text-gray-500">Bus Color:</span>
+                                        <span className="inline-flex items-center gap-2">
+                                            <span
+                                                className="h-3 w-3 rounded-full border border-gray-300"
+                                                style={{ backgroundColor: data?.bus?.color || "#ccc" }}
+                                            ></span>
+                                            <span className="text-gray-800 capitalize">{data?.bus?.color || "N/A"}</span>
+                                        </span>
                                     </p>
                                 </div>
                             </div>
                         </div>
                     )}
                 </header>
+
 
                 <main className="px-4 space-y-2 w-full">
                     <h2 className="text-center p-4">Students</h2>

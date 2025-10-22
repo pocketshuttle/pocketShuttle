@@ -8,7 +8,7 @@ export default function Loading() {
         <div className="w-full h-screen flex items-center justify-center bg-background">
             <div className="flex items-center gap-2 m-auto">
                 <DotLottieReact
-                    src="/images/arriving.json"
+                    src="/images/mapcity.json"
                     loop
                     autoplay
                     style={{ width: 400, height: 400 }}

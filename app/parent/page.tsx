@@ -1,8 +1,5 @@
 import LoginButton from '@/components/auth/login-button'
 import { NetworkError } from '@/components/errorsandsuccess/error/error'
-import Location from '@/components/maps/Map/new-map'
-import { BusArrival } from '@/components/parent-view/bus-arrival'
-import ParentViewData from '@/components/parent-view/parentdata'
 import { Button } from '@/components/ui/button'
 import { getUserSession } from '@/lib/session'
 import { revalidateTag } from 'next/cache'
@@ -105,12 +102,13 @@ const TeacherView = async () => {
                     <NetworkError error="Connection" />
                 </div>
             );
+        } else {
+            return (
+                <div className="flex items-center justify-center min-h-screen text-red-600">
+                    <p>An error occurred. Please refresh or try again later.</p>
+                </div>
+            );
         }
-        return (
-            <div className="flex items-center justify-center min-h-screen text-red-600">
-                <p>An error occurred. Please refresh or try again later.</p>
-            </div>
-        );
     }
 }
 
