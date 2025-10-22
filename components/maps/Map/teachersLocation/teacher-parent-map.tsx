@@ -12,7 +12,7 @@ type AddressProps = {
     teacherId: string;
     siblings: StudentProps
     teacherLocation: { [teacherId: string]: TeacherLocation }
-    parentAddressCoords?: { lat: number, lng: number }
+    parentAddressCoords?: { latitude: number, longitude: number }
     userId: string
 };
 
@@ -26,11 +26,13 @@ type TeacherLocation = {
 
 export const TeacherLocationTracker = ({ parentAddressCoords, teacherId, teacherLocation, userId }: AddressProps) => {
 
-    console.log("Rendering TeacherLocationTracker with teacherId:", teacherLocation);
-
-    const activeTeacher = useMemo(() => {
+``    const activeTeacher = useMemo(() => {
         return teacherLocation[teacherId] || null;
     }, [teacherId, teacherLocation]);
+
+    // useEffect(()=>{
+
+    // },[])
 
     return (
         <div className='rounded-bl-md'>
@@ -40,7 +42,7 @@ export const TeacherLocationTracker = ({ parentAddressCoords, teacherId, teacher
             <div style={{ width: '100%', height: '100vh', borderRadius: "100px" }}>
                 <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
                     <Map
-                        defaultCenter={{ lat: 6.5244, lng: 3.3792 }}
+                        defaultCenter={{ lat: (parentAddressCoords?.latitude as number), lng: (parentAddressCoords?.longitude as number) }}
                         zoom={12}
                         mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID!}
                         fullscreenControl={false}
