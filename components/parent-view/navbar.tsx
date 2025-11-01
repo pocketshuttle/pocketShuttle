@@ -46,7 +46,7 @@ const ParentNavbar = ({ data }: NavbarProps) => {
                 <div className="flex flex-col items-start">
                     {
                         data &&
-                        <small className="text-[#606060]">Good day {data.name}!</small>
+                        <small className="text-[#606060]">Good day Parent!</small>
                     }
                     <span className="text-[1.1rem] font-medium capitalize text-[#EEEEEE]">
                         {data?.name || "Parent"}

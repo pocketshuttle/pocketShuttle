@@ -51,10 +51,10 @@ export const updateLocation = async (
           eta: eta ?? "unknown",
         });
 
-        // await sendPushNotification(
-        //   `Hi ${updatedStudent?.parent?.full_name}, ${updatedStudent?.bus?.bus_product_name} is on the way`,
-        //   updatedStudent?.parent?.id!
-        // );
+        await sendPushNotification(
+          `Hi ${updatedStudent?.parent?.full_name}, ${updatedStudent?.bus?.bus_product_name} is on the way`,
+          updatedStudent?.parent?.id!
+        );
       }
     } catch (notifyErr) {
       console.error("Notification failed:", notifyErr);
