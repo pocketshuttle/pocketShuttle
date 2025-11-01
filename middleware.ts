@@ -62,7 +62,6 @@ export async function middleware(req: NextRequest) {
 
     return null;
   } catch (error) {
-    // Handle error, e.g., redirect to login or display an error message
     return Response.redirect(new URL("/login", req.url));
   }
 }
