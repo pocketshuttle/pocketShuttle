@@ -96,7 +96,6 @@ const Navbar = ({ data }: NavbarProps) => {
                     console.log("No teacher data available");
                     return;
                 }
-                // console.log("Location from navbar:", { longitude, latitude });
                 const now = Date.now();
 
                 //throttlin, so we spend every min and if teacher/coordinator has moved  > 10m
@@ -178,7 +177,6 @@ const Navbar = ({ data }: NavbarProps) => {
                 });
 
                 socket.on("teacher-location-update", (newLocation: any) => {
-                    // console.log(" Teacher location update received:", newLocation);
                 });
 
                 socket.on("disconnect", (reason: any) => {
