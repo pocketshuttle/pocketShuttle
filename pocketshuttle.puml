@@ -1,0 +1,34 @@
+@startuml
+title Pocket Shuttle System Architecture (UML Component Diagram)
+
+' Define Components
+component "Teacher Device" as TD {
+  [Geolocation API]
+  [Throttling Logic]
+  [Socket.io Client]
+}
+
+component "Pocket Shuttle API" as API {
+  [Socket.io Server]
+  [Redis]
+  [Event Dispatcher]
+}
+
+component "Parent UI" as PUI {
+  [BusArrival Map]
+  [ETA Recalculation]
+  [Framer Motion UI]
+}
+
+component "School UI" as SUI {
+  [BusArrival Map]
+  [ETA Recalculation]
+  [Framer Motion UI]
+}
+
+' Define Relationships
+TD --> API : Realtime location events (Socket.io)
+API --> PUI : Push bus updates, ETA events
+API --> SUI : Push bus updates, ETA events
+
+@enduml
