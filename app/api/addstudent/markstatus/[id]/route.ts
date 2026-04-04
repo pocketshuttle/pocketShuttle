@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import db from "@/packages/db/client";
 import { revalidateTag } from "next/cache";
-import { getUserSession } from "@/lib/session";
+
+import db from "@/packages/db/client";
+import { canManageStudentRecords, getApiSession } from "@/lib/api-auth";
 
 type ParamsProps = {
   id: string;
@@ -18,17 +19,14 @@ export const PATCH = async (
   { params }: { params: ParamsProps }
 ) => {
   try {
-    const user = await getUserSession();
-    if (!user) {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageStudentRecords(session) || !schoolId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    
+
     const { id } = params;
     const data = await req.json();
-
-    /**
-     * we check if we receive any data from the req, we
-     */
 
     if (!data) {
       return NextResponse.json(
@@ -37,19 +35,25 @@ export const PATCH = async (
       );
     }
 
-    /**
-     * we update the student based on the data provided
-     */
+    const existingStudent = await db.student.findFirst({
+      where: { id, schoolId },
+    });
+
+    if (!existingStudent) {
+      return NextResponse.json(
+        { message: "Student not found" },
+        { status: 404 }
+      );
+    }
 
     const updatedStudent = await db.student.update({
-      where: { id: id },
+      where: { id },
       data: {
         status: data.attendance,
       },
     });
     revalidateTag("students");
 
-    //we decrease the available car seat when a student is picked
     if (updatedStudent.status === "PICKED" && updatedStudent.busId) {
       await db.buses.update({
         where: { id: updatedStudent.busId },
@@ -59,7 +63,6 @@ export const PATCH = async (
           },
         },
       });
-      //we increase the available car seat when a student is dropped
     } else if (updatedStudent.status === "DROPPED" && updatedStudent.busId) {
       await db.buses.update({
         where: { id: updatedStudent.busId },
@@ -73,39 +76,34 @@ export const PATCH = async (
 
     const hours = getCurrentHourInTimeZone("Africa/Lagos");
 
-    //from 6am-9am picked student should be in bus or in school
     if (updatedStudent.status === "PICKED" && hours >= 6 && hours < 9) {
       await db.student.update({
-        where: { id: id },
+        where: { id },
         data: {
           presence: "IN_BUS",
         },
       });
-
-      //from 9am-4pm picked student should be in school
     } else if (updatedStudent.status === "PICKED" && hours >= 9 && hours < 16) {
       await db.student.update({
-        where: { id: id },
+        where: { id },
         data: {
           presence: "AT_SCHOOL",
         },
       });
-
-      //from 5pm-7pm picked student should be all dropped at home
     } else if (
       updatedStudent.status === "DROPPED" &&
       hours >= 17 &&
       hours < 19
     ) {
       await db.student.update({
-        where: { id: id },
+        where: { id },
         data: {
           presence: "NONE",
         },
       });
     } else if (updatedStudent.status === "DROPPED" && hours > 19) {
       await db.student.update({
-        where: { id: id },
+        where: { id },
         data: {
           presence: "NONE",
           status: "DROPPED",
@@ -114,15 +112,8 @@ export const PATCH = async (
       });
     }
 
-    if (updatedStudent) {
-      return NextResponse.json(
-        { message: "Student updated successfully" },
-        { status: 200 }
-      );
-    }
-
     return NextResponse.json(
-      { message: "Status updated successfully", student: updatedStudent },
+      { message: "Student updated successfully" },
       { status: 200 }
     );
   } catch (error) {

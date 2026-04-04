@@ -1,17 +1,15 @@
-import { connectToDB } from "@/utils/connect-to-db";
-import { NextRequest, NextResponse } from "next/server";
-import Parent from "@/(models)/Parent";
 import bcrypt from "bcryptjs";
-import { ParentSchema } from "@/schemas";
+import { NextRequest, NextResponse } from "next/server";
+
 import db from "@/packages/db/client";
-import { getUserSession } from "@/lib/session";
+import { ParentSchema } from "@/schemas";
+import { canManageSchool, getApiSession } from "@/lib/api-auth";
 
 export const POST = async (req: NextRequest) => {
   try {
-    //  1. Verify user session & role
-    const user = await getUserSession();
-
-    if (!user || !["admin", "school", "ADMIN"].includes(user.role as string)) {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
       return NextResponse.json(
         {
           message: "Unauthorized: Only admins or school staff can add parents.",
@@ -19,6 +17,7 @@ export const POST = async (req: NextRequest) => {
         { status: 403 }
       );
     }
+
     const data = await req.json();
     const validatedData = ParentSchema.safeParse(data);
 
@@ -33,7 +32,6 @@ export const POST = async (req: NextRequest) => {
     }
 
     const {
-      school_id,
       full_name,
       email,
       phoneNumber,
@@ -44,7 +42,6 @@ export const POST = async (req: NextRequest) => {
       role,
     } = validatedData.data;
 
-    // Prevent duplicate parent
     const existingParent = await db.parent.findUnique({
       where: { email: email.toLowerCase() },
     });
@@ -56,13 +53,25 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
+    if (studentId) {
+      const student = await db.student.findFirst({
+        where: { id: studentId, schoolId },
+        select: { id: true },
+      });
+
+      if (!student) {
+        return NextResponse.json(
+          { message: "Student not found in your school" },
+          { status: 400 }
+        );
+      }
+    }
+
     const hashPassword = await bcrypt.hash(password, 10);
 
     const newParent = await db.parent.create({
       data: {
-        school: {
-          connect: { id: school_id },
-        },
+        schoolId,
         full_name,
         email,
         phoneNumber,
@@ -80,25 +89,21 @@ export const POST = async (req: NextRequest) => {
 
     await db.newUser.create({
       data: {
-        school: {
-          connect: { id: school_id },
-        },
+        schoolId,
         email,
         password: hashPassword,
-        parent: {
-          connect: { id: newParent.id },
-        },
+        parentId: newParent.id,
       },
     });
 
     await db.auditLog.create({
       data: {
-        userId: String(user.id ?? ""),
+        userId: session.id,
         action: "CREATE_PARENT",
         details: {
-          createdBy: String(user.email ?? ""),
+          createdBy: session.email ?? "",
           parentEmail: email,
-          schoolId: school_id,
+          schoolId,
           timestamp: new Date().toISOString(),
         },
       },
@@ -114,7 +119,6 @@ export const POST = async (req: NextRequest) => {
       }
     );
   } catch (error) {
-    // Handle errors
     console.error("Error adding Parent:", error);
     return NextResponse.json(
       {

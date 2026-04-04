@@ -33,13 +33,15 @@ export default async function handler(
       },
       transports: ["websocket"],
     });
-    instrument(io, {
-      auth: {
-        type: "basic",
-        username: process.env.SOCKET_ADMIN_USER || "admin",
-        password: process.env.SOCKET_ADMIN_PASS || "admin", // should be hashed in production!
-      },
-    });
+    if (process.env.SOCKET_ADMIN_USER && process.env.SOCKET_ADMIN_PASS) {
+      instrument(io, {
+        auth: {
+          type: "basic",
+          username: process.env.SOCKET_ADMIN_USER,
+          password: process.env.SOCKET_ADMIN_PASS,
+        },
+      });
+    }
 
     io.on("connection", async (socket) => {
       console.log("New client connected:", socket.id);

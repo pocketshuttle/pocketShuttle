@@ -1,23 +1,18 @@
 import Ably from "ably";
-import db from "@/packages/db/client";
 import { NextRequest, NextResponse } from "next/server";
-import { getUserSession } from "@/lib/session";
+
+import db from "@/packages/db/client";
+import { getApiSession, isTeacher } from "@/lib/api-auth";
 
 interface LocationUpdatePayload {
   latitude: number;
   longitude: number;
   teacherId: string;
-  teacherImage: string;
-  teacherName: string;
+  teacherImage: string | null;
+  teacherName: string | null;
 }
 
 const ably = new Ably.Rest(process.env.ABLY_API_KEY!);
-
-/**
- * Helper function to broadcast location update via Ably.
- * @param channel - Channel name to broadcast the message
- * @param data - The location update data to send
- */
 
 async function broadcastLocationUpdate(
   channel: string,
@@ -29,13 +24,13 @@ async function broadcastLocationUpdate(
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getUserSession();
-    if (!user) {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!isTeacher(session) || !schoolId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { latitude, longitude, teacherId, teacherImage, teacherName } =
-      (await req.json()) as LocationUpdatePayload;
+    const { latitude, longitude } = (await req.json()) as Partial<LocationUpdatePayload>;
 
     if (typeof latitude !== "number" || typeof longitude !== "number") {
       return NextResponse.json(
@@ -44,20 +39,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const teacherRecord = await db.teacher.findFirst({
+      where: { id: session.id, schoolId },
+      select: {
+        id: true,
+        full_name: true,
+        image: true,
+      },
+    });
+
+    if (!teacherRecord) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+    }
+
     const locationData: LocationUpdatePayload = {
       latitude,
       longitude,
-      teacherId,
-      teacherImage,
-      teacherName,
+      teacherId: teacherRecord.id,
+      teacherImage: teacherRecord.image,
+      teacherName: teacherRecord.full_name,
     };
 
-    //  Broadcast to the public "school-wide" channel
-    await broadcastLocationUpdate("teacher-location-update", locationData);
-
-    // Fetch teacher + students "on the way"
     const teacher = await db.teacher.findUnique({
-      where: { id: teacherId },
+      where: { id: teacherRecord.id },
       include: {
         bus: {
           include: {
@@ -70,7 +74,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Broadcast to each parent's private channel
     if (teacher?.bus?.students) {
       const parentChannels = teacher.bus.students
         .filter((student) => student.parent?.id)

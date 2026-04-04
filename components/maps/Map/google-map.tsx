@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { GoogleMap, Marker } from "@react-google-maps/api";
+import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
 
 const containerStyle = {
   width: "100%",
@@ -16,6 +16,11 @@ interface Props {
 
 const GoogleMapView = ({ latitude, longitude, teachersLocation }: Props) => {
   const mapRef = useRef<google.maps.Map | null>(null);
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: apiKey ?? "",
+    libraries: ["places"],
+  });
 
   const onLoad = (map: google.maps.Map) => {
     mapRef.current = map;
@@ -47,6 +52,18 @@ const GoogleMapView = ({ latitude, longitude, teachersLocation }: Props) => {
   }, [teachersLocation, latitude, longitude]);
 
   const center = { lat: latitude, lng: longitude };
+
+  if (!apiKey) {
+    return <div>Google Maps is unavailable because the API key is missing.</div>;
+  }
+
+  if (loadError) {
+    return <div>Google Maps failed to load. Please check the API key or network access.</div>;
+  }
+
+  if (!isLoaded) {
+    return <div>Loading Google Maps...</div>;
+  }
 
   return (
     <GoogleMap

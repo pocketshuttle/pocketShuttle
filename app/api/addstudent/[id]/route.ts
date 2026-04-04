@@ -1,15 +1,14 @@
-import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
-import Student from "@/(models)/Student";
-import db from "@/packages/db/client";
-import { revalidatePath } from "next/cache";
 import { revalidateTag } from "next/cache";
-import { Prisma } from "@prisma/client";
-import { getUserSession } from "@/lib/session";
 import z from "zod";
+
+import db from "@/packages/db/client";
+import { canManageSchool, canManageStudentRecords, getApiSession } from "@/lib/api-auth";
+
 type ParamProp = {
   id: string;
 };
+
 const ParamsSchema = z.object({
   id: z.string().cuid(),
 });
@@ -27,48 +26,32 @@ export const GET = async (
         { status: 400 }
       );
     }
-    const { id } = parsedResult.data;
-    const user = await getUserSession();
-    if (!user) {
+
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const allowedRoles = ["admin", "ADMIN", "Admin"];
-    if (!allowedRoles.includes(user.role as string)) {
-      return NextResponse.json(
-        { message: "Unauthorized. Insufficient permissions." },
-        { status: 403 }
-      );
-    }
-    const ITEM_PER_PAGE = 4;
+    const { id } = parsedResult.data;
+    const itemPerPage = 4;
     const url = new URL(req.url).searchParams;
     const searchQuery = url.get("q") || "";
     const gradeQuery = url.get("grade") || "";
-    const page: number = (url.get("page") as unknown as number) || 1;
+    const page = Number(url.get("page") || "1");
 
     type StudentWhere = NonNullable<
       Parameters<typeof db.student.findMany>[0]
     >["where"];
+
     const query: StudentWhere = {
-      OR: [
-        {
-          schoolId: id,
-        },
-        {
-          id: id,
-        },
-      ],
-      //making the regex case insensitive any
+      ...(id === schoolId ? { schoolId } : { id, schoolId }),
       ...(searchQuery && {
         full_name: { contains: searchQuery, mode: "insensitive" },
       }),
       ...(gradeQuery && gradeQuery !== "All" && { grade: gradeQuery }),
     };
 
-    //limit, shows the total number of users per page
-    //skip, shows the next page- 1 then multiplied by the total number that was first displayed
-    //then skip that total number
-    // const count = await Student.find(query).countDocuments();
     const count = await db.student.count({
       where: query,
     });
@@ -83,15 +66,16 @@ export const GET = async (
           },
         },
       },
-      take: ITEM_PER_PAGE,
-      skip: ITEM_PER_PAGE * (page - 1),
+      take: itemPerPage,
+      skip: itemPerPage * (page - 1),
     });
 
-    if (!students) {
+    if (!students || students.length === 0) {
       return new Response(JSON.stringify({ message: "Student not found" }), {
         status: 404,
       });
     }
+
     revalidateTag("collection");
     revalidateTag("students");
 
@@ -102,7 +86,6 @@ export const GET = async (
       },
     });
   } catch (error) {
-    // Handle errors
     console.error("Error fetching Student:", error);
     return NextResponse.json(
       {
@@ -119,15 +102,19 @@ export const PATCH = async (
   { params }: { params: ParamProp }
 ) => {
   try {
-    const user = await getUserSession();
-    if (!user || !["admin", "teacher", "ADMIN"].includes(user.role as string)) {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageStudentRecords(session) || !schoolId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+
     const { id } = params;
     const data = await req.json();
 
-    //ensuring student exists
-    const existingStudent = await db.student.findUnique({ where: { id } });
+    const existingStudent = await db.student.findFirst({
+      where: { id, schoolId },
+    });
+
     if (!existingStudent) {
       return NextResponse.json(
         { message: "Student not found" },
@@ -135,22 +122,55 @@ export const PATCH = async (
       );
     }
 
+    if (data.busId) {
+      const bus = await db.buses.findFirst({
+        where: { id: data.busId, schoolId },
+        select: { id: true },
+      });
+
+      if (!bus) {
+        return NextResponse.json(
+          { message: "Bus not found in your school" },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (data.teacherId) {
+      const teacher = await db.teacher.findFirst({
+        where: { id: data.teacherId, schoolId },
+        select: { id: true },
+      });
+
+      if (!teacher) {
+        return NextResponse.json(
+          { message: "Teacher not found in your school" },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (data.parentId) {
+      const parent = await db.parent.findFirst({
+        where: { id: data.parentId, schoolId },
+        select: { id: true },
+      });
+
+      if (!parent) {
+        return NextResponse.json(
+          { message: "Parent not found in your school" },
+          { status: 400 }
+        );
+      }
+    }
+
     const updatedStudent = await db.student.update({
-      where: { id: id },
+      where: { id },
       data: {
-        school: {
-          connect: { id: data.school_id },
-        },
-        ...(data.busId && {
-          bus: {
-            connect: { id: data.busId },
-          },
-        }),
-        ...(data.teacherId && {
-          teacher: {
-            connect: { id: data.busId },
-          },
-        }),
+        schoolId,
+        busId: data.busId || null,
+        teacherId: data.teacherId || null,
+        parentId: data.parentId || null,
         full_name: data.full_name,
         address: data.address,
         image: data.image,
@@ -160,31 +180,18 @@ export const PATCH = async (
       },
     });
 
-    if (!updatedStudent) {
-      return new Response(JSON.stringify({ message: "Student not found" }), {
-        status: 404,
-      });
-    }
-
     return new Response(JSON.stringify(updatedStudent), {
       status: 200,
     });
   } catch (error) {
-    if (error instanceof Error) {
-      console.log(error);
-      return new Response(
-        JSON.stringify({
-          message: "Error updating Student",
-          error: error.message,
-        }),
-        { status: 500 }
-      );
-    } else {
-      return new Response(
-        JSON.stringify({ message: "Unknown error occurred" }),
-        { status: 500 }
-      );
-    }
+    console.error(error);
+    return new Response(
+      JSON.stringify({
+        message: "Error updating Student",
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      { status: 500 }
+    );
   }
 };
 
@@ -193,14 +200,16 @@ export const DELETE = async (
   { params }: { params: ParamProp }
 ) => {
   try {
-    const user = await getUserSession();
-    if (!user || !["admin", "teacher", "ADMIN"].includes(user.role as string)) {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageStudentRecords(session) || !schoolId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = params;
-    const existingStudent = await db.student.delete({
-      where: { id: id },
+    const existingStudent = await db.student.findFirst({
+      where: { id, schoolId },
+      select: { id: true },
     });
 
     if (!existingStudent) {
@@ -208,6 +217,10 @@ export const DELETE = async (
         status: 404,
       });
     }
+
+    await db.student.delete({
+      where: { id },
+    });
 
     return new Response(
       JSON.stringify({ message: "Student deleted successfully" }),
@@ -217,19 +230,12 @@ export const DELETE = async (
     );
   } catch (error) {
     console.error(error);
-    if (error instanceof Error) {
-      return new Response(
-        JSON.stringify({
-          message: "Error deleting student",
-          error: error.message,
-        }),
-        { status: 500 }
-      );
-    } else {
-      return new Response(
-        JSON.stringify({ message: "Unknown error occurred" }),
-        { status: 500 }
-      );
-    }
+    return new Response(
+      JSON.stringify({
+        message: "Error deleting student",
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      { status: 500 }
+    );
   }
 };
