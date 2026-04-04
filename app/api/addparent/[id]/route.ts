@@ -1,7 +1,9 @@
-import { getUserSession } from "@/lib/session";
-import db from "@/packages/db/client";
 import { NextRequest, NextResponse } from "next/server";
 import z from "zod";
+
+import db from "@/packages/db/client";
+import { canManageSchool, getApiSession, isParent } from "@/lib/api-auth";
+
 type ParamProp = {
   id: string;
 };
@@ -23,35 +25,36 @@ export const GET = async (
         { status: 400 }
       );
     }
-    const { id } = parsedResult.data;
 
-    const user = await getUserSession();
-    if (!user) {
+    const { id } = parsedResult.data;
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+
+    if (!session) {
       return NextResponse.json(
         { message: "Unauthorized. Please log in." },
         { status: 401 }
       );
     }
 
-    const allowedRoles = ["parent", "admin", "ADMIN"];
-    if (!allowedRoles.includes(user.role as string)) {
-      return NextResponse.json(
-        { message: "Unauthorized. Insufficient permissions." },
-        { status: 403 }
-      );
-    }
-
-    if (user.role === "parent" && user.id !== id) {
+    if (isParent(session) && session.id !== id) {
       return NextResponse.json(
         { message: "Unauthorized. You can only access your own data." },
         { status: 403 }
       );
     }
 
-    const parent = await db.parent.findUnique({
-      where: {
-        id: id,
-      },
+    if (!isParent(session) && (!canManageSchool(session) || !schoolId)) {
+      return NextResponse.json(
+        { message: "Unauthorized. Insufficient permissions." },
+        { status: 403 }
+      );
+    }
+
+    const where = isParent(session) ? { id } : { id, schoolId: schoolId! };
+
+    const parent = await db.parent.findFirst({
+      where,
       select: {
         id: true,
         Student: {
@@ -103,19 +106,12 @@ export const GET = async (
     });
   } catch (error) {
     console.error(error);
-    if (error instanceof Error) {
-      return new Response(
-        JSON.stringify({
-          message: "Error fetching Parent",
-          error: error.message,
-        }),
-        { status: 500 }
-      );
-    } else {
-      return new Response(
-        JSON.stringify({ message: "Unknown error occurred" }),
-        { status: 500 }
-      );
-    }
+    return new Response(
+      JSON.stringify({
+        message: "Error fetching Parent",
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      { status: 500 }
+    );
   }
 };

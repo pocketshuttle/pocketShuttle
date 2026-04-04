@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { StudentSchema } from "@/schemas";
-import db from "@/packages/db/client";
 import { revalidateTag } from "next/cache";
-import { getUserSession } from "@/lib/session";
+
+import db from "@/packages/db/client";
+import { StudentSchema } from "@/schemas";
+import { canManageSchool, getApiSession } from "@/lib/api-auth";
 
 export const POST = async (req: NextRequest) => {
   try {
-    const user = await getUserSession();
-
-    if (!user || !["admin", "school", "ADMIN"].includes(user.role as string)) {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
       return NextResponse.json(
         {
-          message: "Unauthorized: Only admins or school staff can add parents.",
+          message: "Unauthorized: Only admins or school staff can add students.",
         },
         { status: 403 }
       );
@@ -26,23 +27,64 @@ export const POST = async (req: NextRequest) => {
         { status: 400 }
       );
     }
+
     const {
-      school_id,
       full_name,
       age,
       image,
       busId,
       parentId,
       teacherId,
-      driverId,
       address,
       grade,
       gender,
     } = validatedData.data;
 
+    if (busId) {
+      const bus = await db.buses.findFirst({
+        where: { id: busId, schoolId },
+        select: { id: true },
+      });
+
+      if (!bus) {
+        return NextResponse.json(
+          { message: "Bus not found in your school" },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (teacherId) {
+      const teacher = await db.teacher.findFirst({
+        where: { id: teacherId, schoolId },
+        select: { id: true },
+      });
+
+      if (!teacher) {
+        return NextResponse.json(
+          { message: "Teacher not found in your school" },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (parentId) {
+      const parent = await db.parent.findFirst({
+        where: { id: parentId, schoolId },
+        select: { id: true },
+      });
+
+      if (!parent) {
+        return NextResponse.json(
+          { message: "Parent not found in your school" },
+          { status: 400 }
+        );
+      }
+    }
+
     const newStudent = await db.student.create({
       data: {
-        schoolId: school_id,
+        schoolId,
         full_name,
         age,
         image,
@@ -50,13 +92,11 @@ export const POST = async (req: NextRequest) => {
         gender,
         busId: busId || undefined,
         teacherId: teacherId || undefined,
-        // driverId: driverId || undefined,
-        // parentId: parentId || undefined,
+        parentId: parentId || undefined,
         address,
       },
     });
 
-    // await newStudent.save();
     if (busId) {
       await db.buses.update({
         where: { id: busId },
@@ -67,27 +107,27 @@ export const POST = async (req: NextRequest) => {
         },
       });
     }
-    if (newStudent) {
-      return Response.json(
-        { message: "Student added Succesfully " },
-        { status: 200 }
-      );
-    }
+
     await db.auditLog.create({
       data: {
-        userId: String(user.id ?? ""),
+        userId: session.id,
         action: "CREATE_STUDENT",
         details: {
-          createdBy: String(user.email ?? ""),
+          createdBy: session.email ?? "",
           student: full_name,
-          schoolId: school_id,
+          schoolId,
           timestamp: new Date().toISOString(),
         },
       },
     });
+
     revalidateTag("students");
+
+    return Response.json(
+      { message: "Student added Succesfully " },
+      { status: 200 }
+    );
   } catch (error) {
-    // Handle errors
     console.error("Error adding Student:", error);
     return NextResponse.json(
       {

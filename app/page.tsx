@@ -3,20 +3,27 @@ import LoginButton from "@/components/auth/login-button";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useEffect } from "react";
-import OneSignal from 'react-onesignal';
+import OneSignal from "react-onesignal";
+import { canUseOneSignal } from "@/onesignal/utils";
 
 export default function Home() {
   const testNotification = async () => {
+    if (!canUseOneSignal()) {
+      return;
+    }
+
     try {
       await OneSignal.Notifications.requestPermission();
-      console.log('Notification permission requested');
+      console.log("Notification permission requested");
     } catch (error) {
-      console.error('Error requesting notification:', error);
+      console.error("Error requesting notification:", error);
     }
   };
+
   useEffect(() => {
-    testNotification();
+    void testNotification();
   }, []);
+
   return (
     <main className=" min-h-screen bg-white space-y-6">
       <div className="bg-[#1d146d] h-[65vh] flex items-center justify-center m-auto rounded-bl-3xl rounded-br-3xl">

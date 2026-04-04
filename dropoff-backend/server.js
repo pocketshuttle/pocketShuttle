@@ -4,7 +4,6 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 import dotenv from "dotenv";
-// import { PrismaClient } from "../packages/db/node_modules/.prisma/client/index.js";
 import { PrismaClient } from "@prisma/client";
 
 dotenv.config();
@@ -30,9 +29,6 @@ app.use(
 
 const server = http.createServer(app);
 
-// console.log(server, "from socket");
-// console.log("hello world");
-
 const io = new Server(server, {
   cors: {
     origin: [
@@ -48,16 +44,12 @@ const io = new Server(server, {
 const teacherRateLimitMap = new Map();
 const RATE_LIMIT_MS = 1000;
 
-// console.log(io, "from socket");
-
 io.use((socket, next) => {
   const token = socket.handshake.auth?.token;
-  // console.log(token, "from socket.io");
   if (!token) return next(new Error("Authentication required"));
 
   try {
     const payload = jwt.verify(token, process.env.SOCKET_AUTH_SECRET);
-    // console.log(payload, "from socket.io");
     socket.user = payload;
 
     next();
@@ -67,20 +59,31 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
-  /**
-   * Schools subscribe to all teachers in their school
-   */
-  socket.on("subscribe-school", ({ schoolId }) => {
-    if (!schoolId) return;
-    socket.join(`school-${schoolId}`);
-    // console.log(`Socket ${socket.id} subscribed to school-${schoolId}`);
+  const socketRole =
+    typeof socket.user?.role === "string" ? socket.user.role.toLowerCase() : "";
+
+  socket.on("subscribe-school", () => {
+    if (!socket.user?.schoolId) return;
+    if (!["admin", "school"].includes(socketRole)) {
+      socket.emit("error", "Not authorized for school updates.");
+      return;
+    }
+
+    socket.join(`school-${socket.user.schoolId}`);
   });
 
-  /**
-   * Parents subscribe to a specific teacher (their child's teacher)
-   */
-  socket.on("subscribe-teacher", async ({ teacherId, parentId }) => {
-    if (!teacherId || !parentId) return;
+  socket.on("subscribe-teacher", async ({ teacherId }) => {
+    if (!teacherId) return;
+    if (socketRole !== "parent") {
+      socket.emit("error", "Only parents can subscribe to teacher updates.");
+      return;
+    }
+
+    const parentId = socket.user?.id;
+    if (!parentId) {
+      socket.emit("error", "Parent identity missing.");
+      return;
+    }
 
     const parent = await db.parent.findUnique({
       where: { id: parentId },
@@ -89,12 +92,9 @@ io.on("connection", (socket) => {
       },
     });
 
-    // // 2. Check if any of parent’s kids belong to this teacher's buss
     const allowed = parent?.Student.some(
       (student) => student.bus?.teacher?.id === teacherId
     );
-
-    console.log(allowed, "allowed from subscribe teacher");
 
     if (allowed) {
       socket.join(`teacher-${teacherId}`);
@@ -105,53 +105,49 @@ io.on("connection", (socket) => {
     }
   });
 
-  /**
-   * Teacher sends live location updates
-   */
   socket.on("teacher-live-location", (data) => {
-    // console.log(data, "from navbar");
-    if (!socket.user || socket.user.role?.toLowerCase() !== "teacher") {
+    if (!socket.user || socketRole !== "teacher") {
       return socket.emit("unauthorized", {
         message: "Only teachers can send live location",
       });
     }
 
+    if (
+      typeof data?.latitude !== "number" ||
+      typeof data?.longitude !== "number"
+    ) {
+      return socket.emit("error", "Invalid location payload.");
+    }
+
     const teacherId = socket.user.id;
+    const now = Date.now();
+    const lastUpdate = teacherRateLimitMap.get(teacherId) || 0;
 
-    // console.log(teacherId, "teachert Idf");
+    if (now - lastUpdate < RATE_LIMIT_MS) {
+      return socket.emit("rate-limit", {
+        message: "Too many updates. Please slow down.",
+      });
+    }
 
-    // const now = Date.now();
-    // const lastUpdate = teacherRateLimitMap.get(teacherId) || 0;
-
-    // if (now - lastUpdate < RATE_LIMIT_MS) {
-    //   return socket.emit("rate-limit", {
-    //     message: "Too many updates. Please slow down.",
-    //   });
-    // }
-
-    // teacherRateLimitMap.set(teacherId, now);
+    teacherRateLimitMap.set(teacherId, now);
 
     const payload = {
-      teacherId: socket.user.id,
       ...data,
+      teacherId,
     };
 
-    // 1. Send to parents subscribed to this teacher
     io.to(`teacher-${teacherId}`).emit("teacher-location-update", payload);
 
-    // console.log(`teacher-${teacherId}`, "connecetd from parent");
-    // console.log(socket.user.schoolId, "from the SCHOOL");
-
-    // 2. Send to school staff subscribed to this teacher's school
     io.to(`school-${socket.user.schoolId}`).emit(
       "teacher-location-update",
       payload
     );
-
-    // console.log(payload, "paylaod from teachewr");
   });
 
   socket.on("disconnect", () => {
+    if (socket.user?.id) {
+      teacherRateLimitMap.delete(socket.user.id);
+    }
     console.log("Socket disconnected:", socket.id);
   });
 });

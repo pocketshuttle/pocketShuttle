@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
+
 import db from "@/packages/db/client";
-import { getUserSession } from "@/lib/session";
+import { canManageStudentRecords, getApiSession } from "@/lib/api-auth";
 
 type ParamsProps = {
   id: string;
@@ -12,8 +13,9 @@ export const PATCH = async (
   { params }: { params: ParamsProps }
 ) => {
   try {
-    const user = await getUserSession();
-    if (!user) {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageStudentRecords(session) || !schoolId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -27,19 +29,24 @@ export const PATCH = async (
       );
     }
 
-    const updatedStudent = await db.student.update({
-      where: { id: id },
-      data: {
-        attendance: data.attendance,
-        ...data,
-      },
+    const existingStudent = await db.student.findFirst({
+      where: { id, schoolId },
+      select: { id: true },
     });
-    if (!updatedStudent) {
+
+    if (!existingStudent) {
       return NextResponse.json(
         { message: "Student not found" },
         { status: 404 }
       );
     }
+
+    const updatedStudent = await db.student.update({
+      where: { id },
+      data: {
+        attendance: data.attendance,
+      },
+    });
 
     revalidateTag("collection");
 

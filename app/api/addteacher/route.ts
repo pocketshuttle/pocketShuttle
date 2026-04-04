@@ -1,26 +1,24 @@
-import { connectToDB } from "@/utils/connect-to-db";
-import { NextRequest, NextResponse } from "next/server";
-import Teacher from "@/(models)/Teachers";
-import Buses from "@/(models)/Bus";
-import { TeacherSchema } from "@/schemas";
 import bcrypt from "bcryptjs";
-import NewUser from "@/(models)/NewUser";
-import db from "@/packages/db/client";
+import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
-import { getUserSession } from "@/lib/session";
+
+import db from "@/packages/db/client";
+import { TeacherSchema } from "@/schemas";
+import { canManageSchool, getApiSession } from "@/lib/api-auth";
 
 export const POST = async (req: NextRequest) => {
   try {
-    const user = await getUserSession();
-
-    if (!user || !["admin", "school", "ADMIN"].includes(user.role as string)) {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
       return NextResponse.json(
         {
-          message: "Unauthorized: Only admins or school staff can add parents.",
+          message: "Unauthorized: Only admins or school staff can add teachers.",
         },
         { status: 403 }
       );
     }
+
     const data = await req.json();
     const validatedData = TeacherSchema.safeParse(data);
 
@@ -32,12 +30,10 @@ export const POST = async (req: NextRequest) => {
     }
 
     const {
-      school_id,
       full_name,
       email,
       phoneNumber,
       address,
-      studentId,
       image,
       busId,
       password,
@@ -55,33 +51,39 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
+    if (busId) {
+      const bus = await db.buses.findFirst({
+        where: { id: busId, schoolId },
+        select: { id: true },
+      });
+
+      if (!bus) {
+        return NextResponse.json(
+          { message: "Bus not found in your school" },
+          { status: 400 }
+        );
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newTeacher = await db.teacher.create({
       data: {
-        school: {
-          connect: { id: school_id },
-        },
+        schoolId,
         full_name,
         email,
         phoneNumber,
-        ...(busId && {
-          bus: {
-            connect: { id: busId },
-          },
-        }),
+        busId: busId || undefined,
         address,
-        // students: studentId ? [studentId] : [],
         image,
         password: hashedPassword,
         role,
-        // user: school_id,
       },
     });
 
     await db.newUser.create({
       data: {
-        schoolId: school_id,
+        schoolId,
         email,
         password: hashedPassword,
         teacherId: newTeacher.id,
@@ -98,14 +100,15 @@ export const POST = async (req: NextRequest) => {
         },
       });
     }
+
     await db.auditLog.create({
       data: {
-        userId: String(user.id ?? ""),
+        userId: session.id,
         action: "CREATE_TEACHER",
         details: {
-          createdBy: String(user.email ?? ""),
+          createdBy: session.email ?? "",
           teacherEmail: email,
-          schoolId: school_id,
+          schoolId,
           timestamp: new Date().toISOString(),
         },
       },

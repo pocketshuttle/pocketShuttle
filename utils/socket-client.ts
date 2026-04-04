@@ -31,13 +31,12 @@ export async function connectSocket(
   socket.on("connect", () => {
     // console.log("socket connected", socket.id);
 
-    if (teacherId) {
-      const payload = parentId ? { teacherId, parentId } : { teacherId };
-      socket.emit("subscribe-teacher", payload);
+    if (teacherId && parentId) {
+      socket.emit("subscribe-teacher", { teacherId });
     }
 
-    if (schoolId) {
-      socket.emit("subscribe-school", { schoolId });
+    if (schoolId && !teacherId) {
+      socket.emit("subscribe-school");
       // console.log(`🏫 Subscribed to school-${schoolId}`);
     }
   });

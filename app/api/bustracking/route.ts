@@ -1,13 +1,15 @@
-import { getPusherInstance } from "@/pusher/server";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { NextRequest, NextResponse } from "next/server";
-import Ably from "ably";
-import { getUserSession } from "@/lib/session";
+
+import db from "@/packages/db/client";
+import { getPusherInstance } from "@/pusher/server";
+import { getApiSession, isTeacher } from "@/lib/api-auth";
 
 export async function POST(req: NextRequest, res: NextApiResponse) {
   try {
-    const user = await getUserSession();
-    if (!user) {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!isTeacher(session) || !schoolId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -20,16 +22,22 @@ export async function POST(req: NextRequest, res: NextApiResponse) {
       );
     }
 
-    // Get the Pusher instance
+    const teacher = await db.teacher.findFirst({
+      where: { id: session.id, schoolId },
+      select: { id: true },
+    });
+
+    if (!teacher) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+    }
+
     const pusher = getPusherInstance();
 
-    // Trigger the event to Pusher
     await pusher.trigger("live-school-channel", "bus-location-update", {
       latitude,
       longitude,
     });
 
-    // Respond to the client
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("Error processing request:", error);

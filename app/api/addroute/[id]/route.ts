@@ -1,32 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { RouteSchema } from "@/schemas";
+
 import db from "@/packages/db/client";
-import { getUserSession } from "@/lib/session";
+import { RouteSchema } from "@/schemas";
+import { canManageSchool, getApiSession } from "@/lib/api-auth";
 
 type ParamProp = {
   id: string;
 };
 
-/**
- * GET Route(s)
- * Fetch a route by ID or all routes for a school
- */
 export const GET = async (
   req: NextRequest,
   { params }: { params: ParamProp }
 ) => {
   try {
-    const user = await getUserSession();
-    if (!user) {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = params;
 
     const routes = await db.route.findMany({
-      where: {
-        OR: [{ id }, { schoolId: id }],
-      },
+      where: id === schoolId ? { schoolId } : { id, schoolId },
     });
 
     if (!routes || routes.length === 0) {
@@ -47,17 +43,14 @@ export const GET = async (
   }
 };
 
-/**
- * PATCH Route
- * Update an existing route
- */
 export const PATCH = async (
   req: NextRequest,
   { params }: { params: ParamProp }
 ) => {
   try {
-    const user = await getUserSession();
-    if (!user || !["admin", "ADMIN"].includes(user.role as string)) {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -72,14 +65,18 @@ export const PATCH = async (
       );
     }
 
-    const existingRoute = await db.route.findUnique({ where: { id } });
+    const existingRoute = await db.route.findFirst({ where: { id, schoolId } });
     if (!existingRoute) {
       return NextResponse.json({ message: "Route not found" }, { status: 404 });
     }
 
     const updatedRoute = await db.route.update({
       where: { id },
-      data: validated.data,
+      data: {
+        schoolId,
+        route_name: validated.data.route_name,
+        route_description: validated.data.route_description,
+      },
     });
 
     return NextResponse.json(
@@ -99,23 +96,24 @@ export const PATCH = async (
   }
 };
 
-/**
- * DELETE Route
- * Remove a route safely
- */
 export const DELETE = async (
   req: NextRequest,
   { params }: { params: ParamProp }
 ) => {
   try {
-    const user = await getUserSession();
-    if (!user || !["admin", "ADMIN"].includes(user.role as string)) {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = params;
+    const existingRoute = await db.route.findFirst({ where: { id, schoolId } });
 
-    // Soft delete alternative: if you don’t want to fully remove records, use a `deleted` flag.
+    if (!existingRoute) {
+      return NextResponse.json({ message: "Route not found" }, { status: 404 });
+    }
+
     const deleted = await db.route.delete({ where: { id } });
 
     return NextResponse.json(

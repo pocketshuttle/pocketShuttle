@@ -1,18 +1,20 @@
-import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
-import { DriverSchema } from "@/schemas";
+
 import db from "@/packages/db/client";
-import { getUserSession } from "@/lib/session";
+import { DriverSchema } from "@/schemas";
+import { canManageSchool, getApiSession } from "@/lib/api-auth";
 
 export const POST = async (req: NextRequest) => {
   try {
-    const user = await getUserSession();
-    if (!user || !["admin", "ADMIN"].includes(user.role as string)) {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
       return NextResponse.json(
         { message: "Unauthorized access" },
         { status: 401 }
       );
     }
+
     const data = await req.json();
 
     const validatedData = DriverSchema.safeParse(data);
@@ -23,7 +25,7 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    const { school_id, full_name, phoneNumber, image, address, email, busId } =
+    const { full_name, phoneNumber, image, address, email, busId } =
       validatedData.data;
 
     const existingDriver = await db.driver.findFirst({
@@ -39,21 +41,29 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
+    if (busId) {
+      const bus = await db.buses.findFirst({
+        where: { id: busId, schoolId },
+        select: { id: true },
+      });
+
+      if (!bus) {
+        return NextResponse.json(
+          { message: "Bus not found in your school" },
+          { status: 400 }
+        );
+      }
+    }
+
     const newDriver = await db.driver.create({
       data: {
-        school: {
-          connect: { id: school_id },
-        },
+        schoolId,
         full_name,
         phoneNumber,
         image,
         address,
         email,
-        ...(busId && {
-          bus: {
-            connect: { id: busId },
-          },
-        }),
+        busId: busId || undefined,
       },
     });
 
@@ -67,12 +77,12 @@ export const POST = async (req: NextRequest) => {
         },
       });
     }
+
     return NextResponse.json(
       { message: "Driver added successfully" },
       { status: 200 }
     );
   } catch (error) {
-    // Handle errors
     console.error("Error adding driver:", error);
     return NextResponse.json(
       {

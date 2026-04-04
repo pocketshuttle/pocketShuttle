@@ -9,6 +9,7 @@ import { TeacherLocationTracker } from "../maps/Map/teachersLocation/teacher-par
 import { useRecoilValue } from "recoil"
 import { sendPushNotification } from "@/onesignal/send-push"
 import OneSignal from "react-onesignal";
+import { canUseOneSignal } from "@/onesignal/utils";
 
 
 export const ParentMainView = ({
@@ -23,6 +24,7 @@ export const ParentMainView = ({
 
     useEffect(() => {
         if (!parentId) return;
+        if (!canUseOneSignal()) return;
 
         const loginToOneSignal = async () => {
             try {

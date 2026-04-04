@@ -9,6 +9,7 @@ import OneSignal from "react-onesignal";
 import { KidsViewTab } from "./kids-tab";
 import { StudentProps } from "@/types";
 import { io } from "socket.io-client";
+import { canUseOneSignal } from "@/onesignal/utils";
 
 type TeacherLocation = {
     teacherId: string;
@@ -66,6 +67,7 @@ export default function NewParentPage({
 
     useEffect(() => {
         if (!parentId) return;
+        if (!canUseOneSignal()) return;
 
         const loginToOneSignal = async () => {
             try {
