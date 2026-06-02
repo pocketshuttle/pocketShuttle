@@ -1,11 +1,10 @@
 "use server";
 // import { StudentPresence } from "@prisma/client";
-import db, { StudentPresence } from "@/packages/db/client";
-import { revalidateTag } from "next/cache";
-import { sendSms } from "./notification/send-sms";
+import { StudentPresence } from "@/packages/db/client";
 import { sendSmsForBusArrival } from "./notification/bus-arrival";
 import { sendPushNotification } from "@/onesignal/send-push";
 import { getUserSession } from "@/lib/session";
+import { applyStudentPresenceUpdate } from "@/lib/student-state";
 
 const capitalizeParentName = (str: string | null) => {
   str
@@ -23,35 +22,22 @@ export const updateLocation = async (
 ) => {
   try {
     const user = await getUserSession();
-    if (!user || !["teacher", "admin", "ADMIN"].includes(user.role as string)) {
+    const role = String(user?.role ?? "").toLowerCase();
+    if (!user || !["teacher", "admin", "school"].includes(role)) {
       return { message: "Unauthorized", status: 401 };
     }
     if (!data) {
       return { message: "Invalid presence value", status: 400 };
     }
 
-    const updatedStudent = await db.student.update({
-      where: { id },
-      data: { presence: data },
-      select: {
-        id: true,
-        presence: true,
-        full_name: true,
-        parent: {
-          select: { phoneNumber: true, full_name: true, id: true },
-        },
-        bus: {
-          select: { id: true, bus_product_name: true },
-        },
-      },
-    });
-
-    if (!updatedStudent) {
+    const result = await applyStudentPresenceUpdate({ studentId: id }, data);
+    if (!result) {
       return { message: "Student not found", status: 404 };
     }
+    const updatedStudent = result.student;
 
     try {
-      if (data === "ON_THE_WAY") {
+      if (data === "ON_THE_WAY" && result.changed) {
         await sendSmsForBusArrival({
           student_name: updatedStudent.full_name ?? "",
           parent_name: updatedStudent?.parent?.full_name ?? "",
@@ -69,10 +55,10 @@ export const updateLocation = async (
       console.error("Notification failed:", notifyErr);
     }
 
-    revalidateTag("students");
-
     return {
-      message: "Presence updated successfully",
+      message: result.changed
+        ? "Presence updated successfully"
+        : `Presence is already ${updatedStudent.presence}`,
       student: updatedStudent,
       status: 200,
     };

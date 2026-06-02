@@ -1,15 +1,8 @@
 "use server";
 
-import db, { StudentPresence } from "@/packages/db/client";
-import { updateLocation } from "../mark-otw";
-import { getUserSession } from "@/lib/session";
-// import { StudentPresence } from "@prisma/client";
+import db from "@/packages/db/client";
 
 export async function logMorningPickup(student: any, hours: number) {
-  const user = await getUserSession();
-  if (!user || !["teacher", "admin", "ADMIN"].includes(user.role as string)) {
-    return { message: "Unauthorized", status: 401 };
-  }
   if (student.status === "PICKED") {
     const today = new Date();
     const startOfDay = new Date(
@@ -45,7 +38,6 @@ export async function logMorningPickup(student: any, hours: number) {
           confirmedBy: "TEACHER",
         },
       });
-      await updateLocation(student.id, "NONE");
       console.log(`✅ Updated pickup time for ${student.full_name}`);
     } else {
       // Create new record if none exists

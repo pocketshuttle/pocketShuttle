@@ -54,28 +54,28 @@ export const RegisterForm = () => {
 
         <CardWrapper
             headLabel="Create an Account"
-            backButtonLabel="login?"
-            description="Dont have an account"
+            subLabel="Set up your school account and bring parents, teachers, and transport updates into one workspace."
+            backButtonLabel="Login?"
+            description="Already have an account?"
             backButtonHref="/login"
-            showSocial
         >
             <Form {...form}>
                 {/* the handle submit comes from the form constant */}
-                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-6 ${poppins.className} text-[#222222]`}>
-                    <div className="space-y-4 ">
+                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-5 ${poppins.className} text-slate-800`}>
+                    <div className="space-y-5 ">
                         <FormField
                             control={form.control}
                             name="schoolname"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Name of Your School</FormLabel>
+                                <FormItem className="space-y-2.5">
+                                    <FormLabel className="text-sm font-medium text-slate-700">Name of Your School</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
                                             placeholder="school name"
                                             type="text"
                                             disabled={isPending}
-                                            className="placeholder-slate-300"
+                                            className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-slate-900 shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-slate-300"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -90,14 +90,15 @@ export const RegisterForm = () => {
                             control={form.control}
                             name="email"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Email</FormLabel>
+                                <FormItem className="space-y-2.5">
+                                    <FormLabel className="text-sm font-medium text-slate-700">Email</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
                                             placeholder="iwinosa@gmail.com"
                                             type="email"
                                             disabled={isPending}
+                                            className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-slate-900 shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-slate-300"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -113,14 +114,15 @@ export const RegisterForm = () => {
                             control={form.control}
                             name="password"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Password</FormLabel>
+                                <FormItem className="space-y-2.5">
+                                    <FormLabel className="text-sm font-medium text-slate-700">Password</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
                                             placeholder="******"
                                             type="password"
                                             disabled={isPending}
+                                            className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-slate-900 shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-slate-300"
 
                                         />
                                     </FormControl>
@@ -137,7 +139,7 @@ export const RegisterForm = () => {
 
                     <Button
                         disabled={isPending}
-                        size="lg" className="w-full" type="submit">Join Us</Button>
+                        size="lg" className="h-12 w-full rounded-xl bg-slate-900 text-base font-semibold text-white hover:bg-slate-800" type="submit">Join Us</Button>
                 </form>
             </Form>
         </CardWrapper>

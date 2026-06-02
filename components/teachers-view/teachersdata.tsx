@@ -47,62 +47,64 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
             <div className="lg:hidden w-full">
-                <header className="px-6 py-5 bg-white rounded-2xl shadow-sm border border-gray-100">
+                <header className="mx-4 mt-4 rounded-[26px] border border-slate-200 bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
                     {data?.bus === null ? (
-                        <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200 text-yellow-700">
+                        <div className="rounded-2xl border border-yellow-200 bg-yellow-50 p-4 text-center text-yellow-700">
                             <span>Teacher hasn’t been assigned a bus. Please contact admin.</span>
                         </div>
                     ) : (
-                        <div className="space-y-5">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-gray-900">Bus Information</h3>
-                                <span className="text-sm px-3 py-1 bg-gray-100 rounded-full text-gray-600 capitalize">
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between gap-3">
+                                <h3 className="text-lg font-semibold tracking-tight text-slate-900">Bus Information</h3>
+                                <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600 capitalize">
                                     {data?.bus?.bus_number || "N/A"}
                                 </span>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Column 1 */}
-                                <div className="space-y-3">
-                                    <p className="flex items-center space-x-2">
-                                        <span className="text-sm font-medium text-gray-500">Bus Name:</span>
-                                        <span className="text-gray-800 font-medium capitalize">
+                            <div className="grid grid-cols-1 gap-3">
+                                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                    <p className="flex items-center justify-between gap-3">
+                                        <span className="text-sm font-medium text-slate-500">Bus Name:</span>
+                                        <span className="min-w-0 truncate text-right font-medium capitalize text-slate-800">
                                             {data?.bus?.bus_product_name || "N/A"}
                                         </span>
                                     </p>
+                                </div>
 
-                                    <p className="flex items-center space-x-2">
-                                        <span className="text-sm font-medium text-gray-500">Driver:</span>
-                                        <span className="text-gray-800 font-medium capitalize">
+                                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                    <p className="flex items-center justify-between gap-3">
+                                        <span className="text-sm font-medium text-slate-500">Driver:</span>
+                                        <span className="min-w-0 truncate text-right font-medium capitalize text-slate-800">
                                             {data?.bus?.driver?.full_name || "N/A"}
                                         </span>
                                     </p>
                                 </div>
 
-                                {/* Column 2 */}
-                                <div className="space-y-3">
-                                    <p className="flex items-center space-x-2">
-                                        <span className="text-sm font-medium text-gray-500">Driver Contact:</span>
+                                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                    <p className="flex items-center justify-between gap-3">
+                                        <span className="text-sm font-medium text-slate-500">Driver Contact:</span>
                                         {data?.bus?.driver?.phoneNumber ? (
                                             <a
                                                 href={`tel:${data?.bus?.driver?.phoneNumber}`}
-                                                className="text-blue-600 hover:text-blue-800 font-medium transition"
+                                                className="font-medium text-slate-800 transition hover:text-slate-950"
                                             >
                                                 {data?.bus?.driver?.phoneNumber}
                                             </a>
                                         ) : (
-                                            <span className="text-gray-400">N/A</span>
+                                            <span className="text-slate-400">N/A</span>
                                         )}
                                     </p>
+                                </div>
 
-                                    <p className="flex items-center space-x-2">
-                                        <span className="text-sm font-medium text-gray-500">Bus Color:</span>
-                                        <span className="inline-flex items-center gap-2">
+                                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                    <p className="flex items-center justify-between gap-3">
+                                        <span className="text-sm font-medium text-slate-500">Bus Color:</span>
+                                        <span className="inline-flex items-center gap-2 text-slate-800">
                                             <span
                                                 className="h-3 w-3 rounded-full border border-gray-300"
                                                 style={{ backgroundColor: data?.bus?.color || "#ccc" }}
                                             ></span>
-                                            <span className="text-gray-800 capitalize">{data?.bus?.color || "N/A"}</span>
+                                            <span className="capitalize">{data?.bus?.color || "N/A"}</span>
                                         </span>
                                     </p>
                                 </div>
@@ -112,8 +114,8 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                 </header>
 
 
-                <main className="px-4 space-y-2 w-full">
-                    <h2 className="text-center p-4">Students</h2>
+                <main className="w-full space-y-2 px-4 pb-4 pt-3">
+                    <h2 className="p-3 text-center">Students</h2>
                     {
                         data?.bus &&
                         data?.bus.students &&
@@ -199,5 +201,4 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
 
     )
 }
-
 
