@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 
-import db from "@/packages/db/client";
 import { canManageStudentRecords, getApiSession } from "@/lib/api-auth";
+import { applyStudentAttendanceUpdate } from "@/lib/student-state";
 
 type ParamsProps = {
   id: string;
@@ -29,29 +29,24 @@ export const PATCH = async (
       );
     }
 
-    const existingStudent = await db.student.findFirst({
-      where: { id, schoolId },
-      select: { id: true },
-    });
-
-    if (!existingStudent) {
+    const result = await applyStudentAttendanceUpdate(
+      { studentId: id, schoolId },
+      data.attendance
+    );
+    if (!result) {
       return NextResponse.json(
         { message: "Student not found" },
         { status: 404 }
       );
     }
 
-    const updatedStudent = await db.student.update({
-      where: { id },
-      data: {
-        attendance: data.attendance,
-      },
-    });
-
-    revalidateTag("collection");
-
     return NextResponse.json(
-      { message: "Attendance updated successfully", student: updatedStudent },
+      {
+        message: result.changed
+          ? "Attendance updated successfully"
+          : `Attendance is already ${result.student.attendance}`,
+        student: result.student,
+      },
       { status: 200 }
     );
   } catch (error) {

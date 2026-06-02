@@ -76,26 +76,28 @@ export const NewPasswordForm = () => {
 
     return (
         <CardWrapper
-            headLabel="Forgot your password ?"
+            headLabel="Create a new password"
+            subLabel="Choose a fresh password for your selected role to regain access securely."
             backButtonLabel="Back to Login?"
             backButtonHref="/login"
         >
             <Form {...form}>
                 {/* the handle submit comes from the form constant */}
-                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-6 ${poppins.className}`}>
-                    <div className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-5 ${poppins.className} text-slate-800`}>
+                    <div className="space-y-5">
                         <FormField
                             control={form.control}
                             name="password"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>New Password</FormLabel>
+                                <FormItem className="space-y-2.5">
+                                    <FormLabel className="text-sm font-medium text-slate-700">New Password</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
                                             placeholder="******"
                                             type="password"
                                             disabled={isPending}
+                                            className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-slate-900 shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-slate-300"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -111,7 +113,7 @@ export const NewPasswordForm = () => {
                     <FormSuccess message={isSuccess} />
                     <Button
                         disabled={isPending}
-                        size="lg" className="w-full" type="submit">Change Password</Button>
+                        size="lg" className="h-12 w-full rounded-xl bg-slate-900 text-base font-semibold text-white hover:bg-slate-800" type="submit">Change Password</Button>
                 </form>
             </Form>
         </CardWrapper>

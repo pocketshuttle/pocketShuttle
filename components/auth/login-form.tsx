@@ -15,6 +15,7 @@ import Link from "next/link"
 import { AddRoles } from "../ui/add-role"
 import { useSearchParams } from "next/navigation"
 import { Poppins } from "next/font/google"
+import { Eye, EyeOff } from "lucide-react"
 
 const poppins = Poppins({ weight: "400", subsets: ["latin"] });
 
@@ -23,6 +24,7 @@ export const LoginForm = () => {
     const [isError, setIsError] = useState<string | undefined>("")
     const [isSuccess, setIsSuccess] = useState<string | undefined>("")
     const [selectedRole, setSelectedRole] = useState<string>("")
+    const [showPassword, setShowPassword] = useState(false)
 
     const searchParams = useSearchParams()
     const callbackUrl = searchParams.get("callbackUrl")
@@ -76,27 +78,28 @@ export const LoginForm = () => {
     return (
         <CardWrapper
             headLabel="Welcome Back"
+            subLabel="Sign in to manage routes, notifications, and daily drop-off activity."
             backButtonLabel="Register?"
-            description="Dont have an account"
+            description="Don't have an account?"
             backButtonHref="/register"
-            showSocial
         >
             <Form {...form}>
                 {/* the handle submit comes from the form constant */}
-                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-6 ${poppins.className}`}>
-                    <div className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-5 ${poppins.className} text-white`}>
+                    <div className="space-y-5">
                         <FormField
                             control={form.control}
                             name="email"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Email</FormLabel>
+                                <FormItem className="space-y-2.5">
+                                    <FormLabel className="text-sm font-medium text-slate-200">Email Address</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
                                             placeholder="ciroma@email.com"
                                             type="email"
                                             disabled={isPending}
+                                            className="h-14 rounded-lg border-white/5 bg-[#141c2a] px-4 text-white shadow-none placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#6d72c9]"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -111,19 +114,35 @@ export const LoginForm = () => {
                             control={form.control}
                             name="password"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Password</FormLabel>
+                                <FormItem className="space-y-2.5">
+                                    <FormLabel className="text-sm font-medium text-slate-200">Password</FormLabel>
                                     <FormControl>
-                                        <Input
-                                            {...field}
-                                            placeholder="******"
-                                            type="password"
-                                            disabled={isPending}
+                                        <div className="relative">
+                                            <Input
+                                                {...field}
+                                                placeholder="******"
+                                                type={showPassword ? "text" : "password"}
+                                                disabled={isPending}
+                                                className="h-14 rounded-lg border-white/5 bg-[#141c2a] px-4 pr-12 text-white shadow-none placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#6d72c9]"
 
-                                        />
+                                            />
+                                            <button
+                                                type="button"
+                                                disabled={isPending}
+                                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                                onClick={() => setShowPassword((current) => !current)}
+                                                className="absolute right-4 top-1/2 inline-flex -translate-y-1/2 items-center justify-center text-slate-400 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                {showPassword ? (
+                                                    <EyeOff className="h-5 w-5" aria-hidden="true" />
+                                                ) : (
+                                                    <Eye className="h-5 w-5" aria-hidden="true" />
+                                                )}
+                                            </button>
+                                        </div>
                                     </FormControl>
-                                    <div className="flex justify-between space-x-2 items-center">
-                                        <Button variant="link" size="sm" asChild className="px-0 text-sm font-normal">
+                                    <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
+                                        <Button variant="link" size="sm" asChild className="h-auto justify-start px-0 text-sm font-medium text-[#a8b4ff] hover:text-white">
                                             <Link href="/reset">
                                                 Forgot Password?
                                             </Link>
@@ -141,7 +160,7 @@ export const LoginForm = () => {
                     <FormSuccess message={isSuccess} />
                     <Button
                         disabled={isPending}
-                        size="lg" className="w-full text-lg bg-[#1d146d] hover:bg-[#1d146d]/90" type="submit">Login</Button>
+                        size="lg" className="h-14 w-full rounded-lg bg-[#4a48ff] text-base font-semibold text-white shadow-none hover:bg-[#5b5aff]" type="submit">Login</Button>
                 </form>
             </Form>
         </CardWrapper>

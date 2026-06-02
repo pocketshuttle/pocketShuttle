@@ -72,26 +72,28 @@ export const ResetPasswordForm = () => {
 
     return (
         <CardWrapper
-            headLabel="Forgot your password"
+            headLabel="Reset your password"
+            subLabel="Enter the account email and role, and we’ll send you a secure reset link."
             backButtonLabel="Back to Login?"
             backButtonHref="/login"
         >
             <Form {...form}>
                 {/* the handle submit comes from the form constant */}
-                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-6 ${poppins.className}`}>
-                    <div className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-5 ${poppins.className} text-slate-800`}>
+                    <div className="space-y-5">
                         <FormField
                             control={form.control}
                             name="email"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Please enter your Email:</FormLabel>
+                                <FormItem className="space-y-2.5">
+                                    <FormLabel className="text-sm font-medium text-slate-700">Email address</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
                                             placeholder="ciroma@email.com"
                                             type="email"
                                             disabled={isPending}
+                                            className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-slate-900 shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-slate-300"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -108,7 +110,7 @@ export const ResetPasswordForm = () => {
                     <FormSuccess message={isSuccess} />
                     <Button
                         disabled={isPending}
-                        size="lg" className="w-full" type="submit">Send reset email</Button>
+                        size="lg" className="h-12 w-full rounded-xl bg-slate-900 text-base font-semibold text-white hover:bg-slate-800" type="submit">Send reset email</Button>
                 </form>
             </Form>
         </CardWrapper>

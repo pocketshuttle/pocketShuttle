@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidateTag } from "next/cache";
-
-import db from "@/packages/db/client";
+import { StudentStatus } from "@/packages/db/client";
 import { canManageStudentRecords, getApiSession } from "@/lib/api-auth";
+import {
+  applyStudentStatusUpdate,
+  getCurrentHourInTimeZone,
+} from "@/lib/student-state";
 
 type ParamsProps = {
   id: string;
 };
-
-function getCurrentHourInTimeZone(timezone: string): number {
-  const date = new Date();
-  const tz = new Date(date.toLocaleString("en-US", { timeZone: timezone }));
-  return tz.getHours();
-}
 
 export const PATCH = async (
   req: NextRequest,
@@ -35,85 +31,34 @@ export const PATCH = async (
       );
     }
 
-    const existingStudent = await db.student.findFirst({
-      where: { id, schoolId },
-    });
+    const nextStatus = (data.status ?? data.attendance) as StudentStatus | undefined;
+    if (!nextStatus) {
+      return NextResponse.json(
+        { message: "Invalid status" },
+        { status: 400 }
+      );
+    }
 
-    if (!existingStudent) {
+    const hours = getCurrentHourInTimeZone("Africa/Lagos");
+    const result = await applyStudentStatusUpdate(
+      { studentId: id, schoolId },
+      nextStatus,
+      hours
+    );
+    if (!result) {
       return NextResponse.json(
         { message: "Student not found" },
         { status: 404 }
       );
     }
 
-    const updatedStudent = await db.student.update({
-      where: { id },
-      data: {
-        status: data.attendance,
-      },
-    });
-    revalidateTag("students");
-
-    if (updatedStudent.status === "PICKED" && updatedStudent.busId) {
-      await db.buses.update({
-        where: { id: updatedStudent.busId },
-        data: {
-          seat_number: {
-            decrement: 1,
-          },
-        },
-      });
-    } else if (updatedStudent.status === "DROPPED" && updatedStudent.busId) {
-      await db.buses.update({
-        where: { id: updatedStudent.busId },
-        data: {
-          seat_number: {
-            increment: 1,
-          },
-        },
-      });
-    }
-
-    const hours = getCurrentHourInTimeZone("Africa/Lagos");
-
-    if (updatedStudent.status === "PICKED" && hours >= 6 && hours < 9) {
-      await db.student.update({
-        where: { id },
-        data: {
-          presence: "IN_BUS",
-        },
-      });
-    } else if (updatedStudent.status === "PICKED" && hours >= 9 && hours < 16) {
-      await db.student.update({
-        where: { id },
-        data: {
-          presence: "AT_SCHOOL",
-        },
-      });
-    } else if (
-      updatedStudent.status === "DROPPED" &&
-      hours >= 17 &&
-      hours < 19
-    ) {
-      await db.student.update({
-        where: { id },
-        data: {
-          presence: "NONE",
-        },
-      });
-    } else if (updatedStudent.status === "DROPPED" && hours > 19) {
-      await db.student.update({
-        where: { id },
-        data: {
-          presence: "NONE",
-          status: "DROPPED",
-          attendance: "ABSENT",
-        },
-      });
-    }
-
     return NextResponse.json(
-      { message: "Student updated successfully" },
+      {
+        message: result.changed
+          ? "Student updated successfully"
+          : `Status is already ${result.student.status}`,
+        student: result.student,
+      },
       { status: 200 }
     );
   } catch (error) {

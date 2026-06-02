@@ -10,11 +10,13 @@ interface BackButtonProps {
 }
 export const BackButton = ({ href, label, desc }: BackButtonProps) => {
     return (
-        <div className="text-center flex justify-center items-center w-full">
-            <span className="text-[0.75rem] font-normal ">
-                {desc}
-            </span>
-            <Button variant="link" asChild size="sm" className="font-normal text-sm" >
+        <div className="flex w-full items-center justify-center gap-1.5 text-center text-sm text-slate-300">
+            {desc ? (
+                <span className="text-sm font-normal">
+                    {desc}
+                </span>
+            ) : null}
+            <Button variant="link" asChild size="sm" className="h-auto px-0 text-sm font-semibold text-[#a8b4ff] hover:text-white" >
                 <Link href={href}>
                     {label}
                 </Link>

@@ -35,10 +35,11 @@ const NewVerificationForm = () => {
     return (
         <CardWrapper
             headLabel='Confirming Your account'
+            subLabel="We’re verifying your email so you can finish setting up access."
             backButtonHref="/login"
             backButtonLabel='Back to login'
         >
-            <div className="flex items-center justify-center w-full">
+            <div className="flex min-h-[120px] w-full flex-col items-center justify-center gap-4 rounded-2xl bg-slate-50 px-6 py-8 text-center">
                 {!success && !error && (
                     <BeatLoader />
                 )}

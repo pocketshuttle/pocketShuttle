@@ -21,14 +21,14 @@ export const AddRoles = ({ handleSelectChange, data }: SelectProps) => {
 
     return (
         <Select onValueChange={handleSelectChange}>
-            <SelectTrigger className="w-full text-white bg-[#1d146d] hover:bg-[#1d146d]/90">
-                <SelectValue placeholder="Select Roles" />
+            <SelectTrigger className="h-11 w-full rounded-lg border-[#4a48ff]/30 bg-[#11192a] text-[#dce1ff] shadow-none hover:bg-[#172039] focus:ring-1 focus:ring-[#6d72c9] sm:w-[148px]">
+                <SelectValue placeholder="Select role" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-lg border-[#4a48ff]/30 bg-[#11192a] text-white">
                 <SelectGroup>
                     {
                         data?.map((item: any, index: number) => (
-                            <SelectItem key={index} value={item.value} className="h-9">{item.label}</SelectItem>
+                            <SelectItem key={index} value={item.value} className="h-10 rounded-md focus:bg-[#4a48ff] focus:text-white">{item.label}</SelectItem>
                         ))
                     }
                 </SelectGroup>
@@ -37,4 +37,3 @@ export const AddRoles = ({ handleSelectChange, data }: SelectProps) => {
         </Select>
     );
 };
-
