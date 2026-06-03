@@ -21,17 +21,17 @@ export const DailyPickupChart = ({ data }: { data?: WeeklyData[] }) => {
 
     if (!data || data.length === 0 || allDates.length === 0) {
         return (
-            <div className="bg-white p-4 rounded-lg shadow-md">
-                <p className="text-lg text-gray-900 py-2">Daily Pickups</p>
-                <p className="text-gray-500 text-sm">No data available</p>
+            <div className="rounded-lg border border-black/10 bg-white p-4 text-black dark:border-white/10 dark:bg-zinc-950 dark:text-white">
+                <p className="text-lg font-semibold">Daily Pickups</p>
+                <p className="mt-2 text-sm text-black/55 dark:text-white/55">No pickup logs found for this date range.</p>
             </div>
         );
     }
 
 
     return (
-        <div className="bg-white p-4 rounded-lg shadow-md">
-            <p className="text-lg text-gray-900 py-2">Daily Pickups</p>
+        <div className="rounded-lg border border-black/10 bg-white p-4 text-black dark:border-white/10 dark:bg-zinc-950 dark:text-white">
+            <p className="pb-2 text-lg font-semibold">Daily Pickups</p>
             <LineChart
                 xAxis={[{ data: allDates, scaleType: "point", label: "Date" }]}
                 yAxis={[{ label: "Pickups" }]}

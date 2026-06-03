@@ -15,9 +15,9 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
     onEndDateChange,
 }) => {
     return (
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="flex flex-col">
-                <label htmlFor="start-date" className="text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="start-date" className="mb-1 text-sm font-medium text-black/70 dark:text-white/70">
                     Start Date
                 </label>
                 <input
@@ -25,12 +25,12 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                     type="date"
                     value={startDate}
                     onChange={(e) => onStartDateChange(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="h-10 rounded-md border border-black/10 bg-transparent px-3 py-2 text-sm text-black outline-none transition-colors focus:border-black/30 dark:border-white/10 dark:text-white dark:focus:border-white/30"
                 />
             </div>
 
             <div className="flex flex-col">
-                <label htmlFor="end-date" className="text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="end-date" className="mb-1 text-sm font-medium text-black/70 dark:text-white/70">
                     End Date
                 </label>
                 <input
@@ -38,7 +38,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                     type="date"
                     value={endDate}
                     onChange={(e) => onEndDateChange(e.target.value)}
-                    className="px-3 py-2 border text-gray-900 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="h-10 rounded-md border border-black/10 bg-transparent px-3 py-2 text-sm text-black outline-none transition-colors focus:border-black/30 dark:border-white/10 dark:text-white dark:focus:border-white/30"
                 />
             </div>
         </div>

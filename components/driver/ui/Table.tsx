@@ -44,7 +44,52 @@ import { removeDriverFromBus } from "@/actions/remove-driver"
 import deleted from "@/public/images/delete.json"
 import { handleDelete } from "@/actions/delete-student"
 import { useSession } from "@/hooks/useSession"
+import { CopyableText } from "@/components/ui/copyable-text"
 
+const mockDriversData: DriversProps[] = [
+    {
+        id: "mock-driver-1",
+        full_name: "Marcus Reed",
+        email: "marcus.reed@pocketshuttle.test",
+        phoneNumber: "08023452001",
+        address: "16 Marina Road, Lagos Island, Lagos",
+        image: "/images/no-avatar.webp",
+        bus: {
+            id: "mock-bus-1",
+            color: "yellow",
+            bus_product_name: "Toyota Coaster",
+            bus_number: "PS-102",
+        },
+    } as DriversProps,
+    {
+        id: "mock-driver-2",
+        full_name: "Daniel Okafor",
+        email: "daniel.okafor@pocketshuttle.test",
+        phoneNumber: "08023452002",
+        address: "31 Admiralty Road, Lekki, Lagos",
+        image: "/images/no-avatar.webp",
+        bus: {
+            id: "mock-bus-2",
+            color: "white",
+            bus_product_name: "Mercedes Sprinter",
+            bus_number: "PS-218",
+        },
+    } as DriversProps,
+    {
+        id: "mock-driver-3",
+        full_name: "Samuel Briggs",
+        email: "samuel.briggs@pocketshuttle.test",
+        phoneNumber: "08023452003",
+        address: "5 Banana Island Road, Ikoyi, Lagos",
+        image: "/images/no-avatar.webp",
+        bus: {
+            id: "mock-bus-3",
+            color: "blue",
+            bus_product_name: "Hyundai County",
+            bus_number: "PS-330",
+        },
+    } as DriversProps,
+];
 
 
 
@@ -63,7 +108,7 @@ export const DriverTable = () => {
     const { data, isPending: driversPending, errorMessage: driversError } = useFetch(`/api/addriver/${userId}?q=${searchDriver}`, userId);
     const { data: busData, } = useFetch(`/api/addbus/${userId}`, userId);
 
-    const driversData = data?.driver
+    const driversData = Array.isArray(data?.driver) && data.driver.length ? data.driver : mockDriversData
     const totalCount = data?.driversCount
 
     const handleModal = () => {
@@ -113,38 +158,38 @@ export const DriverTable = () => {
             <div className="p-4 flex justify-end items-center ">
                 < AddData label="Driver" action={handleModal} />
             </div> */}
-            <Table>
+            <Table className="min-w-[1120px] border-separate border-spacing-y-3 bg-transparent">
                 <TableHeader>
-                    <TableRow className=" text-[0.7rem]  border-gray-500 bg-[var(--hoverBg)]">
-                        <TableHead className="w-[250px] text-gray-300">Full Name</TableHead>
-                        <TableHead className="text-gray-300">Email</TableHead>
-                        <TableHead className="text-gray-300">Phone Number</TableHead>
-                        <TableHead className="text-gray-300">Address</TableHead>
-                        <TableHead className="text-gray-300">Bus</TableHead>
-                        <TableHead className="text-gray-300">Actions</TableHead>
+                    <TableRow className="text-xs uppercase tracking-wide hover:bg-transparent dark:hover:bg-transparent">
+                        <TableHead className="w-[300px] text-black/60 dark:text-white/55">Full Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone Number</TableHead>
+                        <TableHead>Address</TableHead>
+                        <TableHead>Bus</TableHead>
+                        <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
-                {driversPending ? <Spinner /> : <TableBody className="text-[0.75rem] text-gray-400 ">
+                {driversPending ? <Spinner /> : <TableBody className="text-sm text-black dark:text-white">
                     {
                         driversData && driversData?.map((driver: DriversProps, index: any) => {
                             return (
-                                <TableRow key={driver.id}>
-                                    <TableCell className="">
+                                <TableRow key={driver.id} className="border-0 bg-white text-black shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition-colors hover:bg-white dark:bg-white/5 dark:text-white dark:shadow-none dark:hover:bg-white/10">
+                                    <TableCell className="rounded-l-2xl px-6 py-5 align-middle">
                                         <div className="flex items-center gap-2">
                                             <img src={driver.image && driver.image || dashboard} alt={driver.full_name} className="rounded-md object-cover w-9 h-9" />
                                             <span className="">{driver.full_name}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell>
-                                        {driver.email}
+                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                        <CopyableText label="Email" value={driver.email} fallback="No email" truncateClassName="max-w-[220px]" />
                                     </TableCell>
-                                    <TableCell>
-                                        {driver.phoneNumber}
+                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                        <CopyableText label="Phone number" value={driver.phoneNumber} fallback="No phone" truncateClassName="max-w-[140px]" />
                                     </TableCell>
-                                    <TableCell>
-                                        {driver.address}
+                                    <TableCell className="max-w-[240px] px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                        <CopyableText label="Address" value={driver.address} fallback="No address" truncateClassName="max-w-[220px]" />
                                     </TableCell>
-                                    <TableCell className="text-[0.7rem] capitalize">
+                                    <TableCell className="px-6 py-5 align-middle text-[0.7rem] capitalize text-black/75 dark:text-white/70">
                                         {
                                             driver.bus ?
                                                 <div className="flex space-x-1">
@@ -202,7 +247,7 @@ export const DriverTable = () => {
                                                 </div>
                                         }
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="rounded-r-2xl px-6 py-5 align-middle">
                                         <div className="space-x-2 flex text-gray-200">
                                             <EditData link={`/dashboard/drivers/${driver.id}`} mode="edit" />
                                             <AlertDialog>

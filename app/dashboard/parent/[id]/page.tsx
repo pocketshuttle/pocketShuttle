@@ -221,7 +221,7 @@ const SingleParentPage = () => {
                                     <FormMessage />
                                 </FormItem>
 
-                                <Button size="lg" className="w-full bg-[#1B1464]" type="submit" disabled={isPending}>
+                                <Button size="lg" className="w-full border border-[var(--text)] bg-[var(--text)] text-[var(--bg-root)] hover:bg-[var(--bg-root)] hover:text-[var(--text)]" type="submit" disabled={isPending}>
                                     {isPending ? "Updating..." : "Update Parent"}
                                 </Button>
                             </form>

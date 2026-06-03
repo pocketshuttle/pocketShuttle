@@ -201,15 +201,15 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-            <div className="relative bg-gray-100 rounded-md w-5/6 ">
+        <div className="modal-overlay">
+            <div className="modal-panel w-5/6">
                 <TeacherCardWrapper
                     headLabel={mode === "driver" ? "Add a Driver" : "Add a Teacher"}
                     action={() => handleCloseModal()}
                 >
 
-                    <div className=" flex ">
-                        <div className=" w-[25%] items-center  bg-gray-50 h-[23.5rem] p-2 rounded-md" >
+                    <div className="form-surface flex gap-5">
+                        <div className="w-[25%] items-center rounded-lg bg-slate-100 p-2 dark:bg-white/5" >
                             <input
                                 id="cameraInput"
                                 type="file"
@@ -220,7 +220,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                             />
                             <Image src={isLoadingImage ? spinner : newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[22.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
                         </div>
-                        <div className="flex-1 px-5 text-gray-950 ">
+                        <div className="flex-1 px-2 text-slate-900 dark:text-slate-100 ">
                             <Form {...form}>
                                 {/* the handle submit comes from the form constant */}
                                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -237,7 +237,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                                             placeholder="Femi Osinachi Usman"
                                                             type="text"
                                                             disabled={isPending}
-                                                            className="py-2 border-none bg-gray-50 text-gray-950 border-gray-300 shadow-md outline-none h-12"
+                                                            className="add-form-input"
                                                         />
                                                     </FormControl>
                                                     <FormMessage />
@@ -261,7 +261,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                                                 placeholder="ciroma@email.com"
                                                                 type="email"
                                                                 disabled={isPending}
-                                                                className="py-2 border-none bg-gray-50 text-gray-950 border-gray-300 shadow-md outline-none h-12"
+                                                                className="add-form-input"
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
@@ -283,7 +283,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                                                 placeholder="08012345678"
                                                                 type="number"
                                                                 disabled={isPending}
-                                                                className="py-2 border-none bg-gray-50 text-gray-950 border-gray-300 shadow-md outline-none h-12"
+                                                                className="add-form-input"
 
                                                             />
                                                         </FormControl>
@@ -311,7 +311,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                                                 placeholder="******"
                                                                 type="password"
                                                                 disabled={isPending}
-                                                                className="py-2 border-none bg-gray-50 text-gray-950 border-gray-300 shadow-md outline-none h-12"
+                                                                className="add-form-input"
 
                                                             />
                                                         </FormControl>
@@ -358,7 +358,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                     <Button
                                         disabled={session?.loading || isPending}
                                         size="lg"
-                                        className="w-full bg-[teal] py-4"
+                                        className="h-12 w-full rounded-lg bg-[#4a48ff] py-4 text-white shadow-none transition-transform duration-150 hover:scale-[1.01] hover:bg-[#5b5aff]"
                                         type="submit"
                                     >
                                         {isPending ? "Submitting..." : mode === "driver" ? "Add Driver" : "Add Teacher"}
@@ -373,4 +373,3 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
         </div >
     )
 }
-

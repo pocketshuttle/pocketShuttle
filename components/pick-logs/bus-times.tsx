@@ -1,25 +1,17 @@
-"use client"
-import { Open_Sans } from "next/font/google"
-import { useState } from "react";
-
 interface AveragePickUpProps {
     headLabel: string
     avgTime: string
-    service?: string
-
 }
-const openSans = Open_Sans({ weight: "500", subsets: ["latin"] })
 
-export const AveragePickUp = ({ headLabel, avgTime, service }: AveragePickUpProps) => {
+export const AveragePickUp = ({ headLabel, avgTime }: AveragePickUpProps) => {
     return (
-        <div className={`py-5 px-2 border border-gray-600 text-[#222D37] space-y-4 flex  justify-between mt-2 rounded-xl hover:bg-[var(--hoverBg)] shadow-xl  ${openSans.className} `}
-        >
-            <div className=" font-normal text-xl space-y-3 ">
-                <p className="text-lg text-gray-300">
+        <div className="rounded-lg border border-black/10 bg-white p-4 text-black transition-colors hover:bg-black/[0.02] dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:hover:bg-white/[0.04]">
+            <div className="space-y-2">
+                <p className="text-sm font-medium text-black/55 dark:text-white/55">
                     {headLabel}
                 </p>
-                <p className="text-4xl font-semibold text-gray-100">
-                    {avgTime ?? "00 AM"}
+                <p className="text-3xl font-semibold">
+                    {avgTime || "--"}
                 </p>
             </div>
         </div>

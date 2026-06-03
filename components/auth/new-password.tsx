@@ -7,14 +7,12 @@ import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "
 import { NewPasswordSchema } from "@/schemas"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Login } from "@/actions/login"
 import { useState, useTransition } from "react"
 import { FormError } from "@/components/errorsandsuccess/form-error"
 import { FormSuccess } from "@/components/errorsandsuccess/form-success"
 import { useSearchParams } from "next/navigation"
 import { newPassword } from "@/actions/new-password"
 import { Poppins } from "next/font/google"
-import { AddRoles } from "../ui/add-role"
 const poppins = Poppins({ weight: "400", subsets: ["latin"] });
 
 export const NewPasswordForm = () => {
@@ -24,7 +22,6 @@ export const NewPasswordForm = () => {
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState<string | undefined>("")
     const [isSuccess, setIsSuccess] = useState<string | undefined>("")
-    const [selectedRole, setSelectedRole] = useState<string>("")
 
     {/**
      Initialize the form with react-hook-form, integrating Zod for validation
@@ -35,32 +32,13 @@ export const NewPasswordForm = () => {
  @Usage:
  This setup enables the form to use `NewPasswordSchema` for validating the email and password fields.
 */}
-    const data = [
-        {
-            value: "admin",
-            label: "Admin",
-        },
-        {
-            value: "parent",
-            label: "Parent",
-        },
-        {
-            value: "teacher",
-            label: "Teacher",
-        },
-    ];
-
     const form = useForm<z.infer<typeof NewPasswordSchema>>({
         resolver: zodResolver(NewPasswordSchema),
         defaultValues: {
             password: "",
-            role: "admin"
         }
     })
-    const handleSelectRole = (value: string) => {
-        setSelectedRole(value)
-        form.setValue("role", value)
-    }
+
     const onSubmit = (values: z.infer<typeof NewPasswordSchema>) => {
         setIsError("")
         setIsSuccess("")
@@ -77,7 +55,7 @@ export const NewPasswordForm = () => {
     return (
         <CardWrapper
             headLabel="Create a new password"
-            subLabel="Choose a fresh password for your selected role to regain access securely."
+            subLabel="Choose a fresh password to regain access securely."
             backButtonLabel="Back to Login?"
             backButtonHref="/login"
         >
@@ -105,9 +83,6 @@ export const NewPasswordForm = () => {
                             )}
                         >
                         </FormField>
-                    </div>
-                    <div>
-                        <AddRoles handleSelectChange={handleSelectRole} data={data} />
                     </div>
                     <FormError message={isError} />
                     <FormSuccess message={isSuccess} />

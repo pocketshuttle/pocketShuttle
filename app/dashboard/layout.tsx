@@ -1,9 +1,13 @@
 import Navbar from "@/components/dashboard/navbar/navbar";
 import Sidebar from "@/components/dashboard/sidebar/sidebar";
 import { getUserSession } from "@/lib/session";
-import { Poppins } from "next/font/google";
+import { Inter } from "next/font/google";
 import { redirect } from "next/navigation";
-const poppins = Poppins({ weight: "500", subsets: ["latin"] });
+
+const inter = Inter({
+    subsets: ["latin"],
+    weight: ["400", "500", "600", "700"],
+});
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
     // Fetch the user session
@@ -21,14 +25,15 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
     }
 
     return (
-        <div className={`flex h-screen bg-black ${poppins.className} w-full`}>
-            <div className="w-[10%] lg:w-1/5 max-h-screen">
-                <Sidebar data={user} />
-            </div>
+        <div className={`flex h-screen w-full flex-col bg-gray-100 text-black dark:bg-black dark:text-white ${inter.className} antialiased transition-colors duration-200`}>
+            <Navbar data={user} />
 
-            <div className="flex-1 p-3 ml-1/5 w-[90%] lg:w-full">
-                <Navbar />
-                {children}
+            <div className="flex min-h-0 flex-1">
+                <Sidebar data={user} />
+
+                <main className="flex-1 overflow-y-auto bg-gray-100 p-4 text-black transition-colors dark:bg-black dark:text-white lg:p-5">
+                    {children}
+                </main>
             </div>
         </div>
     );

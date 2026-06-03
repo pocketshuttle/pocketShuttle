@@ -23,9 +23,16 @@ export const sendSmsForBusArrival = async ({
   eta,
 }: SMSType) => {
   try {
+    if (!phoneNumber) {
+      return {
+        message: "Parent phone number is required",
+        status: 400,
+      };
+    }
+
     const messages = await client.messages.create({
       from: "whatsapp:+14155238886",
-      to: "whatsapp:+2348103955096",
+      to: `whatsapp:${phoneNumber}`,
       body: `Hello ${capitalizeName(parent_name)},\n ${capitalizeName(student_name)} bus is on its way for pick up and would arrive in ${eta}\n in  bus: ${bus_name}`,
     });
     return { message: "Mesasge sent", status: 200 };

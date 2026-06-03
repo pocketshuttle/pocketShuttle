@@ -7,11 +7,9 @@ import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "
 import { ResetPasswordSchema } from "@/schemas"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Login } from "@/actions/login"
 import { useState, useTransition } from "react"
 import { FormError } from "@/components/errorsandsuccess/form-error"
 import { FormSuccess } from "@/components/errorsandsuccess/form-success"
-import Link from "next/link"
 import { reset } from "@/actions/reset"
 import { Poppins } from "next/font/google"
 import { AddRoles } from "../ui/add-role"
@@ -21,7 +19,7 @@ export const ResetPasswordForm = () => {
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState<string | undefined>("")
     const [isSuccess, setIsSuccess] = useState<string | undefined>("")
-    const [selectedRole, setSelectedRole] = useState<string>("")
+    const [selectedRole, setSelectedRole] = useState<string>("admin")
     {/**
      Initialize the form with react-hook-form, integrating Zod for validation
  - The form's validation schema is defined using Zod's `ResetPasswordSchema`
@@ -103,7 +101,7 @@ export const ResetPasswordForm = () => {
                         </FormField>
                     </div>
                     <div>
-                        <AddRoles handleSelectChange={handleSelectRole} data={data} />
+                        <AddRoles handleSelectChange={handleSelectRole} data={data} value={selectedRole} />
 
                     </div>
                     <FormError message={isError} />

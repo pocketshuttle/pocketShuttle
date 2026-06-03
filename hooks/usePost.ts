@@ -1,4 +1,5 @@
 import { useToast } from "@/components/ui/use-toast";
+import { appService } from "@/services/app-service";
 import { useEffect, useState } from "react";
 
 export const usePost = (
@@ -17,32 +18,23 @@ export const usePost = (
       setLoading(true); // Set loading true when postData starts
 
       try {
-        const response = await fetch(url, {
-          method: method,
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(value),
+        const data = await appService<{ message?: string }>(url, {
+          method: method as "POST" | "PUT" | "PATCH" | "DELETE",
+          data: value,
         });
-        const data = await response.json();
-        if (response.ok) {
-          setData(data);
-          setIsSuccess(true);
-          toast({
-            title: "Added Successfully",
-            description: data.message,
-          });
-        } else {
-          toast({
-            title: "Failed",
-            description: data.message,
-          });
-          setIsSuccess(false);
-          setLoading(false);
-        }
+        setData(data as never);
+        setIsSuccess(true);
+        toast({
+          title: "Saved Successfully",
+          description: data.message,
+        });
       } catch (error) {
         if (error instanceof Error) {
           setErrorMessage(error.message);
+          toast({
+            title: "Failed",
+            description: error.message,
+          });
         }
       } finally {
         setLoading(false);

@@ -13,6 +13,7 @@ import { Login } from "@/actions/login"
 import { useState, useTransition } from "react"
 import { register } from "@/actions/register"
 import { Poppins } from "next/font/google"
+import { Eye, EyeOff } from "lucide-react"
 const poppins = Poppins({ weight: "400", subsets: ["latin"] });
 
 
@@ -20,6 +21,7 @@ export const RegisterForm = () => {
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState<string | undefined>("")
     const [isSuccess, setIsSuccess] = useState<string | undefined>("")
+    const [showPassword, setShowPassword] = useState(false)
 
     {/**
             Initialize the form with react-hook-form, integrating Zod for validation
@@ -61,21 +63,21 @@ export const RegisterForm = () => {
         >
             <Form {...form}>
                 {/* the handle submit comes from the form constant */}
-                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-5 ${poppins.className} text-slate-800`}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-5 ${poppins.className} text-white`}>
                     <div className="space-y-5 ">
                         <FormField
                             control={form.control}
                             name="schoolname"
                             render={({ field }) => (
                                 <FormItem className="space-y-2.5">
-                                    <FormLabel className="text-sm font-medium text-slate-700">Name of Your School</FormLabel>
+                                    <FormLabel className="text-sm font-medium text-slate-200">Name of Your School</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
                                             placeholder="school name"
                                             type="text"
                                             disabled={isPending}
-                                            className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-slate-900 shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-slate-300"
+                                            className="h-14 rounded-lg border-white/5 bg-[#141c2a] px-4 text-white shadow-none placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#6d72c9]"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -91,14 +93,14 @@ export const RegisterForm = () => {
                             name="email"
                             render={({ field }) => (
                                 <FormItem className="space-y-2.5">
-                                    <FormLabel className="text-sm font-medium text-slate-700">Email</FormLabel>
+                                    <FormLabel className="text-sm font-medium text-slate-200">Email Address</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
                                             placeholder="iwinosa@gmail.com"
                                             type="email"
                                             disabled={isPending}
-                                            className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-slate-900 shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-slate-300"
+                                            className="h-14 rounded-lg border-white/5 bg-[#141c2a] px-4 text-white shadow-none placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#6d72c9]"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -115,16 +117,31 @@ export const RegisterForm = () => {
                             name="password"
                             render={({ field }) => (
                                 <FormItem className="space-y-2.5">
-                                    <FormLabel className="text-sm font-medium text-slate-700">Password</FormLabel>
+                                    <FormLabel className="text-sm font-medium text-slate-200">Password</FormLabel>
                                     <FormControl>
-                                        <Input
-                                            {...field}
-                                            placeholder="******"
-                                            type="password"
-                                            disabled={isPending}
-                                            className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-slate-900 shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-slate-300"
+                                        <div className="relative">
+                                            <Input
+                                                {...field}
+                                                placeholder="******"
+                                                type={showPassword ? "text" : "password"}
+                                                disabled={isPending}
+                                                className="h-14 rounded-lg border-white/5 bg-[#141c2a] px-4 pr-12 text-white shadow-none placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#6d72c9]"
 
-                                        />
+                                            />
+                                            <button
+                                                type="button"
+                                                disabled={isPending}
+                                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                                onClick={() => setShowPassword((current) => !current)}
+                                                className="absolute right-4 top-1/2 inline-flex -translate-y-1/2 items-center justify-center text-slate-400 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                {showPassword ? (
+                                                    <EyeOff className="h-5 w-5" aria-hidden="true" />
+                                                ) : (
+                                                    <Eye className="h-5 w-5" aria-hidden="true" />
+                                                )}
+                                            </button>
+                                        </div>
                                     </FormControl>
                                     <FormMessage />
 
@@ -139,7 +156,7 @@ export const RegisterForm = () => {
 
                     <Button
                         disabled={isPending}
-                        size="lg" className="h-12 w-full rounded-xl bg-slate-900 text-base font-semibold text-white hover:bg-slate-800" type="submit">Join Us</Button>
+                        size="lg" className="h-14 w-full rounded-lg bg-[#4a48ff] text-base font-semibold text-white shadow-none hover:bg-[#5b5aff]" type="submit">Join Us</Button>
                 </form>
             </Form>
         </CardWrapper>

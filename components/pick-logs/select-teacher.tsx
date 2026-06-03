@@ -31,7 +31,7 @@ export const SelectActiveTeacher = ({ placeholder, label, data, handleSelectChan
             const parsed = JSON.parse(val)
             handleSelectChange(parsed)
         }}>
-            <SelectTrigger className="w-full text-gray-100 cursor-pointer">
+            <SelectTrigger className="h-10 w-full cursor-pointer border-black/10 text-black dark:border-white/10 dark:text-white">
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
@@ -55,4 +55,3 @@ export const SelectActiveTeacher = ({ placeholder, label, data, handleSelectChan
 
     );
 };
-

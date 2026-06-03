@@ -37,6 +37,41 @@ import { toast } from "@/components/ui/use-toast"
 import { revalidateTag } from "next/cache"
 import { useSession } from "@/hooks/useSession"
 
+const mockBusData: BusProps[] = [
+    {
+        id: "mock-bus-1",
+        bus_product_name: "Toyota Coaster",
+        bus_number: "PS-102",
+        color: "yellow",
+        seat_number: 28,
+        driver: { full_name: "Marcus Reed" },
+        teacher: { full_name: "Amelia Hart" },
+        students: [{ id: "mock-student-1", full_name: "Noah Carter" }],
+        route: { route_name: "North Gate Route" },
+    } as unknown as BusProps,
+    {
+        id: "mock-bus-2",
+        bus_product_name: "Mercedes Sprinter",
+        bus_number: "PS-218",
+        color: "white",
+        seat_number: 18,
+        driver: { full_name: "Daniel Okafor" },
+        teacher: { full_name: "Grace Wilson" },
+        students: [{ id: "mock-student-2", full_name: "Maya Evans" }],
+        route: { route_name: "Lekki Phase 1" },
+    } as unknown as BusProps,
+    {
+        id: "mock-bus-3",
+        bus_product_name: "Hyundai County",
+        bus_number: "PS-330",
+        color: "blue",
+        seat_number: 24,
+        driver: { full_name: "Samuel Briggs" },
+        teacher: { full_name: "Helen Moore" },
+        students: [{ id: "mock-student-3", full_name: "Leo Bennett" }],
+        route: { route_name: "Ikoyi Express" },
+    } as unknown as BusProps,
+];
 
 export const BusData = ({ data }: any) => {
     const [isOpenModal, setIsOpenModal] = useState(false)
@@ -48,7 +83,7 @@ export const BusData = ({ data }: any) => {
     const { data: routeData } = useFetch(`/api/addroute/${userId}`, userId);
     const [isHovering, setIsHovering] = useState(false);
 
-    const busData = data
+    const busData = Array.isArray(data) && data.length ? data : mockBusData
 
     const [isPending, startTransition] = useTransition()
 
@@ -92,55 +127,55 @@ export const BusData = ({ data }: any) => {
             }
 
 
-            <Table >
+            <Table className="min-w-[1120px] border-separate border-spacing-y-3 bg-transparent">
                 <TableHeader >
-                    <TableRow className=" text-[0.7rem] bg-[var(--hoverBg)] rounded-md border-none">
-                        <TableHead className=" text-gray-300 border-none">Bus Name</TableHead>
-                        <TableHead className=" text-gray-300">Bus Number</TableHead>
-                        <TableHead className=" text-gray-300">Bus Color</TableHead>
-                        <TableHead className="text-gray-300">Seats</TableHead>
-                        <TableHead className="w-[150px] text-gray-300">Driver</TableHead>
-                        <TableHead className="w-[150px] text-gray-300">Teacher</TableHead>
-                        <TableHead className="text-gray-300">Students</TableHead>
-                        <TableHead className="text-gray-300">Routes</TableHead>
-                        <TableHead className="text-gray-300">Actions</TableHead>
+                    <TableRow className="text-xs uppercase tracking-wide hover:bg-transparent dark:hover:bg-transparent">
+                        <TableHead className="text-black/60 dark:text-white/55">Bus Name</TableHead>
+                        <TableHead>Bus Number</TableHead>
+                        <TableHead>Bus Color</TableHead>
+                        <TableHead>Seats</TableHead>
+                        <TableHead className="w-[150px]">Driver</TableHead>
+                        <TableHead className="w-[150px]">Teacher</TableHead>
+                        <TableHead>Students</TableHead>
+                        <TableHead>Routes</TableHead>
+                        <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
-                <TableBody className="text-[0.75rem] text-gray-400 ">
+                <TableBody className="text-sm text-black dark:text-white">
                     {busData?.map((bus: BusProps) => {
                         return (
-                            <TableRow key={bus.id} className="">
-                                <TableCell className="capitalize ">
+                            <TableRow key={bus.id} className="border-0 bg-white text-black shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition-colors hover:bg-white dark:bg-white/5 dark:text-white dark:shadow-none dark:hover:bg-white/10">
+                                <TableCell className="rounded-l-2xl px-6 py-5 align-middle capitalize">
                                     {bus.bus_product_name}
                                 </TableCell>
-                                <TableCell className="capitalize">
+                                <TableCell className="px-6 py-5 align-middle capitalize text-black/75 dark:text-white/70">
                                     {bus.bus_number}
                                 </TableCell>
-                                <TableCell className="capitalize">
+                                <TableCell className="px-6 py-5 align-middle capitalize text-black/75 dark:text-white/70">
                                     {bus.color}
                                 </TableCell>
-                                <TableCell className="capitalize">
+                                <TableCell className="px-6 py-5 align-middle capitalize text-black/75 dark:text-white/70">
                                     {bus.seat_number}
                                 </TableCell>
-                                <TableCell className="capitalize">
+                                <TableCell className="px-6 py-5 align-middle capitalize text-black/75 dark:text-white/70">
                                     {bus.driver ? bus.driver.full_name : "no bus driver"}
                                 </TableCell>
-                                <TableCell className="capitalize">
+                                <TableCell className="px-6 py-5 align-middle capitalize text-black/75 dark:text-white/70">
                                     {
                                         bus.teacher ? bus.teacher?.full_name : "no bus teacher"
                                     }
                                 </TableCell>
-                                <TableCell className="capitalize">
+                                <TableCell className="px-6 py-5 align-middle capitalize text-black/75 dark:text-white/70">
                                     {bus.students?.length ? <ViewStudent data={bus.students} /> : "no kids"}
                                 </TableCell>
-                                <TableCell className="capitalize">
+                                <TableCell className="px-6 py-5 align-middle capitalize text-black/75 dark:text-white/70">
 
                                     {
                                         bus.route ?
                                             <span>{bus.route.route_name}</span> : <AddRoute data={routeData} placeholder="Select Route" label="Add Route" busId={bus.id} />
                                     }
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="rounded-r-2xl px-6 py-5 align-middle">
                                     <div className="space-x-2 flex">
                                         <EditData link={`/dashboard/bus/${bus.id}`} mode="edit" />
                                         <AlertDialog>

@@ -10,8 +10,7 @@ import {
 import { getUserByEmail } from "@/data/user";
 import { generateVerificationToken } from "@/lib/token";
 import { sendVerificationEmail } from "@/lib/mail";
-import { encrypt } from "@/lib/create-session";
-import { cookies } from "next/headers";
+import { setSessionCookie } from "@/lib/create-session";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 
@@ -65,16 +64,13 @@ export const Login = async (
   const schoolId = existingUser?.schoolId;
 
   try {
-    // Create session cookie
-    const expiresAt = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
-    const session = await encrypt({ id, role, name, image, schoolId });
-
-    cookies().set("session", session, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      expires: expiresAt,
-      sameSite: "lax",
-      path: "/",
+    await setSessionCookie({
+      id,
+      role,
+      name,
+      image,
+      email: existingUser.email,
+      schoolId,
     });
   } catch (error: unknown) {
     return { error: "Invalid Credentials!" };

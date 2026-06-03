@@ -77,15 +77,15 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 ">
-            <div className="relative bg-gray-100  rounded-md w-3/6 ">
+        <div className="modal-overlay">
+            <div className="modal-panel w-3/6">
 
                 <TeacherCardWrapper
                     headLabel="Add a Bus"
                     action={() => handleCloseModal()}
                 >
-                    <div className=" flex justify-center">
-                        <div className="flex-1 px-5 text-gray-950">
+                    <div className="form-surface flex justify-center">
+                        <div className="flex-1 px-2 text-slate-900 dark:text-slate-100">
                             <Form {...form}>
                                 {/* the handle submit comes from the form constant */}
                                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -105,7 +105,7 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                                                 type="text"
                                                                 disabled={isPending}
                                                                 // className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                                className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
+                                                                className="add-form-input"
 
                                                             />
                                                         </FormControl>
@@ -130,7 +130,7 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                                                 placeholder="abc-1234"
                                                                 type="text"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
+                                                                className="add-form-input"
 
                                                             />
                                                         </FormControl>
@@ -155,7 +155,7 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                                                 placeholder="20"
                                                                 type="number"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
+                                                                className="add-form-input"
                                                                 onChange={(e) => {
                                                                     const value = e.target.value;
                                                                     field.onChange(value === "" ? "" : Number(value));
@@ -180,7 +180,7 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                                                 placeholder="red"
                                                                 type="text"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
+                                                                className="add-form-input"
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
@@ -198,7 +198,7 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                     </div> */}
                                     <Button
                                         disabled={isPending}
-                                        size="lg" className="w-full bg-[#1d146d] p-5" type="submit">Add Bus
+                                        size="lg" className="h-12 w-full rounded-lg bg-[#4a48ff] p-5 text-white shadow-none transition-transform duration-150 hover:scale-[1.01] hover:bg-[#5b5aff]" type="submit">Add Bus
                                     </Button>
                                 </form>
                             </Form>
@@ -210,4 +210,3 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
         </div >
     )
 }
-

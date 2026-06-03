@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+// @ts-ignore
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster"
 import Provider from "@/components/Provider";
@@ -22,6 +23,14 @@ export const metadata: Metadata = {
 
   },
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/logo.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: "/logo.png",
+    apple: [{ url: "/logo.png", sizes: "192x192", type: "image/png" }],
+  },
 
   description: "location bus service for school and parent",
   openGraph: {

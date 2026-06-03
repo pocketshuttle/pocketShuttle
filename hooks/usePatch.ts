@@ -1,4 +1,5 @@
 import { toast } from "@/components/ui/use-toast";
+import { appService } from "@/services/app-service";
 import { useState } from "react";
 
 const useUpdateAttendance = (studentId: string, method: string) => {
@@ -13,27 +14,14 @@ const useUpdateAttendance = (studentId: string, method: string) => {
     setError(null);
 
     try {
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ attendance }),
+      const data = await appService<{ message?: string }>(url, {
+        method: method as "POST" | "PUT" | "PATCH" | "DELETE",
+        data: { attendance },
       });
-
-      const data = await response.json();
-      if (response.ok) {
-        toast({
-          title: "Marked",
-          description: data.message,
-        });
-        
-      } else {
-        toast({
-          title: "Marked",
-          description: data.message,
-        });
-      }
+      toast({
+        title: "Marked",
+        description: data.message,
+      });
 
       return data;
     } catch (err) {

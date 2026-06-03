@@ -10,33 +10,27 @@ import { useState } from "react";
 interface DashboardWrapperProps {
     headLabel: string
     total: number
-    bgColor: string
+    bgColor?: string
     service?: string
 
 }
-// color1="#CEE5F3"
-// color2="#1B1464"
-// color3="#F0F4F8"
-// #C3DFF7
-// #A4E2F8
-
 const openSans = Open_Sans({ weight: "500", subsets: ["latin"] })
 export const DashboardWrapper = ({ headLabel, total, bgColor, service }: DashboardWrapperProps) => {
     const [hoverIndex, setHoverIndex] = useState<number | null>(null);
     return (
-        <div className={`py-3 px-4 text-[#222D37] space-y-4 flex items-center mx-auto justify-between mt-2 rounded-xl shadow hover:bg-[var(--hoverBg)] shadow-xl bg-${`#A4E2F8`} ${openSans.className} `}
-            style={{ backgroundColor: bgColor || "#A4E2F8" }}
+        <div className={`mx-auto mt-2 flex items-center justify-between space-y-4 rounded-xl border border-[var(--text)] bg-[var(--bgSoft)] px-4 py-3 text-[var(--text)] transition-colors hover:bg-[var(--hoverBg)] ${openSans.className} `}
+            style={bgColor ? { backgroundColor: bgColor } : undefined}
         >
             <div className=" font-medium text-xl ">
-                <p className="text-[1.2rem] font-semibold text-gray-100">
+                <p className="text-[1.2rem] font-semibold text-[var(--text)]">
                     {total}
                 </p>
-                <p className="text-[0.8rem] text-gray-300">
+                <p className="text-[0.8rem] text-[var(--textSoft)]">
                     {headLabel}
                 </p>
             </div>
             <div className="text-[0.8rem] ">
-                <div style={{ width: 40, height: 40, backgroundColor: "#040404", borderRadius: "5px", padding: "5px" }} >
+                <div className="h-10 w-10 rounded-md border border-[var(--text)] bg-[var(--bg-root)] p-1" >
                     {
                         service === "student" ?
                             <LottieAnimation

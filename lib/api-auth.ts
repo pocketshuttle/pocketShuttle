@@ -2,6 +2,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
+import { SESSION_COOKIE_NAME } from "@/lib/auth-cookies";
 import { decrypt } from "@/lib/create-session";
 
 export type ApiSession = {
@@ -21,7 +22,7 @@ export function normalizeRole(role: unknown) {
 }
 
 export async function getApiSession(): Promise<ApiSession | null> {
-  const cookie = cookies().get("session")?.value;
+  const cookie = cookies().get(SESSION_COOKIE_NAME)?.value;
   if (!cookie) {
     return null;
   }

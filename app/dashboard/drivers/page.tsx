@@ -86,7 +86,7 @@ const Drivers = async ({ searchParams }: { searchParams: { [key: string]: string
             );
         }
         return (
-            <div className="flex items-center justify-center min-h-screen text-red-600">
+            <div className="flex min-h-screen items-center justify-center text-[var(--text)]">
                 <p>An error occurred. Please refresh or try again later.</p>
             </div>
         );

@@ -22,9 +22,18 @@ export const PickupTimeFlow = ({ data }: { data: WeeklyStat[] }) => {
     const xAxisLabels = data?.map((_, i) => `Week ${i + 1}`);
     const yAxisData = data?.map(d => toMinutes(d.busAverage));
 
+    if (!data || data.length === 0) {
+        return (
+            <div className="rounded-lg border border-black/10 bg-white p-4 text-black dark:border-white/10 dark:bg-zinc-950 dark:text-white">
+                <p className="text-lg font-semibold">Pick Up Time Flow</p>
+                <p className="mt-2 text-sm text-black/55 dark:text-white/55">No average pickup times found.</p>
+            </div>
+        );
+    }
+
     return (
-        <div className="bg-white p-4 rounded-lg shadow-md">
-            <p className="text-lg text-gray-900 py-2">
+        <div className="rounded-lg border border-black/10 bg-white p-4 text-black dark:border-white/10 dark:bg-zinc-950 dark:text-white">
+            <p className="pb-2 text-lg font-semibold">
                 Pick Up Time Flow
             </p>
             <LineChart

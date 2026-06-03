@@ -35,17 +35,17 @@ export const getGoogleMapsRoute = async (
       return;
     }
 
-    const directionsService = new google.maps.DirectionsService();
+    const directionsService = new window.google.maps.DirectionsService();
 
     directionsService.route(
       {
         origin: origin,
         destination: destination,
-        travelMode: google.maps.TravelMode.DRIVING,
+        travelMode: window.google.maps.TravelMode.DRIVING,
       },
       (result, status) => {
         console.log(result)
-        if (status === google.maps.DirectionsStatus.OK && result) {
+        if (status === window.google.maps.DirectionsStatus.OK && result) {
           resolve(result);
         } else {
           console.error("Directions request failed:", status);
@@ -285,7 +285,7 @@ type LocationInput = string | { lat: number; lng: number };
 export function getETA(
   origin: LocationInput,
   destination: LocationInput,
-  mode: google.maps.TravelMode = google.maps.TravelMode.DRIVING
+  mode?: google.maps.TravelMode
 ): Promise<{
   distance: string;
   duration: string;
@@ -297,13 +297,13 @@ export function getETA(
       return;
     }
 
-    const service = new google.maps.DistanceMatrixService();
+    const service = new window.google.maps.DistanceMatrixService();
 
     service.getDistanceMatrix(
       {
         origins: [origin],
         destinations: [destination],
-        travelMode: mode,
+        travelMode: mode ?? window.google.maps.TravelMode.DRIVING,
       },
       (response, status) => {
         if (

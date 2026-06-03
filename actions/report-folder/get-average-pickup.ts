@@ -1,33 +1,53 @@
 "use server";
+import { getApiSession, canManageSchool } from "@/lib/api-auth";
 import db from "@/packages/db/client";
 import { format, startOfWeek } from "date-fns";
+
+function normalizeDateRange(termStart: Date, termEnd: Date) {
+  const start = new Date(termStart);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(termEnd);
+  end.setHours(23, 59, 59, 999);
+
+  return { start, end };
+}
+
+async function getScopedBus(busId: string) {
+  const session = await getApiSession();
+  if (!canManageSchool(session) || !session.schoolId) {
+    throw new Error("Unauthorized");
+  }
+
+  const bus = await db.buses.findFirst({
+    where: { id: busId, schoolId: session.schoolId },
+    include: { students: true },
+  });
+
+  if (!bus) throw new Error("Bus not found");
+
+  return bus;
+}
 
 export async function getWeeklyPickupStatsForBus(
   busId: string,
   termStart: Date,
   termEnd: Date
 ) {
-  // 1. Get all students on the bus
-  const bus = await db.buses.findUnique({
-    where: { id: busId },
-    include: { students: true }, // students in this bus
-  });
-
-  if (!bus) throw new Error("Bus not found");
+  const bus = await getScopedBus(busId);
+  const { start, end } = normalizeDateRange(termStart, termEnd);
 
   const studentIds = bus.students.map((s) => s.id);
 
-  // 2. Fetch all pickups for those students in the date range
   const pickups = await db.pickup.findMany({
     where: {
       studentId: { in: studentIds },
-      pickUpTime: { gte: termStart, lte: termEnd },
+      pickUpTime: { gte: start, lte: end },
     },
     include: { Student: true },
     orderBy: { pickUpTime: "asc" },
   });
 
-  // 3. Group by week + student
   const weeklyGroups: Record<string, Record<string, number[]>> = {};
 
   pickups.forEach((pickup) => {
@@ -50,7 +70,6 @@ export async function getWeeklyPickupStatsForBus(
     weeklyGroups[weekKey][pickup.studentId].push(minutesSinceMidnight);
   });
 
-  // 4. Compute averages per student per week
   const weeklyStats = Object.entries(weeklyGroups).map(([week, students]) => {
     const studentAverages = Object.entries(students).map(
       ([studentId, times]) => {
@@ -111,28 +130,21 @@ export async function getWeeklyLatePickupStats(
   termStart: Date,
   termEnd: Date
 ) {
-  // 1. Get all students on the bus
-  const bus = await db.buses.findUnique({
-    where: { id: busId },
-    include: { students: true },
-  });
-
-  if (!bus) throw new Error("Bus not found");
+  const bus = await getScopedBus(busId);
+  const { start, end } = normalizeDateRange(termStart, termEnd);
 
   const studentIds = bus.students.map((s) => s.id);
 
-  // 2. Fetch all pickups with both arrival and pickup times
   const pickups = await db.pickup.findMany({
     where: {
       studentId: { in: studentIds },
-      pickUpTime: { gte: termStart, lte: termEnd },
+      pickUpTime: { gte: start, lte: end },
       arrivalTime: { not: null },
     },
     include: { Student: true },
     orderBy: { pickUpTime: "asc" },
   });
 
-  // 3. Group by week and calculate late pickups
   const weeklyGroups: Record<
     string,
     {
@@ -166,24 +178,20 @@ export async function getWeeklyLatePickupStats(
       };
     }
 
-    // Calculate time difference in minutes
     const arrivalTime = new Date(pickup.arrivalTime);
     const pickupTime = new Date(pickup.pickUpTime);
     const timeDifferenceMinutes =
       (pickupTime.getTime() - arrivalTime.getTime()) / (1000 * 60);
 
-    console.log(timeDifferenceMinutes, "timeDifferenceMinutes");
     weeklyGroups[weekKey].totalPickups++;
     weeklyGroups[weekKey].totalStudents.add(pickup.studentId);
 
-    // Check if pickup was more than 5 minutes after arrival
     if (timeDifferenceMinutes > 5) {
       weeklyGroups[weekKey].latePickups++;
       weeklyGroups[weekKey].lateStudents.add(pickup.studentId);
     }
   });
 
-  // 4. Calculate weekly statistics
   const weeklyLateStats = Object.entries(weeklyGroups).map(([week, data]) => {
     const latePercentage =
       data.totalPickups > 0
@@ -215,21 +223,15 @@ export async function getLateStudentDetails(
   termStart: Date,
   termEnd: Date
 ) {
-  // 1. Get all students on the bus
-  const bus = await db.buses.findUnique({
-    where: { id: busId },
-    include: { students: true },
-  });
-
-  if (!bus) throw new Error("Bus not found");
+  const bus = await getScopedBus(busId);
+  const { start, end } = normalizeDateRange(termStart, termEnd);
 
   const studentIds = bus.students.map((s) => s.id);
 
-  // 2. Fetch all pickups with both arrival and pickup times
   const pickups = await db.pickup.findMany({
     where: {
       studentId: { in: studentIds },
-      pickUpTime: { gte: termStart, lte: termEnd },
+      pickUpTime: { gte: start, lte: end },
       arrivalTime: { not: null },
     },
     include: {
@@ -248,17 +250,14 @@ export async function getLateStudentDetails(
     orderBy: { pickUpTime: "asc" },
   });
 
-  // 3. Filter and process late pickups
   const lateStudents = pickups
     .filter((pickup) => {
       if (!pickup.arrivalTime || !pickup.pickUpTime) return false;
 
       const date = new Date(pickup.pickUpTime);
-      // Skip weekends
       const dayOfWeek = date.getDay();
       if (dayOfWeek === 0 || dayOfWeek === 6) return false;
 
-      // Calculate time difference in minutes
       const arrivalTime = new Date(pickup.arrivalTime);
       const pickupTime = new Date(pickup.pickUpTime);
       const timeDifferenceMinutes =
@@ -284,7 +283,6 @@ export async function getLateStudentDetails(
       };
     });
 
-  // 4. Group by student and get the latest late pickup for each student
   const studentMap = new Map();
   lateStudents.forEach((student) => {
     const existing = studentMap.get(student.studentId);

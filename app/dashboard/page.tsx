@@ -78,13 +78,13 @@ const Dashboard = async () => {
                 <div className="w-full lg:w-4/6">
                     <div className="flex w-full gap-2 justify-between p-2 ">
                         <div className="w-2/6">
-                            <DashboardWrapper headLabel=" Buses" total={busCount} bgColor="#151618" service="bus" />
+                            <DashboardWrapper headLabel=" Buses" total={busCount} service="bus" />
                         </div>
                         <div className="w-2/6">
-                            <DashboardWrapper headLabel="Students" total={studentCount} bgColor="#151618" service="student" />
+                            <DashboardWrapper headLabel="Students" total={studentCount} service="student" />
                         </div>
                         <div className="w-2/6">
-                            <DashboardWrapper headLabel="Teachers" total={teacherCount} bgColor="#151618" />
+                            <DashboardWrapper headLabel="Teachers" total={teacherCount} />
                         </div>
                     </div>
                     {/* @ts-ignore */}
