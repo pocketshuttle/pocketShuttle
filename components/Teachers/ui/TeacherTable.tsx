@@ -34,6 +34,7 @@ import { useState, useTransition } from "react"
 import { removeTeacherFromBus } from "@/actions/remove-teacher-bus"
 import { toast } from "@/components/ui/use-toast"
 import { handleDelete } from "@/actions/delete-student"
+import { CopyableText } from "@/components/ui/copyable-text"
 
 
 type userProps = {
@@ -41,6 +42,51 @@ type userProps = {
     teachersData?: any[],
     busData?: any[]
 }
+
+const mockTeachersData: TeacherProps[] = [
+    {
+        id: "mock-teacher-1",
+        full_name: "Amelia Hart",
+        email: "amelia.hart@pocketshuttle.test",
+        phoneNumber: "08012341001",
+        address: "12 Cedar Avenue, Ikoyi, Lagos",
+        image: "/images/no-avatar.webp",
+        bus: {
+            id: "mock-bus-1",
+            color: "yellow",
+            bus_product_name: "Toyota Coaster",
+            bus_number: "PS-102",
+        },
+    } as TeacherProps,
+    {
+        id: "mock-teacher-2",
+        full_name: "Grace Wilson",
+        email: "grace.wilson@pocketshuttle.test",
+        phoneNumber: "08012341002",
+        address: "8 Admiralty Way, Lekki, Lagos",
+        image: "/images/no-avatar.webp",
+        bus: {
+            id: "mock-bus-2",
+            color: "white",
+            bus_product_name: "Mercedes Sprinter",
+            bus_number: "PS-218",
+        },
+    } as TeacherProps,
+    {
+        id: "mock-teacher-3",
+        full_name: "Helen Moore",
+        email: "helen.moore@pocketshuttle.test",
+        phoneNumber: "08012341003",
+        address: "23 Bourdillon Road, Ikoyi, Lagos",
+        image: "/images/no-avatar.webp",
+        bus: {
+            id: "mock-bus-3",
+            color: "blue",
+            bus_product_name: "Hyundai County",
+            bus_number: "PS-330",
+        },
+    } as TeacherProps,
+];
 
 export const TeachersTable = ({ teacherCount, teachersData, busData }: userProps) => {
     const [isPending, startTransition] = useTransition()
@@ -80,6 +126,8 @@ export const TeachersTable = ({ teacherCount, teachersData, busData }: userProps
         })
     }
 
+    const displayTeachersData = Array.isArray(teachersData) && teachersData.length ? teachersData : mockTeachersData
+
     return (
         <div>
             {/* {
@@ -89,38 +137,38 @@ export const TeachersTable = ({ teacherCount, teachersData, busData }: userProps
                 < AddData label="Add a Teacher" action={handleModal} />
             </div> */}
 
-            <Table>
+            <Table className="min-w-[1120px] border-separate border-spacing-y-3 bg-transparent">
                 <TableHeader>
-                    <TableRow className=" text-[0.7rem] bg-[var(--hoverBg)]">
-                        <TableHead className="w-[250px] text-gray-300">Full Name</TableHead>
-                        <TableHead className="text-gray-300">Email</TableHead>
-                        <TableHead className="text-gray-300">Phone Number</TableHead>
-                        <TableHead className="text-gray-300">Address</TableHead>
-                        <TableHead className="text-gray-300">Bus No</TableHead>
+                    <TableRow className="text-xs uppercase tracking-wide hover:bg-transparent dark:hover:bg-transparent">
+                        <TableHead className="w-[300px] text-black/60 dark:text-white/55">Full Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone Number</TableHead>
+                        <TableHead>Address</TableHead>
+                        <TableHead>Bus No</TableHead>
                     </TableRow>
                 </TableHeader>
 
-                <TableBody className="text-[0.75rem] text-gray-400 ">
+                <TableBody className="text-sm text-black dark:text-white">
                     {
-                        teachersData?.map((teacher: TeacherProps) => {
+                        displayTeachersData.map((teacher: TeacherProps) => {
                             return (
-                                <TableRow key={teacher.id}>
-                                    <TableCell className="">
+                                <TableRow key={teacher.id} className="border-0 bg-white text-black shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition-colors hover:bg-white dark:bg-white/5 dark:text-white dark:shadow-none dark:hover:bg-white/10">
+                                    <TableCell className="rounded-l-2xl px-6 py-5 align-middle">
                                         <div className="flex items-center gap-2">
                                             <img src={teacher.image && teacher.image || dashboard} alt={teacher.full_name} className="rounded-md object-cover w-9 h-9" />
                                             <span className="capitalize">{teacher.full_name}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell>
-                                        {teacher.email}
+                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                        <CopyableText label="Email" value={teacher.email} fallback="No email" truncateClassName="max-w-[220px]" />
                                     </TableCell>
-                                    <TableCell>
-                                        {teacher.phoneNumber}
+                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                        <CopyableText label="Phone number" value={teacher.phoneNumber} fallback="No phone" truncateClassName="max-w-[140px]" />
                                     </TableCell>
-                                    <TableCell>
-                                        {teacher.address}
+                                    <TableCell className="max-w-[240px] px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                        <CopyableText label="Address" value={teacher.address} fallback="No address" truncateClassName="max-w-[220px]" />
                                     </TableCell>
-                                    <TableCell className="text-[0.7rem] capitalize ">
+                                    <TableCell className="px-6 py-5 align-middle text-[0.7rem] capitalize text-black/75 dark:text-white/70">
                                         {
                                             teacher.bus ? <div className="flex space-x-1">
                                                 <div>
@@ -176,7 +224,7 @@ export const TeachersTable = ({ teacherCount, teachersData, busData }: userProps
                                                 </div>
                                         }
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="rounded-r-2xl px-6 py-5 align-middle">
                                         <div className="space-x-2 flex">
                                             <EditData link={`/dashboard/teachers/${teacher.id}`} mode="edit" />
                                             <AlertDialog>

@@ -125,16 +125,16 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-            <div className="relative bg-gray-200  rounded-md w-4/6 ">
+        <div className="modal-overlay">
+            <div className="modal-panel w-4/6">
                 <TeacherCardWrapper
                     headLabel="Add Student"
                     action={() => handleCloseModal()}
                 >
-                    <div className=" flex  ">
+                    <div className="form-surface flex gap-5">
                         {/* @ts-ignore */}
                         < UploadImage form={form} newAvatar={newAvatar} setNewAvatar={setNewAvatar} avatar={avatar} />
-                        <div className="flex-1 px-5 text-gray-900 ">
+                        <div className="flex-1 px-2 text-slate-900 dark:text-slate-100 ">
 
                             <Form {...form} >
                                 {/* the handle submit comes from the form constant */}
@@ -152,7 +152,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                                             placeholder="John Doe"
                                                             type="text"
                                                             disabled={isPending}
-                                                            className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
+                                                            className="add-form-input"
                                                         />
                                                     </FormControl>
                                                     <FormMessage />
@@ -176,7 +176,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                                                 placeholder="mm/dd/yyyy"
                                                                 type="number"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
+                                                                className="add-form-input"
                                                                 onChange={e => field.onChange(Number(e.target.value))}
                                                             />
                                                         </FormControl>
@@ -224,4 +224,3 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
         </div>
     )
 }
-

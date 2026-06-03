@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/tooltip"
 import { removeStudentFromBus } from "@/actions/remove-student-bus"
 import { ImportStudentsForm } from "../batch-student/import-student"
+import { CopyableText } from "@/components/ui/copyable-text"
 
 type IdProps = {
     studentsData: StudentProps[]
@@ -56,6 +57,55 @@ type IdProps = {
     busData: BusesProps[]
     schoolId: string
 }
+
+const mockStudentsData: StudentProps[] = [
+    {
+        id: "mock-student-1",
+        full_name: "Noah Carter",
+        gender: "male",
+        age: 8,
+        grade: "Grade 3",
+        address: "18 Maple Close, Victoria Island, Lagos",
+        image: "",
+        presence: "IN_SCHOOL",
+        bus: {
+            id: "mock-bus-1",
+            bus_product_name: "Toyota Coaster",
+            bus_number: "PS-102",
+        },
+    } as StudentProps,
+    {
+        id: "mock-student-2",
+        full_name: "Maya Evans",
+        gender: "female",
+        age: 7,
+        grade: "Grade 2",
+        address: "42 Orchid Road, Lekki Phase 1, Lagos",
+        image: "",
+        presence: "IN_BUS",
+        bus: {
+            id: "mock-bus-2",
+            bus_product_name: "Mercedes Sprinter",
+            bus_number: "PS-218",
+        },
+    } as StudentProps,
+    {
+        id: "mock-student-3",
+        full_name: "Leo Bennett",
+        gender: "male",
+        age: 9,
+        grade: "Grade 4",
+        address: "7 Queens Drive, Ikoyi, Lagos",
+        image: "",
+        presence: "NONE",
+        bus: {
+            id: "mock-bus-3",
+            bus_product_name: "Hyundai County",
+            bus_number: "PS-330",
+        },
+    } as StudentProps,
+];
+
 export const StudentsData = ({ studentsData, busData, totalCount, schoolId }: IdProps) => {
     const [isPending, startTransition] = useTransition()
     const [filterGrade, setFilterGrade] = useState<string>("")
@@ -101,6 +151,8 @@ export const StudentsData = ({ studentsData, busData, totalCount, schoolId }: Id
         })
     }
 
+    const displayStudentsData = Array.isArray(studentsData) && studentsData.length ? studentsData : mockStudentsData
+
     return (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root))]">
             <div className="p-4 flex justify-between gap-3 items-center">
@@ -113,28 +165,28 @@ export const StudentsData = ({ studentsData, busData, totalCount, schoolId }: Id
             {
                 isOpenModal && <StudentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
             }
-            <Table>
-                <TableHeader className="bg-[var(--hoverBg)] ">
-                    <TableRow className="capitalize text-[0.7rem] border-[1px] border-gray-500 rounded-md ">
-                        <TableHead className="w-[250px]">Full Name</TableHead>
+            <Table className="min-w-[1120px] border-separate border-spacing-y-3 bg-transparent">
+                <TableHeader className="bg-[var(--hoverBg)]">
+                    <TableRow className="text-xs uppercase tracking-wide hover:bg-transparent dark:hover:bg-transparent">
+                        <TableHead className="w-[300px] text-black/60 dark:text-white/55">Full Name</TableHead>
                         <TableHead>Gender</TableHead>
                         <TableHead className="">Age</TableHead>
                         <TableHead className="w-[185px]">
                             < SelectProperty placeholder="Grade" label="Filter by Grade" data={grades} handleSelectChange={handleGradeChange} setFilterGrade={setFilterGrade} />
                         </TableHead>
-                        <TableHead className="w-[300px]">Address</TableHead>
+                        <TableHead className="w-[260px]">Address</TableHead>
                         <TableHead className="w-[200px]">Bus</TableHead>
                         <TableHead>Actions</TableHead>
 
                     </TableRow>
 
                 </TableHeader>
-                <TableBody className="text-[0.8rem] text-[var(--textSoft)]">
+                <TableBody className="text-sm text-black dark:text-white">
                     {
-                        studentsData && studentsData?.map((student: StudentProps) => {
+                        displayStudentsData.map((student: StudentProps) => {
                             return (
-                                <TableRow key={student.id}>
-                                    <TableCell className=" ">
+                                <TableRow key={student.id} className="border-0 bg-white text-black shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition-colors hover:bg-white dark:bg-white/5 dark:text-white dark:shadow-none dark:hover:bg-white/10">
+                                    <TableCell className="rounded-l-2xl px-6 py-5 align-middle">
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger>
@@ -155,19 +207,19 @@ export const StudentsData = ({ studentsData, busData, totalCount, schoolId }: Id
                                         </TooltipProvider>
 
                                     </TableCell>
-                                    <TableCell className="text-[0.6rem]">
+                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
                                         {student.gender}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
                                         {student.age}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
                                         {student.grade}
                                     </TableCell>
-                                    <TableCell>
-                                        {student.address}
+                                    <TableCell className="max-w-[260px] px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                        <CopyableText label="Address" value={student.address} fallback="No address" truncateClassName="max-w-[240px]" />
                                     </TableCell>
-                                    <TableCell className="capitalize">
+                                    <TableCell className="px-6 py-5 align-middle capitalize text-black/75 dark:text-white/70">
                                         {
                                             student?.bus ?
                                                 <div className=" space-x-2 flex"> {student?.bus && student?.bus?.bus_product_name}
@@ -221,7 +273,7 @@ export const StudentsData = ({ studentsData, busData, totalCount, schoolId }: Id
                                         }
                                     </TableCell>
 
-                                    <TableCell>
+                                    <TableCell className="rounded-r-2xl px-6 py-5 align-middle">
                                         <div className="space-x-2 text-gray-200 flex">
                                             <EditData link={`/dashboard/students/${student.id}`} mode="edit" />
 

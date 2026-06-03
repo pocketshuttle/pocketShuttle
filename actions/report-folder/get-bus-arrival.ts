@@ -3,6 +3,7 @@ import { StudentProps } from "@/types";
 import { logBusArrival } from "./log-bus-arrival";
 import haversine from "haversine-distance";
 import db from "@/packages/db/client";
+import { canManageStudentRecords, getApiSession } from "@/lib/api-auth";
 
 export async function checkBusArrival(
   busCoords: [number, number],
@@ -10,9 +11,25 @@ export async function checkBusArrival(
   student: StudentProps,
   teacherId: string
 ): Promise<boolean> {
+  const session = await getApiSession();
+  if (!canManageStudentRecords(session) || !session.schoolId) return false;
   if (!busCoords || !studentCoords) return false;
 
-  // Check if arrival has already been logged today
+  const scopedStudent = await db.student.findFirst({
+    where: {
+      id: student.id,
+      schoolId: session.schoolId,
+      ...(session.role === "teacher" ? { teacherId: session.id } : {}),
+    },
+    select: {
+      id: true,
+      full_name: true,
+      parentId: true,
+    },
+  });
+
+  if (!scopedStudent) return false;
+
   const today = new Date();
 
   const startOfDay = new Date(
@@ -29,7 +46,7 @@ export async function checkBusArrival(
 
   const existingArrival = await db.pickup.findFirst({
     where: {
-      studentId: student.id,
+      studentId: scopedStudent.id,
       teacherId: teacherId,
       arrivalTime: {
         gte: startOfDay,
@@ -39,21 +56,16 @@ export async function checkBusArrival(
   });
 
   if (existingArrival) {
-    console.log(`Arrival already logged for ${student.full_name} today`);
     return false;
   }
 
-  // const distance = haversine(
-  //   { lat: busCoords[0], lng: busCoords[1] },
-  //   { lat: studentCoords[0], lng: studentCoords[1] }
-  // );
-
-  const distance = 70;
-
-  console.log(distance, "distance from bus arrival");
+  const distance = haversine(
+    { lat: busCoords[0], lng: busCoords[1] },
+    { lat: studentCoords[0], lng: studentCoords[1] }
+  );
 
   if (distance <= 100) {
-    await logBusArrival(student.id, teacherId, student?.parentId || "");
+    await logBusArrival(scopedStudent.id, teacherId, scopedStudent.parentId || "");
     return true;
   }
 

@@ -21,39 +21,39 @@ export const AlertsAndInsights: React.FC<AlertsAndInsightsProps> = ({ alerts, la
     const hasLateStudents = lateStudents.length > 0;
 
     return (
-        <div className="bg-white p-4 rounded-lg shadow-md mt-2">
-            <p className="text-lg text-gray-900 py-2">
+        <div className="rounded-lg border border-black/10 bg-white p-4 text-black dark:border-white/10 dark:bg-zinc-950 dark:text-white">
+            <p className="text-lg font-semibold">
                 Alerts & Insights
             </p>
-            <p className="text-gray-950 mb-4">{alerts}</p>
+            <p className="mb-4 mt-2 text-sm text-black/60 dark:text-white/60">{alerts}</p>
 
             {hasLateStudents && (
                 <div className="mt-4">
-                    <h3 className="text-md font-semibold text-gray-800 mb-3">Late Students Details</h3>
+                    <h3 className="text-md mb-3 font-semibold">Late Students Details</h3>
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-black/[0.03] dark:bg-white/[0.06]">
                                 <tr>
-                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-black/55 dark:text-white/55">
                                         Student
                                     </th>
-                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-black/55 dark:text-white/55">
                                         Parent Name
                                     </th>
-                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-black/55 dark:text-white/55">
                                         Phone
                                     </th>
-                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-black/55 dark:text-white/55">
                                         Email
                                     </th>
-                                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-black/55 dark:text-white/55">
                                         Late By
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="divide-y divide-black/10 bg-white dark:divide-white/10 dark:bg-zinc-950">
                                 {lateStudents.map((student) => (
-                                    <tr key={student.studentId} className="hover:bg-gray-50">
+                                    <tr key={student.studentId} className="hover:bg-black/[0.03] dark:hover:bg-white/[0.05]">
                                         <td className="px-3 py-2 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <div className="flex-shrink-0 h-8 w-8">
@@ -66,19 +66,19 @@ export const AlertsAndInsights: React.FC<AlertsAndInsightsProps> = ({ alerts, la
                                                     />
                                                 </div>
                                                 <div className="ml-3">
-                                                    <div className="text-sm font-medium text-gray-900">
+                                                    <div className="text-sm font-medium">
                                                         {student.studentName}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                                        <td className="px-3 py-2 whitespace-nowrap text-sm">
                                             {student.parentName}
                                         </td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                                        <td className="px-3 py-2 whitespace-nowrap text-sm">
                                             {student.parentPhone}
                                         </td>
-                                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                                        <td className="px-3 py-2 whitespace-nowrap text-sm">
                                             {student.parentEmail}
                                         </td>
                                         <td className="px-3 py-2 whitespace-nowrap">

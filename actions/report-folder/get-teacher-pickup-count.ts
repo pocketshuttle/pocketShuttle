@@ -1,28 +1,48 @@
 "use server";
 
-import { getUserSession } from "@/lib/session";
+import { canManageSchool, getApiSession } from "@/lib/api-auth";
 import db from "@/packages/db/client";
 import { format, startOfWeek } from "date-fns";
+
+function normalizeDateRange(termStart: Date, termEnd: Date) {
+  const start = new Date(termStart);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(termEnd);
+  end.setHours(23, 59, 59, 999);
+
+  return { start, end };
+}
 
 export const getTeacherPickupCount = async (
   teacherId: string,
   termStart: Date,
   termEnd: Date
 ) => {
-  const user = await getUserSession();
-  if (!user || !["teacher", "admin", "ADMIN"].includes(user.role as string)) {
+  const session = await getApiSession();
+  if (!canManageSchool(session) || !session.schoolId) {
     return { message: "Unauthorized", status: 401 };
   }
-  // 1. Get all pickups for this teacher in range
+
+  const teacher = await db.teacher.findFirst({
+    where: { id: teacherId, schoolId: session.schoolId },
+    select: { id: true },
+  });
+
+  if (!teacher) {
+    return [];
+  }
+
+  const { start, end } = normalizeDateRange(termStart, termEnd);
+
   const pickups = await db.pickup.findMany({
     where: {
       teacherId,
-      pickUpTime: { gte: termStart, lte: termEnd },
+      pickUpTime: { gte: start, lte: end },
     },
     orderBy: { pickUpTime: "asc" },
   });
 
-  //group by week and by day
   const weeklyRecord: Record<
     string,
     {
@@ -35,11 +55,9 @@ export const getTeacherPickupCount = async (
     if (!pickup.pickUpTime) return;
     const date = new Date(pickup.pickUpTime);
 
-    //skip weekends
     const dayOfWeek = date.getDay();
     if (dayOfWeek === 0 || dayOfWeek === 6) return;
 
-    //week keys
     const weekKey = format(
       startOfWeek(date, { weekStartsOn: 1 }),
       "yyyy-MM-dd"
@@ -59,7 +77,6 @@ export const getTeacherPickupCount = async (
     weeklyRecord[weekKey].weeklyTotal += 1;
   });
 
-  // Format into array for easier charting
   const results = Object.entries(weeklyRecord).map(([week, data]) => ({
     week,
     daily: Object.entries(data.daily).map(([date, count]) => ({

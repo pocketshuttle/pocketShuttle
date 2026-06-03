@@ -49,15 +49,15 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
     return (
         <div>
 
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 ">
-                <div className="relative bg-gray-50  rounded-md w-3/6 ">
+            <div className="modal-overlay">
+                <div className="modal-panel w-3/6">
 
                     <TeacherCardWrapper
                         headLabel="Add a Route"
                         action={() => handleCloseModal()}
                     >
-                        <div className=" flex justify-center text-gray-950">
-                            <div className="flex-1 px-5 ">
+                        <div className="form-surface flex justify-center text-slate-900 dark:text-slate-100">
+                            <div className="flex-1 px-2">
                                 <Form {...form}>
                                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                                         <div className="flex gap-3">
@@ -74,7 +74,7 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
                                                                     placeholder="Tesla"
                                                                     type="text"
                                                                     disabled={isPending}
-                                                                    className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
+                                                                    className="add-form-input"
 
                                                                 />
                                                             </FormControl>
@@ -96,7 +96,7 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
                                                                     placeholder="Tesla"
                                                                     type="text"
                                                                     disabled={isPending}
-                                                                    className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
+                                                                    className="add-form-input"
                                                                 />
                                                             </FormControl>
                                                             <FormMessage />
@@ -105,7 +105,7 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
                                                 />
                                             </div>
                                         </div>
-                                        <Button variant="secondary" type="submit" className="bg-[#1d146d] w-full text-green-200 hover:bg-green-900">
+                                        <Button variant="secondary" type="submit" className="h-12 w-full rounded-lg bg-[#4a48ff] text-white shadow-none transition-transform duration-150 hover:scale-[1.01] hover:bg-[#5b5aff]">
                                             Submit
                                         </Button>
                                     </form>

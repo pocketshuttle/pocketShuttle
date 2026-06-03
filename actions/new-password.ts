@@ -5,17 +5,14 @@ import { NewPasswordSchema } from "@/schemas";
 import { getResetPasswordTokenByToken } from "@/data/password-reset-token";
 import { getUserByEmail } from "@/data/user";
 import bcrypt from "bcryptjs";
-import User from "@/(models)/User";
-import ResetPasswordToken from "@/(models)/ResetPassword";
 import db from "@/packages/db/client";
 
 export const newPassword = async (
   values: z.infer<typeof NewPasswordSchema>,
   token?: string | null
 ) => {
-  
   if (!token) {
-    return { error: "Misssing Token!" };
+    return { error: "Missing token!" };
   }
   const validatedFields = NewPasswordSchema.safeParse(values);
 
@@ -23,7 +20,7 @@ export const newPassword = async (
     return { error: "Invalid fields!" };
   }
 
-  const { password, role } = validatedFields.data;
+  const { password } = validatedFields.data;
 
   const existingToken = await getResetPasswordTokenByToken(token);
 
@@ -36,10 +33,8 @@ export const newPassword = async (
     return { error: "Token has expired!" };
   }
 
-  const existingUser = await getUserByEmail(
-    existingToken.email,
-    existingToken.role || ""
-  );
+  const tokenRole = String(existingToken.role || "admin").toLowerCase();
+  const existingUser = await getUserByEmail(existingToken.email, tokenRole);
 
   if (!existingUser || !existingUser.password) {
     return { error: "Email not found!" };
@@ -53,8 +48,8 @@ export const newPassword = async (
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  if (role && role.toLowerCase() !== "admin") {
-    if (role === "teacher") {
+  if (tokenRole !== "admin") {
+    if (tokenRole === "teacher") {
       await db.teacher.update({
         where: {
           id: existingUser.id,
@@ -65,7 +60,7 @@ export const newPassword = async (
           password: hashedPassword,
         },
       });
-    } else if (role === "parent") {
+    } else if (tokenRole === "parent") {
       await db.parent.update({
         where: {
           id: existingUser.id,
@@ -76,6 +71,8 @@ export const newPassword = async (
           password: hashedPassword,
         },
       });
+    } else {
+      return { error: "Invalid account role!" };
     }
   } else {
     await db.user.update({

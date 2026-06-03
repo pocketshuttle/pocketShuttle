@@ -1,4 +1,5 @@
-import { cache, useEffect, useState, useTransition } from "react";
+import { appService } from "@/services/app-service";
+import { useEffect, useState } from "react";
 
 export const useFetch = (url: string, userId: string | undefined) => {
   const [data, setData] = useState<any>(null);
@@ -11,11 +12,7 @@ export const useFetch = (url: string, userId: string | undefined) => {
     const fetchData = async () => {
       setIsPending(true);
       try {
-        const res = await fetch(url, { next: { tags: ["collection"] } });
-        if (!res.ok) {
-          throw new Error("Something went wrong");
-        }
-        const result = await res.json();
+        const result = await appService(url);
         setData(result);
       } catch (error) {
         if (error instanceof Error) {

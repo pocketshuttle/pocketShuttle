@@ -1,22 +1,14 @@
 "use client"
 import * as z from "zod"
-import { CardWrapper } from "@/components/auth/card-wrapper"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "@/components/ui/form"
-import { ChangeEvent, Dispatch, SetStateAction, useEffect, useState, useTransition } from "react"
+import { Dispatch, SetStateAction, useEffect, useState, useTransition } from "react"
 import { Input } from "@/components/ui/input"
 import { ParentSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
-import { SelectProperty } from "@/components/ui/select-wrapper"
-import { grades, buses, gender } from "@/data/schooldata"
-import { usePost } from "@/hooks/usePost"
-import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
-import { useFetch } from "@/hooks/useFetch"
-import { Textarea } from "@/components/ui/textarea"
 import { UploadImage } from "@/components/ui/upload-image"
 import { AddRoles } from "@/components/ui/add-role"
 import { useSession } from "@/hooks/useSession"
@@ -29,14 +21,12 @@ interface StudentModalProps {
     isOpenModal: boolean
 }
 
-export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) => {
-    const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
+export const ParentModal = ({ setIsOpenModal }: StudentModalProps) => {
     const [isPending, startTransition] = useTransition()
     const [newAvatar, setNewAvatar] = useState<string>("")
-    const [selectStudent, setselectStudent] = useState<string>("")
+    const [selectStudent] = useState<string>("")
     const [selectRole, setSelectedRole] = useState<string>("")
-    const [addressValue, setAddressValue] = useState("")
-    const [addressValueCoords, setAddressValueCoords] = useState<{ lat: number; lng: number } | null>(null)
+    const [, setAddressValue] = useState("")
     const session = useSession()
     const userId = session?.id
 
@@ -87,7 +77,6 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                 });
 
                 toast({
-                    //@ts-ignore
                     description: response.message || "Parent added successfully",
                     variant: response.status === 200 ? "default" : "destructive"
                 });
@@ -123,29 +112,27 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
     //  handle address selection (geocode once)
     const handleSuggestionChange = (suggestion: { address: string; lat: number; lng: number }) => {
         setAddressValue(suggestion.address)
-        setAddressValueCoords({ lat: suggestion.lat, lng: suggestion.lng })
 
         form.setValue("address", suggestion.address)
         form.setValue("addressCoords", { latitude: suggestion.lat, longitude: suggestion.lng })
     }
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-            <div className="relative bg-gray-100  rounded-md w-5/6 text-gray-950">
+        <div className="modal-overlay">
+            <div className="modal-panel w-5/6 text-slate-900 dark:text-slate-100">
 
                 <TeacherCardWrapper
                     headLabel="Add Parent"
                     action={() => handleCloseModal()}
                 >
-                    <div className=" flex ">
+                    <div className="form-surface flex gap-5">
                         {/* <div className=" w-[25%] items-center  bg-gray-200 h-[21.5rem] p-2 rounded-md" > */}
-                        {/* @ts-ignore */}
                         < UploadImage newAvatar={newAvatar} avatar={avatar} form={form} setNewAvatar={setNewAvatar} />
                         {/* </div> */}
-                        <div className="flex-1 px-5 ">
+                        <div className="flex-1 px-2 ">
 
                             <Form {...form}>
                                 {/* the handle submit comes from the form constant */}
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 text-gray-950">
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 text-slate-900 dark:text-slate-100">
                                     <div className="space-y-4 ">
                                         <FormField
                                             control={form.control}
@@ -159,7 +146,7 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
                                                             placeholder="John Doe"
                                                             type="text"
                                                             disabled={isPending}
-                                                            className="py-3 border-none bg-transparent border-1 border-gray-500 shadow-md outline-none h-12"
+                                                            className="add-form-input"
 
                                                         />
                                                     </FormControl>
@@ -273,5 +260,3 @@ export const ParentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps) 
         </div >
     )
 }
-
-

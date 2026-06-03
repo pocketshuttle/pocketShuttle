@@ -5,15 +5,7 @@ import { sendSmsForBusArrival } from "./notification/bus-arrival";
 import { sendPushNotification } from "@/onesignal/send-push";
 import { getUserSession } from "@/lib/session";
 import { applyStudentPresenceUpdate } from "@/lib/student-state";
-
-const capitalizeParentName = (str: string | null) => {
-  str
-    ? str
-        .split(" ")
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-        .join(" ")
-    : "Parent";
-};
+import { capitalizeName } from "@/lib/capitalize-name";
 
 export const updateLocation = async (
   id: string,
@@ -47,7 +39,7 @@ export const updateLocation = async (
         });
 
         await sendPushNotification(
-          `Hi ${capitalizeParentName(updatedStudent?.parent?.full_name || "")}, ${updatedStudent?.bus?.bus_product_name} is on the way`,
+          `Hi ${capitalizeName(updatedStudent?.parent?.full_name || "Parent")}, ${updatedStudent?.bus?.bus_product_name} is on the way`,
           updatedStudent?.parent?.id!
         );
       }

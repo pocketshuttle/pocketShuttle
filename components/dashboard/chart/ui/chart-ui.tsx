@@ -67,10 +67,9 @@ export const ChartUI = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="pv" stroke="#8884d8" strokeDasharray="5 5" />
-                <Line type="monotone" dataKey="uv" stroke="#82ca9d" strokeDasharray="3 4 5 2" />
+                <Line type="monotone" dataKey="pv" stroke="currentColor" strokeDasharray="5 5" />
+                <Line type="monotone" dataKey="uv" stroke="currentColor" strokeDasharray="3 4 5 2" />
             </LineChart>
         </ResponsiveContainer>
     );
 }
-

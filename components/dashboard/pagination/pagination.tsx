@@ -39,7 +39,7 @@ export const Pagination = ({ count, pageCount }: CountProps) => {
 
     return (
         <div className="flex justify-between  items-center w-full">
-            <span className="text-md text-gray-400">
+            <span className="text-md text-[var(--textSoft)]">
                 {/* @ts-ignore */}
 
                 Page {parseInt(page)} {Math.round(count / ITEM_PER_PAGE) < 1 ? "" :
@@ -51,7 +51,7 @@ export const Pagination = ({ count, pageCount }: CountProps) => {
                 }
             </span>
             <div className="space-x-2 flex justify-between  px-6 py-3 ">
-                <Button variant="outline" disabled={!hasPrev} onClick={() => handlePagination("prev")} className="bg-transparent border-gray-600 hover:bg-[var(--hoverBg)] "
+                <Button variant="outline" disabled={!hasPrev} onClick={() => handlePagination("prev")} className="border-[var(--text)] bg-transparent text-[var(--text)] hover:bg-[var(--hoverBg)]"
                 >
                     <div
                         className='w-[20px] h-[20px]'
@@ -61,7 +61,7 @@ export const Pagination = ({ count, pageCount }: CountProps) => {
                         <LottieAnimation isHovering={isHovering} animationData={left} />
                     </div>
                 </Button>
-                <Button variant="outline" disabled={!hasNext} onClick={() => handlePagination("next")} className="bg-transparent border-gray-600 hover:bg-[var(--hoverBg)] ">
+                <Button variant="outline" disabled={!hasNext} onClick={() => handlePagination("next")} className="border-[var(--text)] bg-transparent text-[var(--text)] hover:bg-[var(--hoverBg)]">
 
 
                     <div

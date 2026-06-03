@@ -1,8 +1,11 @@
 import "server-only";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-// import { SessionPayload } from '@/app/lib/definitions'
+import {
+  SESSION_COOKIE_NAME,
+  authCookieOptions,
+  getSessionExpiresAt,
+} from "@/lib/auth-cookies";
 
 const secretKey = process.env.AUTH_SECRET;
 const encodedKey = new TextEncoder().encode(secretKey);
@@ -26,16 +29,29 @@ export async function decrypt(session: string | undefined = "") {
   }
 }
 
-export async function createSession(id: string) {
-  const expiresAt = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
-  const role = "ADMIN";
-  const session = await encrypt({ id, expiresAt, role });
+export type SessionPayload = {
+  id: string;
+  role: string;
+  name?: string | null;
+  image?: string | null;
+  email?: string | null;
+  schoolId?: string | null;
+};
 
-  cookies().set("session", session, {
-    httpOnly: true,
-    secure: true,
+export async function setSessionCookie(payload: SessionPayload) {
+  const expiresAt = getSessionExpiresAt();
+  const session = await encrypt({ ...payload, expiresAt });
+
+  cookies().set(SESSION_COOKIE_NAME, session, {
+    ...authCookieOptions,
     expires: expiresAt,
-    sameSite: "none",
-    path: "/",
   });
+}
+
+export async function deleteSessionCookie() {
+  cookies().delete(SESSION_COOKIE_NAME);
+}
+
+export async function createSession(id: string) {
+  await setSessionCookie({ id, role: "admin", schoolId: id });
 }

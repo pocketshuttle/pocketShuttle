@@ -15,12 +15,13 @@ type SelectProps = {
     handleSelectChange: (value: string) => void;
     setFilterGrade?: Dispatch<SetStateAction<string>>;
     data: any
+    value?: string;
 };
 
-export const AddRoles = ({ handleSelectChange, data }: SelectProps) => {
+export const AddRoles = ({ handleSelectChange, data, value }: SelectProps) => {
 
     return (
-        <Select onValueChange={handleSelectChange}>
+        <Select value={value} onValueChange={handleSelectChange}>
             <SelectTrigger className="h-11 w-full rounded-lg border-[#4a48ff]/30 bg-[#11192a] text-[#dce1ff] shadow-none hover:bg-[#172039] focus:ring-1 focus:ring-[#6d72c9] sm:w-[148px]">
                 <SelectValue placeholder="Select role" />
             </SelectTrigger>

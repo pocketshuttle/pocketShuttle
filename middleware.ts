@@ -1,53 +1,74 @@
 import {
   DEFAULT_LOGIN_REDIRECT,
-  apiAuthPrefix,
   authRoutes,
   publicRoutes,
   DEFAULT_USER_ROLE,
+  DEFAULT_PARENT_ROLE,
 } from "@/routes";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { decrypt } from "./lib/create-session";
-import { cookies } from "next/headers";
+import {
+  LAST_SCREEN_COOKIE_NAME,
+  SESSION_COOKIE_NAME,
+  routeStateCookieOptions,
+} from "@/lib/auth-cookies";
 
 export async function middleware(req: NextRequest) {
   const { nextUrl } = req;
+  const pathname = nextUrl.pathname;
 
   try {
-    const cookie = req.cookies.get("session")?.value;
+    const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
 
     const token = await decrypt(cookie);
 
     const userRole = token?.role;
     const isLoggedIn = !!token;
-    const isAPIAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
-    const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
+    const isPublicRoute = publicRoutes.includes(pathname);
+    const isHomePage = pathname === "/";
+    const response = NextResponse.next();
 
-    //   //if the nexturl.pathname is included in the authroutes array, then it requires auth
-    if (isAPIAuthRoute) {
-      return null;
+    if (!isPublicRoute && !pathname.startsWith("/api")) {
+      response.cookies.set(
+        LAST_SCREEN_COOKIE_NAME,
+        pathname + nextUrl.search,
+        routeStateCookieOptions
+      );
     }
 
     // Matching for both static and dynamic routes
     const isAuthRoute = authRoutes.some((route) =>
-      nextUrl.pathname.startsWith(route)
+      pathname.startsWith(route)
     );
+
+    if (isHomePage && isLoggedIn) {
+      if (userRole === "parent") {
+        return NextResponse.redirect(new URL(DEFAULT_PARENT_ROLE, nextUrl));
+      }
+      if (userRole === "teacher") {
+        return NextResponse.redirect(new URL(DEFAULT_USER_ROLE, nextUrl));
+      }
+      return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+    }
 
     if (isAuthRoute) {
       if (isLoggedIn) {
         if (userRole === "parent") {
-          return Response.redirect(new URL(DEFAULT_USER_ROLE, nextUrl));
+          return NextResponse.redirect(new URL(DEFAULT_PARENT_ROLE, nextUrl));
         }
-        return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+        if (userRole === "teacher") {
+          return NextResponse.redirect(new URL(DEFAULT_USER_ROLE, nextUrl));
+        }
+        return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
       }
 
-      return null;
+      return response;
     }
 
     // If user is not logged in and it's not a public route, redirect to login
     if (!isLoggedIn && !isPublicRoute) {
       //taking users back to the previous used route
-      let callbackUrl = nextUrl.pathname;
-      console.log(callbackUrl, "from middleware");
+      let callbackUrl = pathname;
 
       if (nextUrl.search && nextUrl.search.startsWith("?")) {
         callbackUrl += nextUrl.search;
@@ -55,19 +76,19 @@ export async function middleware(req: NextRequest) {
 
       const encodeCallbackUrl = encodeURIComponent(callbackUrl);
 
-      return Response.redirect(
+      return NextResponse.redirect(
         new URL(`/login?callbackUrl=${encodeCallbackUrl}`, nextUrl)
       );
     }
 
-    return null;
+    return response;
   } catch (error) {
-    return Response.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 }
 
 export const config = {
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: ["/((?!api|trpc|.*\\..*|_next).*)", "/"],
   unstable_allowDynamic: [
     "mongoose/dist/browser.umd.js",
     "./(models)/Parent.ts",

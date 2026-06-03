@@ -27,6 +27,7 @@ import { BusArrival } from "../parent-view/bus-arrival"
 import { Separator } from "../ui/separator"
 import { fetchCoordinates, getCurrentLocation, getRoute } from "../maps/lib/utils"
 import { EachStudent } from "./ui/student-ui"
+import { CopyableText } from "@/components/ui/copyable-text"
 
 type SessionProps = {
     userId: string | undefined
@@ -132,10 +133,10 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
 
 
             <div className="hidden lg:flex lg:flex-col">
-                <Table>
+                <Table className="min-w-[980px] border-separate border-spacing-y-3 bg-transparent">
                     <TableHeader>
-                        <TableRow className=" uppercase text-[0.7rem]">
-                            <TableHead className="w-[250px]">Full Name</TableHead>
+                        <TableRow className="text-xs uppercase tracking-wide hover:bg-transparent dark:hover:bg-transparent">
+                            <TableHead className="w-[280px] text-black/60 dark:text-white/55">Full Name</TableHead>
                             <TableHead>Gender</TableHead>
                             <TableHead className="">Grade</TableHead>
                             <TableHead className="w-[250px]">Address</TableHead>
@@ -144,33 +145,33 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                         </TableRow>
 
                     </TableHeader>
-                    <TableBody className="text-[0.8rem] text-[var(--textSoft)]">
+                    <TableBody className="text-sm text-black dark:text-white">
                         {
                             teacherData?.bus === null ? <p>Teacher hasnt been assigned a bus yet, please contact admin</p> :
                                 data?.bus?.students?.map((student: StudentProps) => {
 
                                     return (
-                                        <TableRow key={student.id}>
-                                            <TableCell className="">
+                                        <TableRow key={student.id} className="border-0 bg-white text-black shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition-colors hover:bg-white dark:bg-white/5 dark:text-white dark:shadow-none dark:hover:bg-white/10">
+                                            <TableCell className="rounded-l-2xl px-6 py-5 align-middle">
                                                 <div className="flex items-center gap-2">
                                                     <Image src={student.image && student.image || dashboard} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
                                                     <span className="">{student.full_name}</span>
                                                 </div>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
                                                 {student.gender}
                                             </TableCell>
 
-                                            <TableCell>
+                                            <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
                                                 {student.grade}
                                             </TableCell>
-                                            <TableCell>
-                                                {student.address}
+                                            <TableCell className="max-w-[260px] px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                                <CopyableText label="Address" value={student.address} fallback="No address" truncateClassName="max-w-[240px]" />
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="px-6 py-5 align-middle">
                                                 <  AttendanceTab label1="Present" label2="Absent" data={student.attendance ? student.attendance : "No attendance recorded"} value1="PRESENT" value2="ABSENT" SetAttendance={SetAttendance} attendance={attendance} id={student.id} />
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="px-6 py-5 align-middle">
                                                 {
                                                     student.attendance === "PRESENT" ?
                                                         <  AttendanceTab label1="Dropped"
@@ -178,7 +179,7 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
                                                 }
                                             </TableCell>
 
-                                            <TableCell>
+                                            <TableCell className="rounded-r-2xl px-6 py-5 align-middle">
                                                 <div className="space-x-2">
                                                     <Link href={`/dashboard/students/${student.id}`}>
                                                         <button className="bg-[teal] px-2 text-[0.5rem] rounded-sm">
@@ -201,4 +202,3 @@ export const TeachersViewData = ({ userId, user, data }: SessionProps) => {
 
     )
 }
-
