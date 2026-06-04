@@ -6,8 +6,8 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
-  binaryTargets=["native", "rhel-openssl-3.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 enum PaymentStatus {
@@ -54,6 +54,66 @@ enum StudentPresence {
   NONE
 }
 
+enum TripType {
+  family_trip
+  school_trip
+  interstate_trip
+  corporate_trip
+}
+
+enum TripStatus {
+  scheduled
+  active
+  paused
+  completed
+  cancelled
+  emergency
+}
+
+enum TripParticipantRole {
+  passenger
+  child
+  driver
+  assistant
+  traveler
+}
+
+enum TripParticipantStatus {
+  scheduled
+  boarded
+  dropped
+  absent
+}
+
+enum TripViewerPermission {
+  view_location
+  view_events
+  receive_alerts
+  emergency_contact
+}
+
+enum TripEventType {
+  trip_started
+  trip_paused
+  trip_ended
+  participant_present
+  participant_boarded
+  participant_dropped
+  participant_absent
+  stop_reached
+  route_deviation
+  unusual_stop
+  emergency_triggered
+  emergency_resolved
+  eta_updated
+}
+
+enum SafetyState {
+  normal
+  attention
+  emergency
+}
+
 enum SubscriptionPlan {
   FREE
   PRO
@@ -80,8 +140,8 @@ model SuperUser {
 model SuperUserAction {
   id          String    @id @default(cuid())
   superUserId String
-  action      String 
-  targetId    String? 
+  action      String
+  targetId    String?
   createdAt   DateTime  @default(now())
   metadata    Json?
   superUser   SuperUser @relation(fields: [superUserId], references: [id])
@@ -277,6 +337,7 @@ model Buses {
   bus_product_name String
   bus_number       String    @unique
   seat_number      Int
+  availableSeats   Int       @default(0) @map("available_seats")
   color            String?
   schoolId         String
   school           User      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
@@ -305,6 +366,111 @@ model ParentNotification {
   notificationJson Notification? @relation(fields: [notificationId], references: [id])
 
   @@unique([parentId])
+}
+
+model Trip {
+  id          String      @id @default(cuid())
+  tripType    TripType    @map("trip_type")
+  title       String
+  status      TripStatus  @default(scheduled)
+  safetyState SafetyState @default(normal) @map("safety_state")
+  origin      Json?
+  destination Json?
+  driverId    String?     @map("driver_id")
+  vehicleId   String?     @map("vehicle_id")
+  startedAt   DateTime?   @map("started_at")
+  endedAt     DateTime?   @map("ended_at")
+  createdBy   String?     @map("created_by")
+  schoolId    String?     @map("legacy_school_id")
+  busId       String?     @map("legacy_bus_id")
+  metadata    Json?
+
+  participants TripParticipant[]
+  viewers      TripViewer[]
+  events       TripEvent[]
+  locations    TripLocation[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([tripType, status])
+  @@index([schoolId, vehicleId, createdAt])
+  @@map("trips")
+}
+
+model TripParticipant {
+  id              String                @id @default(cuid())
+  tripId          String                @map("trip_id")
+  participantId   String                @map("participant_id")
+  participantType String                @map("participant_type")
+  userId          String?               @map("user_id")
+  role            TripParticipantRole
+  status          TripParticipantStatus @default(scheduled)
+  boardedAt       DateTime?             @map("boarded_at")
+  droppedAt       DateTime?             @map("dropped_at")
+  metadata        Json?
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([tripId, participantType, participantId])
+  @@index([participantType, participantId])
+  @@index([userId])
+  @@map("trip_participants")
+}
+
+model TripViewer {
+  id          String                 @id @default(cuid())
+  tripId      String                 @map("trip_id")
+  viewerId    String                 @map("viewer_id")
+  viewerType  String                 @map("viewer_type")
+  permissions TripViewerPermission[]
+  expiresAt   DateTime?              @map("expires_at")
+  metadata    Json?
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([tripId, viewerType, viewerId])
+  @@index([viewerType, viewerId])
+  @@map("trip_viewers")
+}
+
+model TripEvent {
+  id        String        @id @default(cuid())
+  tripId    String        @map("trip_id")
+  eventType TripEventType @map("event_type")
+  actorId   String?       @map("actor_id")
+  actorType String?       @map("actor_type")
+  payload   Json?
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  timestamp DateTime @default(now())
+
+  @@index([tripId, timestamp])
+  @@index([eventType, timestamp])
+  @@map("trip_events")
+}
+
+model TripLocation {
+  id        String   @id @default(cuid())
+  tripId    String   @map("trip_id")
+  lat       Float
+  lng       Float
+  speed     Float?
+  heading   Float?
+  accuracy  Float?
+  timestamp DateTime @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId, timestamp])
+  @@map("trip_locations")
 }
 
 model verificationToken {

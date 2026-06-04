@@ -3,7 +3,11 @@
 import { StudentAttendance } from "@/packages/db/client";
 import { broadcastAttendanceUpdate } from "@/app/api/events/attendance-events";
 import { getUserSession } from "@/lib/session";
-import { applyStudentAttendanceUpdate } from "@/lib/student-state";
+import {
+  applyStudentAttendanceUpdate,
+  getStudentScopeForActor,
+} from "@/lib/student-state";
+import { recordStudentMovementTripEvent } from "@/lib/trip-events";
 
 export const updateStudentAttendance = async (
   id: string,
@@ -20,13 +24,24 @@ export const updateStudentAttendance = async (
       return { message: "Invalid data provided", status: 400 };
     }
 
-    const result = await applyStudentAttendanceUpdate({ studentId: id }, data);
+    const result = await applyStudentAttendanceUpdate(
+      getStudentScopeForActor(id, user),
+      data
+    );
     if (!result) {
       return { message: "Student not found", status: 404 };
     }
     const updatedStudent = result.student;
 
     if (result.changed) {
+      await recordStudentMovementTripEvent({
+        student: updatedStudent,
+        actorId: String(user.id),
+        actorType: role,
+        source: "attendance",
+        value: data,
+      });
+
       broadcastAttendanceUpdate({
         id: updatedStudent.id,
         fullName: updatedStudent.full_name,

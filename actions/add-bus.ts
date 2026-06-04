@@ -44,6 +44,7 @@ export const addBus = async (values: z.infer<typeof BusSchema>) => {
         bus_number,
         bus_product_name,
         seat_number,
+        availableSeats: seat_number,
         color,
         route: {
           connect: { id: route },

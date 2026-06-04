@@ -2,8 +2,8 @@ import "server-only";
 
 import { revalidateTag } from "next/cache";
 
+import { Prisma } from "@prisma/client";
 import db, {
-  Prisma,
   StudentAttendance,
   StudentPresence,
   StudentStatus,
@@ -13,7 +13,14 @@ const DEFAULT_TIMEZONE = "Africa/Lagos";
 const STATE_TAGS = ["students", "parent", "new-parent", "teacher", "collection"] as const;
 
 const studentStateInclude = {
-  parent: true,
+  parent: {
+    select: {
+      id: true,
+      full_name: true,
+      email: true,
+      phoneNumber: true,
+    },
+  },
   bus: {
     select: {
       id: true,
@@ -34,16 +41,69 @@ type StudentStateRecord = Prisma.StudentGetPayload<{
 type StudentScope = {
   studentId: string;
   schoolId?: string | null;
+  teacherId?: string | null;
 };
 
 type StudentUpdateResult = {
   changed: boolean;
   hours: number;
   student: StudentStateRecord;
+  blockedReason?: "NOT_PRESENT";
 };
 
-function getStudentWhere({ studentId, schoolId }: StudentScope) {
-  return schoolId ? { id: studentId, schoolId } : { id: studentId };
+type StudentActor = {
+  [key: string]: unknown;
+  id?: unknown;
+  role?: unknown;
+  schoolId?: unknown;
+};
+
+function getStringValue(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
+export function getStudentScopeForActor(
+  studentId: string,
+  actor: StudentActor
+): StudentScope {
+  const role = String(actor.role ?? "").toLowerCase();
+  const actorId = getStringValue(actor.id);
+  const actorSchoolId = getStringValue(actor.schoolId);
+  const schoolId =
+    actorSchoolId ?? (role === "admin" || role === "school" ? actorId : null);
+
+  return {
+    studentId,
+    schoolId,
+    teacherId: role === "teacher" ? actorId : null,
+  };
+}
+
+function getStudentWhere({
+  studentId,
+  schoolId,
+  teacherId,
+}: StudentScope): Prisma.StudentWhereInput {
+  const where: Prisma.StudentWhereInput = { id: studentId };
+
+  if (schoolId) {
+    where.schoolId = schoolId;
+  }
+
+  if (teacherId) {
+    where.OR = [
+      { teacherId },
+      {
+        bus: {
+          teacher: {
+            id: teacherId,
+          },
+        },
+      },
+    ];
+  }
+
+  return where;
 }
 
 async function getStudentState(scope: StudentScope) {
@@ -79,10 +139,34 @@ async function updateBusSeats(tx: any, busId: string, delta: number) {
     return;
   }
 
+  if (delta < 0) {
+    await tx.buses.updateMany({
+      where: {
+        id: busId,
+        availableSeats: {
+          gt: 0,
+        },
+      },
+      data: {
+        availableSeats: { decrement: Math.abs(delta) },
+      },
+    });
+    return;
+  }
+
+  const bus = await tx.buses.findUnique({
+    where: { id: busId },
+    select: { availableSeats: true, seat_number: true },
+  });
+
+  if (!bus) {
+    return;
+  }
+
   await tx.buses.update({
     where: { id: busId },
     data: {
-      seat_number: delta > 0 ? { increment: delta } : { decrement: Math.abs(delta) },
+      availableSeats: Math.min(bus.seat_number, bus.availableSeats + delta),
     },
   });
 }
@@ -220,6 +304,15 @@ export async function applyStudentPresenceUpdate(
 
   if (!existingStudent) {
     return null;
+  }
+
+  if (presence === "ON_THE_WAY" && existingStudent.attendance !== "PRESENT") {
+    return {
+      changed: false,
+      hours: getCurrentHourInTimeZone(),
+      student: existingStudent,
+      blockedReason: "NOT_PRESENT",
+    };
   }
 
   if (existingStudent.presence === presence) {

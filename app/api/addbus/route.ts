@@ -80,6 +80,7 @@ export const POST = async (req: NextRequest) => {
         bus_number,
         bus_product_name,
         seat_number,
+        availableSeats: seat_number,
         color,
         route: {
           connect: { id: routeRecord.id },

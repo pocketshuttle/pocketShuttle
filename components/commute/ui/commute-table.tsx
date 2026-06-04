@@ -1,19 +1,13 @@
 "use client";
-import { Search } from "@/components/dashboard/search/search";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import avatar from "@/public/images/avatar.jpg"
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Pagination } from "@/components/dashboard/pagination/pagination";
+import { useState } from "react";
 import Link from "next/link";
-import { useFetch } from "@/hooks/useFetch";
 import {
     Table,
     TableBody,
-    TableCaption,
     TableCell,
-    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
@@ -34,6 +28,7 @@ import { FormError } from "@/components/errorsandsuccess/form-error";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrentHourInTimeZone } from "@/lib/utils";
 import { CopyableText } from "@/components/ui/copyable-text";
+import { ArrowUpRight, BusFront, ChevronDown, ChevronUp } from "lucide-react";
 
 type BusApiResponse = BusProps[] | { message?: string; error?: string };
 
@@ -129,9 +124,31 @@ export const CommuteTable = ({ userId }: { userId: string }) => {
                                         {students.length ? students.length : "no kids"}
                                     </TableCell>
                                     <TableCell className="rounded-r-2xl px-6 py-5 align-middle">
-                                        <Button variant="outline" onClick={() => setOpenBusId(isBusOpen ? null : bus.id)}>
-                                            {isBusOpen ? "Hide Bus Details" : "View Bus Details"}
-                                        </Button>
+                                        <div className="flex flex-wrap gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => setOpenBusId(isBusOpen ? null : bus.id)}
+                                                className="h-10 rounded-full border-black/10 bg-white px-4 text-black shadow-sm hover:bg-black/5 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+                                            >
+                                                {isBusOpen ? (
+                                                    <ChevronUp className="mr-2 h-4 w-4" />
+                                                ) : (
+                                                    <ChevronDown className="mr-2 h-4 w-4" />
+                                                )}
+                                                {isBusOpen ? "Hide roster" : "Roster"}
+                                            </Button>
+                                            <Button
+                                                asChild
+                                                className="h-10 rounded-lg bg-black px-4 text-white  hover:bg-black/85 dark:bg-white dark:text-black dark:hover:bg-white/90"
+                                            >
+                                                <Link href={`/dashboard/bus?busId=${bus.id}`}>
+                                                    <BusFront className="mr-2 h-4 w-4" />
+                                                    View bus
+                                                    <ArrowUpRight className="ml-2 h-4 w-4" />
+                                                </Link>
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                                 {isBusOpen && (
