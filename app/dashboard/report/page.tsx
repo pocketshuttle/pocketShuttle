@@ -18,7 +18,7 @@ const ReportPage = async () => {
     }
 
     try {
-        const [teacherData, totals] = await Promise.all([
+        const [teacherData, totals, trackingTrips] = await Promise.all([
             db.teacher.findMany({
                 where: { schoolId },
                 select: {
@@ -50,7 +50,54 @@ const ReportPage = async () => {
                 db.teacher.count({ where: { schoolId } }),
                 db.buses.count({ where: { schoolId } }),
             ]),
+            db.trip.findMany({
+                where: {
+                    schoolId,
+                    createdAt: {
+                        gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+                    },
+                },
+                include: {
+                    locations: {
+                        orderBy: { timestamp: "desc" },
+                        take: 1,
+                    },
+                    events: {
+                        orderBy: { timestamp: "desc" },
+                        take: 30,
+                    },
+                    participants: true,
+                },
+                orderBy: { createdAt: "desc" },
+            }),
         ]);
+
+        const staleLocationCutoff = Date.now() - 2 * 60 * 1000;
+        const flattenedEvents = trackingTrips.flatMap((trip) => trip.events);
+        const trackingSummary = {
+            activeTrips: trackingTrips.filter((trip) => trip.status === "active").length,
+            completedTrips: trackingTrips.filter((trip) => trip.status === "completed").length,
+            boarded: flattenedEvents.filter((event) => event.eventType === "participant_boarded").length,
+            dropped: flattenedEvents.filter((event) => event.eventType === "participant_dropped").length,
+            emergencyEvents: flattenedEvents.filter((event) =>
+                ["emergency_triggered", "unusual_stop", "route_deviation"].includes(event.eventType)
+            ).length,
+            staleLocations: trackingTrips.filter((trip) => {
+                const latestLocation = trip.locations[0];
+                return trip.status === "active" && latestLocation
+                    ? latestLocation.timestamp.getTime() < staleLocationCutoff
+                    : false;
+            }).length,
+            notificationAttempts: flattenedEvents.filter((event) => {
+                const payload = event.payload;
+                return Boolean(
+                    payload &&
+                    typeof payload === "object" &&
+                    !Array.isArray(payload) &&
+                    (payload as Record<string, unknown>).source === "notification_dispatch"
+                );
+            }).length,
+        };
 
         return (
             <MainPickUpPage
@@ -60,6 +107,7 @@ const ReportPage = async () => {
                     totalTeachers: totals[1],
                     totalBuses: totals[2],
                 }}
+                trackingSummary={trackingSummary}
             />
         )
     } catch (error: any) {

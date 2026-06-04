@@ -10,12 +10,22 @@ import { PickupTimeFlow } from './pickup-time-flow'
 import TeachersChart from './teachers-pie-chart'
 import { DateRangePicker } from './date-range-picker'
 import { Badge } from '@/components/ui/badge'
-import { BarChart3, Bus, CalendarDays, FileText, GraduationCap, UsersRound } from 'lucide-react'
+import { AlertTriangle, BarChart3, Bus, CalendarDays, FileText, GraduationCap, MapPinned, UsersRound } from 'lucide-react'
 
 type ReportSummary = {
     totalPickups: number;
     totalTeachers: number;
     totalBuses: number;
+};
+
+type TrackingSummary = {
+    activeTrips: number;
+    completedTrips: number;
+    boarded: number;
+    dropped: number;
+    emergencyEvents: number;
+    staleLocations: number;
+    notificationAttempts: number;
 };
 
 const toDateInputValue = (date: Date) => date.toISOString().slice(0, 10);
@@ -31,7 +41,15 @@ const getDefaultRange = () => {
     };
 };
 
-export const MainPickUpPage = ({ data, summary }: { data: any[], summary: ReportSummary }) => {
+export const MainPickUpPage = ({
+    data,
+    summary,
+    trackingSummary,
+}: {
+    data: any[],
+    summary: ReportSummary,
+    trackingSummary: TrackingSummary,
+}) => {
     const [filterBusId, setFilteredBusId] = useState<{ busId: string, teacherId: string, teacherName: string }>({ busId: "", teacherId: "", teacherName: "" })
     const [pickUpData, setPickupData] = useState<any[]>([])
     const [teacherPickupData, setTeacherPickupData] = useState<any[]>([])
@@ -150,6 +168,26 @@ export const MainPickUpPage = ({ data, summary }: { data: any[], summary: Report
             </header>
 
             <section className="rounded-lg border border-black/10 bg-white p-4 text-black dark:border-white/10 dark:bg-zinc-950 dark:text-white">
+                <div className="flex items-center gap-2">
+                    <MapPinned className="h-5 w-5" />
+                    <h2 className="text-lg font-semibold">Trip accountability</h2>
+                </div>
+                <p className="mt-1 text-sm text-black/55 dark:text-white/55">
+                    Tracking reports are generated from trip events, live locations, participants, and notification dispatch attempts.
+                </p>
+                <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                    <ReportStat icon={<Bus className="h-5 w-5" />} label="Active trips" value={trackingSummary.activeTrips} />
+                    <ReportStat icon={<FileText className="h-5 w-5" />} label="Completed trips" value={trackingSummary.completedTrips} />
+                    <ReportStat icon={<UsersRound className="h-5 w-5" />} label="Boarded / dropped" value={`${trackingSummary.boarded}/${trackingSummary.dropped}`} />
+                    <ReportStat icon={<AlertTriangle className="h-5 w-5" />} label="Safety events" value={trackingSummary.emergencyEvents} />
+                </div>
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <SmallInsight label="Stale location warnings" value={trackingSummary.staleLocations} />
+                    <SmallInsight label="Notification dispatch records" value={trackingSummary.notificationAttempts} />
+                </div>
+            </section>
+
+            <section className="rounded-lg border border-black/10 bg-white p-4 text-black dark:border-white/10 dark:bg-zinc-950 dark:text-white">
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                     <div>
                         <div className="flex items-center gap-2">
@@ -225,7 +263,7 @@ function formatReportTime(value?: string) {
     return value ? value : "--";
 }
 
-function ReportStat({ icon, label, value }: { icon: React.ReactNode, label: string, value: number }) {
+function ReportStat({ icon, label, value }: { icon: React.ReactNode, label: string, value: number | string }) {
     return (
         <div className="flex items-center gap-3 rounded-lg border border-black/10 p-3 dark:border-white/10">
             <div className="grid h-10 w-10 place-items-center rounded-lg bg-black text-white dark:bg-white dark:text-black">
@@ -235,6 +273,15 @@ function ReportStat({ icon, label, value }: { icon: React.ReactNode, label: stri
                 <p className="text-sm text-black/55 dark:text-white/55">{label}</p>
                 <p className="text-xl font-semibold">{value}</p>
             </div>
+        </div>
+    )
+}
+
+function SmallInsight({ label, value }: { label: string, value: number }) {
+    return (
+        <div className="rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
+            <p className="text-black/55 dark:text-white/55">{label}</p>
+            <p className="mt-1 text-xl font-semibold">{value}</p>
         </div>
     )
 }

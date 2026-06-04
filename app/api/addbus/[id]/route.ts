@@ -80,7 +80,11 @@ export const PATCH = async (
 
     const existingBus = await db.buses.findFirst({
       where: { id, schoolId },
-      select: { id: true },
+      select: {
+        id: true,
+        seat_number: true,
+        availableSeats: true,
+      },
     });
 
     if (!existingBus) {
@@ -102,6 +106,12 @@ export const PATCH = async (
       }
     }
 
+    const capacityDelta = data.seat_number - existingBus.seat_number;
+    const nextAvailableSeats = Math.max(
+      0,
+      existingBus.availableSeats + capacityDelta
+    );
+
     const updatedBus = await db.buses.update({
       where: {
         id,
@@ -112,6 +122,7 @@ export const PATCH = async (
         bus_number: data.bus_number,
         color: data.color,
         seat_number: data.seat_number,
+        availableSeats: nextAvailableSeats,
         routeId: routeId || undefined,
       },
     });

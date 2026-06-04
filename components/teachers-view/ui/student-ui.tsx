@@ -35,6 +35,7 @@ export const EachStudent = ({
     >({});
     const [tracking, setTracking] = useState(student.presence === "ON_THE_WAY");
     const [arrivalLogged, setArrivalLogged] = useState(false);
+    const canSendOtw = student.attendance === "PRESENT";
 
     useTeacherLocation(teacherId, (data) => {
         setTeacherLocation((prev) => ({
@@ -185,18 +186,24 @@ export const EachStudent = ({
                             </div>
 
                             <div className="shrink-0">
-                                <AttendanceTab
-                                    label1="OTW"
-                                    label2="Stop"
-                                    data={student.presence || "No presence recorded"}
-                                    value1="ON_THE_WAY"
-                                    value2="NONE"
-                                    SetAttendance={SetAttendance}
-                                    attendance={attendance}
-                                    id={student.id}
-                                    eta={stdentEta}
-                                    onOTW={() => setTracking(true)}
-                                />
+                                {canSendOtw ? (
+                                    <AttendanceTab
+                                        label1="OTW"
+                                        label2="Stop"
+                                        data={student.presence || "No presence recorded"}
+                                        value1="ON_THE_WAY"
+                                        value2="NONE"
+                                        SetAttendance={SetAttendance}
+                                        attendance={attendance}
+                                        id={student.id}
+                                        eta={stdentEta}
+                                        onOTW={() => setTracking(true)}
+                                    />
+                                ) : (
+                                    <div className="flex h-9 items-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-[0.7rem] font-medium text-slate-400">
+                                        OTW unavailable
+                                    </div>
+                                )}
                             </div>
                         </div>
 

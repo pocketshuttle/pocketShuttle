@@ -1,11 +1,11 @@
 "use server";
-// import { StudentPresence } from "@prisma/client";
 import { StudentPresence } from "@/packages/db/client";
-import { sendSmsForBusArrival } from "./notification/bus-arrival";
-import { sendPushNotification } from "@/onesignal/send-push";
 import { getUserSession } from "@/lib/session";
-import { applyStudentPresenceUpdate } from "@/lib/student-state";
-import { capitalizeName } from "@/lib/capitalize-name";
+import {
+  applyStudentPresenceUpdate,
+  getStudentScopeForActor,
+} from "@/lib/student-state";
+import { recordStudentMovementTripEvent } from "@/lib/trip-events";
 
 export const updateLocation = async (
   id: string,
@@ -22,29 +22,32 @@ export const updateLocation = async (
       return { message: "Invalid presence value", status: 400 };
     }
 
-    const result = await applyStudentPresenceUpdate({ studentId: id }, data);
+    const result = await applyStudentPresenceUpdate(
+      getStudentScopeForActor(id, user),
+      data
+    );
     if (!result) {
       return { message: "Student not found", status: 404 };
     }
     const updatedStudent = result.student;
 
-    try {
-      if (data === "ON_THE_WAY" && result.changed) {
-        await sendSmsForBusArrival({
-          student_name: updatedStudent.full_name ?? "",
-          parent_name: updatedStudent?.parent?.full_name ?? "",
-          bus_name: updatedStudent?.bus?.bus_product_name ?? "",
-          phoneNumber: updatedStudent?.parent?.phoneNumber ?? "",
-          eta: eta ?? "unknown",
-        });
+    if (result.blockedReason === "NOT_PRESENT") {
+      return {
+        message: "Mark the student present before sending OTW",
+        student: updatedStudent,
+        status: 400,
+      };
+    }
 
-        await sendPushNotification(
-          `Hi ${capitalizeName(updatedStudent?.parent?.full_name || "Parent")}, ${updatedStudent?.bus?.bus_product_name} is on the way`,
-          updatedStudent?.parent?.id!
-        );
-      }
-    } catch (notifyErr) {
-      console.error("Notification failed:", notifyErr);
+    if (result.changed) {
+      await recordStudentMovementTripEvent({
+        student: updatedStudent,
+        actorId: String(user.id),
+        actorType: role,
+        source: "presence",
+        value: data,
+        eta,
+      });
     }
 
     return {

@@ -4,7 +4,7 @@ import { updateStudentStatus } from "@/actions/mark-status";
 import { updateStudentAttendance } from "@/actions/mart-attendance";
 import { toast } from "@/components/ui/use-toast";
 import useUpdateAttendance from "@/hooks/usePatch";
-import { Dispatch, SetStateAction, useState, useTransition } from "react";
+import { Dispatch, SetStateAction, useEffect, useState, useTransition } from "react";
 
 type RegisterProps = {
     value1: string
@@ -24,22 +24,29 @@ export const AttendanceTab = ({
 }: RegisterProps) => {
     const [localAttendance, setLocalAttendance] = useState(data);
     const [isPending, startTransition] = useTransition()
-    const { updateAtendance, loading, error } = useUpdateAttendance(id, "PATCH");
+    const { loading, error } = useUpdateAttendance(id, "PATCH");
+
+    useEffect(() => {
+        setLocalAttendance(data);
+    }, [data]);
 
     const handleAttendanceClick = async (value: string) => {
         if (isPending) return;
-        setLocalAttendance(value);
-        SetAttendance(value);
         //@ts-ignore
         const handleMode = label1 === "Present" || label1 === "Absent" ? updateStudentAttendance(id, value) : label1 === "OTW" || label1 === "Stop" ? updateLocation(id, value, eta) : updateStudentStatus(id, value)
-        setLocalAttendance(value);
-        SetAttendance(value);
 
         startTransition(() => {
             handleMode.then((data) => {
                 toast({
                     description: data.message,
                 });
+
+                if (data.status !== 200) {
+                    return;
+                }
+
+                setLocalAttendance(value);
+                SetAttendance(value);
 
                 if (label1 === "OTW" && value === value1) {
                     onOTW?.()
@@ -59,14 +66,14 @@ export const AttendanceTab = ({
             <button
                 className={`flex h-7 items-center justify-center rounded-lg px-2.5 transition ${localAttendance === value1 ? "bg-emerald-500 text-white shadow-sm font-semibold" : "text-slate-500"}`}
                 onClick={() => handleAttendanceClick(value1)}
-                disabled={loading}
+                disabled={loading || isPending}
             >
                 {label1}
             </button>
             <button
                 className={`flex h-7 items-center justify-center rounded-lg px-2.5 transition ${localAttendance === value2 ? "bg-rose-500 text-white shadow-sm font-semibold" : "text-slate-500"}`}
                 onClick={() => handleAttendanceClick(value2)}
-                disabled={loading}
+                disabled={loading || isPending}
             >
                 {label2}
             </button>

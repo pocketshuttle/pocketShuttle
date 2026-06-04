@@ -1,32 +1,17 @@
 "use server";
 
-import db, { StudentStatus } from "@/packages/db/client";
-import { Knock } from "@knocklabs/node";
+import { StudentStatus } from "@/packages/db/client";
 import { logMorningPickup } from "./report-folder/log-morning-pickup";
 import z from "zod";
 import { getUserSession } from "@/lib/session";
 import {
   applyStudentStatusUpdate,
   getCurrentHourInTimeZone,
+  getStudentScopeForActor,
 } from "@/lib/student-state";
+import { recordStudentMovementTripEvent } from "@/lib/trip-events";
 
-const knock = new Knock(process.env.KNOCK_SECRET_API_SECRET);
 const StudentStatusSchema = z.enum(["PICKED", "DROPPED"]);
-
-async function sendKnockNotification(updatedStudent: any) {
-  if (updatedStudent?.parent?.id && updatedStudent?.bus?.bus_product_name) {
-    await knock.workflows.trigger("in-bus", {
-      data: { bus_product_name: updatedStudent.bus.bus_product_name },
-      recipients: [
-        {
-          id: updatedStudent.parent.id,
-          name: updatedStudent.parent.full_name,
-          email: updatedStudent.parent.email,
-        },
-      ],
-    });
-  }
-}
 
 export const updateStudentStatus = async (id: string, data: StudentStatus) => {
   const user = await getUserSession();
@@ -46,7 +31,11 @@ export const updateStudentStatus = async (id: string, data: StudentStatus) => {
     }
 
     const hours = getCurrentHourInTimeZone("Africa/Lagos");
-    const result = await applyStudentStatusUpdate({ studentId: id }, data, hours);
+    const result = await applyStudentStatusUpdate(
+      getStudentScopeForActor(id, user),
+      data,
+      hours
+    );
     if (!result) {
       return { message: "Student not found", status: 404 };
     }
@@ -61,12 +50,15 @@ export const updateStudentStatus = async (id: string, data: StudentStatus) => {
       };
     }
 
-    await logMorningPickup(updatedStudent, hours);
+    await recordStudentMovementTripEvent({
+      student: updatedStudent,
+      actorId: String(user.id),
+      actorType: role,
+      source: "status",
+      value: data,
+    });
 
-    // Send notification if student status is PICKED
-    if (updatedStudent.status === "PICKED" && hours >= 4 && hours < 16) {
-      await sendKnockNotification(updatedStudent);
-    }
+    await logMorningPickup(updatedStudent, hours);
 
     return {
       message: "Status updated successfully",

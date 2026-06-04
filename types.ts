@@ -19,6 +19,7 @@ export type BusProps = {
   bus_product_name: string;
   color: string;
   seat_number: string;
+  availableSeats?: number;
   driver: DriversProps;
   bus_number: string;
   students: StudentProps[];
