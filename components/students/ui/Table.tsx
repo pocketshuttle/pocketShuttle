@@ -50,6 +50,7 @@ import {
 import { removeStudentFromBus } from "@/actions/remove-student-bus"
 import { ImportStudentsForm } from "../batch-student/import-student"
 import { CopyableText } from "@/components/ui/copyable-text"
+import { tableStyle } from "@/components/ui/table-style"
 
 type IdProps = {
     studentsData: StudentProps[]
@@ -154,7 +155,7 @@ export const StudentsData = ({ studentsData, busData, totalCount, schoolId }: Id
     const displayStudentsData = Array.isArray(studentsData) && studentsData.length ? studentsData : mockStudentsData
 
     return (
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root))]">
+        <div className={tableStyle.wrapper}>
             <div className="p-4 flex justify-between gap-3 items-center">
                 < AddData label="Student" action={handleModal} />
                 <Link href="/dashboard/students/allstudents">
@@ -165,28 +166,28 @@ export const StudentsData = ({ studentsData, busData, totalCount, schoolId }: Id
             {
                 isOpenModal && <StudentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
             }
-            <Table className="min-w-[1120px] border-separate border-spacing-y-3 bg-transparent">
-                <TableHeader className="bg-[var(--hoverBg)]">
-                    <TableRow className="text-xs uppercase tracking-wide hover:bg-transparent dark:hover:bg-transparent">
-                        <TableHead className="w-[300px] text-black/60 dark:text-white/55">Full Name</TableHead>
-                        <TableHead>Gender</TableHead>
-                        <TableHead className="">Age</TableHead>
-                        <TableHead className="w-[185px]">
+            <Table className={tableStyle.table}>
+                <TableHeader>
+                    <TableRow className={tableStyle.headerRow}>
+                        <TableHead className={`w-[300px] ${tableStyle.head}`}>Full Name</TableHead>
+                        <TableHead className={tableStyle.head}>Gender</TableHead>
+                        <TableHead className={tableStyle.head}>Age</TableHead>
+                        <TableHead className={`w-[185px] ${tableStyle.head}`}>
                             < SelectProperty placeholder="Grade" label="Filter by Grade" data={grades} handleSelectChange={handleGradeChange} setFilterGrade={setFilterGrade} />
                         </TableHead>
-                        <TableHead className="w-[260px]">Address</TableHead>
-                        <TableHead className="w-[200px]">Bus</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead className={`w-[260px] ${tableStyle.head}`}>Address</TableHead>
+                        <TableHead className={`w-[200px] ${tableStyle.head}`}>Bus</TableHead>
+                        <TableHead className={tableStyle.head}>Actions</TableHead>
 
                     </TableRow>
 
                 </TableHeader>
-                <TableBody className="text-sm text-black dark:text-white">
+                <TableBody className={tableStyle.body}>
                     {
                         displayStudentsData.map((student: StudentProps) => {
                             return (
-                                <TableRow key={student.id} className="border-0 bg-white text-black shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition-colors hover:bg-white dark:bg-white/5 dark:text-white dark:shadow-none dark:hover:bg-white/10">
-                                    <TableCell className="rounded-l-2xl px-6 py-5 align-middle">
+                                <TableRow key={student.id} className={tableStyle.row}>
+                                    <TableCell className={tableStyle.firstCell}>
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger>
@@ -207,19 +208,19 @@ export const StudentsData = ({ studentsData, busData, totalCount, schoolId }: Id
                                         </TooltipProvider>
 
                                     </TableCell>
-                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                    <TableCell className={tableStyle.cell}>
                                         {student.gender}
                                     </TableCell>
-                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                    <TableCell className={tableStyle.cell}>
                                         {student.age}
                                     </TableCell>
-                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                    <TableCell className={tableStyle.cell}>
                                         {student.grade}
                                     </TableCell>
-                                    <TableCell className="max-w-[260px] px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                    <TableCell className={`max-w-[260px] ${tableStyle.cell}`}>
                                         <CopyableText label="Address" value={student.address} fallback="No address" truncateClassName="max-w-[240px]" />
                                     </TableCell>
-                                    <TableCell className="px-6 py-5 align-middle capitalize text-black/75 dark:text-white/70">
+                                    <TableCell className={`${tableStyle.cell} capitalize`}>
                                         {
                                             student?.bus ?
                                                 <div className=" space-x-2 flex"> {student?.bus && student?.bus?.bus_product_name}
@@ -273,7 +274,7 @@ export const StudentsData = ({ studentsData, busData, totalCount, schoolId }: Id
                                         }
                                     </TableCell>
 
-                                    <TableCell className="rounded-r-2xl px-6 py-5 align-middle">
+                                    <TableCell className={tableStyle.actionCell}>
                                         <div className="space-x-2 text-gray-200 flex">
                                             <EditData link={`/dashboard/students/${student.id}`} mode="edit" />
 

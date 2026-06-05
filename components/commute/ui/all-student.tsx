@@ -13,6 +13,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { CopyableText } from "@/components/ui/copyable-text"
+import { tableStyle } from "@/components/ui/table-style"
 
 
 type StudentProps = {
@@ -34,25 +35,25 @@ export const StudentsData = ({ data }: { data?: StudentProps[] }) => {
                 <Search placeholder="Search for students..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
             </div>
 
-            <Table className="min-w-[980px] border-separate border-spacing-y-3 bg-transparent">
+            <Table className={tableStyle.compactTable}>
                 <TableHeader>
-                    <TableRow className="text-xs uppercase tracking-wide hover:bg-transparent dark:hover:bg-transparent">
-                        <TableHead className="text-black/60 dark:text-white/55">Bus</TableHead>
-                        <TableHead className="w-[260px] text-black/60 dark:text-white/55">Full Name</TableHead>
-                        <TableHead>Gender</TableHead>
-                        <TableHead className="">Age</TableHead>
-                        <TableHead className="">Grade</TableHead>
-                        <TableHead className="w-[250px]">Address</TableHead>
-                        <TableHead>Status</TableHead>
+                    <TableRow className={tableStyle.headerRow}>
+                        <TableHead className={tableStyle.head}>Bus</TableHead>
+                        <TableHead className={`w-[260px] ${tableStyle.head}`}>Full Name</TableHead>
+                        <TableHead className={tableStyle.head}>Gender</TableHead>
+                        <TableHead className={tableStyle.head}>Age</TableHead>
+                        <TableHead className={tableStyle.head}>Grade</TableHead>
+                        <TableHead className={`w-[250px] ${tableStyle.head}`}>Address</TableHead>
+                        <TableHead className={tableStyle.head}>Status</TableHead>
                     </TableRow>
 
                 </TableHeader>
-                <TableBody className="text-sm text-black dark:text-white">
+                <TableBody className={tableStyle.body}>
                     {
                         data && data?.map((student: StudentProps) => {
                             return (
-                                <TableRow key={student._id} className="border-0 bg-white text-black shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition-colors hover:bg-white dark:bg-white/5 dark:text-white dark:shadow-none dark:hover:bg-white/10">
-                                    <TableCell className="rounded-l-2xl px-6 py-5 align-middle">
+                                <TableRow key={student._id} className={tableStyle.row}>
+                                    <TableCell className={tableStyle.firstCell}>
                                         {student.bus || "No bus"}
                                     </TableCell>
                                     <TableCell className="px-6 py-5 align-middle">
@@ -61,19 +62,19 @@ export const StudentsData = ({ data }: { data?: StudentProps[] }) => {
                                             <span className="">{student.full_name}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                    <TableCell className={tableStyle.cell}>
                                         {student.gender}
                                     </TableCell>
-                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                    <TableCell className={tableStyle.cell}>
                                         {student.age}
                                     </TableCell>
-                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                    <TableCell className={tableStyle.cell}>
                                         {student.grade}
                                     </TableCell>
-                                    <TableCell className="max-w-[260px] px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                    <TableCell className={`max-w-[260px] ${tableStyle.cell}`}>
                                         <CopyableText label="Address" value={student.address} fallback="No address" truncateClassName="max-w-[240px]" />
                                     </TableCell>
-                                    <TableCell className="rounded-r-2xl px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                    <TableCell className={`${tableStyle.actionCell} text-black/75 dark:text-white/70`}>
                                         -
                                     </TableCell>
 
