@@ -29,6 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrentHourInTimeZone } from "@/lib/utils";
 import { CopyableText } from "@/components/ui/copyable-text";
 import { ArrowUpRight, BusFront, ChevronDown, ChevronUp } from "lucide-react";
+import { tableStyle } from "@/components/ui/table-style";
 
 type BusApiResponse = BusProps[] | { message?: string; error?: string };
 
@@ -59,22 +60,22 @@ export const CommuteTable = ({ userId }: { userId: string }) => {
 
     const [openBusId, setOpenBusId] = useState<string | null>(null);
     return (
-        <div className="relative mt-4 overflow-x-auto bg-transparent">
-            <Table className="min-w-[980px] border-separate border-spacing-y-3 bg-transparent">
+        <div className={`${tableStyle.wrapper} mt-4`}>
+            <Table className={tableStyle.compactTable}>
                 <TableHeader>
-                    <TableRow className="text-xs uppercase tracking-wide hover:bg-transparent dark:hover:bg-transparent">
-                        <TableHead className="w-[280px] text-black/60 dark:text-white/55">Bus No</TableHead>
-                        <TableHead>Route</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>No of Kids</TableHead>
-                        <TableHead>Actions</TableHead>
+                    <TableRow className={tableStyle.headerRow}>
+                        <TableHead className={`w-[280px] ${tableStyle.head}`}>Bus No</TableHead>
+                        <TableHead className={tableStyle.head}>Route</TableHead>
+                        <TableHead className={tableStyle.head}>Status</TableHead>
+                        <TableHead className={tableStyle.head}>No of Kids</TableHead>
+                        <TableHead className={tableStyle.head}>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
-                <TableBody className="text-sm text-black dark:text-white">
+                <TableBody className={tableStyle.body}>
 
                     {
                         isLoading && (
-                            < TableRow>
+                            <TableRow className="hover:bg-transparent dark:hover:bg-transparent">
                                 <TableCell colSpan={5}>
                                     <div className="space-y-2">
                                         <Skeleton className="h-12 w-full mb-2 " />
@@ -95,7 +96,7 @@ export const CommuteTable = ({ userId }: { userId: string }) => {
 
                     {!isLoading && !error && buses.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={5} className="py-8 text-center text-gray-400">
+                            <TableCell colSpan={5} className={tableStyle.emptyCell}>
                                 No buses found.
                             </TableCell>
                         </TableRow>
@@ -106,13 +107,13 @@ export const CommuteTable = ({ userId }: { userId: string }) => {
                         const students = Array.isArray(bus.students) ? bus.students : [];
                         return (
                             <React.Fragment key={bus.id}>
-                                <TableRow className="border-0 bg-white text-black shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition-colors hover:bg-white dark:bg-white/5 dark:text-white dark:shadow-none dark:hover:bg-white/10">
-                                    <TableCell className="rounded-l-2xl px-6 py-5 align-middle text-[0.8rem] capitalize">
+                                <TableRow className={tableStyle.row}>
+                                    <TableCell className={`${tableStyle.firstCell} text-[0.8rem] capitalize`}>
                                         <span>{bus.color} </span>
                                         {bus.bus_product_name || "No Bus"}
                                         <span> ({bus.bus_number})</span>
                                     </TableCell>
-                                    <TableCell className="px-6 py-5 align-middle capitalize text-black/75 dark:text-white/70">
+                                    <TableCell className={`${tableStyle.cell} capitalize`}>
                                         {bus.route?.route_name || "No Route"}
                                     </TableCell>
                                     <TableCell className="px-6 py-5 align-middle capitalize">
@@ -120,16 +121,16 @@ export const CommuteTable = ({ userId }: { userId: string }) => {
                                             {bus.status}
                                         </span>
                                     </TableCell>
-                                    <TableCell className="px-6 py-5 align-middle capitalize text-black/75 dark:text-white/70">
+                                    <TableCell className={`${tableStyle.cell} capitalize`}>
                                         {students.length ? students.length : "no kids"}
                                     </TableCell>
-                                    <TableCell className="rounded-r-2xl px-6 py-5 align-middle">
+                                    <TableCell className={tableStyle.actionCell}>
                                         <div className="flex flex-wrap gap-2">
                                             <Button
                                                 type="button"
                                                 variant="outline"
                                                 onClick={() => setOpenBusId(isBusOpen ? null : bus.id)}
-                                                className="h-10 rounded-full border-black/10 bg-white px-4 text-black shadow-sm hover:bg-black/5 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+                                                className="h-10 rounded-lg border-black/10 bg-white px-4 text-black shadow-sm hover:bg-black/5 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
                                             >
                                                 {isBusOpen ? (
                                                     <ChevronUp className="mr-2 h-4 w-4" />
@@ -155,21 +156,21 @@ export const CommuteTable = ({ userId }: { userId: string }) => {
                                     <TableRow className="hover:bg-transparent dark:hover:bg-transparent">
                                         <TableCell colSpan={5}>
                                             <div className="rounded-2xl bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.06)] dark:bg-white/5 dark:shadow-none">
-                                                <Table className="min-w-[820px] bg-transparent">
+                                                <Table className="min-w-[820px] border-separate border-spacing-y-2 bg-transparent">
                                                     <TableHeader>
-                                                        <TableRow className="text-xs uppercase tracking-wide hover:bg-transparent dark:hover:bg-transparent">
-                                                            <TableHead className="w-[260px] text-black/60 dark:text-white/55">Full Name</TableHead>
-                                                            <TableHead>Gender</TableHead>
-                                                            <TableHead className="">Age</TableHead>
-                                                            <TableHead className="">Grade</TableHead>
-                                                            <TableHead className="w-[260px]">Address</TableHead>
-                                                            <TableHead>Status</TableHead>
+                                                        <TableRow className={tableStyle.headerRow}>
+                                                            <TableHead className={`w-[260px] ${tableStyle.head}`}>Full Name</TableHead>
+                                                            <TableHead className={tableStyle.head}>Gender</TableHead>
+                                                            <TableHead className={tableStyle.head}>Age</TableHead>
+                                                            <TableHead className={tableStyle.head}>Grade</TableHead>
+                                                            <TableHead className={`w-[260px] ${tableStyle.head}`}>Address</TableHead>
+                                                            <TableHead className={tableStyle.head}>Status</TableHead>
                                                         </TableRow>
                                                     </TableHeader>
-                                                    <TableBody>
+                                                    <TableBody className={tableStyle.body}>
                                                         {students.map((student: StudentProps) => (
-                                                            <TableRow key={student.id} className="hover:bg-black/5 dark:hover:bg-white/10">
-                                                                <TableCell className="px-4 py-4 align-middle">
+                                                            <TableRow key={student.id} className={tableStyle.row}>
+                                                                <TableCell className="rounded-l-2xl px-4 py-4 align-middle">
                                                                     <TooltipProvider>
                                                                         <Tooltip>
                                                                             <TooltipTrigger>
@@ -200,7 +201,7 @@ export const CommuteTable = ({ userId }: { userId: string }) => {
                                                                     <CopyableText label="Address" value={student.address} fallback="No address" truncateClassName="max-w-[240px]" />
                                                                 </TableCell>
 
-                                                                <TableCell className="px-4 py-4">
+                                                                <TableCell className="rounded-r-2xl px-4 py-4">
                                                                     {
                                                                         student.attendance === "ABSENT" ? "" :
                                                                             <span className={`${student.status === "PICKED" ? "bg-[teal]" : "bg-[crimson]"} rounded-md p-[0.3rem] text-gray-200`}>

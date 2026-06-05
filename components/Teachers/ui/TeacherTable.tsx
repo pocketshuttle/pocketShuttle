@@ -35,6 +35,7 @@ import { removeTeacherFromBus } from "@/actions/remove-teacher-bus"
 import { toast } from "@/components/ui/use-toast"
 import { handleDelete } from "@/actions/delete-student"
 import { CopyableText } from "@/components/ui/copyable-text"
+import { tableStyle } from "@/components/ui/table-style"
 
 
 type userProps = {
@@ -137,38 +138,39 @@ export const TeachersTable = ({ teacherCount, teachersData, busData }: userProps
                 < AddData label="Add a Teacher" action={handleModal} />
             </div> */}
 
-            <Table className="min-w-[1120px] border-separate border-spacing-y-3 bg-transparent">
+            <Table className={tableStyle.table}>
                 <TableHeader>
-                    <TableRow className="text-xs uppercase tracking-wide hover:bg-transparent dark:hover:bg-transparent">
-                        <TableHead className="w-[300px] text-black/60 dark:text-white/55">Full Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone Number</TableHead>
-                        <TableHead>Address</TableHead>
-                        <TableHead>Bus No</TableHead>
+                    <TableRow className={tableStyle.headerRow}>
+                        <TableHead className={`w-[300px] ${tableStyle.head}`}>Full Name</TableHead>
+                        <TableHead className={tableStyle.head}>Email</TableHead>
+                        <TableHead className={tableStyle.head}>Phone Number</TableHead>
+                        <TableHead className={tableStyle.head}>Address</TableHead>
+                        <TableHead className={tableStyle.head}>Bus No</TableHead>
+                        <TableHead className={tableStyle.head}>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
 
-                <TableBody className="text-sm text-black dark:text-white">
+                <TableBody className={tableStyle.body}>
                     {
                         displayTeachersData.map((teacher: TeacherProps) => {
                             return (
-                                <TableRow key={teacher.id} className="border-0 bg-white text-black shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition-colors hover:bg-white dark:bg-white/5 dark:text-white dark:shadow-none dark:hover:bg-white/10">
-                                    <TableCell className="rounded-l-2xl px-6 py-5 align-middle">
+                                <TableRow key={teacher.id} className={tableStyle.row}>
+                                    <TableCell className={tableStyle.firstCell}>
                                         <div className="flex items-center gap-2">
                                             <img src={teacher.image && teacher.image || dashboard} alt={teacher.full_name} className="rounded-md object-cover w-9 h-9" />
                                             <span className="capitalize">{teacher.full_name}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                    <TableCell className={tableStyle.cell}>
                                         <CopyableText label="Email" value={teacher.email} fallback="No email" truncateClassName="max-w-[220px]" />
                                     </TableCell>
-                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                    <TableCell className={tableStyle.cell}>
                                         <CopyableText label="Phone number" value={teacher.phoneNumber} fallback="No phone" truncateClassName="max-w-[140px]" />
                                     </TableCell>
-                                    <TableCell className="max-w-[240px] px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                    <TableCell className={`max-w-[240px] ${tableStyle.cell}`}>
                                         <CopyableText label="Address" value={teacher.address} fallback="No address" truncateClassName="max-w-[220px]" />
                                     </TableCell>
-                                    <TableCell className="px-6 py-5 align-middle text-[0.7rem] capitalize text-black/75 dark:text-white/70">
+                                    <TableCell className={`${tableStyle.cell} text-[0.7rem] capitalize`}>
                                         {
                                             teacher.bus ? <div className="flex space-x-1">
                                                 <div>
@@ -224,7 +226,7 @@ export const TeachersTable = ({ teacherCount, teachersData, busData }: userProps
                                                 </div>
                                         }
                                     </TableCell>
-                                    <TableCell className="rounded-r-2xl px-6 py-5 align-middle">
+                                    <TableCell className={tableStyle.actionCell}>
                                         <div className="space-x-2 flex">
                                             <EditData link={`/dashboard/teachers/${teacher.id}`} mode="edit" />
                                             <AlertDialog>
