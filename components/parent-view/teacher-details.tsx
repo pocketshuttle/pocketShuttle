@@ -29,8 +29,8 @@ export const TeacherDetailsForParentPage = ({ bus, userId }: PageProps) => {
     const eta = useRecoilValue(studentETASelector(userId));
 
     return (
-        <div className=' text-gray-700 space-y-3 px-2'>
-            <header className="text-gray-950 text-xl font-medium border-b-4 border-[#38BDF8] py-2 mt-4 mb-4">
+        <div className='space-y-3 rounded-lg border border-sky-100 bg-sky-50/80 px-3 py-4 text-black'>
+            <header className="border-b-2 border-sky-400 pb-3 text-lg font-semibold text-black">
                 {eta.status === "loading" && "Calculating ETA..."}
                 {eta.status === "success" && `Bus arriving in ${eta.value} mins...`}
                 {eta.status === "error" && "Unable to calculate ETA"}
@@ -39,23 +39,23 @@ export const TeacherDetailsForParentPage = ({ bus, userId }: PageProps) => {
             <section className='space-y-3'>
 
                 {/* name and teacher details  */}
-                <div className='flex justify-between items-center gap-3 py-2'>
-                    <div className='flex items-center gap-2'>
-                        <Image src={bus?.teacher?.image || avatar} height={75} width={75} alt="Teachers image" className='rounded-full bg-gray-500' />
+                <div className='flex items-center justify-between gap-3 py-2'>
+                    <div className='flex min-w-0 items-center gap-2'>
+                        <Image src={bus?.teacher?.image || avatar} height={64} width={64} alt="Teachers image" className='rounded-full bg-black/10 object-cover' />
                         <div>
-                            <h2 className='text-gray-950 text-xl capitalize font-medium'>{bus?.teacher?.full_name} </h2>
-                            <small className='text-gray-600/60 text-base '>
+                            <h2 className='truncate text-lg font-semibold capitalize text-black'>{bus?.teacher?.full_name || "Teacher"} </h2>
+                            <small className='text-sm text-black/55'>
                                 rides
                             </small>
                         </div>
                     </div>
-                    <button className='bg-gray-600/5 rounded-full p-2' disabled>
+                    <button className='hidden rounded-full bg-black/5 p-2 sm:inline-flex' disabled>
                         <Image src={commentIcon} height={35} width={35} aria-disabled alt="comment Icon" className='rounded-full ' />
                     </button>
                     <a
                         href={`tel:${bus?.teacher?.phoneNumber}`}
                         aria-label="Call teacher"
-                        className="bg-gray-100 hover:bg-gray-200 rounded-full p-3 transition inline-flex"
+                        className="inline-flex rounded-full bg-white p-3 ring-1 ring-black/10 transition hover:bg-gray-50"
                     >
                         <Image src={callIcon} height={24} width={24} alt="Call" />
                     </a>
@@ -63,10 +63,10 @@ export const TeacherDetailsForParentPage = ({ bus, userId }: PageProps) => {
                 </div>
 
                 {/* bus deatails */}
-                <div className='flex justify-between items-center border-[0.5px] border-gray-500/10 shadow-sm rounded-md  px-2 py-4'>
+                <div className='flex items-center justify-between rounded-lg border border-black/10 bg-white px-3 py-4'>
                     <div>
-                        <h1 className='text-xl uppercase'>{bus?.bus_number}</h1>
-                        <small className='text-base text-gray-600/60 capitalize'>{bus?.bus_product_name}, {bus?.color} </small>
+                        <h1 className='text-xl font-semibold uppercase text-black'>{bus?.bus_number || "N/A"}</h1>
+                        <small className='text-sm capitalize text-black/55'>{bus?.bus_product_name || "No bus"}, {bus?.color || "No color"} </small>
                     </div>
 
                     <Image src={schoolbus} height={80} width={80} alt="Schoo bus" className='rounded-full ' />

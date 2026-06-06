@@ -8,7 +8,6 @@ import { connectSocket } from "@/utils/socket-client";
 import OneSignal from "react-onesignal";
 import { KidsViewTab } from "./kids-tab";
 import { StudentProps } from "@/types";
-import { io } from "socket.io-client";
 import { canUseOneSignal } from "@/onesignal/utils";
 
 type TeacherLocation = {
@@ -17,6 +16,12 @@ type TeacherLocation = {
     teacherImage: string;
     latitude: number;
     longitude: number;
+};
+
+type TeacherLocationMessage = TeacherLocation | { newLocation: TeacherLocation };
+
+const getTeacherLocation = (message: TeacherLocationMessage) => {
+    return "newLocation" in message ? message.newLocation : message;
 };
 
 const shouldTrackTeacher = (siblings: StudentProps[], selectedStudentId: string | null) => {
@@ -50,13 +55,6 @@ export default function NewParentPage({
             localStorage.setItem("selectedStudentId", siblings[0].id)
         }
     }, [siblings])
-
-    // Persist student selection to localStorage
-    useEffect(() => {
-        if (selectedStudentId) {
-            localStorage.setItem("selectedStudentId", selectedStudentId);
-        }
-    }, [selectedStudentId]);
 
     // Persist student selection to localStorage
     useEffect(() => {
@@ -112,45 +110,30 @@ export default function NewParentPage({
             : selectedSibling.bus?.teacher?.id || null
     }, [uniqueTeacherIds, allTeacherIds, selectedSibling])
 
+    const canTrackSelectedTeacher = useMemo(
+        () => shouldTrackTeacher(siblings, selectedStudentId),
+        [siblings, selectedStudentId]
+    );
+
     const y = useMotionValue(0);
     const [expanded, setExpanded] = useState(true);
 
-    const expandedHeight = "80vh";
-    const collapsedHeight = "20vh";
+    const expandedHeight = "72svh";
+    const collapsedHeight = "22svh";
 
     // Background overlay opacity
     const overlayOpacity = useTransform(y, [0, 300], [0.5, 0]);
 
     useEffect(() => {
         if (!selectedTeacherId || !parentId) return;
-        if (!("geolocation" in navigator)) {
-            console.warn("Geolocation not supported by this browser");
-            return;
-        }
+        if (!canTrackSelectedTeacher) return;
 
         let socket: any;
         let isMounted = true;
-        let reconnectTimer: NodeJS.Timeout;
+        let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
 
         const connectToTeacher = async () => {
             try {
-                // Check location permission before connecting
-                const permission = await navigator.permissions
-                    .query({ name: "geolocation" as PermissionName })
-                    .catch(() => null);
-
-                if (permission && permission.state === "denied") {
-                    console.warn("Geolocation permission denied");
-                    return;
-                }
-
-                // Skip tracking if the student was picked up
-                if (!shouldTrackTeacher(siblings, selectedSibling?.id)) {
-                    console.log("Teacher tracking stopped - student picked up");
-                    return;
-                }
-
-                // Connect socket
                 socket = await connectSocket(selectedTeacherId, "", parentId);
 
                 await new Promise<void>((resolve, reject) => {
@@ -159,8 +142,8 @@ export default function NewParentPage({
                     socket.on("connect", () => {
                         clearTimeout(timeout);
                         if (!isMounted) return;
-                        console.log("Parent socket connected:", socket.id);
-                        socket.emit("subscribe-teacher", { selectedTeacherId, parentId });
+                        socket.emit("subscribe-teacher", { teacherId: selectedTeacherId, parentId });
+                        socket.emit("join-parent-room", parentId);
                         resolve();
                     });
 
@@ -171,24 +154,27 @@ export default function NewParentPage({
                     });
                 });
 
-                // Handle teacher location updates
-                socket.on("teacher-location-update", (location: TeacherLocation) => {
+                socket.on("teacher-location-update", (message: TeacherLocationMessage) => {
                     if (!isMounted) return;
+                    const location = getTeacherLocation(message);
+                    if (!location?.teacherId) return;
+
                     setTeacherLocation(prev => ({
                         ...prev,
-                        [location.teacherId]: location,
+                        [location.teacherId]:
+                            prev[location.teacherId]?.latitude === location.latitude &&
+                                prev[location.teacherId]?.longitude === location.longitude
+                                ? prev[location.teacherId]
+                                : location,
                     }));
                 });
 
-                // Auto resubscribe on reconnect
                 socket.io.on("reconnect", () => {
-                    console.log("Reconnected, resubscribing to teacher room");
-                    socket.emit("subscribe-teacher", { selectedTeacherId, parentId });
+                    socket.emit("subscribe-teacher", { teacherId: selectedTeacherId, parentId });
+                    socket.emit("join-parent-room", parentId);
                 });
 
                 socket.on("disconnect", (reason: string) => {
-                    console.log("Parent socket disconnected:", reason);
-                    // Optional retry on unexpected disconnect
                     if (isMounted && reason !== "io client disconnect") {
                         reconnectTimer = setTimeout(connectToTeacher, 5000);
                     }
@@ -208,7 +194,7 @@ export default function NewParentPage({
                 socket.disconnect();
             }
         };
-    }, [selectedTeacherId, parentId, siblings, selectedStudentId]);
+    }, [selectedTeacherId, parentId, canTrackSelectedTeacher]);
 
     // useEffect(() => {
     //     if (!window.google) return;
@@ -237,21 +223,20 @@ export default function NewParentPage({
     // }, [coords2, coords1]);
 
     return (
-        <div>
+        <div className="min-h-screen bg-gray-100 text-black">
 
             <KidsViewTab
                 siblings={siblings}
                 selectedStudentId={selectedStudentId}
                 onSelect={setSelectedStudentId}
             />
-            <div className="relative w-full h-[90vh] overflow-hidden">
+            <div className="relative h-[calc(100svh-124px)] min-h-[420px] w-full overflow-hidden bg-gray-100">
                 {/* Map at full screen */}
                 <div className="absolute inset-0">
                     <TeacherLocationTracker
                         parentAddress={parentAddress || ""}
                         parentAddressCoords={parentAddressCoords}
                         teacherId={selectedTeacherId || ""}
-                        siblings={siblings}
                         teacherLocation={teacherLocation}
                         userId={parentId}
                     />
@@ -260,7 +245,7 @@ export default function NewParentPage({
                 {/* Semi-transparent backdrop (for clicking outside to collapse) */}
                 {expanded && (
                     <motion.div
-                        className="absolute inset-0 bg-black"
+                        className="absolute inset-0 bg-black/20"
                         style={{ opacity: overlayOpacity }}
                         onClick={() => setExpanded(false)}
                     />
@@ -284,11 +269,11 @@ export default function NewParentPage({
                         y: 0,
                     }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-lg overflow-y-auto"
+                    className="absolute bottom-0 left-0 right-0 overflow-y-auto rounded-t-3xl border border-black/10 bg-white text-black"
                 >
                     {/* Drag handle */}
-                    <div className="w-full flex justify-center p-2">
-                        <div className="w-12 h-1.5 bg-gray-400 rounded-full" />
+                    <div className="sticky top-0 z-10 flex w-full justify-center bg-white/95 p-3 backdrop-blur">
+                        <div className="h-1.5 w-12 rounded-full bg-black/20" />
                     </div>
 
                     {/* Parent kids data */}

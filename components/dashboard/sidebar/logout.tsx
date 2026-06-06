@@ -18,7 +18,7 @@ const Logout = () => {
             <span className="grid h-8 w-8 place-items-center rounded-md bg-black/10 dark:bg-white/10">
                 <ExitIcon className="h-4 w-4" />
             </span>
-            <span>Logout</span>
+            {/* <span>Logout</span> */}
         </button>
     )
 }

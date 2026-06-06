@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import Ably from "ably";
+import { useEffect, useRef } from "react";
 import { getAblyClient } from "@/ably/ably-client";
 
 export const useTeacherLocation = (
@@ -12,18 +11,28 @@ export const useTeacherLocation = (
     longitude: number;
   }) => void
 ) => {
+  const onUpdateRef = useRef(onUpdate);
+
   useEffect(() => {
+    onUpdateRef.current = onUpdate;
+  }, [onUpdate]);
+
+  useEffect(() => {
+    if (!teacherId) return;
+
     const ably = getAblyClient();
     const channel = ably.channels.get(`teacher-location:${teacherId}`);
 
-    channel.subscribe("location-update", (message) => {
+    const handleLocationUpdate = (message: any) => {
       const { latitude, longitude, teacherName, teacherImage } = message.data;
-      onUpdate({ teacherId, teacherName, teacherImage, latitude, longitude });
-    });
+      onUpdateRef.current({ teacherId, teacherName, teacherImage, latitude, longitude });
+    };
+
+    channel.subscribe("location-update", handleLocationUpdate);
 
     return () => {
-      channel.unsubscribe();
+      channel.unsubscribe("location-update", handleLocationUpdate);
       // ably.close();
     };
-  }, [teacherId, onUpdate]);
+  }, [teacherId]);
 };

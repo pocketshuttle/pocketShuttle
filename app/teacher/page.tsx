@@ -17,7 +17,7 @@ const TeacherView = async () => {
         return (
             <div className="flex items-center justify-center min-h-screen text-center">
                 <div>
-                    <p className="mb-4 text-gray-700">User session is not available. Please log in.</p>
+                    <p className="mb-4 text-black/70 dark:text-white/70">User session is not available. Please log in.</p>
                     <LoginButton>
                         <Button size="lg">Login</Button>
                     </LoginButton>
@@ -31,7 +31,7 @@ const TeacherView = async () => {
             where: { id: user.id },
             select: {
                 Student: {
-                    select: {
+                    include: {
                         parent: {
                             select: { address: true },
                         },
@@ -57,14 +57,13 @@ const TeacherView = async () => {
         if (!teacherData) {
             return (
                 <div className="flex items-center justify-center min-h-screen">
-                    <p className="text-gray-600">No teacher data found for this user.</p>
+                    <p className="text-black/60 dark:text-white/60">No teacher data found for this user.</p>
                 </div>
             );
         }
 
         return (
             <div className="min-h-screen ">
-                {/* @ts-ignore */}
                 <TeachersViewData userId={user.id} user={user} data={teacherData} />
             </div>
         );

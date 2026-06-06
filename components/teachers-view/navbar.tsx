@@ -1,15 +1,12 @@
 "use client"
-import { useRouter } from "next/navigation"; // Provides router functionalities for navigation
 import LottieAnimation from "../dashboard/sidebar/menuLink/lottie-animation"; // Import Lottie animation component
-import { useEffect, useMemo, useState } from "react"; // Hooks for managing component state and side effects
+import { useEffect, useMemo, useRef, useState } from "react"; // Hooks for managing component state and side effects
 import userprofile from "@/public/images/userProfile.json"; // Lottie animation data for user profile
 import {
     Avatar,
-    AvatarFallback,
     AvatarImage,
 } from "@/components/ui/avatar"; // UI components for Avatar display
 import NotificationFeed from "@/components/knock/notitification-feed"; // Notification feed component
-import NotificationRequest from "@/components/webnotifications/notificattions"; // Web notification request component
 import Logout from "../dashboard/sidebar/logout"; // Logout button/component
 import { Switch } from "@/components/ui/switch"; // Toggle switch UI component
 import {
@@ -19,18 +16,25 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import { getCurrentLocation, sendTeacherLocationToServer } from "../maps/lib/utils"; // Utility functions for geolocation and sending location
-import { useSession } from "@/hooks/useSession";
-import { updateLocation } from "@/actions/mark-otw";
-import { publishLocation } from "@/utils/ably-teacher";
-import { useRef } from "react";
+import { getCurrentLocation } from "../maps/lib/utils"; // Utility functions for geolocation and sending location
 import { connectSocket } from "@/utils/socket-client";
-import { io } from "socket.io-client";
-import { string } from "zod";
 
 type NavbarProps = {
     data: any;
 };
+
+type TeacherLocationPayload = {
+    teacherId: string;
+    teacherName: string;
+    teacherImage: string;
+    longitude: number;
+    latitude: number;
+    schoolId: string;
+};
+
+const LOCATION_SEND_INTERVAL_MS = 20_000;
+const LOCATION_POLL_INTERVAL_MS = 100_000;
+const MIN_LOCATION_DELTA_METERS = 10;
 
 function getDistanceMetersFast(coord1: any, coord2: any) {
     const R = 6371000;
@@ -47,7 +51,7 @@ function getDistanceMetersFast(coord1: any, coord2: any) {
 const Navbar = ({ data }: NavbarProps) => {
     const [isHovering, setIsHovering] = useState(false);
     const [isTracking, setIsTracking] = useState<boolean>(false);
-    const [newLocation, setNewLocation] = useState({
+    const [newLocation, setNewLocation] = useState<TeacherLocationPayload>({
         teacherId: '',
         teacherName: '',
         teacherImage: '',
@@ -56,10 +60,10 @@ const Navbar = ({ data }: NavbarProps) => {
         schoolId: ''
     });
 
-    // Provides router functionalities for navigation
-    const router = useRouter();
     const lastSentTimeRef = useRef(0);
     const lastCoordsRef = useRef<{ lat: number; lng: number } | null>(null);
+    const socketRef = useRef<any>(null);
+    const latestLocationRef = useRef<TeacherLocationPayload | null>(null);
 
     // Memoize avatar content to prevent unnecessary re-renders
     const avatarContent = useMemo(() => {
@@ -99,24 +103,27 @@ const Navbar = ({ data }: NavbarProps) => {
                 const now = Date.now();
 
                 //throttlin, so we spend every min and if teacher/coordinator has moved  > 10m
-                if (now - lastSentTimeRef.current < 20000) return
+                if (now - lastSentTimeRef.current < LOCATION_SEND_INTERVAL_MS) return
 
                 if (lastCoordsRef.current) {
                     const moved = getDistanceMetersFast(lastCoordsRef.current, {
                         lat: latitude,
                         lng: longitude,
                     });
-                    if (moved < 10) return;
+                    if (moved < MIN_LOCATION_DELTA_METERS) return;
                 }
 
-                setNewLocation({
+                const nextLocation = {
                     teacherId: data.id,
                     teacherName: data.name || '',
                     teacherImage: data.image || '',
                     longitude,
                     latitude,
                     schoolId: data.schoolId || ''
-                });
+                };
+
+                latestLocationRef.current = nextLocation;
+                setNewLocation(nextLocation);
 
                 lastSentTimeRef.current = now
                 lastCoordsRef.current = { lat: latitude, lng: longitude }
@@ -135,7 +142,7 @@ const Navbar = ({ data }: NavbarProps) => {
             getLocation();
 
             // Update every 1 mins (100000ms)
-            const intervalId = setInterval(getLocation, 100000);
+            const intervalId = setInterval(getLocation, LOCATION_POLL_INTERVAL_MS);
 
             return () => {
                 if (intervalId) {
@@ -143,15 +150,21 @@ const Navbar = ({ data }: NavbarProps) => {
                 }
             }
         };
-    }, [data, isTracking])
+    }, [data?.id, data?.name, data?.image, data?.schoolId, isTracking])
 
     useEffect(() => {
-        let socket: any;
+        if (!data?.id) return;
+
+        let isMounted = true;
+
         const connectToTeacher = async () => {
             try {
-                socket = await connectSocket(data?.id, data?.schoolId);
+                const socket = await connectSocket(data.id, data?.schoolId);
+                if (!isMounted) {
+                    socket.disconnect();
+                    return;
+                }
 
-                // Wait for connection or timeout
                 await new Promise((resolve, reject) => {
                     const timeout = setTimeout(() => {
                         reject(new Error("Socket connection timeout"));
@@ -159,44 +172,41 @@ const Navbar = ({ data }: NavbarProps) => {
 
                     socket.on("connect", () => {
                         clearTimeout(timeout);
-                        console.log("Socket connected and ready!", socket.id);
+                        socket.emit("join-teacher-room", data.id);
+                        if (latestLocationRef.current?.teacherId) {
+                            socket.emit("teacher-live-location", { newLocation: latestLocationRef.current });
+                            socket.emit("teacher-location-update", latestLocationRef.current);
+                        }
                         resolve(true);
                     });
 
                     socket.on("connect_error", (error: any) => {
                         console.log("Socket connection error:", error.message);
-                        // Don't reject immediately, let the reconnection logic work
-                        if (socket.reconnectionAttempts === socket.io.opts.reconnectionAttempts) {
-                            clearTimeout(timeout);
-                            reject(error);
-                        }
                     });
                 });
-                socket.emit("teacher-live-location", {
-                    newLocation
-                });
 
-                socket.on("teacher-location-update", (newLocation: any) => {
-                });
-
-                socket.on("disconnect", (reason: any) => {
-                    console.log("🔌 Socket disconnected:", reason);
-                });
-
-                // Store reference for location updates
+                socketRef.current = socket;
 
             } catch (error) {
                 console.error(" Socket connection failed:", error);
-                // You could show a user notification here
             }
         };
 
-        if (data?.id) {
-            connectToTeacher();
-        }
+        connectToTeacher();
 
+        return () => {
+            isMounted = false;
+            socketRef.current?.disconnect();
+            socketRef.current = null;
+        };
+    }, [data?.id, data?.schoolId]);
 
-    }, [data?.id, newLocation, data]);
+    useEffect(() => {
+        if (!newLocation.teacherId || !socketRef.current?.connected) return;
+
+        socketRef.current.emit("teacher-live-location", { newLocation });
+        socketRef.current.emit("teacher-location-update", newLocation);
+    }, [newLocation]);
 
 
     /**
@@ -305,7 +315,7 @@ const Navbar = ({ data }: NavbarProps) => {
 
 
     return (
-        <div className="flex justify-between items-center bg-gradient-to-r from-[var(--bg-root)] to-gray-900 h-[64px] w-full px-5 py-5 shadow-sm   mb-6  transition-all duration-200">
+        <div className="flex h-[64px] w-full items-center justify-between border-b border-black/10 bg-white px-5 py-5 text-black shadow-sm transition-colors duration-200 dark:border-white/10 dark:bg-black dark:text-white">
             {/* Left section: Avatar + Greeting */}
             <div
                 className="flex items-center gap-3 cursor-pointer group"
@@ -317,17 +327,17 @@ const Navbar = ({ data }: NavbarProps) => {
                         {avatarContent}
                     </Avatar>
                     {isHovering && (
-                        <span className="absolute -bottom-1 -right-1 h-3 w-3 bg-green-500 rounded-full border border-gray-900" />
+                        <span className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full border border-white bg-green-500 dark:border-black" />
                     )}
                 </div>
 
                 <div className="flex flex-col">
-                    {data && (
-                        <small className="text-gray-400 capitalize leading-none">
-                            Good day, {data.role}!
-                        </small>
-                    )}
-                    <span className="text-base font-semibold capitalize text-white">
+                    {/* {data && (
+                            <small className="text-black/50 capitalize leading-none dark:text-white/50">
+                                Good day, {data.role}!
+                            </small>
+                        )} */}
+                    <span className="text-base font-semibold capitalize text-black dark:text-white">
                         {data?.name || "Coordinator"}
                     </span>
                 </div>
@@ -335,7 +345,7 @@ const Navbar = ({ data }: NavbarProps) => {
 
             {/* Right section: Controls */}
             <div className="flex items-center gap-4">
-                {data.role === "teacher" && (
+                {data?.role === "teacher" && (
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>

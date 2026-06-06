@@ -62,16 +62,16 @@ export const AttendanceTab = ({
     };
 
     return (
-        <div className="inline-flex h-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-1 text-[0.7rem] text-slate-500 shadow-inner">
+        <div className="inline-flex h-9 items-center justify-center rounded-xl border border-black/10 bg-black/[0.03] p-1 text-[0.7rem] text-black/55 shadow-inner dark:border-white/10 dark:bg-white/[0.05] dark:text-white/55">
             <button
-                className={`flex h-7 items-center justify-center rounded-lg px-2.5 transition ${localAttendance === value1 ? "bg-emerald-500 text-white shadow-sm font-semibold" : "text-slate-500"}`}
+                className={`flex h-7 items-center justify-center rounded-lg px-2.5 transition ${localAttendance === value1 ? "bg-emerald-500 text-white shadow-sm font-semibold" : "text-black/55 dark:text-white/55"}`}
                 onClick={() => handleAttendanceClick(value1)}
                 disabled={loading || isPending}
             >
                 {label1}
             </button>
             <button
-                className={`flex h-7 items-center justify-center rounded-lg px-2.5 transition ${localAttendance === value2 ? "bg-rose-500 text-white shadow-sm font-semibold" : "text-slate-500"}`}
+                className={`flex h-7 items-center justify-center rounded-lg px-2.5 transition ${localAttendance === value2 ? "bg-rose-500 text-white shadow-sm font-semibold" : "text-black/55 dark:text-white/55"}`}
                 onClick={() => handleAttendanceClick(value2)}
                 disabled={loading || isPending}
             >
