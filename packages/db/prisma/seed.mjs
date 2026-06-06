@@ -896,7 +896,7 @@ async function seedTrips(schoolId, buses, drivers, students, parents, teachers) 
 }
 
 async function main() {
-  console.log("Seeding PocketShuttle demo data...");
+  // console.log("Seeding PocketShuttle demo data...");
 
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
   const plans = await seedPlans();

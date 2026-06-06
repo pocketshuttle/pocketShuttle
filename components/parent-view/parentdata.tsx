@@ -19,6 +19,8 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 //we only show the teacher details when the student has OTW marked
 
 const ParentViewData = ({ userId }: { userId: string }) => {
+
+    console.log(userId, "user id in parent view data component");
     const { data: parentData, error, isLoading } = useSWR<ParentProps>(
         `/api/addparent/${userId}`,
         fetcher,
@@ -32,7 +34,7 @@ const ParentViewData = ({ userId }: { userId: string }) => {
 
     if (isLoading) {
         return (
-            <div className="max-w-lg mx-auto bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 flex items-center px-2">
+            <div className="mx-auto flex max-w-lg items-center overflow-hidden rounded-lg border border-black/10 bg-white px-2">
                 <div className="flex items-center gap-2 m-auto">
                     <DotLottieReact
                         src="/images/parentload.json"
@@ -49,17 +51,19 @@ const ParentViewData = ({ userId }: { userId: string }) => {
         student.presence === "ON_THE_WAY"
     ))
 
+
+
     return (
-        <main className=" " >
+        <main className="px-4 pb-6 text-black" >
             {/* <StudentNotificationBar /> */}
             {
                 studentPresense?.map((studentBus) => (
                     <TeacherDetailsForParentPage bus={studentBus?.bus} userId={userId} />
                 ))
             }
-            <h3 className="text-center text-gray-950 font-medium text-xl rounded-tl-lg p-5 ">All kids</h3>
-            <section className="bg-white rounded-t-xl space-y-3">
-                {parentData?.Student?.map((sibling: StudentProps) => {
+            <h3 className="px-2 pb-4 pt-2 text-center text-xl font-semibold text-black">All kids</h3>
+            <section className="space-y-3">
+                {parentData?.Student?.length ? parentData.Student.map((sibling: StudentProps) => {
                     const { bus } = sibling;
                     const driver = bus?.driver;
                     const teacher = bus?.teacher;
@@ -68,12 +72,12 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                     return (
                         <div
                             key={sibling.id}
-                            className="max-w-lg mx-auto flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm hover:shadow-md transition-all border border-gray-100 mb-4"
+                            className="mx-auto mb-4 flex max-w-lg items-center gap-4 rounded-lg border border-black/10 bg-white p-4 text-black transition-all hover:bg-black/[0.02]"
                         >
                             {/* Image */}
                             <div className="relative w-20 h-20 flex-shrink-0">
                                 <Image
-                                    className="w-full h-full object-cover rounded-xl"
+                                    className="h-full w-full rounded-lg object-cover ring-1 ring-black/10"
                                     src={sibling.image || avatar}
                                     alt={`${sibling.full_name}'s avatar`}
                                     width={80}
@@ -85,8 +89,8 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                             <div className="flex-1">
                                 {/* Name and Status */}
                                 <div className="flex items-center justify-between mb-2">
-                                    <h2 className="text-base font-semibold text-gray-900 capitalize leading-tight">
-                                        {sibling.full_name}
+                                    <h2 className="text-base font-semibold capitalize leading-tight text-black">
+                                        {sibling.full_name || "Unnamed student"}
                                     </h2>
 
                                     <div className="flex items-center gap-1">
@@ -126,26 +130,30 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                                 </div>
 
                                 {/* Bus Info */}
-                                <p className="text-sm text-gray-500 capitalize">
-                                    {bus?.color} {bus?.bus_product_name} {bus?.bus_number}
+                                <p className="text-sm capitalize text-black/55">
+                                    {bus ? `${bus.color || ""} ${bus.bus_product_name || ""} ${bus.bus_number || ""}` : "No bus assigned"}
                                 </p>
 
                                 {/* Driver Info */}
-                                <div className="flex justify-between text-sm text-gray-700 mt-2">
-                                    <span className="capitalize">{driver?.full_name}</span>
-                                    <span className="font-medium text-gray-900">{driver?.phoneNumber}</span>
+                                <div className="mt-2 flex justify-between gap-3 text-sm text-black/70">
+                                    <span className="min-w-0 truncate capitalize">{driver?.full_name || "No driver"}</span>
+                                    <span className="shrink-0 font-medium text-black">{driver?.phoneNumber || "N/A"}</span>
                                 </div>
 
                                 {/* Teacher Info */}
-                                <div className="flex justify-between text-sm text-gray-700 mt-1">
-                                    <span className="capitalize">{teacher?.full_name}</span>
-                                    <span className="font-medium text-gray-900">{teacher?.phoneNumber}</span>
+                                <div className="mt-1 flex justify-between gap-3 text-sm text-black/70">
+                                    <span className="min-w-0 truncate capitalize">{teacher?.full_name || "No teacher"}</span>
+                                    <span className="shrink-0 font-medium text-black">{teacher?.phoneNumber || "N/A"}</span>
                                 </div>
                             </div>
                         </div>
                     );
 
-                })}
+                }) : (
+                    <div className="mx-auto max-w-lg rounded-lg border border-black/10 bg-white p-5 text-center text-sm text-black/55">
+                        No kids linked to this parent yet.
+                    </div>
+                )}
             </section>
 
         </main>

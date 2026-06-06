@@ -34,7 +34,7 @@ const ParentNavbar = ({ data }: NavbarProps) => {
 
 
     return (
-        <div className="flex justify-between bg-[var(--bg-root)] h-[60px] w-full items-center px-4 py-4 mb-5 mt-5">
+        <div className="sticky top-0 z-30 flex h-[64px] w-full items-center justify-between border-b border-black/10 bg-white px-4 py-4 text-black">
             <div
                 className="flex space-x-2 items-center justify-center cursor-pointer"
                 // onClick={() => router.back()} // Navigates back to the previous page
@@ -46,19 +46,19 @@ const ParentNavbar = ({ data }: NavbarProps) => {
                 <div className="flex flex-col items-start">
                     {
                         data &&
-                        <small className="text-[#606060]">Good day Parent!</small>
+                        <small className="text-black/50">Good day Parent!</small>
                     }
-                    <span className="text-[1.1rem] font-medium capitalize text-[#EEEEEE]">
+                    <span className="text-[1.1rem] font-semibold capitalize text-black">
                         {data?.name || "Parent"}
                         {/* Default to "coordinator" if name isn't provided */}
                     </span>
                 </div>
             </div>
 
-            <div className="flex space-x-2 items-center justify-center">
+            <div className="flex items-center justify-center gap-2">
 
                 <NotificationFeed />
-                <span className="cursor-pointer">
+                <span className="cursor-pointer rounded-full p-1 hover:bg-black/5">
                     <Logout />
                 </span>
             </div>

@@ -18,9 +18,9 @@ const TeacherView = async () => {
     // Redirect to login if no user session
     if (!user || typeof user.id !== 'string') {
         return (
-            <div className="flex items-center justify-center h-screen">
+            <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 text-black">
                 <div className="text-center">
-                    <p>User session is not available. Please log in.</p>
+                    <p className="mb-4 text-black/70">User session is not available. Please log in.</p>
                     <LoginButton>
                         <Button size="lg">Login</Button>
                     </LoginButton>
@@ -76,8 +76,8 @@ const TeacherView = async () => {
         if (!parent) {
             // Handle case where no parent data is found
             return (
-                <div className="text-center flex items-center justify-center h-screen">
-                    <p>No Parent data found for this user. Please refresh or contact the school admin.</p>
+                <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 text-center text-black">
+                    <p className="text-black/70">No Parent data found for this user. Please refresh or contact the school admin.</p>
                 </div>
             );
         }
@@ -88,7 +88,7 @@ const TeacherView = async () => {
 
         return (
             <Suspense>
-                <div className={`${mont.className}`}>
+                <div className={`min-h-screen bg-gray-100 text-black ${mont.className}`}>
                     < NewParentPage parentAddress={parent.address ?? ''} parentAddressCoords={parent?.addressCoords} parentId={id} siblings={parent.Student as any} />
                     {/* <ParentMainView parentAddress={parent.address ?? ''} parentId={id} siblings={parent.Student as any} /> */}
                 </div>

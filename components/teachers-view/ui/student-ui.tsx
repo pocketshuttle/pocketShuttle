@@ -7,52 +7,42 @@ import avatar from "@/public/images/avatar.jpg";
 import { googleFetchCoordinates } from "@/components/maps/lib/utils";
 import { StudentPresence } from "@/components/students/ui/presence";
 import { AttendanceTab } from "./register-tab";
-import { useTeacherLocation } from "@/hooks/useTeacher-location";
 import { checkBusArrival } from "@/actions/report-folder/get-bus-arrival";
+
+type TeacherStudent = {
+    id: string;
+    full_name: string | null;
+    image: string | null;
+    address: string | null;
+    age: number | null;
+    grade: string | null;
+    attendance: StudentProps["attendance"];
+    status: string | null;
+    presence: string | null;
+    parent?: {
+        address: string | null;
+    } | null;
+};
 
 export const EachStudent = ({
     student,
     teacherId,
 }: {
-    student: StudentProps;
+    student: TeacherStudent;
     teacherId: string;
 }) => {
     const [attendance, SetAttendance] = useState("");
     const [coords1, setCoords1] = useState<[number, number] | null>(null);
     const [coords2, setCoords2] = useState<[number, number] | null>(null);
     const [stdentEta, setStudentEta] = useState<string | null>(null);
-    const [teacherLocation, setTeacherLocation] = useState<
-        Record<
-            string,
-            {
-                teacherId: string;
-                teacherName: string;
-                teacherImage: string;
-                latitude: number;
-                longitude: number;
-            }
-        >
-    >({});
     const [tracking, setTracking] = useState(student.presence === "ON_THE_WAY");
     const [arrivalLogged, setArrivalLogged] = useState(false);
     const canSendOtw = student.attendance === "PRESENT";
 
-    useTeacherLocation(teacherId, (data) => {
-        setTeacherLocation((prev) => ({
-            ...prev,
-            [data.teacherId]: {
-                teacherId: data.teacherId,
-                teacherName: data.teacherName,
-                teacherImage: data.teacherImage,
-                latitude: data.latitude,
-                longitude: data.longitude,
-            },
-        }));
-    });
-
     useEffect(() => {
         if (!tracking) return;
-        const intervalId = setInterval(() => {
+
+        const updateCurrentPosition = () => {
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
                     setCoords1([pos.coords.latitude, pos.coords.longitude]);
@@ -60,7 +50,10 @@ export const EachStudent = ({
                 (err) => console.error("Location erro", err),
                 { enableHighAccuracy: true }
             );
-        }, 20000);
+        };
+
+        updateCurrentPosition();
+        const intervalId = setInterval(updateCurrentPosition, 20_000);
 
         return () => clearInterval(intervalId);
     }, [tracking]);
@@ -88,12 +81,10 @@ export const EachStudent = ({
             return;
 
         const check = async () => {
-            const arrived = await checkBusArrival(coords1, coords2, student, teacherId);
+            const arrived = await checkBusArrival(coords1, coords2, student as StudentProps, teacherId);
             if (arrived) {
                 setArrivalLogged(true);
             }
-
-            console.log(arrived, "arrived");
         };
 
         const interval = setInterval(check, 20_000);
@@ -118,8 +109,6 @@ export const EachStudent = ({
 
                     if (coordinates2) {
                         setCoords2(coordinates2);
-                    } else {
-                        console.log("Coordinates not found for the given address");
                     }
                 }
             } catch (error) {
@@ -131,15 +120,14 @@ export const EachStudent = ({
     }, [student?.parent?.address]);
 
     useEffect(() => {
-        if (!window.google) return;
-        const teacher = teacherLocation[teacherId] || null;
+        if (!window.google || !coords1 || !coords2) return;
 
         const service = new google.maps.DistanceMatrixService();
 
         service.getDistanceMatrix(
             {
-                origins: [{ lat: teacher?.latitude, lng: teacher?.longitude }],
-                destinations: coords2 ? [{ lat: coords2[0], lng: coords2[1] }] : [],
+                origins: [{ lat: coords1[0], lng: coords1[1] }],
+                destinations: [{ lat: coords2[0], lng: coords2[1] }],
                 travelMode: google.maps.TravelMode.DRIVING,
                 region: "NG",
             },
@@ -152,20 +140,20 @@ export const EachStudent = ({
                 }
             }
         );
-    }, [coords2, coords1, teacherId, teacherLocation]);
+    }, [coords1, coords2]);
 
     return (
         <div
             key={student.id}
-            className="mx-auto mb-4 w-full max-w-2xl overflow-hidden rounded-[26px] border border-slate-200 bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)]"
+            className="mx-auto mb-4 w-full max-w-2xl overflow-hidden rounded-[26px] border border-black/10 bg-white text-black shadow-[0_12px_40px_rgba(15,23,42,0.08)] transition-colors dark:border-white/10 dark:bg-zinc-950 dark:text-white dark:shadow-none"
         >
-            <div className="border-b border-slate-100 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4">
+            <div className="border-b border-black/10 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4 dark:border-white/10 dark:bg-none dark:bg-white/[0.03]">
                 <div className="flex items-start gap-3">
                     <Link href={`teacher/${student.id}`} className="shrink-0">
                         <Image
                             src={student.image || avatar}
-                            alt={student.full_name}
-                            className="h-20 w-20 rounded-2xl object-cover ring-1 ring-slate-200"
+                            alt={student.full_name || "Student"}
+                            className="h-20 w-20 rounded-2xl object-cover ring-1 ring-black/10 dark:ring-white/10"
                             width={100}
                             height={100}
                         />
@@ -175,13 +163,13 @@ export const EachStudent = ({
                         <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0 space-y-1">
                                 <div className="flex items-center gap-2">
-                                    <h2 className="truncate text-lg font-semibold capitalize tracking-tight text-slate-900">
-                                        {student.full_name}
+                                    <h2 className="truncate text-lg font-semibold capitalize tracking-tight text-black dark:text-white">
+                                        {student.full_name || "Unnamed student"}
                                     </h2>
                                     <StudentPresence data={student.presence || "NONE"} />
                                 </div>
-                                <p className="text-sm text-slate-500">
-                                    {student.age} yrs • {student.grade}
+                                <p className="text-sm text-black/55 dark:text-white/55">
+                                    {student.age ?? "N/A"} yrs • {student.grade || "N/A"}
                                 </p>
                             </div>
 
@@ -200,23 +188,23 @@ export const EachStudent = ({
                                         onOTW={() => setTracking(true)}
                                     />
                                 ) : (
-                                    <div className="flex h-9 items-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-[0.7rem] font-medium text-slate-400">
+                                    <div className="flex h-9 items-center rounded-xl border border-black/10 bg-black/[0.03] px-3 text-[0.7rem] font-medium text-black/40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/40">
                                         OTW unavailable
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        <p className="truncate text-sm capitalize leading-snug text-slate-600">
-                            {student.address}
+                        <p className="truncate text-sm capitalize leading-snug text-black/60 dark:text-white/60">
+                            {student.address || "No address"}
                         </p>
                     </div>
                 </div>
             </div>
 
-            <div className="space-y-3 bg-slate-50/80 p-4">
+            <div className="space-y-3 bg-black/[0.03] p-4 dark:bg-white/[0.03]">
                 <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm">
+                    <div className="rounded-2xl border border-black/10 bg-white p-2.5 shadow-sm dark:border-white/10 dark:bg-black/20 dark:shadow-none">
                         <AttendanceTab
                             label1="Present"
                             label2="Absent"
@@ -229,12 +217,12 @@ export const EachStudent = ({
                         />
                     </div>
 
-                    <div className="rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm">
+                    <div className="rounded-2xl border border-black/10 bg-white p-2.5 shadow-sm dark:border-white/10 dark:bg-black/20 dark:shadow-none">
                         {student.attendance === "PRESENT" || student.presence === "ON_THE_WAY" ? (
                             <AttendanceTab
                                 label1="Dropped"
                                 label2="Picked"
-                                data={student.status}
+                                data={student.status || "No status recorded"}
                                 value1="DROPPED"
                                 value2="PICKED"
                                 SetAttendance={SetAttendance}
@@ -247,15 +235,15 @@ export const EachStudent = ({
                     </div>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                <div className="rounded-2xl border border-black/10 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-black/20 dark:shadow-none">
                     <div className="flex items-center justify-between gap-4">
-                        <span className="truncate text-sm font-medium capitalize text-slate-700">
-                            {student.status}
+                        <span className="truncate text-sm font-medium capitalize text-black/70 dark:text-white/70">
+                            {student.status || "No status recorded"}
                         </span>
                         {!stdentEta ? (
                             <span className="truncate text-sm text-rose-400">Please enable location</span>
                         ) : (
-                            <span className="truncate text-sm text-slate-500">{stdentEta}</span>
+                            <span className="truncate text-sm text-black/55 dark:text-white/55">{stdentEta}</span>
                         )}
                     </div>
                 </div>
