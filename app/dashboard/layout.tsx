@@ -22,6 +22,8 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
         redirect("/teacher");
     } else if (user?.role === "parent") {
         redirect("/parent");
+    } else if (user?.role === "driver") {
+        redirect("/driver");
     }
 
     return (

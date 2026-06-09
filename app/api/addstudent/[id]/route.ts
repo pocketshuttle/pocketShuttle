@@ -152,7 +152,7 @@ export const PATCH = async (
 
     if (data.parentId) {
       const parent = await db.parent.findFirst({
-        where: { id: data.parentId, schoolId },
+        where: { id: data.parentId, schoolId, accountType: "SCHOOL_MANAGED" },
         select: { id: true },
       });
 

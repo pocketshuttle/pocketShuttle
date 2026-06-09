@@ -19,12 +19,17 @@ export const confirmParent = async (
       return { message: "Missing required IDs", status: 400 };
     }
 
-    const [student, parent] = await Promise.all([
-      db.student.findUnique({ where: { id: studentId } }),
-      db.parent.findUnique({ where: { id: parentId } }),
-    ]);
-
+    const student = await db.student.findUnique({ where: { id: studentId } });
     if (!student) return { message: "Student not found", status: 404 };
+
+    const parent = await db.parent.findFirst({
+      where: {
+        id: parentId,
+        schoolId: student.schoolId,
+        accountType: "SCHOOL_MANAGED",
+      },
+    });
+
     if (!parent) return { message: "Parent not found", status: 404 };
 
     if (confirmation !== "yes") {

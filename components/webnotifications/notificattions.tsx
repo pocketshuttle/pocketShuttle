@@ -36,6 +36,13 @@ export default function NotificationRequest() {
 	async function subscribeUser() {
 		if ("serviceWorker" in navigator) {
 			try {
+				if (process.env.NODE_ENV === "development") {
+					toast({
+						description: "Push notifications are disabled in development.",
+					});
+					return;
+				}
+
 				const registration = await navigator.serviceWorker.getRegistration();
 				if (registration) {
 					await generateSubscribeEndPoint(registration);
@@ -106,6 +113,16 @@ export default function NotificationRequest() {
 	}
 
 	useEffect(() => {
+		if (process.env.NODE_ENV === "development" && "serviceWorker" in navigator) {
+			navigator.serviceWorker.getRegistrations().then((registrations) => {
+				registrations.forEach((registration) => registration.unregister());
+			});
+
+			caches.keys().then((cacheNames) => {
+				cacheNames.forEach((cacheName) => caches.delete(cacheName));
+			});
+		}
+
 		setNotificationPermission(Notification.permission);
 	}, []);
 

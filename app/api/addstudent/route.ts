@@ -70,7 +70,7 @@ export const POST = async (req: NextRequest) => {
 
     if (parentId) {
       const parent = await db.parent.findFirst({
-        where: { id: parentId, schoolId },
+        where: { id: parentId, schoolId, accountType: "SCHOOL_MANAGED" },
         select: { id: true },
       });
 

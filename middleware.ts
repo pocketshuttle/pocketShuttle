@@ -4,6 +4,7 @@ import {
   publicRoutes,
   DEFAULT_USER_ROLE,
   DEFAULT_PARENT_ROLE,
+  DEFAULT_DRIVER_ROLE,
 } from "@/routes";
 import { NextRequest, NextResponse } from "next/server";
 import { decrypt } from "./lib/create-session";
@@ -26,6 +27,7 @@ export async function middleware(req: NextRequest) {
     const isLoggedIn = !!token;
     const isPublicRoute = publicRoutes.includes(pathname);
     const isHomePage = pathname === "/";
+    const isAdminRoute = pathname.startsWith("/admin");
     const response = NextResponse.next();
 
     if (!isPublicRoute && !pathname.startsWith("/api")) {
@@ -42,8 +44,14 @@ export async function middleware(req: NextRequest) {
     );
 
     if (isHomePage && isLoggedIn) {
+      if (userRole === "superadmin") {
+        return NextResponse.redirect(new URL("/admin", nextUrl));
+      }
       if (userRole === "parent") {
         return NextResponse.redirect(new URL(DEFAULT_PARENT_ROLE, nextUrl));
+      }
+      if (userRole === "driver") {
+        return NextResponse.redirect(new URL(DEFAULT_DRIVER_ROLE, nextUrl));
       }
       if (userRole === "teacher") {
         return NextResponse.redirect(new URL(DEFAULT_USER_ROLE, nextUrl));
@@ -53,8 +61,14 @@ export async function middleware(req: NextRequest) {
 
     if (isAuthRoute) {
       if (isLoggedIn) {
+        if (userRole === "superadmin") {
+          return NextResponse.redirect(new URL("/admin", nextUrl));
+        }
         if (userRole === "parent") {
           return NextResponse.redirect(new URL(DEFAULT_PARENT_ROLE, nextUrl));
+        }
+        if (userRole === "driver") {
+          return NextResponse.redirect(new URL(DEFAULT_DRIVER_ROLE, nextUrl));
         }
         if (userRole === "teacher") {
           return NextResponse.redirect(new URL(DEFAULT_USER_ROLE, nextUrl));
@@ -62,6 +76,16 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
       }
 
+      return response;
+    }
+
+    if (isAdminRoute && pathname !== "/admin/login") {
+      if (!isLoggedIn) {
+        return NextResponse.redirect(new URL("/admin/login", nextUrl));
+      }
+      if (userRole !== "superadmin") {
+        return NextResponse.redirect(new URL("/", nextUrl));
+      }
       return response;
     }
 

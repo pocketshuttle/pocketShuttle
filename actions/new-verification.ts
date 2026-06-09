@@ -46,6 +46,17 @@ export const newVerification = async (token: string) => {
         email: existingToken.email,
       },
     });
+  } else if (
+    "role" in existingUser &&
+    existingUser.role.toLowerCase() === "driver"
+  ) {
+    await db.driver.update({
+      where: { id: existingUser.id },
+      data: {
+        emailVerified: new Date(),
+        email: existingToken.email,
+      },
+    });
   } else {
     await db.teacher.update({
       where: { id: existingUser.id },

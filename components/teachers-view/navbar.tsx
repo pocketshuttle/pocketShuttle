@@ -36,6 +36,16 @@ const LOCATION_SEND_INTERVAL_MS = 20_000;
 const LOCATION_POLL_INTERVAL_MS = 100_000;
 const MIN_LOCATION_DELTA_METERS = 10;
 
+const getTrackingKey = (teacherId?: string) => `tracking:${teacherId || "unknown"}`;
+
+function isPermissionDenied(error: unknown) {
+    return (
+        typeof error === "object" &&
+        error !== null &&
+        ("code" in error && (error as { code?: number }).code === 1)
+    );
+}
+
 function getDistanceMetersFast(coord1: any, coord2: any) {
     const R = 6371000;
     const lat1 = coord1.lat * Math.PI / 180;
@@ -78,24 +88,28 @@ const Navbar = ({ data }: NavbarProps) => {
 
     // Toggle the state of location tracking (switch on/off)
     const toggleTracking = () => {
+        if (!data?.id) return;
         const newTrackingState = !isTracking;
         setIsTracking(newTrackingState);
-        window.localStorage.setItem("tracking", JSON.stringify(newTrackingState));
+        window.localStorage.setItem(getTrackingKey(data.id), JSON.stringify(newTrackingState));
     };
 
     // Restore tracking state from localStorage when component mounts
     useEffect(() => {
-        const storedTracking = window.localStorage.getItem("tracking");
+        if (!data?.id) return;
+
+        const storedTracking = window.localStorage.getItem(getTrackingKey(data.id));
         if (storedTracking) {
             // Restore the switch state from localStorage
             setIsTracking(JSON.parse(storedTracking));
         }
-    }, []);
+    }, [data?.id]);
 
     useEffect(() => {
         const getLocation = async () => {
             try {
                 const [longitude, latitude] = await getCurrentLocation();
+
                 if (!data?.id) {
                     console.log("No teacher data available");
                     return;
@@ -129,11 +143,13 @@ const Navbar = ({ data }: NavbarProps) => {
                 lastCoordsRef.current = { lat: latitude, lng: longitude }
 
             } catch (error: any) {
-                console.error("Error getting location:", error);
-                if (error.code === 1) {
+                if (isPermissionDenied(error)) {
                     setIsTracking(false);
-                    window.localStorage.setItem("tracking", "false");
+                    window.localStorage.setItem(getTrackingKey(data?.id), "false");
+                    return;
                 }
+
+                console.error("Error getting location:", error);
             }
         };
 
@@ -151,6 +167,7 @@ const Navbar = ({ data }: NavbarProps) => {
             }
         };
     }, [data?.id, data?.name, data?.image, data?.schoolId, isTracking])
+
 
     useEffect(() => {
         if (!data?.id) return;

@@ -85,7 +85,9 @@ export const getCurrentLocation = async (
 
     const permission = await checkPermissions();
     if (permission === "denied") {
-      throw new Error("Location permission denied at browser level");
+      const error = new Error("Location permission denied at browser level");
+      (error as Error & { code?: number }).code = 1;
+      throw error;
     }
 
     return await new Promise((resolve, reject) => {
@@ -101,7 +103,9 @@ export const getCurrentLocation = async (
               1000
             );
           } else {
-            reject(new Error(`Location error: ${err.message}`));
+            const error = new Error(`Location error: ${err.message}`);
+            (error as Error & { code?: number }).code = err.code;
+            reject(error);
           }
         },
         {
@@ -112,8 +116,10 @@ export const getCurrentLocation = async (
         }
       );
     });
-  } catch (error) {
-    console.error("Location fetch failed:", error);
+  } catch (error: any) {
+    if (error?.code !== 1) {
+      console.error("Location fetch failed:", error);
+    }
     throw error;
   }
 };

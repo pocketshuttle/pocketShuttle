@@ -40,6 +40,9 @@ export default function NewParentPage({
         Record<string, { teacherId: string; teacherName: string; teacherImage: string; latitude: number; longitude: number }>
     >({});
 
+    console.log("Rendering NewParentPage with siblings:", parentAddress, parentAddressCoords);
+
+
     //we take the first teacher
     const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
         siblings.length > 0 ? siblings[0].id : null
@@ -101,6 +104,7 @@ export default function NewParentPage({
         () => new Set(allTeacherIds),
         [allTeacherIds]
     )
+
 
     // Decide the teacher ID to use for the map
     const selectedTeacherId = useMemo(() => {

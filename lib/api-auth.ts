@@ -50,6 +50,10 @@ export function canManageSchool(session: ApiSession | null): session is ApiSessi
   return !!session && ["admin", "school"].includes(session.role);
 }
 
+export function canManagePlatform(session: ApiSession | null): session is ApiSession {
+  return !!session && session.role === "superadmin";
+}
+
 export function canManageStudentRecords(
   session: ApiSession | null
 ): session is ApiSession {
@@ -62,4 +66,8 @@ export function isTeacher(session: ApiSession | null): session is ApiSession {
 
 export function isParent(session: ApiSession | null): session is ApiSession {
   return !!session && session.role === "parent";
+}
+
+export function isDriver(session: ApiSession | null): session is ApiSession {
+  return !!session && session.role === "driver";
 }

@@ -41,7 +41,7 @@ export const TeacherDetailsForParentPage = ({ bus, userId }: PageProps) => {
                 {/* name and teacher details  */}
                 <div className='flex items-center justify-between gap-3 py-2'>
                     <div className='flex min-w-0 items-center gap-2'>
-                        <Image src={bus?.teacher?.image || avatar} height={64} width={64} alt="Teachers image" className='rounded-full bg-black/10 object-cover' />
+                        <Image src={bus?.teacher?.image || avatar} height={54} width={54} alt="Teachers image" className='rounded-full bg-black/10 object-cover' />
                         <div>
                             <h2 className='truncate text-lg font-semibold capitalize text-black'>{bus?.teacher?.full_name || "Teacher"} </h2>
                             <small className='text-sm text-black/55'>

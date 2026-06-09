@@ -24,6 +24,10 @@ type TeacherStudent = {
     } | null;
 };
 
+function isPermissionDenied(error: GeolocationPositionError) {
+    return error.code === error.PERMISSION_DENIED;
+}
+
 export const EachStudent = ({
     student,
     teacherId,
@@ -38,6 +42,15 @@ export const EachStudent = ({
     const [tracking, setTracking] = useState(student.presence === "ON_THE_WAY");
     const [arrivalLogged, setArrivalLogged] = useState(false);
     const canSendOtw = student.attendance === "PRESENT";
+    const etaFallbackMessage = !tracking
+        ? "Mark OTW to calculate ETA"
+        : !coords1
+            ? "Waiting for location"
+            : !coords2
+                ? "No parent address"
+                : typeof window === "undefined" || !window.google
+                    ? "Maps loading"
+                    : "Calculating ETA";
 
     useEffect(() => {
         if (!tracking) return;
@@ -47,7 +60,14 @@ export const EachStudent = ({
                 (pos) => {
                     setCoords1([pos.coords.latitude, pos.coords.longitude]);
                 },
-                (err) => console.error("Location erro", err),
+                (err) => {
+                    if (isPermissionDenied(err)) {
+                        setTracking(false);
+                        return;
+                    }
+
+                    console.error("Location error", err);
+                },
                 { enableHighAccuracy: true }
             );
         };
@@ -241,7 +261,7 @@ export const EachStudent = ({
                             {student.status || "No status recorded"}
                         </span>
                         {!stdentEta ? (
-                            <span className="truncate text-sm text-rose-400">Please enable location</span>
+                            <span className="truncate text-sm text-rose-400">{etaFallbackMessage}</span>
                         ) : (
                             <span className="truncate text-sm text-black/55 dark:text-white/55">{stdentEta}</span>
                         )}

@@ -71,6 +71,17 @@ export const newPassword = async (
           password: hashedPassword,
         },
       });
+    } else if (tokenRole === "driver") {
+      await db.driver.update({
+        where: {
+          id: existingUser.id,
+        },
+        data: {
+          emailVerified: new Date(),
+          email: existingToken.email,
+          password: hashedPassword,
+        },
+      });
     } else {
       return { error: "Invalid account role!" };
     }
