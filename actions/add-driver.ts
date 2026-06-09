@@ -19,6 +19,22 @@ export const addDriver = async (id: string, busId: string) => {
         message: "Both studentId and busId are required",
       };
     }
+    const schoolId = String(user.schoolId ?? user.id ?? "");
+    const [driver, bus] = await Promise.all([
+      db.driver.findFirst({
+        where: { id, schoolId, accountType: "SCHOOL_MANAGED" },
+        select: { id: true },
+      }),
+      db.buses.findFirst({
+        where: { id: busId, schoolId },
+        select: { id: true },
+      }),
+    ]);
+
+    if (!driver || !bus) {
+      return { message: "Driver or bus not found for this school", status: 404 };
+    }
+
     await db.driver.update({
       where: {
         id: id,

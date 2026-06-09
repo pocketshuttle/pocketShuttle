@@ -4,10 +4,21 @@ export type { StudentAttendance } from ".prisma/client";
 export type { StudentStatus } from ".prisma/client";
 export type { StudentPresence } from ".prisma/client";
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
+const PRISMA_SCHEMA_VERSION = "20260609200000_driver_identity_document";
 
-const db = globalForPrisma.prisma || new PrismaClient();
+const globalForPrisma = global as unknown as {
+  prisma?: PrismaClient;
+  prismaSchemaVersion?: string;
+};
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+const db =
+  globalForPrisma.prismaSchemaVersion === PRISMA_SCHEMA_VERSION && globalForPrisma.prisma
+    ? globalForPrisma.prisma
+    : new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = db;
+  globalForPrisma.prismaSchemaVersion = PRISMA_SCHEMA_VERSION;
+}
 
 export default db;

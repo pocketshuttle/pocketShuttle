@@ -32,14 +32,8 @@ const Drivers = async ({ searchParams }: { searchParams: { [key: string]: string
     type DriverWhere = NonNullable<Parameters<typeof db.driver.findMany>[0]>['where']
 
     const queryClause: DriverWhere = {
-        OR: [
-            {
-                schoolId: userId
-            },
-            {
-                id: userId
-            }
-        ],
+        schoolId: userId,
+        accountType: "SCHOOL_MANAGED",
         //we check the search query has a value, all searches are cases insensitive
         // you can search by full_name
 
@@ -53,7 +47,8 @@ const Drivers = async ({ searchParams }: { searchParams: { [key: string]: string
     try {
         const driverCount = await db.driver.count({
             where: {
-                schoolId: userId
+                schoolId: userId,
+                accountType: "SCHOOL_MANAGED",
             }
         })
        

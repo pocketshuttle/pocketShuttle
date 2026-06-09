@@ -28,15 +28,8 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
     const ITEM_PER_PAGE = 10;
 
     const query: Prisma.ParentWhereInput = {
-        //we fetch our data by either school id or user Id
-        OR: [
-            {
-                schoolId: userId,
-            },
-            {
-                id: userId,
-            },
-        ],
+        schoolId: userId,
+        accountType: "SCHOOL_MANAGED",
 
         //we check the search query has a value, all searches are cases insensitive
         // you can search by full_name
@@ -47,7 +40,8 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
     try {
         const parentCount = await db.parent.count({
             where: {
-                id: userId
+                schoolId: userId,
+                accountType: "SCHOOL_MANAGED",
             }
         });
 
@@ -77,14 +71,7 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
 
         const studentData = await db.student.findMany({
             where: {
-                OR: [
-                    {
-                        schoolId: userId,
-                    },
-                    {
-                        id: userId,
-                    },
-                ],
+                schoolId: userId,
             }
         })
 

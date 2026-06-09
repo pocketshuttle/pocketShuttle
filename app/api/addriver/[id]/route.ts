@@ -43,6 +43,7 @@ export const GET = async (
 
     const query: DriverWhere = {
       ...(id === schoolId ? { schoolId } : { id, schoolId }),
+      accountType: "SCHOOL_MANAGED",
       ...(searchDriver && {
         full_name: { contains: searchDriver, mode: "insensitive" },
       }),
@@ -95,7 +96,7 @@ export const PATCH = async (
     const data = await req.json();
 
     const existingDriver = await db.driver.findFirst({
-      where: { id, schoolId },
+      where: { id, schoolId, accountType: "SCHOOL_MANAGED" },
       select: { id: true },
     });
 

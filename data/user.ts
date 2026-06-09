@@ -5,31 +5,39 @@ import db from "@/packages/db/client";
 export const getUserByEmail = async (email: string, role?: string) => {
   try {
     let user;
+    const normalizedEmail = email.toLowerCase();
+    const normalizedRole = role?.toLowerCase();
 
-    if (role && role.toLowerCase() !== "admin") {
-      if (role === "parent") {
+    if (normalizedRole && normalizedRole !== "admin") {
+      if (normalizedRole === "parent") {
         user = await db.parent.findUnique({
           where: {
-            email,
+            email: normalizedEmail,
           },
         });
-      } else if (role === "teacher") {
+      } else if (normalizedRole === "driver") {
+        user = await db.driver.findUnique({
+          where: {
+            email: normalizedEmail,
+          },
+        });
+      } else if (normalizedRole === "teacher") {
         user = await db.teacher.findUnique({
           where: {
-            email,
+            email: normalizedEmail,
           },
         });
-      } else if (role === "admin") {
+      } else if (normalizedRole === "admin") {
         user = await db.user.findUnique({
           where: {
-            email,
+            email: normalizedEmail,
           },
         });
       }
     } else {
       user = await db.user.findUnique({
         where: {
-          email,
+          email: normalizedEmail,
         },
       });
     }
@@ -44,14 +52,22 @@ export const getUserByEmail = async (email: string, role?: string) => {
 export const getUserById = async (id: string, role?: string) => {
   try {
     let user;
-    if (role) {
-      if (role === "parent") {
+    const normalizedRole = role?.toLowerCase();
+
+    if (normalizedRole) {
+      if (normalizedRole === "parent") {
         user = await db.parent.findUnique({
           where: {
             id,
           },
         });
-      } else if (role === "teacher") {
+      } else if (normalizedRole === "driver") {
+        user = await db.driver.findUnique({
+          where: {
+            id,
+          },
+        });
+      } else if (normalizedRole === "teacher") {
         user = await db.teacher.findUnique({
           where: {
             id,

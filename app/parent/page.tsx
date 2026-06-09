@@ -2,17 +2,22 @@ import LoginButton from '@/components/auth/login-button'
 import { NetworkError } from '@/components/errorsandsuccess/error/error'
 import { Button } from '@/components/ui/button'
 import { getUserSession } from '@/lib/session'
-import { revalidateTag } from 'next/cache'
+import { revalidateTag, unstable_noStore as noStore } from 'next/cache'
 import { Montserrat } from 'next/font/google'
 import React, { Suspense } from 'react'
 import { ParentMainView } from '@/components/parent-view/parent-view'
 import NewParentPage from '@/components/parent-view/new-parent-view'
+import { StandaloneParentDashboard } from '@/components/parent-view/standalone-parent-dashboard'
 import db from '@/packages/db/client'
 
 // Load Montserrat font
 const mont = Montserrat({ subsets: ["latin"], weight: "500" })
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 const TeacherView = async () => {
+    noStore()
     const user = await getUserSession()
 
     // Redirect to login if no user session
@@ -37,6 +42,9 @@ const TeacherView = async () => {
             },
             select: {
                 id: true,
+                accountType: true,
+                schoolId: true,
+                full_name: true,
                 address: true,
                 addressCoords: true,
                 Student: {
@@ -45,6 +53,7 @@ const TeacherView = async () => {
                         full_name: true,
                         image: true,
                         status: true,
+                        presence: true,
                         bus: {
                             select: {
                                 id: true,
@@ -86,11 +95,114 @@ const TeacherView = async () => {
         revalidateTag("students");
         revalidateTag("parent");
 
+        if (parent.accountType === "STANDALONE" && parent.schoolId === null) {
+            const [children, drivers, requests] = await Promise.all([
+                db.parentChild.findMany({
+                    where: { parentId: parent.id },
+                    include: {
+                        activeDriver: {
+                            select: {
+                                id: true,
+                                full_name: true,
+                                phoneNumber: true,
+                                serviceAreas: true,
+                                verificationStatus: true,
+                                carMake: true,
+                                carModel: true,
+                                plateNumber: true,
+                            },
+                        },
+                    },
+                    orderBy: { createdAt: "desc" },
+                }),
+                db.driver.findMany({
+                    where: {
+                        accountType: "STANDALONE",
+                        schoolId: null,
+                    },
+                    select: {
+                        id: true,
+                        full_name: true,
+                        phoneNumber: true,
+                        address: true,
+                        liveAddress: true,
+                        image: true,
+                        serviceAreas: true,
+                        verificationStatus: true,
+                        carMake: true,
+                        carModel: true,
+                        carColor: true,
+                        plateNumber: true,
+                        vehicleCapacity: true,
+                    },
+                    orderBy: { full_name: "asc" },
+                }),
+                db.driverRequest.findMany({
+                    where: { parentId: parent.id },
+                    include: {
+                        child: true,
+                        driver: {
+                            select: {
+                                id: true,
+                                full_name: true,
+                                phoneNumber: true,
+                                serviceAreas: true,
+                                verificationStatus: true,
+                                carMake: true,
+                                carModel: true,
+                                plateNumber: true,
+                            },
+                        },
+                    },
+                    orderBy: { createdAt: "desc" },
+                }),
+            ]);
+
+            const acceptedLoads = drivers.length
+                ? await db.driverRequest.groupBy({
+                    by: ["driverId"],
+                    where: {
+                        driverId: { in: drivers.map((driver) => driver.id) },
+                        status: "ACCEPTED",
+                        droppedOffAt: null,
+                    },
+                    _count: { _all: true },
+                })
+                : [];
+            const loadByDriverId = new Map(
+                acceptedLoads.map((load) => [load.driverId, load._count._all])
+            );
+            const driversWithAvailability = drivers.map((driver) => {
+                const usedSeats = loadByDriverId.get(driver.id) || 0;
+                const capacity = driver.vehicleCapacity || 0;
+                const availableSeats = capacity ? Math.max(capacity - usedSeats, 0) : null;
+
+                return {
+                    ...driver,
+                    usedSeats,
+                    availableSeats,
+                    isFull: capacity ? usedSeats >= capacity : false,
+                };
+            });
+
+            return (
+                <Suspense>
+                    <div className={`min-h-screen bg-gray-100 text-black ${mont.className}`}>
+                        <StandaloneParentDashboard
+                            parentName={parent.full_name}
+                            childrenData={children as any}
+                            driversData={driversWithAvailability as any}
+                            requestsData={requests as any}
+                        />
+                    </div>
+                </Suspense>
+            )
+        }
+
         return (
             <Suspense>
                 <div className={`min-h-screen bg-gray-100 text-black ${mont.className}`}>
                     < NewParentPage parentAddress={parent.address ?? ''} parentAddressCoords={parent?.addressCoords} parentId={id} siblings={parent.Student as any} />
-                    {/* <ParentMainView parentAddress={parent.address ?? ''} parentId={id} siblings={parent.Student as any} /> */}
                 </div>
             </Suspense>
         )

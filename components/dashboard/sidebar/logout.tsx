@@ -15,10 +15,7 @@ const Logout = () => {
             className="flex w-full items-center gap-3 rounded-lg bg-black/5 px-3 py-3 text-sm font-semibold text-black transition-colors hover:bg-black/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
             onClick={handleLogout}
         >
-            <span className="grid h-8 w-8 place-items-center rounded-md bg-black/10 dark:bg-white/10">
-                <ExitIcon className="h-4 w-4" />
-            </span>
-            {/* <span>Logout</span> */}
+            <ExitIcon className="h-4 w-4" />
         </button>
     )
 }

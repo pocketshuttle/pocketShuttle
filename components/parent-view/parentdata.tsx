@@ -14,13 +14,21 @@ import home from "@/public/images/home.svg";
 import inbus from "@/public/images/inbus.svg";
 import classimage from "@/public/images/classimage.svg";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = async (url: string) => {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw new Error(data?.message || "Error fetching parent data");
+    }
+
+    return data;
+};
 
 //we only show the teacher details when the student has OTW marked
 
 const ParentViewData = ({ userId }: { userId: string }) => {
 
-    console.log(userId, "user id in parent view data component");
     const { data: parentData, error, isLoading } = useSWR<ParentProps>(
         `/api/addparent/${userId}`,
         fetcher,
