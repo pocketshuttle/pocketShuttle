@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 
 export async function deleteSession() {
   await deleteSessionCookie();
-  cookies().delete(LAST_SCREEN_COOKIE_NAME);
+  (await cookies()).delete(LAST_SCREEN_COOKIE_NAME);
 }
 export async function logout(callbackUrl?: string) {
   await deleteSession();

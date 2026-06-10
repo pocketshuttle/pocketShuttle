@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 // @ts-ignore
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster"
@@ -8,8 +7,6 @@ import QueryProvider from "@/components/webnotifications/query-provider";
 import AblyProviderRoot from "@/ably/ably-provider";
 import OneSignalClient from "@/onesignal/onesignal-client";
 import Script from "next/script";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.pocketshuttle.com"),
@@ -59,11 +56,7 @@ export default function RootLayout({
           defer
         />
       </head>
-      <body className={inter.className}
-        style={{
-          fontFamily: "Arial, sans-serif "
-        }}
-      >
+      <body>
         <Provider>
           < AblyProviderRoot>
             <OneSignalClient>

@@ -35,7 +35,6 @@ const CommuteUI = async () => {
                 driver: true,
             },
         });
-        revalidateTag("bus");
 
         return (
             <div>

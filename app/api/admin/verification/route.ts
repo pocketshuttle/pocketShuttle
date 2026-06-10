@@ -30,10 +30,51 @@ export async function PATCH(req: NextRequest) {
 
     const driver = await db.driver.findFirst({
       where: { id: driverId, accountType: "STANDALONE", schoolId: null },
-      select: { id: true },
+      select: {
+        id: true,
+        image: true,
+        phoneNumber: true,
+        address: true,
+        liveAddress: true,
+        landmark: true,
+        utilityBillUrl: true,
+        carMake: true,
+        carModel: true,
+        carColor: true,
+        plateNumber: true,
+        vehicleCapacity: true,
+      },
     });
     if (!driver) {
       return NextResponse.json({ message: "Standalone driver not found" }, { status: 404 });
+    }
+
+    const identityRows = await db.$queryRaw<{ identityDocumentUrl: string | null }[]>`
+      SELECT "identity_document_url" AS "identityDocumentUrl"
+      FROM "Driver"
+      WHERE "id" = ${driver.id}
+      LIMIT 1
+    `;
+    const missingFields = [
+      !driver.image && "driver image",
+      !driver.phoneNumber && "phone number",
+      !driver.address && "address",
+      !driver.liveAddress && "live GPS location",
+      !driver.landmark && "landmark",
+      !driver.utilityBillUrl && "utility bill",
+      !identityRows[0]?.identityDocumentUrl && "passport/NIN document",
+      !driver.carMake && "car make",
+      !driver.carModel && "car model",
+      !driver.carColor && "car color",
+      !driver.plateNumber && "plate number",
+      (!driver.vehicleCapacity || driver.vehicleCapacity < 1) && "vehicle capacity",
+    ].filter(Boolean);
+
+    if (action === "approve" && missingFields.length) {
+      return NextResponse.json(
+        { message: `Cannot verify incomplete account. Missing: ${missingFields.join(", ")}` },
+        { status: 400 }
+      );
     }
 
     const updated = await db.driver.update({

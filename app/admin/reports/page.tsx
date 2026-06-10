@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import db from "@/packages/db/client";
 
 function ReportBlock({ title, rows }: { title: string; rows: Array<{ label: string; value: string | number }> }) {

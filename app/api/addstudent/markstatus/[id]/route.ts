@@ -12,7 +12,7 @@ type ParamsProps = {
 
 export const PATCH = async (
   req: NextRequest,
-  { params }: { params: ParamsProps }
+  { params }: { params: Promise<ParamsProps> }
 ) => {
   try {
     const session = await getApiSession();
@@ -21,7 +21,7 @@ export const PATCH = async (
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const data = await req.json();
 
     if (!data) {

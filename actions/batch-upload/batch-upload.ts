@@ -64,13 +64,8 @@ export async function importStudents(
       const { parse } = await import("csv-parse/sync");
       const content = buffer.toString("utf-8");
       results = parse(content, { columns: true, skip_empty_lines: true });
-    } else if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
-      const XLSX = await import("xlsx");
-      const workbook = XLSX.read(buffer, { type: "buffer" });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      results = XLSX.utils.sheet_to_json(sheet);
     } else {
-      return { success: false, errors: ["Unsupported file type"] };
+      return { success: false, errors: ["Unsupported file type. Please upload a CSV file."] };
     }
 
     // Validate  sanitize

@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 // import { db } from '@/dropoff-backend/lib/db';
 import { getUserSession } from '@/lib/session';
 import db from '@/packages/db/client';
-import { revalidateTag } from 'next/cache';
 import React from 'react';
 
 const TeacherView = async () => {
@@ -51,7 +50,6 @@ const TeacherView = async () => {
                 },
             },
         });
-        revalidateTag("teacher");
 
 
         if (!teacherData) {

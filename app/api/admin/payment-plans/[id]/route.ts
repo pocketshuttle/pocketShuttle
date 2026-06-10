@@ -13,12 +13,13 @@ function parseFeatures(value: unknown) {
   return [];
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: Params }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const session = await requirePlatformAdmin();
     const body = await req.json();
+    const { id } = await params;
     const plan = await db.plan.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(body.name !== undefined ? { name: String(body.name).trim() } : {}),
         ...(body.price !== undefined ? { price: Number(body.price) } : {}),

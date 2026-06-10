@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button'
 import { getUserSession } from '@/lib/session'
 import db from '@/packages/db/client'
 
-const Drivers = async ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
+const Drivers = async ({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) => {
     const user = await getUserSession()
+    const resolvedSearchParams = await searchParams;
 
     // If no user session, redirect to login
     if (!user || typeof user.id !== 'string') {
@@ -25,8 +26,8 @@ const Drivers = async ({ searchParams }: { searchParams: { [key: string]: string
     }
 
     const userId = user?.id
-    const page = typeof searchParams.page === "string" ? Number(searchParams.page) : 1
-    const searchQuery = typeof searchParams.q === "string" ? searchParams.q : ""
+    const page = typeof resolvedSearchParams.page === "string" ? Number(resolvedSearchParams.page) : 1
+    const searchQuery = typeof resolvedSearchParams.q === "string" ? resolvedSearchParams.q : ""
     const ITEM_PER_PAGE = 10;
 
     type DriverWhere = NonNullable<Parameters<typeof db.driver.findMany>[0]>['where']

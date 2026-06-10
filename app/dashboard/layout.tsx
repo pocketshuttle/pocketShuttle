@@ -1,13 +1,7 @@
 import Navbar from "@/components/dashboard/navbar/navbar";
 import Sidebar from "@/components/dashboard/sidebar/sidebar";
 import { getUserSession } from "@/lib/session";
-import { Inter } from "next/font/google";
 import { redirect } from "next/navigation";
-
-const inter = Inter({
-    subsets: ["latin"],
-    weight: ["400", "500", "600", "700"],
-});
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
     // Fetch the user session
@@ -27,7 +21,7 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
     }
 
     return (
-        <div className={`flex h-screen w-full flex-col bg-gray-100 text-black dark:bg-black dark:text-white ${inter.className} antialiased transition-colors duration-200`}>
+        <div className="flex h-screen w-full flex-col bg-gray-100 text-black antialiased transition-colors duration-200 dark:bg-black dark:text-white">
             <Navbar data={user} />
 
             <div className="flex min-h-0 flex-1">

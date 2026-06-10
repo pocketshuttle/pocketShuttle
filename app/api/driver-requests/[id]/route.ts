@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 
 import db from "@/packages/db/client";
 import { getApiSession } from "@/lib/api-auth";
@@ -7,7 +8,7 @@ type Params = {
   id: string;
 };
 
-export async function PATCH(req: NextRequest, { params }: { params: Params }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<Params> }) {
   const session = await getApiSession();
   if (!session || !["parent", "driver"].includes(session.role)) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -17,9 +18,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
 
   const body = await req.json();
   const action = String(body.action || "").toLowerCase();
+  const { id } = await params;
 
   const request = await db.driverRequest.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       parent: { select: { id: true, accountType: true, schoolId: true } },
       driver: { select: { id: true, accountType: true, schoolId: true, vehicleCapacity: true } },
@@ -45,6 +47,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
     }
     if (!["cancel", "cancelled"].includes(action)) {
       return NextResponse.json({ message: "Parents can only cancel requests" }, { status: 400 });
+    }
+    if (request.status === "ACCEPTED" && request.pickedUpAt && !request.droppedOffAt) {
+      return NextResponse.json(
+        { message: "Picked up trips cannot be cancelled. Contact support." },
+        { status: 400 }
+      );
+    }
+    if (request.droppedOffAt) {
+      return NextResponse.json({ message: "Completed trips cannot be cancelled" }, { status: 400 });
     }
 
     const updated = await db.$transaction(async (tx) => {
@@ -78,8 +89,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
   }
 
   if (action === "picked_up") {
-    if (request.status !== "ACCEPTED") {
-      return NextResponse.json({ message: "Only accepted requests can be marked as picked up" }, { status: 400 });
+    if (request.status !== "ACCEPTED" || request.pickedUpAt || request.droppedOffAt) {
+      return NextResponse.json({ message: "Only active accepted trips can be marked as picked up once" }, { status: 400 });
     }
 
     const updated = await db.driverRequest.update({
@@ -91,8 +102,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
   }
 
   if (action === "dropped_off") {
-    if (request.status !== "ACCEPTED" || !request.pickedUpAt) {
-      return NextResponse.json({ message: "Only picked up trips can be dropped off" }, { status: 400 });
+    if (request.status !== "ACCEPTED" || !request.pickedUpAt || request.droppedOffAt) {
+      return NextResponse.json({ message: "Only picked up trips can be dropped off once" }, { status: 400 });
     }
 
     const updated = await db.$transaction(async (tx) => {
@@ -136,6 +147,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
 
   const updated = await db.$transaction(async (tx) => {
     if (action === "accept") {
+      if (request.driver.vehicleCapacity) {
+        const occupiedSeats = await tx.driverRequest.count({
+          where: {
+            driverId: request.driverId,
+            status: "ACCEPTED",
+            droppedOffAt: null,
+            id: { not: request.id },
+          },
+        });
+
+        if (occupiedSeats >= request.driver.vehicleCapacity) {
+          throw new Error("CAPACITY_REACHED");
+        }
+      }
+
       await tx.driverRequest.updateMany({
         where: {
           childId: request.childId,
@@ -161,7 +187,27 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
         respondedAt: new Date(),
       },
     });
+  }, {
+    isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+  }).catch((error) => {
+    if (error instanceof Error && error.message === "CAPACITY_REACHED") {
+      return null;
+    }
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2034"
+    ) {
+      return null;
+    }
+    throw error;
   });
+
+  if (!updated) {
+    return NextResponse.json(
+      { message: "Vehicle capacity has been reached." },
+      { status: 409 }
+    );
+  }
 
   return NextResponse.json({
     message: action === "accept" ? "Request accepted" : "Request declined",

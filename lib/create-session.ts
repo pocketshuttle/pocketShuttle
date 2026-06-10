@@ -42,14 +42,14 @@ export async function setSessionCookie(payload: SessionPayload) {
   const expiresAt = getSessionExpiresAt();
   const session = await encrypt({ ...payload, expiresAt });
 
-  cookies().set(SESSION_COOKIE_NAME, session, {
+  (await cookies()).set(SESSION_COOKIE_NAME, session, {
     ...authCookieOptions,
     expires: expiresAt,
   });
 }
 
 export async function deleteSessionCookie() {
-  cookies().delete(SESSION_COOKIE_NAME);
+  (await cookies()).delete(SESSION_COOKIE_NAME);
 }
 
 export async function createSession(id: string) {

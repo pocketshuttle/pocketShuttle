@@ -11,7 +11,7 @@ type ParamProp = {
 
 export const GET = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
     const session = await getApiSession();
@@ -20,7 +20,7 @@ export const GET = async (
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const where = id === schoolId ? { schoolId } : { id, schoolId };
 
     const bus = await db.buses.findMany({
@@ -58,7 +58,7 @@ export const GET = async (
 
 export const PATCH = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
     const session = await getApiSession();
@@ -67,7 +67,7 @@ export const PATCH = async (
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const data = await req.json();
     const validatedData = BusSchema.safeParse(data);
 
@@ -144,7 +144,7 @@ export const PATCH = async (
 
 export const DELETE = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
     const session = await getApiSession();
@@ -153,7 +153,7 @@ export const DELETE = async (
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const existingBus = await db.buses.findFirst({
       where: { id, schoolId },
       select: { id: true },

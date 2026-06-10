@@ -6,10 +6,11 @@ import { recordTripLocation } from "@/lib/trip-events";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { tripId: string } }
+  { params }: { params: Promise<{ tripId: string }> }
 ) {
+  const { tripId } = await params;
   const session = await getApiSession();
-  const allowed = await canAccessTrip(params.tripId, session);
+  const allowed = await canAccessTrip(tripId, session);
 
   if (!allowed) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -24,7 +25,7 @@ export async function POST(
   }
 
   const location = await recordTripLocation({
-    tripId: params.tripId,
+    tripId,
     lat,
     lng,
     accuracy: typeof body?.accuracy === "number" ? body.accuracy : null,

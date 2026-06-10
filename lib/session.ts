@@ -6,7 +6,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 
 export const getUserSession = cache(async () => {
-  const cookie = cookies().get(SESSION_COOKIE_NAME)?.value;
+  const cookie = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
 
   if (!cookie) {
     console.log("No cookie found");

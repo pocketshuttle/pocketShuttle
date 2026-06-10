@@ -4,10 +4,11 @@ import { parseUserKey, requirePlatformAdmin, setSuspension } from "@/lib/admin/p
 
 type Params = { id: string };
 
-export async function PATCH(req: NextRequest, { params }: { params: Params }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<Params> }) {
   try {
     const session = await requirePlatformAdmin();
-    const parsed = parseUserKey(decodeURIComponent(params.id));
+    const { id } = await params;
+    const parsed = parseUserKey(decodeURIComponent(id));
     if (!parsed) {
       return NextResponse.json({ message: "Invalid user key" }, { status: 400 });
     }

@@ -22,7 +22,7 @@ export function normalizeRole(role: unknown) {
 }
 
 export async function getApiSession(): Promise<ApiSession | null> {
-  const cookie = cookies().get(SESSION_COOKIE_NAME)?.value;
+  const cookie = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
   if (!cookie) {
     return null;
   }

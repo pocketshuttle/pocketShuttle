@@ -5,10 +5,11 @@ import db from "@/packages/db/client";
 
 type Params = { id: string };
 
-export async function GET(_req: Request, { params }: { params: Params }) {
+export async function GET(_req: Request, { params }: { params: Promise<Params> }) {
   try {
     await requirePlatformAdmin();
-    const parsed = parseUserKey(decodeURIComponent(params.id));
+    const { id } = await params;
+    const parsed = parseUserKey(decodeURIComponent(id));
     if (!parsed) {
       return NextResponse.json({ message: "Invalid user key" }, { status: 400 });
     }

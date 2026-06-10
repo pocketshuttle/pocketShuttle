@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { AdminUsersTable } from "@/components/admin/admin-controls";
 import { getUnifiedUsers } from "@/lib/admin/platform";
 

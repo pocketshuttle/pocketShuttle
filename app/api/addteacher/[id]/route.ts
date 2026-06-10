@@ -16,10 +16,10 @@ const ParamsSchema = z.object({
 
 export const GET = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
-    const parsedResult = ParamsSchema.safeParse(params);
+    const parsedResult = ParamsSchema.safeParse(await params);
 
     if (!parsedResult.success) {
       return NextResponse.json(
@@ -104,7 +104,7 @@ export const GET = async (
 
 export const PATCH = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
     const session = await getApiSession();
@@ -113,7 +113,7 @@ export const PATCH = async (
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const data = await req.json();
 
     const existingTeacher = await db.teacher.findFirst({
@@ -191,7 +191,7 @@ export const PATCH = async (
 
 export const DELETE = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
     const session = await getApiSession();
@@ -200,7 +200,7 @@ export const DELETE = async (
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const existingTeacher = await db.teacher.findFirst({
       where: { id, schoolId },
       select: { id: true },
