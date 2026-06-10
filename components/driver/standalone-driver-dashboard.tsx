@@ -239,6 +239,14 @@ export function StandaloneDriverDashboard({ driver, requestsData }: Props) {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append(
+        "purpose",
+        field === "image"
+          ? "driver-avatar"
+          : field === "utilityBillUrl"
+            ? "driver-utility-bill"
+            : "driver-identity-document"
+      );
 
       const response = await fetch("/api/upload", {
         method: "POST",

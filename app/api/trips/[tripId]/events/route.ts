@@ -23,10 +23,11 @@ const eventTypes = new Set<TripEventType>([
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { tripId: string } }
+  { params }: { params: Promise<{ tripId: string }> }
 ) {
+  const { tripId } = await params;
   const session = await getApiSession();
-  const allowed = await canAccessTrip(params.tripId, session);
+  const allowed = await canAccessTrip(tripId, session);
 
   if (!allowed) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -40,7 +41,7 @@ export async function POST(
   }
 
   const event = await recordTripEvent({
-    tripId: params.tripId,
+    tripId,
     eventType,
     actorId: session?.id,
     actorType: session?.role,

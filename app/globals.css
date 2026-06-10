@@ -39,7 +39,7 @@ html,
 body {
   background-color: var(--bg-root);
   color: var(--text);
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", "Roboto", sans-serif;
 }
 * {
   margin: 0;

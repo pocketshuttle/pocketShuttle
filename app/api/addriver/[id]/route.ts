@@ -14,10 +14,10 @@ const ParamsSchema = z.object({
 
 export const GET = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
-    const parsedResult = ParamsSchema.safeParse(params);
+    const parsedResult = ParamsSchema.safeParse(await params);
     if (!parsedResult.success) {
       return NextResponse.json(
         { message: "Invalid school ID" },
@@ -83,7 +83,7 @@ export const GET = async (
 
 export const PATCH = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
     const session = await getApiSession();
@@ -92,7 +92,7 @@ export const PATCH = async (
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const data = await req.json();
 
     const existingDriver = await db.driver.findFirst({

@@ -31,6 +31,13 @@ function StatusBadge({ value }: { value?: string | null }) {
   return <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${tone}`}>{status.replaceAll("_", " ")}</span>;
 }
 
+function adminFileHref(url?: string | null) {
+  if (!url) return undefined;
+  return url.startsWith("cloudinary:authenticated:")
+    ? `/api/admin/files?ref=${encodeURIComponent(url)}`
+    : url;
+}
+
 export function AdminUsersTable({ users }: { users: any[] }) {
   const [rows, setRows] = useState(users);
   const [query, setQuery] = useState("");
@@ -167,6 +174,12 @@ export function VerificationQueue({ drivers }: { drivers: any[] }) {
     <div className="grid gap-3">
       {rows.map((driver) => (
         <div key={driver.id} className="rounded-lg border border-slate-200 bg-white p-4">
+          {(() => {
+            const driverImageHref = adminFileHref(driver.image);
+            const utilityBillHref = adminFileHref(driver.utilityBillUrl);
+            const identityDocumentHref = adminFileHref(driver.identityDocumentUrl);
+
+            return (
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
@@ -180,15 +193,15 @@ export function VerificationQueue({ drivers }: { drivers: any[] }) {
                 <p>GPS: {driver.liveAddress ? JSON.stringify(driver.liveAddress) : "N/A"}</p>
                 <p>Vehicle: {[driver.carColor, driver.carMake, driver.carModel, driver.plateNumber].filter(Boolean).join(" ") || "N/A"}</p>
                 <p>Areas: {driver.serviceAreas?.length ? driver.serviceAreas.join(", ") : "N/A"}</p>
-                <p>Driver image: {driver.image ? <a href={driver.image} target="_blank" className="text-blue-600 underline">Open image</a> : "N/A"}</p>
-                <p>Utility bill: {driver.utilityBillUrl ? <a href={driver.utilityBillUrl} target="_blank" className="text-blue-600 underline">Open document</a> : "N/A"}</p>
-                <p>ID document: {driver.identityDocumentUrl ? <a href={driver.identityDocumentUrl} target="_blank" className="text-blue-600 underline">Open passport/NIN</a> : "N/A"}</p>
+                <p>Driver image: {driverImageHref ? <a href={driverImageHref} target="_blank" className="text-blue-600 underline">Open image</a> : "N/A"}</p>
+                <p>Utility bill: {utilityBillHref ? <a href={utilityBillHref} target="_blank" className="text-blue-600 underline">Open document</a> : "N/A"}</p>
+                <p>ID document: {identityDocumentHref ? <a href={identityDocumentHref} target="_blank" className="text-blue-600 underline">Open passport/NIN</a> : "N/A"}</p>
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 {[
-                  ["Driver image", driver.image],
-                  ["Utility bill", driver.utilityBillUrl],
-                  ["Passport/NIN", driver.identityDocumentUrl],
+                  ["Driver image", driverImageHref],
+                  ["Utility bill", utilityBillHref],
+                  ["Passport/NIN", identityDocumentHref],
                 ].map(([label, url]) => (
                   <a
                     key={label}
@@ -218,6 +231,8 @@ export function VerificationQueue({ drivers }: { drivers: any[] }) {
               </Button>
             </div>
           </div>
+            );
+          })()}
         </div>
       ))}
       {!rows.length && <p className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-500">No drivers found.</p>}

@@ -14,10 +14,10 @@ const ParamsSchema = z.object({
 
 export const GET = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
-    const parsedResult = ParamsSchema.safeParse(params);
+    const parsedResult = ParamsSchema.safeParse(await params);
 
     if (!parsedResult.success) {
       return NextResponse.json(

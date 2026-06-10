@@ -1,4 +1,4 @@
-"use  server"
+"use server"
 import { BusData } from "@/components/buses/ui/Table"
 import db from "@/packages/db/client"
 import { getUserSession } from "@/lib/session"
@@ -75,7 +75,6 @@ const Buses = async () => {
             // Handle the case where teacher data is not found
             return <div className="text-center">No Buses data found for this user.</div>;
         }
-        revalidateTag("bus");
         return (
             <div>
                 <BusData data={busWithTrips} />

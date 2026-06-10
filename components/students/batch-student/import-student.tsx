@@ -27,7 +27,7 @@ export const ImportStudentsForm = ({ schoolId }: { schoolId: string }) => {
 
     return (
         <form onSubmit={handleSubmit} className="p-2 border-[0.5px] rounded-lg">
-            <input type="file" name="file" accept=".csv,.xlsx,.xls" required />
+            <input type="file" name="file" accept=".csv,text/csv" required />
             <button type="submit" className="ml-2 px-4 py-2 bg-blue-600 text-white rounded">
                 Import
             </button>

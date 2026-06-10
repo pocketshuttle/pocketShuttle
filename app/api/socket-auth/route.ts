@@ -5,7 +5,7 @@ import { decrypt } from "@/lib/create-session";
 
 export async function GET() {
   try {
-    const cookie = cookies().get("session")?.value;
+    const cookie = (await cookies()).get("session")?.value;
     if (!cookie) {
       return NextResponse.json({ error: "No Session" }, { status: 401 });
     }

@@ -5,17 +5,17 @@ import { StudentsData } from "@/components/students/ui/Table";
 import { Button } from "@/components/ui/button";
 import db from "@/packages/db/client";
 import { getUserSession } from "@/lib/session";
-import { revalidateTag } from "next/cache";
 
-const Students = async ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
+const Students = async ({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) => {
     const user = await getUserSession();
+    const resolvedSearchParams = await searchParams;
 
-    const page = typeof searchParams.page === "string" ? Number(searchParams.page) : 1
-    const searchQuery = typeof searchParams.q === "string" ? searchParams.q : "";
-    // const gradeQuery = typeof searchParams.grade === "string" ? searchParams.grade : ""
-    // const gradeQuery = typeof searchParams.grade === "string" ? decodeURIComponent(searchParams.grade) : "";
-    const gradeQuery = typeof searchParams.grade === "string"
-        ? decodeURIComponent(decodeURIComponent(searchParams.grade.replace(/\+/g, ' ')))
+    const page = typeof resolvedSearchParams.page === "string" ? Number(resolvedSearchParams.page) : 1
+    const searchQuery = typeof resolvedSearchParams.q === "string" ? resolvedSearchParams.q : "";
+    // const gradeQuery = typeof resolvedSearchParams.grade === "string" ? resolvedSearchParams.grade : ""
+    // const gradeQuery = typeof resolvedSearchParams.grade === "string" ? decodeURIComponent(resolvedSearchParams.grade) : "";
+    const gradeQuery = typeof resolvedSearchParams.grade === "string"
+        ? decodeURIComponent(decodeURIComponent(resolvedSearchParams.grade.replace(/\+/g, ' ')))
         : "";
     const ITEM_PER_PAGE = 20;
 
@@ -70,7 +70,6 @@ const Students = async ({ searchParams }: { searchParams: { [key: string]: strin
             // Handle the case where teacher data is not found
             return <div>No Students data found for this user.</div>;
         }
-        revalidateTag("students");
 
         const count = await db.student.count({
             where: {
@@ -91,7 +90,6 @@ const Students = async ({ searchParams }: { searchParams: { [key: string]: strin
         });
 
         if (bus) {
-            revalidateTag("bus")
         }
 
 

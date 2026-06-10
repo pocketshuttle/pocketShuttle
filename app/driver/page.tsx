@@ -71,6 +71,10 @@ const DriverPage = async () => {
 
   const requestsData = requests.map((request) => ({
     ...request,
+    parent: {
+      ...request.parent,
+      address: request.status === "ACCEPTED" ? request.parent.address : null,
+    },
     parentPickupCount: requests.filter(
       (item) =>
         item.parentId === request.parentId &&

@@ -8,7 +8,7 @@ type Params = {
   id: string;
 };
 
-export async function PATCH(req: NextRequest, { params }: { params: Params }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<Params> }) {
   const session = await getApiSession();
   if (!canManagePlatform(session)) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -16,6 +16,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
 
   const body = await req.json();
   const action = String(body.action || "").toLowerCase();
+  const { id } = await params;
 
   if (!["approve", "reject"].includes(action)) {
     return NextResponse.json({ message: "Invalid verification action" }, { status: 400 });
@@ -23,7 +24,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
 
   const driver = await db.driver.findFirst({
     where: {
-      id: params.id,
+      id,
       accountType: "STANDALONE",
       schoolId: null,
     },

@@ -16,9 +16,10 @@ import { revalidateTag } from 'next/cache'
  */
 
 
-const StudentView = async ({ params }: { params: { id: string } }) => {
+const StudentView = async ({ params }: { params: Promise<{ id: string }> }) => {
 
     const user = await getUserSession()
+    const { id } = await params;
     // Use teacherId if avaiable, else use user id
     const teacherId = user?.teacherId || user?.id;
 
@@ -37,7 +38,7 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
     try {
         //@ts-ignore
         const studentData: StudentProps = await db.student.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: {
                 parent: {
                     include: {
@@ -58,7 +59,6 @@ const StudentView = async ({ params }: { params: { id: string } }) => {
         })
 
         // Revalidate the cache for the 'students' tag to ensure real-time data
-        revalidateTag("students")
 
         if (!studentData?.parent) {
             // Handle the case where parent data is not found

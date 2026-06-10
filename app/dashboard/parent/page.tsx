@@ -8,8 +8,9 @@ import { Prisma } from "@prisma/client";
 import { NetworkError } from '@/components/errorsandsuccess/error/error'
 
 
-const Parents = async ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
+const Parents = async ({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) => {
     const user = await getUserSession()
+    const resolvedSearchParams = await searchParams;
 
     // if no user, that means you havent logged in, so redirect back to login page
     if (!user || typeof user?.id !== "string") {
@@ -23,8 +24,8 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
     }
     const userId = user?.id
     //if the next req for the next page is a string, we convert it to number then pass it as a params, if its unavailable , we set it to 1
-    const page = typeof searchParams.page === "string" ? Number(searchParams.page) : 1
-    const searchQuery = typeof searchParams.q === "string" ? searchParams.q : ""
+    const page = typeof resolvedSearchParams.page === "string" ? Number(resolvedSearchParams.page) : 1
+    const searchQuery = typeof resolvedSearchParams.q === "string" ? resolvedSearchParams.q : ""
     const ITEM_PER_PAGE = 10;
 
     const query: Prisma.ParentWhereInput = {
@@ -67,7 +68,6 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
             // Handle the case where teacher data is not found
             return <div className='text-center'>No parent data found for this user, try again or add a Parent</div>;
         }
-        revalidateTag("parent");
 
         const studentData = await db.student.findMany({
             where: {

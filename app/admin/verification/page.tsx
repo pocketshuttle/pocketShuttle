@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { VerificationQueue } from "@/components/admin/admin-controls";
 import db from "@/packages/db/client";
 import { Prisma } from "@prisma/client";

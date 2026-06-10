@@ -26,9 +26,6 @@ export async function GET(req: NextRequest) {
     select: {
       id: true,
       full_name: true,
-      email: true,
-      phoneNumber: true,
-      address: true,
       liveAddress: true,
       image: true,
       serviceAreas: true,

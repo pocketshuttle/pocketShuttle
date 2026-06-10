@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { PaymentPlansManager } from "@/components/admin/admin-controls";
 import db from "@/packages/db/client";
 

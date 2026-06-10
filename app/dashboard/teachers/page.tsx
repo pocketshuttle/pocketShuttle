@@ -7,8 +7,9 @@ import db from '@/packages/db/client'
 import { revalidateTag } from 'next/cache'
 import React from 'react'
 
-const TeachersDrivers = async ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
+const TeachersDrivers = async ({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) => {
     const user = await getUserSession()
+    const resolvedSearchParams = await searchParams;
 
     // If no user session, redirect to login
     if (!user || typeof user.id !== 'string') {
@@ -25,8 +26,8 @@ const TeachersDrivers = async ({ searchParams }: { searchParams: { [key: string]
     }
 
     const userId = user?.id
-    const page = typeof searchParams.page === "string" ? Number(searchParams.page) : 1
-    const searchQuery = typeof searchParams.q === "string" ? searchParams.q : ""
+    const page = typeof resolvedSearchParams.page === "string" ? Number(resolvedSearchParams.page) : 1
+    const searchQuery = typeof resolvedSearchParams.q === "string" ? resolvedSearchParams.q : ""
     const ITEM_PER_PAGE = 10;
 
     type TeacherWhere = NonNullable<Parameters<typeof db.teacher.findMany>[0]>['where']
@@ -73,8 +74,6 @@ const TeachersDrivers = async ({ searchParams }: { searchParams: { [key: string]
             // Handle the case where teacher data is not found
             return <div className='text-center'>No teacher data found for this user, try again or add a Teacher</div>;
         }
-        revalidateTag("teacher")
-        revalidateTag("student")
 
         const bus = await db.buses.findMany({
             where: {

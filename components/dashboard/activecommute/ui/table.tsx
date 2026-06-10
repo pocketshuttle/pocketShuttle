@@ -1,8 +1,6 @@
-import { Poppins } from "next/font/google"
-const poppins = Poppins({ weight: "500", subsets: ["latin"] })
 export const ActiveCommuteTable = () => {
     return (
-        <div className={`relative overflow-x-auto bg-transparent ${poppins}`} >
+        <div className={`relative overflow-x-auto bg-transparent`} >
             <header className="px-4 py-3 text-[1rem] text-[var(--textSoft)] ">
                 Ongoing Commute
             </header>

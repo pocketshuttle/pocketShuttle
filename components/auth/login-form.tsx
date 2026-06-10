@@ -13,10 +13,8 @@ import { FormError } from "@/components/errorsandsuccess/form-error"
 import { FormSuccess } from "@/components/errorsandsuccess/form-success"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Poppins } from "next/font/google"
 import { Bus, Car, Eye, EyeOff, GraduationCap, Users } from "lucide-react"
 
-const poppins = Poppins({ weight: "400", subsets: ["latin"] });
 const LOGIN_ROLE_STORAGE_KEY = "pocketshuttle-login-role";
 
 const roleOptions = [
@@ -121,7 +119,7 @@ export const LoginForm = () => {
             backButtonHref="/register"
         >
             {isRoleStep ? (
-                <div className={`space-y-5 ${poppins.className} text-white`}>
+                <div className={`space-y-5 text-white`}>
                     {rememberedRole && (
                         <div className="rounded-lg border border-white/10 bg-[#141c2a] p-4">
                             <p className="text-sm text-slate-300">Welcome back</p>
@@ -169,7 +167,7 @@ export const LoginForm = () => {
             ) : (
             <Form {...form}>
                 {/* the handle submit comes from the form constant */}
-                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-5 ${poppins.className} text-white`}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-5 text-white`}>
                     <div className="flex items-center justify-between rounded-lg border border-white/5 bg-[#141c2a] px-4 py-3">
                         <div>
                             <p className="text-xs text-slate-400">Logging in as</p>

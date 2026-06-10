@@ -68,9 +68,7 @@ const Dashboard = async () => {
                 driver: true,
             },
         });
-        revalidateTag("students")
         if (bus) {
-            revalidateTag("bus")
         }
 
         return (

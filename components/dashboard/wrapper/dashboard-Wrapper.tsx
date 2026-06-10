@@ -1,5 +1,4 @@
 "use client"
-import { Open_Sans } from "next/font/google"
 import LottieAnimation from "../sidebar/menuLink/lottie-animation"
 import car from "@/public/images/Car.json";
 import student from "@/public/images/student.json";
@@ -14,11 +13,10 @@ interface DashboardWrapperProps {
     service?: string
 
 }
-const openSans = Open_Sans({ weight: "500", subsets: ["latin"] })
 export const DashboardWrapper = ({ headLabel, total, bgColor, service }: DashboardWrapperProps) => {
     const [hoverIndex, setHoverIndex] = useState<number | null>(null);
     return (
-        <div className={`mx-auto mt-2 flex items-center justify-between space-y-4 rounded-xl border border-[var(--text)] bg-[var(--bgSoft)] px-4 py-3 text-[var(--text)] transition-colors hover:bg-[var(--hoverBg)] ${openSans.className} `}
+        <div className="mx-auto mt-2 flex items-center justify-between space-y-4 rounded-xl border border-[var(--text)] bg-[var(--bgSoft)] px-4 py-3 text-[var(--text)] transition-colors hover:bg-[var(--hoverBg)]"
             style={bgColor ? { backgroundColor: bgColor } : undefined}
         >
             <div className=" font-medium text-xl ">

@@ -1,10 +1,4 @@
 import { cn } from "@/lib/utils";
-import { Poppins } from "next/font/google";
-
-const font = Poppins({
-    subsets: ["latin"],
-    weight: "600"
-})
 
 interface HeaderProps {
     label: string
@@ -18,7 +12,7 @@ export const AuthHeader = ({ label, subtitle }: HeaderProps) => {
                 PocketShuttle
             </div>
             <h1
-                className={cn("text-3xl font-semibold sm:text-[2rem]", font.className)}
+                className={cn("text-3xl font-semibold sm:text-[2rem]")}
             >
                 {label}
             </h1>

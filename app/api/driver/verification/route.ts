@@ -12,11 +12,18 @@ export async function PATCH(req: NextRequest) {
 
   const driver = await db.driver.findFirst({
     where: { id: session.id, accountType: "STANDALONE", schoolId: null },
-    select: { id: true },
+    select: { id: true, verificationStatus: true },
   });
 
   if (!driver) {
     return NextResponse.json({ message: "Standalone driver not found" }, { status: 404 });
+  }
+
+  if (driver.verificationStatus === "VERIFIED") {
+    return NextResponse.json(
+      { message: "Verified accounts cannot update verification details. Contact customer care." },
+      { status: 403 }
+    );
   }
 
   const parsed = DriverVerificationSchema.safeParse(await req.json());

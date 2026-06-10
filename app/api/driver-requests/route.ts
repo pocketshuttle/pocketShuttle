@@ -32,11 +32,14 @@ export async function GET() {
           id: true,
           full_name: true,
           phoneNumber: true,
+          liveAddress: true,
           serviceAreas: true,
           verificationStatus: true,
           carMake: true,
           carModel: true,
+          carColor: true,
           plateNumber: true,
+          vehicleCapacity: true,
         },
       },
     },
@@ -47,6 +50,10 @@ export async function GET() {
     ? requests
     : requests.map((request) => ({
         ...request,
+        parent: {
+          ...request.parent,
+          address: request.status === "ACCEPTED" ? request.parent.address : null,
+        },
         parentPickupCount: requests.filter(
           (item) =>
             item.parentId === request.parentId &&
@@ -150,6 +157,23 @@ export async function POST(req: NextRequest) {
       driverId: driver.id,
       routeArea: parsed.data.routeArea,
       note: parsed.data.note,
+    },
+    include: {
+      child: true,
+      driver: {
+        select: {
+          id: true,
+          full_name: true,
+          liveAddress: true,
+          serviceAreas: true,
+          verificationStatus: true,
+          carMake: true,
+          carModel: true,
+          carColor: true,
+          plateNumber: true,
+          vehicleCapacity: true,
+        },
+      },
     },
   });
 

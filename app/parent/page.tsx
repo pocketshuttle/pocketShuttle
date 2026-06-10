@@ -2,16 +2,11 @@ import LoginButton from '@/components/auth/login-button'
 import { NetworkError } from '@/components/errorsandsuccess/error/error'
 import { Button } from '@/components/ui/button'
 import { getUserSession } from '@/lib/session'
-import { revalidateTag, unstable_noStore as noStore } from 'next/cache'
-import { Montserrat } from 'next/font/google'
+import { unstable_noStore as noStore } from 'next/cache'
 import React, { Suspense } from 'react'
-import { ParentMainView } from '@/components/parent-view/parent-view'
 import NewParentPage from '@/components/parent-view/new-parent-view'
 import { StandaloneParentDashboard } from '@/components/parent-view/standalone-parent-dashboard'
 import db from '@/packages/db/client'
-
-// Load Montserrat font
-const mont = Montserrat({ subsets: ["latin"], weight: "500" })
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -91,10 +86,6 @@ const TeacherView = async () => {
             );
         }
 
-        // Trigger revalidation for student cache tag
-        revalidateTag("students");
-        revalidateTag("parent");
-
         if (parent.accountType === "STANDALONE" && parent.schoolId === null) {
             const [children, drivers, requests] = await Promise.all([
                 db.parentChild.findMany({
@@ -105,11 +96,14 @@ const TeacherView = async () => {
                                 id: true,
                                 full_name: true,
                                 phoneNumber: true,
+                                liveAddress: true,
                                 serviceAreas: true,
                                 verificationStatus: true,
                                 carMake: true,
                                 carModel: true,
+                                carColor: true,
                                 plateNumber: true,
+                                vehicleCapacity: true,
                             },
                         },
                     },
@@ -123,8 +117,6 @@ const TeacherView = async () => {
                     select: {
                         id: true,
                         full_name: true,
-                        phoneNumber: true,
-                        address: true,
                         liveAddress: true,
                         image: true,
                         serviceAreas: true,
@@ -146,11 +138,14 @@ const TeacherView = async () => {
                                 id: true,
                                 full_name: true,
                                 phoneNumber: true,
+                                liveAddress: true,
                                 serviceAreas: true,
                                 verificationStatus: true,
                                 carMake: true,
                                 carModel: true,
+                                carColor: true,
                                 plateNumber: true,
+                                vehicleCapacity: true,
                             },
                         },
                     },
@@ -187,7 +182,7 @@ const TeacherView = async () => {
 
             return (
                 <Suspense>
-                    <div className={`min-h-screen bg-gray-100 text-black ${mont.className}`}>
+                    <div className="min-h-screen bg-gray-100 text-black">
                         <StandaloneParentDashboard
                             parentName={parent.full_name}
                             childrenData={children as any}
@@ -201,14 +196,15 @@ const TeacherView = async () => {
 
         return (
             <Suspense>
-                <div className={`min-h-screen bg-gray-100 text-black ${mont.className}`}>
+                <div className="min-h-screen bg-gray-100 text-black">
                     < NewParentPage parentAddress={parent.address ?? ''} parentAddressCoords={parent?.addressCoords} parentId={id} siblings={parent.Student as any} />
                 </div>
             </Suspense>
         )
 
     } catch (error: any) {
-        if (error.message.includes("Can't reach database server at")) {
+        console.error("Parent page failed:", error);
+        if (error instanceof Error && error.message.includes("Can't reach database server at")) {
             return (
                 <div className="flex items-center justify-center">
                     <NetworkError error="Connection" />

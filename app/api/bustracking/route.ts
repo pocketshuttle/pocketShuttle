@@ -1,11 +1,10 @@
-import { NextApiResponse } from "next";
 import { NextRequest, NextResponse } from "next/server";
 
 import db from "@/packages/db/client";
 import { getPusherInstance } from "@/pusher/server";
 import { getApiSession, isTeacher } from "@/lib/api-auth";
 
-export async function POST(req: NextRequest, res: NextApiResponse) {
+export async function POST(req: NextRequest) {
   try {
     const session = await getApiSession();
     const schoolId = session?.schoolId;

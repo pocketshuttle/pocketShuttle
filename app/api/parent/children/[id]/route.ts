@@ -21,13 +21,14 @@ async function getOwnedChild(childId: string, parentId: string) {
   });
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: Params }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<Params> }) {
   const session = await getApiSession();
   if (!isParent(session)) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const existing = await getOwnedChild(params.id, session.id);
+  const { id } = await params;
+  const existing = await getOwnedChild(id, session.id);
   if (!existing) {
     return NextResponse.json({ message: "Child not found" }, { status: 404 });
   }
@@ -49,13 +50,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
   return NextResponse.json({ message: "Child updated", child });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: Params }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<Params> }) {
   const session = await getApiSession();
   if (!isParent(session)) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const existing = await getOwnedChild(params.id, session.id);
+  const { id } = await params;
+  const existing = await getOwnedChild(id, session.id);
   if (!existing) {
     return NextResponse.json({ message: "Child not found" }, { status: 404 });
   }

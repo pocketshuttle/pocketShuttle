@@ -10,7 +10,7 @@ type ParamsProps = {
 
 export const PATCH = async (
   req: NextRequest,
-  { params }: { params: ParamsProps }
+  { params }: { params: Promise<ParamsProps> }
 ) => {
   try {
     const session = await getApiSession();
@@ -19,7 +19,7 @@ export const PATCH = async (
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const data = await req.json();
 
     if (!data) {
@@ -121,7 +121,7 @@ export const PATCH = async (
 
 export const DELETE = async (
   req: NextRequest,
-  { params }: { params: ParamsProps }
+  { params }: { params: Promise<ParamsProps> }
 ) => {
   try {
     const session = await getApiSession();
@@ -130,7 +130,7 @@ export const DELETE = async (
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const data = await req.json();
     const { studentId, busId } = data.attendance;
 

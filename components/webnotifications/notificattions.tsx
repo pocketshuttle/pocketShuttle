@@ -5,10 +5,10 @@ import { toast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { urlB64ToUint8Array } from "@/lib/utils";
 import { saveSubscriptionToDatabase, removeNotification } from "@/actions/notification/helper";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/hooks/useSession";
 
 export default function NotificationRequest() {
-	const { data: session } = useSession();
+	const session = useSession();
 	const queryClient = useQueryClient();
 	const [notificationPermission, setNotificationPermission] = useState<"granted" | "denied" | "default">(
 		"default"
@@ -84,8 +84,7 @@ export default function NotificationRequest() {
 				},
 			};
 			// Call server action to save the subscription
-			// @ts-ignore
-			await saveSubscriptionToDatabase(subscriptionData, session?.user?.id!);
+			await saveSubscriptionToDatabase(subscriptionData, session.id!);
 
 			queryClient.invalidateQueries({ queryKey: ["user"] });
 		} catch (error) {
@@ -96,11 +95,9 @@ export default function NotificationRequest() {
 	}
 
 	async function handleRemoveNotification() {
-		// @ts-ignore
-		if (!session?.user?.id) return;
-		// @ts-ignore
+		if (!session.id) return;
 
-		const result = await removeNotification(session.user.id);
+		const result = await removeNotification(session.id);
 
 		if (result.error) {
 			toast({

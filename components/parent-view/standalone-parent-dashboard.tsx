@@ -22,8 +22,6 @@ type Child = {
 type Driver = {
   id: string;
   full_name: string;
-  phoneNumber?: string | null;
-  address?: string | null;
   liveAddress?: { latitude: number; longitude: number } | null;
   serviceAreas: string[];
   verificationStatus: string;
@@ -35,6 +33,7 @@ type Driver = {
   usedSeats?: number;
   availableSeats?: number | null;
   isFull?: boolean;
+  fare?: number | null;
 };
 
 type DriverRequest = {
@@ -70,6 +69,19 @@ async function jsonFetch(url: string, init?: RequestInit) {
     throw new Error(data?.message || "Request failed");
   }
   return data;
+}
+
+function getDriverVehicle(driver?: Driver | null) {
+  if (!driver) return "Vehicle details pending";
+  return [driver.carColor, driver.carMake, driver.carModel].filter(Boolean).join(" ") || "Vehicle details pending";
+}
+
+function getDriverFare(driver?: Driver | null) {
+  if (typeof driver?.fare === "number") {
+    return `NGN ${driver.fare.toLocaleString()}`;
+  }
+
+  return "Fare pending";
 }
 
 function StandaloneDriversMap({
@@ -143,8 +155,8 @@ export function StandaloneParentDashboard({
 }: Props) {
   const [children, setChildren] = useState(childrenData);
   const [requests, setRequests] = useState(requestsData);
-  const [selectedChildId, setSelectedChildId] = useState(requestsData[0]?.child.id || childrenData[0]?.id || "");
-  const [selectedDriverId, setSelectedDriverId] = useState(requestsData[0]?.driver.id || driversData[0]?.id || "");
+  const [selectedChildId, setSelectedChildId] = useState(requestsData[0]?.child?.id || childrenData[0]?.id || "");
+  const [selectedDriverId, setSelectedDriverId] = useState(driversData[0]?.id || "");
   const [routeFilter, setRouteFilter] = useState("");
   const [showAddKid, setShowAddKid] = useState(false);
   const [childForm, setChildForm] = useState({
@@ -175,36 +187,93 @@ export function StandaloneParentDashboard({
     [children, selectedChildId]
   );
 
+  const activeChildRequests = useMemo(() => {
+    if (!selectedChild) return [];
+
+    return requests.filter(
+      (request) =>
+        request.child?.id === selectedChild.id &&
+        ["PENDING", "ACCEPTED"].includes(request.status) &&
+        !request.droppedOffAt
+    );
+  }, [requests, selectedChild]);
+
+  const currentChildRequest = useMemo(
+    () => activeChildRequests.find((request) => request.status === "ACCEPTED") || null,
+    [activeChildRequests]
+  );
+
+  const pendingChildRequest = useMemo(
+    () => activeChildRequests.find((request) => request.status === "PENDING") || null,
+    [activeChildRequests]
+  );
+
+  const currentDriver = currentChildRequest?.driver || selectedChild?.activeDriver || null;
+
+  const routeAreaFilters = useMemo(() => {
+    const areas = [
+      routeFilter,
+      currentChildRequest?.routeArea,
+      pendingChildRequest?.routeArea,
+      ...(currentDriver?.serviceAreas || []),
+    ]
+      .map((area) => area?.trim().toLowerCase())
+      .filter((area): area is string => Boolean(area));
+
+    return Array.from(new Set(areas));
+  }, [currentChildRequest, currentDriver, pendingChildRequest, routeFilter]);
+
+  const availableRouteDrivers = useMemo(() => {
+    const availableDrivers = filteredDrivers.filter((driver) => driver.id !== currentDriver?.id);
+
+    const routeDrivers = routeAreaFilters.length
+      ? availableDrivers.filter((driver) =>
+          driver.serviceAreas.some((area) => routeAreaFilters.includes(area.toLowerCase()))
+        )
+      : availableDrivers;
+
+    return [...routeDrivers].sort((firstDriver, secondDriver) => {
+      if (!!firstDriver.isFull !== !!secondDriver.isFull) {
+        return firstDriver.isFull ? 1 : -1;
+      }
+
+      if (typeof firstDriver.fare === "number" && typeof secondDriver.fare === "number") {
+        return firstDriver.fare - secondDriver.fare;
+      }
+
+      if (typeof firstDriver.fare === "number") return -1;
+      if (typeof secondDriver.fare === "number") return 1;
+
+      return firstDriver.full_name.localeCompare(secondDriver.full_name);
+    });
+  }, [currentDriver?.id, filteredDrivers, routeAreaFilters]);
+
   const selectedDriver = useMemo(
-    () => filteredDrivers.find((driver) => driver.id === selectedDriverId) || filteredDrivers[0] || null,
-    [filteredDrivers, selectedDriverId]
+    () => availableRouteDrivers.find((driver) => driver.id === selectedDriverId) || availableRouteDrivers[0] || null,
+    [availableRouteDrivers, selectedDriverId]
   );
 
   const selectedRequest = useMemo(() => {
     if (!selectedChild || !selectedDriver) return null;
+
     return requests.find(
       (request) =>
-        request.child.id === selectedChild.id &&
-        request.driver.id === selectedDriver.id &&
+        request.child?.id === selectedChild.id &&
+        request.driver?.id === selectedDriver.id &&
         !request.droppedOffAt
-    );
+    ) || null;
   }, [requests, selectedChild, selectedDriver]);
 
-  const selectedChildRequest = useMemo(() => {
-    if (!selectedChild) return null;
-    return requests.find((request) =>
-      request.child.id === selectedChild.id &&
-      ["PENDING", "ACCEPTED"].includes(request.status) &&
-      !request.droppedOffAt
-    ) || null;
-  }, [requests, selectedChild]);
-
-  const selectedDriverVehicle = useMemo(() => {
-    if (!selectedDriver) return "Vehicle details pending";
-    return [selectedDriver.carColor, selectedDriver.carMake, selectedDriver.carModel]
-      .filter(Boolean)
-      .join(" ") || "Vehicle details pending";
-  }, [selectedDriver]);
+  const selectedDriverVehicle = useMemo(() => getDriverVehicle(selectedDriver), [selectedDriver]);
+  const currentDriverVehicle = useMemo(() => getDriverVehicle(currentDriver), [currentDriver]);
+  const mapDrivers = useMemo(() => {
+    const driversById = new globalThis.Map<string, Driver>();
+    if (currentDriver) {
+      driversById.set(currentDriver.id, currentDriver);
+    }
+    availableRouteDrivers.forEach((driver) => driversById.set(driver.id, driver));
+    return Array.from(driversById.values());
+  }, [availableRouteDrivers, currentDriver]);
 
   useEffect(() => {
     const openAddKid = () => {
@@ -216,10 +285,15 @@ export function StandaloneParentDashboard({
   }, []);
 
   useEffect(() => {
-    if (filteredDrivers.length && !filteredDrivers.some((driver) => driver.id === selectedDriverId)) {
-      setSelectedDriverId(filteredDrivers[0].id);
+    if (availableRouteDrivers.length && !availableRouteDrivers.some((driver) => driver.id === selectedDriverId)) {
+      setSelectedDriverId(availableRouteDrivers[0].id);
+      return;
     }
-  }, [filteredDrivers, selectedDriverId]);
+
+    if (!availableRouteDrivers.length && selectedDriverId) {
+      setSelectedDriverId("");
+    }
+  }, [availableRouteDrivers, selectedDriverId]);
 
   const addChild = () => {
     startTransition(async () => {
@@ -253,6 +327,7 @@ export function StandaloneParentDashboard({
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("purpose", "parent-child-image");
 
       const response = await fetch("/api/upload", {
         method: "POST",
@@ -312,7 +387,16 @@ export function StandaloneParentDashboard({
             routeArea: routeFilter || selectedDriver.serviceAreas[0],
           }),
         });
-        setRequests((current) => [data.request, ...current]);
+        const request = data.request?.child && data.request?.driver
+          ? data.request
+          : {
+              ...data.request,
+              status: data.request?.status || "PENDING",
+              routeArea: data.request?.routeArea || routeFilter || selectedDriver.serviceAreas[0],
+              child: selectedChild,
+              driver: selectedDriver,
+            };
+        setRequests((current) => [request, ...current]);
         toast({ description: data.message });
       } catch (error) {
         toast({
@@ -326,15 +410,23 @@ export function StandaloneParentDashboard({
   const cancelRequest = (requestId: string) => {
     startTransition(async () => {
       try {
+        const requestWasCurrent = currentChildRequest?.id === requestId;
         const data = await jsonFetch(`/api/driver-requests/${requestId}`, {
           method: "PATCH",
           body: JSON.stringify({ action: "cancel" }),
         });
         setRequests((current) =>
           current.map((request) =>
-            request.id === requestId ? { ...request, status: data.request.status } : request
+              request.id === requestId ? { ...request, status: data.request.status } : request
           )
         );
+        if (requestWasCurrent && currentChildRequest) {
+          setChildren((current) =>
+            current.map((child) =>
+              child.id === currentChildRequest.child.id ? { ...child, activeDriver: null } : child
+            )
+          );
+        }
         toast({ description: data.message });
       } catch (error) {
         toast({
@@ -356,7 +448,7 @@ export function StandaloneParentDashboard({
       <div className="relative h-[calc(100svh-72px)] min-h-[420px] w-full max-w-full touch-pan-y overflow-hidden bg-gray-100">
         <div className="absolute inset-0">
           <StandaloneDriversMap
-            drivers={filteredDrivers}
+            drivers={mapDrivers}
             selectedDriverId={selectedDriver?.id || null}
             onSelectDriver={(driverId) => {
               setSelectedDriverId(driverId);
@@ -367,6 +459,12 @@ export function StandaloneParentDashboard({
 
         {selectedDriver && (
           <div className="absolute inset-x-3 bottom-[24svh] z-10 mx-auto max-w-[calc(100%-1.5rem)] rounded-lg border border-black/10 bg-white p-3 text-black shadow-lg sm:inset-x-4 sm:bottom-[25svh] sm:max-w-lg">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <span className="text-xs font-semibold uppercase text-black/45">Available route offer</span>
+              <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                {getDriverFare(selectedDriver)}
+              </span>
+            </div>
             <div className="flex items-center gap-3">
               <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-black text-white">
                 <Car className="h-7 w-7" aria-hidden="true" />
@@ -381,6 +479,9 @@ export function StandaloneParentDashboard({
                   )}
                 </div>
                 <p className="truncate text-sm text-black/55">{selectedDriverVehicle}</p>
+                <p className="mt-1 truncate text-xs text-black/45">
+                  {selectedDriver.serviceAreas.length ? selectedDriver.serviceAreas.join(", ") : "No service area"}
+                </p>
               </div>
               <Button
                 size="sm"
@@ -397,6 +498,18 @@ export function StandaloneParentDashboard({
                 <Send className="h-4 w-4" aria-hidden="true" />
                 {requestLabel}
               </Button>
+            </div>
+            <div className="mt-3 flex items-center justify-between gap-3 text-xs text-black/55">
+              <span>
+                {selectedDriver.vehicleCapacity
+                  ? selectedDriver.isFull
+                    ? "Vehicle is full"
+                    : `${selectedDriver.availableSeats ?? selectedDriver.vehicleCapacity} seats available`
+                  : "Capacity pending"}
+              </span>
+              {pendingChildRequest?.driver?.id === selectedDriver.id && (
+                <span className="font-semibold uppercase text-amber-700">Pending response</span>
+              )}
             </div>
           </div>
         )}
@@ -435,9 +548,9 @@ export function StandaloneParentDashboard({
           <div className="mx-auto grid w-full max-w-2xl gap-4 overflow-x-hidden px-3 pb-8 sm:px-4">
             <section className="space-y-3">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-xl font-semibold text-black">Drivers</h2>
+                <h2 className="text-xl font-semibold text-black">Route offers</h2>
                 <span className="rounded-full bg-black/5 px-3 py-1 text-xs text-black/55">
-                  {filteredDrivers.length}
+                  {availableRouteDrivers.length}
                 </span>
               </div>
               <Input
@@ -446,65 +559,23 @@ export function StandaloneParentDashboard({
                 value={routeFilter}
                 onChange={(event) => setRouteFilter(event.target.value)}
               />
-              {filteredDrivers.length ? (
-                <div className="flex w-full max-w-full gap-3 overflow-x-auto pb-1">
-                  {filteredDrivers.map((driver) => {
-                    const vehicle = [driver.carColor, driver.carMake, driver.carModel].filter(Boolean).join(" ") || "Vehicle pending";
-                    const isSelected = selectedDriver?.id === driver.id;
-                    return (
-                      <button
-                        key={driver.id}
-                        type="button"
-                        onClick={() => setSelectedDriverId(driver.id)}
-                        className={`w-[min(260px,78vw)] shrink-0 rounded-lg border bg-white p-3 text-left transition ${
-                          isSelected ? "border-black/40 shadow-sm" : "border-black/10"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-black text-white">
-                            <Car className="h-6 w-6" aria-hidden="true" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5">
-                              <h3 className="truncate text-sm font-semibold capitalize text-black">{driver.full_name}</h3>
-                              {driver.verificationStatus === "VERIFIED" ? (
-                                <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-600" aria-label="Verified" />
-                              ) : (
-                                <CircleSlash className="h-4 w-4 shrink-0 text-black/35" aria-label="Not verified" />
-                              )}
-                            </div>
-                            <p className="truncate text-xs text-black/55">{vehicle}</p>
-                          </div>
-                        </div>
-                    <p className="mt-3 truncate text-xs text-black/50">
-                      {driver.serviceAreas.length ? driver.serviceAreas.join(", ") : "No service area"}
-                    </p>
-                    <p className="mt-2 text-xs font-medium text-black/60">
-                      {driver.vehicleCapacity
-                        ? driver.isFull
-                          ? "Full"
-                          : `${driver.availableSeats ?? driver.vehicleCapacity} seats available`
-                        : "Capacity pending"}
-                    </p>
-                  </button>
-                );
-              })}
-                </div>
-              ) : (
-                <div className="rounded-lg border border-black/10 bg-white p-5 text-center text-sm text-black/55">
-                  No standalone drivers found.
-                </div>
-              )}
+              <p className="rounded-lg border border-black/10 bg-white p-3 text-sm text-black/55">
+                Available drivers for this route appear on the map card with the request button.
+              </p>
             </section>
 
-            {selectedDriver ? (
+            {currentDriver ? (
               <section className="space-y-3 rounded-lg border border-sky-100 bg-sky-50/80 px-3 py-4 text-black">
-                <header className="border-b-2 border-sky-400 pb-3 text-lg font-semibold text-black">
-                  {selectedChildRequest?.status === "ACCEPTED"
-                    ? `${selectedChild?.fullName || "Kid"} is assigned to ${selectedChildRequest.driver.full_name}`
-                    : selectedChildRequest?.status === "PENDING"
-                      ? `Waiting for ${selectedChildRequest.driver.full_name} to respond`
-                      : "Recent driver"}
+                <header className="flex items-center justify-between gap-3 border-b-2 border-sky-400 pb-3">
+                  <div className="min-w-0">
+                    <h2 className="text-lg font-semibold text-black">Current driver</h2>
+                    <p className="truncate text-sm text-black/55">
+                      {selectedChild?.fullName || "Kid"} is assigned to {currentDriver.full_name}
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-black/65">
+                    {getDriverFare(currentDriver)}
+                  </span>
                 </header>
                 <div className="flex items-center justify-between gap-3 py-2">
                   <div className="flex min-w-0 items-center gap-3">
@@ -512,67 +583,72 @@ export function StandaloneParentDashboard({
                       <UserRound className="h-7 w-7 text-black/70" aria-hidden="true" />
                     </div>
                     <div className="min-w-0">
-                      <h2 className="truncate text-lg font-semibold capitalize text-black">{selectedDriver.full_name}</h2>
+                      <h2 className="truncate text-lg font-semibold capitalize text-black">{currentDriver.full_name}</h2>
                       <small className="text-sm text-black/55">
-                        {selectedDriver.verificationStatus === "VERIFIED" ? "Verified driver" : "Verification pending"}
+                        {currentDriver.verificationStatus === "VERIFIED" ? "Verified driver" : "Verification pending"}
                       </small>
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    disabled={
-                      isPending ||
-                      selectedDriver.verificationStatus !== "VERIFIED" ||
-                      !!selectedDriver.isFull ||
-                      !selectedChild ||
-                      ["PENDING", "ACCEPTED"].includes(selectedRequest?.status || "")
-                    }
-                    onClick={requestDriver}
-                    className="shrink-0 gap-2"
-                  >
-                    <Send className="h-4 w-4" aria-hidden="true" />
-                    {requestLabel}
-                  </Button>
+                  {currentChildRequest && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={isPending}
+                      onClick={() => cancelRequest(currentChildRequest.id)}
+                      className="shrink-0"
+                    >
+                      Change
+                    </Button>
+                  )}
                 </div>
-
-                {selectedDriver.isFull && (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                    This driver's vehicle is full right now.
-                  </div>
-                )}
 
                 <div className="flex items-center justify-between rounded-lg border border-black/10 bg-white px-3 py-4">
                   <div className="min-w-0">
                     <h1 className="truncate text-xl font-semibold uppercase text-black">
-                      {selectedDriver.plateNumber || "N/A"}
+                      {currentDriver.plateNumber || "N/A"}
                     </h1>
                     <small className="block truncate text-sm capitalize text-black/55">
-                      {selectedDriverVehicle}
+                      {currentDriverVehicle}
                     </small>
                     <small className="mt-1 flex items-center gap-1 text-xs text-black/50">
                       <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                      {selectedDriver.serviceAreas.length ? selectedDriver.serviceAreas.join(", ") : "No service area"}
+                      {currentDriver.serviceAreas.length ? currentDriver.serviceAreas.join(", ") : "No service area"}
                     </small>
                   </div>
                   <Car className="h-16 w-16 shrink-0 text-black" aria-hidden="true" />
                 </div>
 
-                {selectedRequest && ["PENDING", "ACCEPTED"].includes(selectedRequest.status) && (
+                {currentChildRequest && (
                   <div className="flex items-center justify-between gap-3 rounded-lg border border-black/10 bg-white p-3">
                     <div>
                       <p className="text-sm font-semibold">Request status</p>
-                      <p className="text-xs uppercase text-black/55">{selectedRequest.status}</p>
+                      <p className="text-xs uppercase text-black/55">{currentChildRequest.status}</p>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={isPending}
-                      onClick={() => cancelRequest(selectedRequest.id)}
-                    >
-                      Cancel
-                    </Button>
                   </div>
                 )}
+              </section>
+            ) : pendingChildRequest ? (
+              <section className="space-y-3 rounded-lg border border-amber-100 bg-amber-50/80 px-3 py-4 text-black">
+                <header className="border-b-2 border-amber-300 pb-3">
+                  <h2 className="text-lg font-semibold text-black">Pending request</h2>
+                  <p className="truncate text-sm text-black/55">
+                    Waiting for {pendingChildRequest.driver.full_name} to respond for {selectedChild?.fullName || "this kid"}.
+                  </p>
+                </header>
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-black/10 bg-white p-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold capitalize">{pendingChildRequest.driver.full_name}</p>
+                    <p className="truncate text-xs text-black/55">{getDriverVehicle(pendingChildRequest.driver)}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={isPending}
+                    onClick={() => cancelRequest(pendingChildRequest.id)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </section>
             ) : null}
 
