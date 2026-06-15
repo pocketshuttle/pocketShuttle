@@ -30,6 +30,7 @@ type Assignment = {
 type Connection = {
   id: string;
   status: string;
+  requestedBy?: string | null;
   parent: {
     id: string;
     full_name?: string | null;
@@ -366,6 +367,22 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
     });
   };
 
+  const approveConnection = (connectionId: string) => {
+    startTransition(async () => {
+      try {
+        const data = await jsonFetch(`/api/parent-driver-connections/${connectionId}/approve`, { method: "PATCH" });
+        setConnections((current) =>
+          current.map((connection) =>
+            connection.id === connectionId ? { ...connection, ...data.connection } : connection
+          )
+        );
+        toast({ description: data.message });
+      } catch (error) {
+        toast({ description: error instanceof Error ? error.message : "Unable to accept parent request", variant: "destructive" });
+      }
+    });
+  };
+
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950">
       {settingsOpen && (
@@ -575,9 +592,22 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
                   <div className="min-w-0">
                     <p className="truncate font-semibold">{connection.parent.full_name || "Parent"}</p>
                     <p className="flex items-center gap-1 text-xs text-slate-500"><Phone className="h-3.5 w-3.5" /> {connection.parent.phoneNumber || "No phone"}</p>
+                    {connection.status === "INVITED" && connection.requestedBy === "parent" && (
+                      <p className="mt-1 text-xs font-medium text-amber-700">Parent is requesting to connect</p>
+                    )}
+                    {connection.status === "DRIVER_REQUESTED" && (
+                      <p className="mt-1 text-xs font-medium text-amber-700">Waiting for parent approval</p>
+                    )}
                   </div>
                 </div>
-                <StatusBadge status={connection.status} />
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge status={connection.status} />
+                  {connection.status === "INVITED" && connection.requestedBy === "parent" && (
+                    <Button size="sm" disabled={isPending} onClick={() => approveConnection(connection.id)} className="gap-2">
+                      <Check className="h-4 w-4" /> Accept
+                    </Button>
+                  )}
+                </div>
               </div>
             ))}
             {!pendingConnections.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">No pending parent relationships.</p>}
