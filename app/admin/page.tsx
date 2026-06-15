@@ -46,6 +46,12 @@ const AdminOverviewPage = async () => {
         <StatCard label="Pending verifications" value={overview.pendingVerifications} />
         <StatCard label="Active driver requests" value={overview.activeRequests} />
         <StatCard label="Suspended accounts" value={overview.suspendedAccounts} />
+        <StatCard label="Known driver connections" value={overview.knownDriverConnections} />
+        <StatCard label="Pending known drivers" value={overview.pendingKnownDriverConnections} />
+        <StatCard label="Active child assignments" value={overview.activeChildDriverAssignments} />
+        <StatCard label="Multi-family drivers" value={overview.multiFamilyDrivers} />
+        <StatCard label="Trials ending soon" value={overview.trialsEndingSoon} />
+        <StatCard label="Failed known-driver payments" value={overview.overdueKnownDriverPayments} />
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">

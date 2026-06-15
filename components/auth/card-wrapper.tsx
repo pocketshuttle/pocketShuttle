@@ -16,7 +16,7 @@ interface CardWrapperProps {
 }
 export const CardWrapper = ({ children, headLabel, backButtonHref, backButtonLabel, showSocial, description, subLabel }: CardWrapperProps) => {
     return (
-        <Card className="w-full border-0 bg-transparent text-white shadow-none">
+        <Card className="w-full border-0 bg-transparent text-slate-950 shadow-none">
             <CardHeader className="space-y-0 px-0 pb-8 pt-0">
                 <AuthHeader label={headLabel} subtitle={subLabel} />
             </CardHeader>
@@ -25,12 +25,12 @@ export const CardWrapper = ({ children, headLabel, backButtonHref, backButtonLab
             </CardContent>
             {
                 showSocial && (
-                    <CardFooter className="border-t border-white/10 px-0 pt-6">
+                    <CardFooter className="border-t border-slate-200 px-0 pt-6">
                         <Social />
                     </CardFooter>
                 )
             }
-            <CardFooter className="border-t border-white/10 px-0 pb-0 pt-6">
+            <CardFooter className="border-t border-slate-200 px-0 pb-0 pt-6">
                 <BackButton href={backButtonHref} label={backButtonLabel} desc={description} />
             </CardFooter>
         </Card>

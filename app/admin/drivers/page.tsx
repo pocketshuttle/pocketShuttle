@@ -6,6 +6,9 @@ const AdminDriversPage = async () => {
   const drivers = await db.driver.findMany({
     include: {
       school: { select: { name: true, email: true } },
+      shareProfile: { select: { shareId: true } },
+      parentConnections: { select: { id: true, status: true, parentId: true } },
+      childAssignments: { select: { id: true, status: true, parentId: true, billingStatus: true } },
       _count: { select: { DriverRequest: true, ParentChild: true } },
     },
     orderBy: [{ accountType: "asc" }, { verificationStatus: "asc" }, { full_name: "asc" }],
@@ -27,7 +30,8 @@ const AdminDriversPage = async () => {
                 <th className="px-4 py-3">Verification</th>
                 <th className="px-4 py-3">Vehicle</th>
                 <th className="px-4 py-3">Service areas</th>
-                <th className="px-4 py-3">Requests</th>
+                <th className="px-4 py-3">Share ID</th>
+                <th className="px-4 py-3">Known network</th>
                 <th className="px-4 py-3">Status</th>
               </tr>
             </thead>
@@ -42,7 +46,8 @@ const AdminDriversPage = async () => {
                   <td className="px-4 py-3">{driver.verificationStatus}</td>
                   <td className="px-4 py-3">{[driver.carColor, driver.carMake, driver.carModel, driver.plateNumber].filter(Boolean).join(" ") || "N/A"}</td>
                   <td className="px-4 py-3">{driver.serviceAreas.length ? driver.serviceAreas.join(", ") : "N/A"}</td>
-                  <td className="px-4 py-3">{driver._count.DriverRequest}</td>
+                  <td className="px-4 py-3">{driver.shareProfile?.shareId || "N/A"}</td>
+                  <td className="px-4 py-3">{driver.parentConnections.length} families · {driver.childAssignments.length} kids</td>
                   <td className="px-4 py-3">{driver.suspendedAt ? "SUSPENDED" : "ACTIVE"}</td>
                 </tr>
               ))}

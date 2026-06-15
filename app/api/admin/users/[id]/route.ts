@@ -38,6 +38,28 @@ export async function GET(_req: Request, { params }: { params: Promise<Params> }
           Student: true,
           ParentChild: { include: { activeDriver: true, DriverRequest: true } },
           DriverRequest: { include: { driver: true, child: true } },
+          driverConnections: {
+            include: {
+              driver: { include: { shareProfile: true } },
+              assignments: {
+                include: {
+                  child: true,
+                  payments: true,
+                  events: { orderBy: { createdAt: "desc" }, take: 10 },
+                },
+              },
+            },
+          },
+          childDriverAssignments: {
+            include: {
+              driver: { include: { shareProfile: true } },
+              child: true,
+              payments: true,
+              events: { orderBy: { createdAt: "desc" }, take: 10 },
+            },
+          },
+          driverInvites: true,
+          knownDriverPayments: true,
         },
       });
       return NextResponse.json({ type: parsed.type, user });
@@ -49,8 +71,31 @@ export async function GET(_req: Request, { params }: { params: Promise<Params> }
         include: {
           school: { select: { id: true, name: true, email: true } },
           bus: true,
+          shareProfile: true,
           ParentChild: true,
           DriverRequest: { include: { parent: true, child: true } },
+          parentConnections: {
+            include: {
+              parent: true,
+              assignments: {
+                include: {
+                  child: true,
+                  payments: true,
+                  events: { orderBy: { createdAt: "desc" }, take: 10 },
+                },
+              },
+            },
+          },
+          childAssignments: {
+            include: {
+              parent: true,
+              child: true,
+              payments: true,
+              events: { orderBy: { createdAt: "desc" }, take: 10 },
+            },
+          },
+          driverInvites: true,
+          childDriverEvents: { orderBy: { createdAt: "desc" }, take: 25 },
         },
       });
       return NextResponse.json({ type: parsed.type, user });

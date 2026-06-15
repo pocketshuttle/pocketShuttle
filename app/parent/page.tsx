@@ -87,107 +87,58 @@ const TeacherView = async () => {
         }
 
         if (parent.accountType === "STANDALONE" && parent.schoolId === null) {
-            const [children, drivers, requests] = await Promise.all([
+            const [children, connections, invites] = await Promise.all([
                 db.parentChild.findMany({
                     where: { parentId: parent.id },
-                    include: {
-                        activeDriver: {
-                            select: {
-                                id: true,
-                                full_name: true,
-                                phoneNumber: true,
-                                liveAddress: true,
-                                serviceAreas: true,
-                                verificationStatus: true,
-                                carMake: true,
-                                carModel: true,
-                                carColor: true,
-                                plateNumber: true,
-                                vehicleCapacity: true,
-                            },
-                        },
-                    },
                     orderBy: { createdAt: "desc" },
                 }),
-                db.driver.findMany({
-                    where: {
-                        accountType: "STANDALONE",
-                        schoolId: null,
-                    },
-                    select: {
-                        id: true,
-                        full_name: true,
-                        liveAddress: true,
-                        image: true,
-                        serviceAreas: true,
-                        verificationStatus: true,
-                        carMake: true,
-                        carModel: true,
-                        carColor: true,
-                        plateNumber: true,
-                        vehicleCapacity: true,
-                    },
-                    orderBy: { full_name: "asc" },
-                }),
-                db.driverRequest.findMany({
+                db.parentDriverConnection.findMany({
                     where: { parentId: parent.id },
                     include: {
-                        child: true,
                         driver: {
                             select: {
                                 id: true,
                                 full_name: true,
                                 phoneNumber: true,
+                                image: true,
                                 liveAddress: true,
-                                serviceAreas: true,
                                 verificationStatus: true,
-                                carMake: true,
-                                carModel: true,
-                                carColor: true,
-                                plateNumber: true,
-                                vehicleCapacity: true,
+                                shareProfile: { select: { shareId: true } },
                             },
                         },
+                                assignments: {
+                            include: {
+                                child: true,
+                                events: {
+                                    where: {
+                                        eventType: { in: ["ON_THE_WAY_TO_SCHOOL", "PICKED_UP", "DROPPED_OFF"] },
+                                    },
+                                    orderBy: { createdAt: "desc" },
+                                    take: 20,
+                                },
+                                payments: { orderBy: { createdAt: "desc" }, take: 1 },
+                            },
+                            orderBy: { createdAt: "desc" },
+                        },
                     },
+                    orderBy: { updatedAt: "desc" },
+                }),
+                db.driverInvite.findMany({
+                    where: { parentId: parent.id },
                     orderBy: { createdAt: "desc" },
+                    take: 20,
                 }),
             ]);
-
-            const acceptedLoads = drivers.length
-                ? await db.driverRequest.groupBy({
-                    by: ["driverId"],
-                    where: {
-                        driverId: { in: drivers.map((driver) => driver.id) },
-                        status: "ACCEPTED",
-                        droppedOffAt: null,
-                    },
-                    _count: { _all: true },
-                })
-                : [];
-            const loadByDriverId = new Map(
-                acceptedLoads.map((load) => [load.driverId, load._count._all])
-            );
-            const driversWithAvailability = drivers.map((driver) => {
-                const usedSeats = loadByDriverId.get(driver.id) || 0;
-                const capacity = driver.vehicleCapacity || 0;
-                const availableSeats = capacity ? Math.max(capacity - usedSeats, 0) : null;
-
-                return {
-                    ...driver,
-                    usedSeats,
-                    availableSeats,
-                    isFull: capacity ? usedSeats >= capacity : false,
-                };
-            });
 
             return (
                 <Suspense>
                     <div className="min-h-screen bg-gray-100 text-black">
                         <StandaloneParentDashboard
+                            parentId={parent.id}
                             parentName={parent.full_name}
                             childrenData={children as any}
-                            driversData={driversWithAvailability as any}
-                            requestsData={requests as any}
+                            connectionsData={connections as any}
+                            invitesData={invites as any}
                         />
                     </div>
                 </Suspense>

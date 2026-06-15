@@ -6,6 +6,9 @@ const AdminParentsPage = async () => {
   const parents = await db.parent.findMany({
     include: {
       school: { select: { name: true, email: true } },
+      driverConnections: { select: { id: true, status: true, driverId: true } },
+      childDriverAssignments: { select: { id: true, status: true, billingStatus: true, driverId: true } },
+      driverInvites: { select: { id: true, status: true } },
       _count: { select: { Student: true, ParentChild: true, DriverRequest: true } },
     },
     orderBy: [{ accountType: "asc" }, { full_name: "asc" }],
@@ -26,7 +29,8 @@ const AdminParentsPage = async () => {
                 <th className="px-4 py-3">Account</th>
                 <th className="px-4 py-3">School</th>
                 <th className="px-4 py-3">Kids</th>
-                <th className="px-4 py-3">Requests</th>
+                <th className="px-4 py-3">Known drivers</th>
+                <th className="px-4 py-3">Assignments</th>
                 <th className="px-4 py-3">Status</th>
               </tr>
             </thead>
@@ -40,7 +44,8 @@ const AdminParentsPage = async () => {
                   <td className="px-4 py-3">{parent.accountType}</td>
                   <td className="px-4 py-3">{parent.school?.name || "Standalone"}</td>
                   <td className="px-4 py-3">{parent._count.Student + parent._count.ParentChild}</td>
-                  <td className="px-4 py-3">{parent._count.DriverRequest}</td>
+                  <td className="px-4 py-3">{parent.driverConnections.length} connections · {parent.driverInvites.length} invites</td>
+                  <td className="px-4 py-3">{parent.childDriverAssignments.length}</td>
                   <td className="px-4 py-3">{parent.suspendedAt ? "SUSPENDED" : "ACTIVE"}</td>
                 </tr>
               ))}

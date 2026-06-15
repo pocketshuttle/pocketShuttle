@@ -10,11 +10,12 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
         })
         : null
     const showAddKid = parent?.accountType === "STANDALONE" && parent.schoolId === null
+    const showAddDriver = showAddKid
 
     return (
         <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-gray-100 text-black">
             <div className="w-full max-w-full overflow-x-hidden">
-                <ParentNavbar data={user} showAddKid={showAddKid} />
+                <ParentNavbar data={user} showAddKid={showAddKid} showAddDriver={showAddDriver} />
             </div>
             {children}
         </div >

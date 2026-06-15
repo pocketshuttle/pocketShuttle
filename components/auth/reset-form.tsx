@@ -106,7 +106,7 @@ export const ResetPasswordForm = () => {
                     <FormSuccess message={isSuccess} />
                     <Button
                         disabled={isPending}
-                        size="lg" className="h-12 w-full rounded-xl bg-slate-900 text-base font-semibold text-white hover:bg-slate-800" type="submit">Send reset email</Button>
+                        size="lg" className="h-12 w-full rounded-xl bg-blue-700 text-base font-semibold text-white hover:bg-blue-800" type="submit">Send reset email</Button>
                 </form>
             </Form>
         </CardWrapper>

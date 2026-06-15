@@ -1,13 +1,14 @@
 "use client";
 
 import { ChangeEvent, useEffect, useMemo, useState, useTransition } from "react";
-import { motion, useMotionValue, useTransform } from "framer-motion";
 import { APIProvider, AdvancedMarker, Map, Pin } from "@vis.gl/react-google-maps";
-import { BadgeCheck, Car, CircleSlash, ImagePlus, MapPin, Send, Trash2, UserRound, X } from "lucide-react";
+import { BadgeCheck, Car, Check, CreditCard, MapPin, MailPlus, Phone, Search, ShieldCheck, Trash2, UserRound, X } from "lucide-react";
 
+import Logout from "@/components/dashboard/sidebar/logout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
+import { pusherClient } from "@/pusher/client";
 
 type Child = {
   id: string;
@@ -16,41 +17,56 @@ type Child = {
   grade?: string | null;
   address?: string | null;
   image?: string | null;
-  activeDriver?: Driver | null;
 };
 
-type Driver = {
+type DriverSummary = {
   id: string;
   full_name: string;
+  email?: string | null;
+  phoneNumber?: string | null;
+  image?: string | null;
+  verificationStatus?: string | null;
+  vehicle?: string | null;
+  shareId?: string | null;
   liveAddress?: { latitude: number; longitude: number } | null;
-  serviceAreas: string[];
-  verificationStatus: string;
-  carMake?: string | null;
-  carModel?: string | null;
-  carColor?: string | null;
-  plateNumber?: string | null;
-  vehicleCapacity?: number | null;
-  usedSeats?: number;
-  availableSeats?: number | null;
-  isFull?: boolean;
-  fare?: number | null;
+  existingConnection?: { id: string; status: string } | null;
 };
 
-type DriverRequest = {
+type Assignment = {
   id: string;
   status: string;
-  pickedUpAt?: string | Date | null;
-  droppedOffAt?: string | Date | null;
-  routeArea?: string | null;
+  billingStatus: string;
+  trialEndsAt?: string | Date | null;
+  monthlyAmount?: number | null;
+  currency?: string | null;
+  lastStatus?: string | null;
+  lastStatusAt?: string | Date | null;
   child: Child;
-  driver: Driver;
+  events?: Array<{ id: string; eventType: string; createdAt: string | Date }>;
+  payments?: Array<{ id: string; status: string; authorizationUrl?: string | null }>;
+};
+
+type Connection = {
+  id: string;
+  status: string;
+  driver: DriverSummary & { shareProfile?: { shareId: string } | null };
+  assignments: Assignment[];
+};
+
+type Invite = {
+  id: string;
+  email?: string | null;
+  phoneNumber?: string | null;
+  status: string;
+  expiresAt: string | Date;
 };
 
 type Props = {
+  parentId: string;
   parentName?: string | null;
   childrenData: Child[];
-  driversData: Driver[];
-  requestsData: DriverRequest[];
+  connectionsData: Connection[];
+  invitesData: Invite[];
 };
 
 const inputClass =
@@ -65,235 +81,244 @@ async function jsonFetch(url: string, init?: RequestInit) {
     },
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data?.message || "Request failed");
-  }
+  if (!response.ok) throw new Error(data?.message || "Request failed");
   return data;
 }
 
-function getDriverVehicle(driver?: Driver | null) {
-  if (!driver) return "Vehicle details pending";
-  return [driver.carColor, driver.carMake, driver.carModel].filter(Boolean).join(" ") || "Vehicle details pending";
+function formatDate(value?: string | Date | null) {
+  if (!value) return "N/A";
+  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
 }
 
-function getDriverFare(driver?: Driver | null) {
-  if (typeof driver?.fare === "number") {
-    return `NGN ${driver.fare.toLocaleString()}`;
+function statusTone(status?: string | null) {
+  if (status === "PARENT_APPROVED" || status === "ACTIVE" || status === "COMPLETED") {
+    return "bg-emerald-50 text-emerald-700";
+  }
+  if (status === "REVOKED" || status === "DECLINED" || status === "FAILED" || status === "PAST_DUE") {
+    return "bg-rose-50 text-rose-700";
+  }
+  return "bg-amber-50 text-amber-700";
+}
+
+function StatusBadge({ status }: { status?: string | null }) {
+  return (
+    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone(status)}`}>
+      {(status || "UNKNOWN").replaceAll("_", " ")}
+    </span>
+  );
+}
+
+function childPlaceLabel(assignment: Assignment) {
+  const statusEvents = (assignment.events || [])
+    .filter((event) => ["ON_THE_WAY_TO_SCHOOL", "PICKED_UP", "DROPPED_OFF"].includes(event.eventType))
+    .slice()
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  const pickupCount = statusEvents.filter((event) => event.eventType === "PICKED_UP").length;
+
+  if (assignment.lastStatus === "DROPPED_OFF") {
+    return pickupCount > 0 && pickupCount % 2 === 0 ? "At home" : "In school";
   }
 
-  return "Fare pending";
+  if (assignment.lastStatus === "PICKED_UP") {
+    return pickupCount > 0 && pickupCount % 2 === 0 ? "On the way home" : "On the way to school";
+  }
+
+  if (assignment.lastStatus === "ON_THE_WAY_TO_SCHOOL") {
+    return "Driver on the way";
+  }
+
+  return "Waiting";
 }
 
-function StandaloneDriversMap({
-  drivers,
-  selectedDriverId,
-  onSelectDriver,
+function DriverLocationMap({
+  assignment,
 }: {
-  drivers: Driver[];
-  selectedDriverId: string | null;
-  onSelectDriver: (driverId: string) => void;
+  assignment: Assignment & { driver: DriverSummary };
 }) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  const driversWithGps = drivers.filter((driver) => driver.liveAddress);
-  const center = driversWithGps[0]?.liveAddress
-    ? {
-        lat: driversWithGps[0].liveAddress.latitude,
-        lng: driversWithGps[0].liveAddress.longitude,
-      }
-    : { lat: 6.5244, lng: 3.3792 };
+  const location = assignment.driver.liveAddress;
 
-  if (!apiKey) {
+  if (!location) {
     return (
-      <div className="grid h-full w-full place-items-center bg-slate-200 px-4 text-center text-sm text-slate-600">
-        Map is unavailable right now.
+      <div className="grid h-72 place-items-center rounded-lg bg-slate-100 px-4 text-center text-sm text-slate-500">
+        Driver has not shared a live location yet.
       </div>
     );
   }
 
+  if (!apiKey) {
+    return (
+      <div className="grid h-72 place-items-center rounded-lg bg-slate-100 px-4 text-center text-sm text-slate-500">
+        Google Maps is unavailable because the API key is missing.
+      </div>
+    );
+  }
+
+  const center = { lat: location.latitude, lng: location.longitude };
+
   return (
-    <APIProvider apiKey={apiKey}>
-      <Map
-        defaultCenter={center}
-        defaultZoom={driversWithGps.length ? 12 : 10}
-        mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID}
-        fullscreenControl={false}
-        streetViewControl={false}
-        mapTypeControl={false}
-      >
-        {driversWithGps.map((driver) => (
-          <AdvancedMarker
-            key={driver.id}
-            position={{
-              lat: driver.liveAddress!.latitude,
-              lng: driver.liveAddress!.longitude,
-            }}
-            onClick={() => onSelectDriver(driver.id)}
-            title={driver.full_name}
+    <div className="overflow-hidden rounded-lg border border-slate-200">
+      <div className="h-72">
+        <APIProvider apiKey={apiKey}>
+          <Map
+            defaultCenter={center}
+            defaultZoom={14}
+            mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID}
+            fullscreenControl={false}
+            streetViewControl={false}
+            mapTypeControl={false}
           >
-            <Pin
-              background={selectedDriverId === driver.id ? "#4f46e5" : "#111827"}
-              borderColor="#ffffff"
-              glyphColor="#ffffff"
-            />
-          </AdvancedMarker>
-        ))}
-      </Map>
-      {!driversWithGps.length && (
-        <div className="pointer-events-none absolute inset-x-3 top-4 max-w-[calc(100%-1.5rem)] rounded-lg bg-white/95 p-3 text-sm text-slate-600 shadow-sm sm:inset-x-4 sm:max-w-none">
-          No nearby drivers have shared live GPS yet.
-        </div>
-      )}
-    </APIProvider>
+            <AdvancedMarker position={center} title={assignment.driver.full_name}>
+              <Pin background="#111827" borderColor="#ffffff" glyphColor="#ffffff" />
+            </AdvancedMarker>
+          </Map>
+        </APIProvider>
+      </div>
+      <div className="border-t border-slate-200 bg-white p-3 text-sm text-slate-600">
+        {assignment.driver.full_name} for {assignment.child.fullName}
+        {assignment.lastStatusAt ? ` · last child update ${formatDate(assignment.lastStatusAt)}` : ""}
+      </div>
+    </div>
   );
 }
 
 export function StandaloneParentDashboard({
+  parentId,
   parentName,
   childrenData,
-  driversData,
-  requestsData,
+  connectionsData,
+  invitesData,
 }: Props) {
   const [children, setChildren] = useState(childrenData);
-  const [requests, setRequests] = useState(requestsData);
-  const [selectedChildId, setSelectedChildId] = useState(requestsData[0]?.child?.id || childrenData[0]?.id || "");
-  const [selectedDriverId, setSelectedDriverId] = useState(driversData[0]?.id || "");
-  const [routeFilter, setRouteFilter] = useState("");
-  const [showAddKid, setShowAddKid] = useState(false);
-  const [childForm, setChildForm] = useState({
-    fullName: "",
-    age: "",
-    grade: "",
-    address: "",
-    image: "",
-  });
-  const [isUploadingChildImage, setIsUploadingChildImage] = useState(false);
+  const [connections, setConnections] = useState(connectionsData);
+  const [invites, setInvites] = useState(invitesData);
+  const [query, setQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<DriverSummary[]>([]);
+  const [inviteForm, setInviteForm] = useState({ email: "", phoneNumber: "" });
+  const [childForm, setChildForm] = useState({ fullName: "", age: "", grade: "", address: "" });
+  const [selectedChildrenByConnection, setSelectedChildrenByConnection] = useState<Record<string, string[]>>({});
+  const [sideMenuOpen, setSideMenuOpen] = useState(false);
+  const [addDriverOpen, setAddDriverOpen] = useState(false);
+  const [addKidOpen, setAddKidOpen] = useState(false);
+  const [locationAssignment, setLocationAssignment] = useState<(Assignment & { driver: DriverSummary }) | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const y = useMotionValue(0);
-  const [expanded, setExpanded] = useState(true);
-  const overlayOpacity = useTransform(y, [0, 300], [0.5, 0]);
-
-  const filteredDrivers = useMemo(() => {
-    const query = routeFilter.trim().toLowerCase();
-    if (!query) return driversData;
-
-    return driversData.filter((driver) =>
-      driver.serviceAreas.some((area) => area.toLowerCase().includes(query))
-    );
-  }, [driversData, routeFilter]);
-
-  const selectedChild = useMemo(
-    () => children.find((child) => child.id === selectedChildId) || null,
-    [children, selectedChildId]
+  const approvedConnections = connections.filter((connection) => connection.status === "PARENT_APPROVED");
+  const pendingConnections = connections.filter((connection) => connection.status !== "PARENT_APPROVED");
+  const activeAssignments = connections.flatMap((connection) =>
+    connection.assignments.map((assignment) => ({ ...assignment, driver: connection.driver }))
   );
 
-  const activeChildRequests = useMemo(() => {
-    if (!selectedChild) return [];
+  const billingSummary = useMemo(() => {
+    const freeTrial = activeAssignments.filter((assignment) => assignment.billingStatus === "FREE_TRIAL").length;
+    const active = activeAssignments.filter((assignment) => assignment.billingStatus === "ACTIVE").length;
+    const pastDue = activeAssignments.filter((assignment) => assignment.billingStatus === "PAST_DUE").length;
+    const nextTrialEnd = activeAssignments
+      .map((assignment) => assignment.trialEndsAt)
+      .filter(Boolean)
+      .map((value) => new Date(value as string | Date))
+      .sort((a, b) => a.getTime() - b.getTime())[0];
 
-    return requests.filter(
-      (request) =>
-        request.child?.id === selectedChild.id &&
-        ["PENDING", "ACCEPTED"].includes(request.status) &&
-        !request.droppedOffAt
-    );
-  }, [requests, selectedChild]);
-
-  const currentChildRequest = useMemo(
-    () => activeChildRequests.find((request) => request.status === "ACCEPTED") || null,
-    [activeChildRequests]
-  );
-
-  const pendingChildRequest = useMemo(
-    () => activeChildRequests.find((request) => request.status === "PENDING") || null,
-    [activeChildRequests]
-  );
-
-  const currentDriver = currentChildRequest?.driver || selectedChild?.activeDriver || null;
-
-  const routeAreaFilters = useMemo(() => {
-    const areas = [
-      routeFilter,
-      currentChildRequest?.routeArea,
-      pendingChildRequest?.routeArea,
-      ...(currentDriver?.serviceAreas || []),
-    ]
-      .map((area) => area?.trim().toLowerCase())
-      .filter((area): area is string => Boolean(area));
-
-    return Array.from(new Set(areas));
-  }, [currentChildRequest, currentDriver, pendingChildRequest, routeFilter]);
-
-  const availableRouteDrivers = useMemo(() => {
-    const availableDrivers = filteredDrivers.filter((driver) => driver.id !== currentDriver?.id);
-
-    const routeDrivers = routeAreaFilters.length
-      ? availableDrivers.filter((driver) =>
-          driver.serviceAreas.some((area) => routeAreaFilters.includes(area.toLowerCase()))
-        )
-      : availableDrivers;
-
-    return [...routeDrivers].sort((firstDriver, secondDriver) => {
-      if (!!firstDriver.isFull !== !!secondDriver.isFull) {
-        return firstDriver.isFull ? 1 : -1;
-      }
-
-      if (typeof firstDriver.fare === "number" && typeof secondDriver.fare === "number") {
-        return firstDriver.fare - secondDriver.fare;
-      }
-
-      if (typeof firstDriver.fare === "number") return -1;
-      if (typeof secondDriver.fare === "number") return 1;
-
-      return firstDriver.full_name.localeCompare(secondDriver.full_name);
-    });
-  }, [currentDriver?.id, filteredDrivers, routeAreaFilters]);
-
-  const selectedDriver = useMemo(
-    () => availableRouteDrivers.find((driver) => driver.id === selectedDriverId) || availableRouteDrivers[0] || null,
-    [availableRouteDrivers, selectedDriverId]
-  );
-
-  const selectedRequest = useMemo(() => {
-    if (!selectedChild || !selectedDriver) return null;
-
-    return requests.find(
-      (request) =>
-        request.child?.id === selectedChild.id &&
-        request.driver?.id === selectedDriver.id &&
-        !request.droppedOffAt
-    ) || null;
-  }, [requests, selectedChild, selectedDriver]);
-
-  const selectedDriverVehicle = useMemo(() => getDriverVehicle(selectedDriver), [selectedDriver]);
-  const currentDriverVehicle = useMemo(() => getDriverVehicle(currentDriver), [currentDriver]);
-  const mapDrivers = useMemo(() => {
-    const driversById = new globalThis.Map<string, Driver>();
-    if (currentDriver) {
-      driversById.set(currentDriver.id, currentDriver);
-    }
-    availableRouteDrivers.forEach((driver) => driversById.set(driver.id, driver));
-    return Array.from(driversById.values());
-  }, [availableRouteDrivers, currentDriver]);
+    return { freeTrial, active, pastDue, nextTrialEnd };
+  }, [activeAssignments]);
 
   useEffect(() => {
-    const openAddKid = () => {
-      setShowAddKid(true);
-      setExpanded(true);
-    };
+    const openAddDriver = () => setAddDriverOpen(true);
+    const openMenu = () => setSideMenuOpen(true);
+    const openAddKid = () => setAddKidOpen(true);
+
+    window.addEventListener("standalone-parent:add-driver", openAddDriver);
+    window.addEventListener("standalone-parent:open-menu", openMenu);
     window.addEventListener("standalone-parent:add-kid", openAddKid);
-    return () => window.removeEventListener("standalone-parent:add-kid", openAddKid);
+
+    return () => {
+      window.removeEventListener("standalone-parent:add-driver", openAddDriver);
+      window.removeEventListener("standalone-parent:open-menu", openMenu);
+      window.removeEventListener("standalone-parent:add-kid", openAddKid);
+    };
   }, []);
 
-  useEffect(() => {
-    if (availableRouteDrivers.length && !availableRouteDrivers.some((driver) => driver.id === selectedDriverId)) {
-      setSelectedDriverId(availableRouteDrivers[0].id);
-      return;
-    }
+  const refreshConnections = async () => {
+    const data = await jsonFetch("/api/parent-driver-connections");
+    setConnections(data.connections || []);
+  };
 
-    if (!availableRouteDrivers.length && selectedDriverId) {
-      setSelectedDriverId("");
-    }
-  }, [availableRouteDrivers, selectedDriverId]);
+  useEffect(() => {
+    if (!parentId) return;
+
+    const refresh = () => {
+      refreshConnections().catch((error) => {
+        console.error("Unable to refresh known-driver connections", error);
+      });
+    };
+    const channelName = `private-known-driver-parent-${parentId}`;
+    const channel = process.env.NEXT_PUBLIC_PUSHER_KEY ? pusherClient.subscribe(channelName) : null;
+
+    channel?.bind("child-driver-event", refresh);
+    channel?.bind("connection-updated", refresh);
+
+    const pollId = window.setInterval(refresh, 15000);
+
+    return () => {
+      window.clearInterval(pollId);
+      channel?.unbind("child-driver-event", refresh);
+      channel?.unbind("connection-updated", refresh);
+      if (channel) pusherClient.unsubscribe(channelName);
+    };
+  }, [parentId]);
+
+  const searchDrivers = () => {
+    startTransition(async () => {
+      try {
+        const data = await jsonFetch(`/api/drivers/search?query=${encodeURIComponent(query)}`);
+        setSearchResults(data.drivers || []);
+      } catch (error) {
+        toast({ description: error instanceof Error ? error.message : "Unable to search drivers", variant: "destructive" });
+      }
+    });
+  };
+
+  const requestDriver = (driverId: string) => {
+    startTransition(async () => {
+      try {
+        const data = await jsonFetch("/api/parent-driver-connections", {
+          method: "POST",
+          body: JSON.stringify({ driverId }),
+        });
+        setConnections((current) => {
+          const existing = current.some((connection) => connection.id === data.connection.id);
+          return existing
+            ? current.map((connection) => (connection.id === data.connection.id ? { ...connection, ...data.connection } : connection))
+            : [data.connection, ...current];
+        });
+        await refreshConnections();
+        setQuery("");
+        setSearchResults([]);
+        setAddDriverOpen(false);
+        toast({ description: data.message });
+      } catch (error) {
+        toast({ description: error instanceof Error ? error.message : "Unable to request driver", variant: "destructive" });
+      }
+    });
+  };
+
+  const inviteDriver = () => {
+    startTransition(async () => {
+      try {
+        const data = await jsonFetch("/api/drivers/invites", {
+          method: "POST",
+          body: JSON.stringify(inviteForm),
+        });
+        setInvites((current) => [data.invite, ...current]);
+        setInviteForm({ email: "", phoneNumber: "" });
+        await refreshConnections();
+        setAddDriverOpen(false);
+        toast({ description: data.message });
+      } catch (error) {
+        toast({ description: error instanceof Error ? error.message : "Unable to invite driver", variant: "destructive" });
+      }
+    });
+  };
 
   const addChild = () => {
     startTransition(async () => {
@@ -306,486 +331,421 @@ export function StandaloneParentDashboard({
           }),
         });
         setChildren((current) => [data.child, ...current]);
-        setSelectedChildId(data.child.id);
-        setChildForm({ fullName: "", age: "", grade: "", address: "", image: "" });
-        setShowAddKid(false);
+        setChildForm({ fullName: "", age: "", grade: "", address: "" });
+        setAddKidOpen(false);
         toast({ description: data.message });
       } catch (error) {
-        toast({
-          description: error instanceof Error ? error.message : "Unable to add child",
-          variant: "destructive",
-        });
+        toast({ description: error instanceof Error ? error.message : "Unable to add child", variant: "destructive" });
       }
     });
   };
 
-  const uploadChildImage = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setIsUploadingChildImage(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("purpose", "parent-child-image");
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data?.message || "Unable to upload image");
-      }
-
-      setChildForm((form) => ({ ...form, image: data.url }));
-      toast({ description: "Kid image uploaded." });
-    } catch (error) {
-      toast({
-        description: error instanceof Error ? error.message : "Unable to upload image",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploadingChildImage(false);
-    }
-  };
-
-  const deleteChild = (childId: string) => {
+  const approveConnection = (connectionId: string) => {
     startTransition(async () => {
       try {
-        const data = await jsonFetch(`/api/parent/children/${childId}`, {
-          method: "DELETE",
-        });
-        setChildren((current) => current.filter((child) => child.id !== childId));
-        if (selectedChildId === childId) {
-          setSelectedChildId("");
-        }
+        const data = await jsonFetch(`/api/parent-driver-connections/${connectionId}/approve`, { method: "PATCH" });
+        await refreshConnections();
         toast({ description: data.message });
       } catch (error) {
-        toast({
-          description: error instanceof Error ? error.message : "Unable to remove child",
-          variant: "destructive",
-        });
+        toast({ description: error instanceof Error ? error.message : "Unable to approve driver", variant: "destructive" });
       }
     });
   };
 
-  const requestDriver = () => {
-    if (!selectedChild || !selectedDriver) {
-      toast({ description: "Select a child and driver first.", variant: "destructive" });
-      return;
-    }
-
+  const revokeConnection = (connectionId: string) => {
     startTransition(async () => {
       try {
-        const data = await jsonFetch("/api/driver-requests", {
+        const data = await jsonFetch(`/api/parent-driver-connections/${connectionId}/revoke`, { method: "PATCH" });
+        await refreshConnections();
+        toast({ description: data.message });
+      } catch (error) {
+        toast({ description: error instanceof Error ? error.message : "Unable to revoke driver", variant: "destructive" });
+      }
+    });
+  };
+
+  const toggleChild = (connectionId: string, childId: string) => {
+    setSelectedChildrenByConnection((current) => {
+      const selected = current[connectionId] || [];
+      return {
+        ...current,
+        [connectionId]: selected.includes(childId)
+          ? selected.filter((id) => id !== childId)
+          : [...selected, childId],
+      };
+    });
+  };
+
+  const assignChildren = (connectionId: string) => {
+    const childIds = selectedChildrenByConnection[connectionId] || [];
+    startTransition(async () => {
+      try {
+        const data = await jsonFetch("/api/child-driver-assignments", {
           method: "POST",
-          body: JSON.stringify({
-            childId: selectedChild.id,
-            driverId: selectedDriver.id,
-            routeArea: routeFilter || selectedDriver.serviceAreas[0],
-          }),
+          body: JSON.stringify({ connectionId, childIds }),
         });
-        const request = data.request?.child && data.request?.driver
-          ? data.request
-          : {
-              ...data.request,
-              status: data.request?.status || "PENDING",
-              routeArea: data.request?.routeArea || routeFilter || selectedDriver.serviceAreas[0],
-              child: selectedChild,
-              driver: selectedDriver,
-            };
-        setRequests((current) => [request, ...current]);
+        await refreshConnections();
+        setSelectedChildrenByConnection((current) => ({ ...current, [connectionId]: [] }));
         toast({ description: data.message });
       } catch (error) {
-        toast({
-          description: error instanceof Error ? error.message : "Unable to request driver",
-          variant: "destructive",
-        });
+        toast({ description: error instanceof Error ? error.message : "Unable to assign children", variant: "destructive" });
       }
     });
   };
 
-  const cancelRequest = (requestId: string) => {
+  const initializePayment = (assignmentId: string) => {
     startTransition(async () => {
       try {
-        const requestWasCurrent = currentChildRequest?.id === requestId;
-        const data = await jsonFetch(`/api/driver-requests/${requestId}`, {
-          method: "PATCH",
-          body: JSON.stringify({ action: "cancel" }),
+        const data = await jsonFetch("/api/billing/paystack/initialize", {
+          method: "POST",
+          body: JSON.stringify({ assignmentId }),
         });
-        setRequests((current) =>
-          current.map((request) =>
-              request.id === requestId ? { ...request, status: data.request.status } : request
-          )
-        );
-        if (requestWasCurrent && currentChildRequest) {
-          setChildren((current) =>
-            current.map((child) =>
-              child.id === currentChildRequest.child.id ? { ...child, activeDriver: null } : child
-            )
-          );
+        if (data.payment?.authorizationUrl) {
+          window.location.href = data.payment.authorizationUrl;
+          return;
         }
+        await refreshConnections();
         toast({ description: data.message });
       } catch (error) {
-        toast({
-          description: error instanceof Error ? error.message : "Unable to cancel request",
-          variant: "destructive",
-        });
+        toast({ description: error instanceof Error ? error.message : "Unable to start payment", variant: "destructive" });
       }
     });
   };
 
-  const requestLabel = selectedRequest?.status === "PENDING"
-    ? "Requested"
-    : selectedRequest?.status === "ACCEPTED"
-      ? "Assigned"
-      : "Request";
+  const requestLocation = (assignmentId: string) => {
+    startTransition(async () => {
+      try {
+        const data = await jsonFetch(`/api/child-driver-assignments/${assignmentId}/location-request`, {
+          method: "POST",
+        });
+        await refreshConnections();
+        toast({ description: data.message });
+      } catch (error) {
+        toast({ description: error instanceof Error ? error.message : "Unable to request location", variant: "destructive" });
+      }
+    });
+  };
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-gray-100 text-black">
-      <div className="relative h-[calc(100svh-72px)] min-h-[420px] w-full max-w-full touch-pan-y overflow-hidden bg-gray-100">
-        <div className="absolute inset-0">
-          <StandaloneDriversMap
-            drivers={mapDrivers}
-            selectedDriverId={selectedDriver?.id || null}
-            onSelectDriver={(driverId) => {
-              setSelectedDriverId(driverId);
-              setExpanded(true);
-            }}
-          />
+    <main className="min-h-screen bg-slate-50 text-slate-950">
+      {sideMenuOpen && (
+        <button
+          type="button"
+          aria-label="Close menu"
+          className="fixed inset-0 z-40 bg-slate-950/40"
+          onClick={() => setSideMenuOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(92vw,420px)] flex-col overflow-y-auto border-r border-slate-200 bg-white shadow-2xl transition-transform duration-300 ${sideMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+      >
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white p-4">
+          <div className="min-w-0">
+            <p className="text-xs uppercase text-slate-500">Parent dashboard</p>
+            <p className="truncate text-base font-semibold">{parentName || "Parent"}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSideMenuOpen(false)}
+            className="rounded-md p-2 text-slate-500 hover:bg-slate-100"
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
         </div>
 
-        {selectedDriver && (
-          <div className="absolute inset-x-3 bottom-[24svh] z-10 mx-auto max-w-[calc(100%-1.5rem)] rounded-lg border border-black/10 bg-white p-3 text-black shadow-lg sm:inset-x-4 sm:bottom-[25svh] sm:max-w-lg">
-            <div className="mb-2 flex items-center justify-between gap-3">
-              <span className="text-xs font-semibold uppercase text-black/45">Available route offer</span>
-              <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                {getDriverFare(selectedDriver)}
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-black text-white">
-                <Car className="h-7 w-7" aria-hidden="true" />
+        <div className="grid gap-5 p-4">
+          <section className="rounded-lg border border-slate-200 bg-white p-4">
+            <h2 className="mb-3 text-base font-semibold">Payment plan</h2>
+            <div className="grid grid-cols-3 gap-2 text-center text-sm">
+              <div className="rounded-md bg-slate-50 p-3">
+                <p className="text-lg font-semibold">{billingSummary.freeTrial}</p>
+                <p className="text-xs text-slate-500">Trials</p>
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <h2 className="truncate text-base font-semibold capitalize">{selectedDriver.full_name}</h2>
-                  {selectedDriver.verificationStatus === "VERIFIED" ? (
-                    <BadgeCheck className="h-5 w-5 shrink-0 text-emerald-600" aria-label="Verified" />
-                  ) : (
-                    <CircleSlash className="h-5 w-5 shrink-0 text-slate-400" aria-label="Not verified" />
-                  )}
-                </div>
-                <p className="truncate text-sm text-black/55">{selectedDriverVehicle}</p>
-                <p className="mt-1 truncate text-xs text-black/45">
-                  {selectedDriver.serviceAreas.length ? selectedDriver.serviceAreas.join(", ") : "No service area"}
-                </p>
+              <div className="rounded-md bg-slate-50 p-3">
+                <p className="text-lg font-semibold">{billingSummary.active}</p>
+                <p className="text-xs text-slate-500">Active</p>
               </div>
-              <Button
-                size="sm"
-                disabled={
-                  isPending ||
-                  selectedDriver.verificationStatus !== "VERIFIED" ||
-                  !!selectedDriver.isFull ||
-                  !selectedChild ||
-                  ["PENDING", "ACCEPTED"].includes(selectedRequest?.status || "")
-                }
-                onClick={requestDriver}
-                className="shrink-0 gap-2"
-              >
-                <Send className="h-4 w-4" aria-hidden="true" />
-                {requestLabel}
-              </Button>
-            </div>
-            <div className="mt-3 flex items-center justify-between gap-3 text-xs text-black/55">
-              <span>
-                {selectedDriver.vehicleCapacity
-                  ? selectedDriver.isFull
-                    ? "Vehicle is full"
-                    : `${selectedDriver.availableSeats ?? selectedDriver.vehicleCapacity} seats available`
-                  : "Capacity pending"}
-              </span>
-              {pendingChildRequest?.driver?.id === selectedDriver.id && (
-                <span className="font-semibold uppercase text-amber-700">Pending response</span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {expanded && (
-          <motion.div
-            className="absolute inset-0 bg-black/20"
-            style={{ opacity: overlayOpacity }}
-            onClick={() => setExpanded(false)}
-          />
-        )}
-
-        <motion.div
-          drag="y"
-          dragConstraints={{ top: 0, bottom: 0 }}
-          dragElastic={0.2}
-          onDragEnd={(_, info) => {
-            if (info.offset.y > 100) {
-              setExpanded(false);
-            } else {
-              setExpanded(true);
-            }
-          }}
-          initial={{ y: 0 }}
-          animate={{
-            height: expanded ? "72svh" : "22svh",
-            y: 0,
-          }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="absolute bottom-0 left-0 right-0 z-20 max-w-full overflow-x-hidden overflow-y-auto rounded-t-3xl border border-black/10 bg-white text-black"
-        >
-          <div className="sticky top-0 z-10 flex w-full justify-center bg-white/95 p-3 backdrop-blur">
-            <div className="h-1.5 w-12 rounded-full bg-black/20" />
-          </div>
-
-          <div className="mx-auto grid w-full max-w-2xl gap-4 overflow-x-hidden px-3 pb-8 sm:px-4">
-            <section className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-xl font-semibold text-black">Route offers</h2>
-                <span className="rounded-full bg-black/5 px-3 py-1 text-xs text-black/55">
-                  {availableRouteDrivers.length}
-                </span>
+              <div className="rounded-md bg-slate-50 p-3">
+                <p className="text-lg font-semibold">{billingSummary.pastDue}</p>
+                <p className="text-xs text-slate-500">Past due</p>
               </div>
-              <Input
-                className={inputClass}
-                placeholder="Filter service area"
-                value={routeFilter}
-                onChange={(event) => setRouteFilter(event.target.value)}
-              />
-              <p className="rounded-lg border border-black/10 bg-white p-3 text-sm text-black/55">
-                Available drivers for this route appear on the map card with the request button.
-              </p>
-            </section>
+            </div>
+            <p className="mt-3 text-xs text-slate-500">
+              Next trial ending: {billingSummary.nextTrialEnd ? formatDate(billingSummary.nextTrialEnd) : "N/A"}
+            </p>
+          </section>
 
-            {currentDriver ? (
-              <section className="space-y-3 rounded-lg border border-sky-100 bg-sky-50/80 px-3 py-4 text-black">
-                <header className="flex items-center justify-between gap-3 border-b-2 border-sky-400 pb-3">
-                  <div className="min-w-0">
-                    <h2 className="text-lg font-semibold text-black">Current driver</h2>
-                    <p className="truncate text-sm text-black/55">
-                      {selectedChild?.fullName || "Kid"} is assigned to {currentDriver.full_name}
-                    </p>
-                  </div>
-                  <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-black/65">
-                    {getDriverFare(currentDriver)}
-                  </span>
-                </header>
-                <div className="flex items-center justify-between gap-3 py-2">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="grid h-[54px] w-[54px] shrink-0 place-items-center rounded-full bg-black/10">
-                      <UserRound className="h-7 w-7 text-black/70" aria-hidden="true" />
-                    </div>
+          <section className="rounded-lg border border-slate-200 bg-white p-4">
+            <h2 className="mb-3 text-base font-semibold">Pending drivers</h2>
+            <div className="grid gap-3">
+              {pendingConnections.map((connection) => (
+                <div key={connection.id} className="rounded-md border border-slate-200 p-3">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <h2 className="truncate text-lg font-semibold capitalize text-black">{currentDriver.full_name}</h2>
-                      <small className="text-sm text-black/55">
-                        {currentDriver.verificationStatus === "VERIFIED" ? "Verified driver" : "Verification pending"}
-                      </small>
+                      <p className="truncate font-semibold">{connection.driver.full_name}</p>
+                      <p className="text-xs text-slate-500">{connection.driver.shareProfile?.shareId || connection.driver.shareId || "No share ID"}</p>
                     </div>
+                    <StatusBadge status={connection.status} />
                   </div>
-                  {currentChildRequest && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={isPending}
-                      onClick={() => cancelRequest(currentChildRequest.id)}
-                      className="shrink-0"
-                    >
-                      Change
+                  <div className="mt-3 flex gap-2">
+                    <Button size="sm" disabled={isPending} onClick={() => approveConnection(connection.id)} className="gap-2">
+                      <Check className="h-4 w-4" /> Approve
                     </Button>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between rounded-lg border border-black/10 bg-white px-3 py-4">
-                  <div className="min-w-0">
-                    <h1 className="truncate text-xl font-semibold uppercase text-black">
-                      {currentDriver.plateNumber || "N/A"}
-                    </h1>
-                    <small className="block truncate text-sm capitalize text-black/55">
-                      {currentDriverVehicle}
-                    </small>
-                    <small className="mt-1 flex items-center gap-1 text-xs text-black/50">
-                      <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                      {currentDriver.serviceAreas.length ? currentDriver.serviceAreas.join(", ") : "No service area"}
-                    </small>
+                    <Button size="sm" variant="outline" disabled={isPending} onClick={() => revokeConnection(connection.id)}>
+                      Revoke
+                    </Button>
                   </div>
-                  <Car className="h-16 w-16 shrink-0 text-black" aria-hidden="true" />
                 </div>
+              ))}
+              {!pendingConnections.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">No pending drivers.</p>}
+            </div>
+          </section>
 
-                {currentChildRequest && (
-                  <div className="flex items-center justify-between gap-3 rounded-lg border border-black/10 bg-white p-3">
-                    <div>
-                      <p className="text-sm font-semibold">Request status</p>
-                      <p className="text-xs uppercase text-black/55">{currentChildRequest.status}</p>
+          <section className="rounded-lg border border-slate-200 bg-white p-4">
+            <h2 className="mb-3 text-base font-semibold">Invites</h2>
+            <div className="grid gap-2">
+              {invites.map((invite) => (
+                <div key={invite.id} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 p-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{invite.email || invite.phoneNumber || "Driver invite"}</p>
+                    <p className="text-xs text-slate-500">Expires {formatDate(invite.expiresAt)}</p>
+                  </div>
+                  <StatusBadge status={invite.status} />
+                </div>
+              ))}
+              {!invites.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">No registration invites yet.</p>}
+            </div>
+          </section>
+
+          <section className="rounded-lg border border-slate-200 bg-white p-4">
+            <h2 className="mb-3 text-base font-semibold">Approved drivers</h2>
+            <div className="grid gap-2">
+              {approvedConnections.map((connection) => (
+                <div key={connection.id} className="rounded-md border border-slate-200 p-3">
+                  <p className="truncate text-sm font-semibold">{connection.driver.full_name}</p>
+                  <p className="text-xs text-slate-500">{connection.assignments.length} assigned kid{connection.assignments.length === 1 ? "" : "s"}</p>
+                </div>
+              ))}
+              {!approvedConnections.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">No approved drivers yet.</p>}
+            </div>
+          </section>
+
+          <section className="rounded-lg border border-slate-200 bg-white p-4">
+            <Logout />
+          </section>
+        </div>
+      </aside>
+
+      {addDriverOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-4">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-xl bg-white p-4 shadow-2xl sm:rounded-xl">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold">Add driver</h2>
+              <button type="button" onClick={() => setAddDriverOpen(false)} className="rounded-md p-2 hover:bg-slate-100" aria-label="Close add driver">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+              <section className="rounded-lg border border-slate-200 p-4">
+                <h3 className="mb-3 text-base font-semibold">Find known driver</h3>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Input className={inputClass} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Driver share ID, email, or phone" />
+                  <Button disabled={isPending || !query.trim()} onClick={searchDrivers} className="gap-2">
+                    <Search className="h-4 w-4" /> Search
+                  </Button>
+                </div>
+                <div className="mt-4 grid gap-3">
+                  {searchResults.map((driver) => (
+                    <div key={driver.id} className="flex flex-col gap-3 rounded-md border border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-slate-100">
+                          {driver.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={driver.image} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <Car className="h-6 w-6 text-slate-500" aria-hidden="true" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold">{driver.full_name}</p>
+                          <p className="text-xs text-slate-500">{driver.shareId || "No share ID"} · {driver.vehicle || "Vehicle pending"}</p>
+                        </div>
+                      </div>
+                      <Button size="sm" disabled={isPending || !!driver.existingConnection} onClick={() => requestDriver(driver.id)}>
+                        {driver.existingConnection ? driver.existingConnection.status.replaceAll("_", " ") : "Request"}
+                      </Button>
                     </div>
-                  </div>
-                )}
+                  ))}
+                  {!searchResults.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">Search for a driver you already know.</p>}
+                </div>
               </section>
-            ) : pendingChildRequest ? (
-              <section className="space-y-3 rounded-lg border border-amber-100 bg-amber-50/80 px-3 py-4 text-black">
-                <header className="border-b-2 border-amber-300 pb-3">
-                  <h2 className="text-lg font-semibold text-black">Pending request</h2>
-                  <p className="truncate text-sm text-black/55">
-                    Waiting for {pendingChildRequest.driver.full_name} to respond for {selectedChild?.fullName || "this kid"}.
-                  </p>
-                </header>
-                <div className="flex items-center justify-between gap-3 rounded-lg border border-black/10 bg-white p-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold capitalize">{pendingChildRequest.driver.full_name}</p>
-                    <p className="truncate text-xs text-black/55">{getDriverVehicle(pendingChildRequest.driver)}</p>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={isPending}
-                    onClick={() => cancelRequest(pendingChildRequest.id)}
-                  >
-                    Cancel
+
+              <section className="rounded-lg border border-slate-200 p-4">
+                <h3 className="mb-3 text-base font-semibold">Invite unregistered driver</h3>
+                <div className="grid gap-2">
+                  <Input className={inputClass} value={inviteForm.email} onChange={(event: ChangeEvent<HTMLInputElement>) => setInviteForm((current) => ({ ...current, email: event.target.value }))} placeholder="Driver email" />
+                  <Input className={inputClass} value={inviteForm.phoneNumber} onChange={(event: ChangeEvent<HTMLInputElement>) => setInviteForm((current) => ({ ...current, phoneNumber: event.target.value }))} placeholder="Driver phone" />
+                  <Button disabled={isPending || (!inviteForm.email.trim() && !inviteForm.phoneNumber.trim())} onClick={inviteDriver} className="gap-2">
+                    <MailPlus className="h-4 w-4" /> Send invite
                   </Button>
                 </div>
               </section>
-            ) : null}
-
-            {showAddKid && (
-              <div className="rounded-lg border border-black/10 bg-white p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <h2 className="font-semibold">Add kid</h2>
-                  {!!children.length && (
-                    <button
-                      type="button"
-                      onClick={() => setShowAddKid(false)}
-                      className="rounded-md p-1 text-slate-500 hover:bg-slate-200"
-                      aria-label="Close add kid"
-                    >
-                      <X className="h-4 w-4" aria-hidden="true" />
-                    </button>
-                  )}
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="grid gap-2 sm:col-span-2">
-                    <div className="flex items-center gap-3 rounded-lg border border-black/10 bg-white p-3">
-                      <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-lg bg-black/5 ring-1 ring-black/10">
-                        {childForm.image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={childForm.image} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          <UserRound className="h-8 w-8 text-black/45" aria-hidden="true" />
-                        )}
-                      </div>
-                      <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-black/10 bg-white px-3 text-sm font-medium text-black hover:bg-black/[0.02]">
-                        <ImagePlus className="h-4 w-4" aria-hidden="true" />
-                        {isUploadingChildImage ? "Uploading..." : "Upload image"}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="sr-only"
-                          disabled={isUploadingChildImage || isPending}
-                          onChange={uploadChildImage}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                  <Input
-                    className={inputClass}
-                    placeholder="Child name"
-                    value={childForm.fullName}
-                    onChange={(event) => setChildForm((form) => ({ ...form, fullName: event.target.value }))}
-                  />
-                  <Input
-                    className={inputClass}
-                    placeholder="Age"
-                    type="number"
-                    value={childForm.age}
-                    onChange={(event) => setChildForm((form) => ({ ...form, age: event.target.value }))}
-                  />
-                  <Input
-                    className={inputClass}
-                    placeholder="Grade"
-                    value={childForm.grade}
-                    onChange={(event) => setChildForm((form) => ({ ...form, grade: event.target.value }))}
-                  />
-                  <Input
-                    className={inputClass}
-                    placeholder="School address"
-                    value={childForm.address}
-                    onChange={(event) => setChildForm((form) => ({ ...form, address: event.target.value }))}
-                  />
-                </div>
-                <Button disabled={isPending || isUploadingChildImage || !childForm.fullName.trim()} onClick={addChild} className="mt-3">
-                  Add kid
-                </Button>
-              </div>
-            )}
-
-            <h3 className="px-2 pb-1 pt-2 text-center text-xl font-semibold text-black">Kids</h3>
-            <section className="space-y-3">
-              {children.map((child) => (
-                <div
-                  key={child.id}
-                  className={`mx-auto mb-4 flex w-full max-w-lg items-center gap-3 rounded-lg border bg-white p-3 text-black transition-all sm:gap-4 sm:p-4 ${
-                    selectedChildId === child.id ? "border-black/30" : "border-black/10"
-                  }`}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSelectedChildId(child.id)}
-                    className="flex min-w-0 flex-1 items-center gap-3 text-left sm:gap-4"
-                  >
-                    <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-lg bg-black/5 ring-1 ring-black/10">
-                      {child.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={child.image} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <UserRound className="h-9 w-9 text-black/55" aria-hidden="true" />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-2 flex items-center justify-between gap-3">
-                        <h2 className="truncate text-base font-semibold capitalize leading-tight text-black">
-                          {child.fullName || "Unnamed kid"}
-                        </h2>
-                        <span className="shrink-0 rounded-full bg-black/5 px-2 py-1 text-[11px] uppercase text-black/55">
-                          {child.grade || "No grade"}
-                        </span>
-                      </div>
-                      <p className="truncate text-sm capitalize text-black/55">
-                        {child.address || "No school address"}
-                      </p>
-                      <div className="mt-2 flex justify-between gap-3 text-sm text-black/70">
-                        <span className="min-w-0 truncate capitalize">
-                          {child.activeDriver?.full_name || "No active driver"}
-                        </span>
-                        <span className="shrink-0 font-medium text-black">
-                          {child.age ? `${child.age} yrs` : "Age N/A"}
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteChild(child.id)}
-                    className="rounded-md p-2 text-black/45 hover:bg-black/5 hover:text-red-600"
-                    aria-label="Remove child"
-                  >
-                    <Trash2 className="h-4 w-4" aria-hidden="true" />
-                  </button>
-                </div>
-              ))}
-              {!children.length && (
-                <div className="mx-auto max-w-lg rounded-lg border border-black/10 bg-white p-5 text-center text-sm text-black/55">
-                  No kids linked to this parent yet.
-                </div>
-              )}
-            </section>
+            </div>
           </div>
-        </motion.div>
+        </div>
+      )}
+
+      {addKidOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-4">
+          <div className="w-full max-w-xl rounded-t-xl bg-white p-4 shadow-2xl sm:rounded-xl">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold">Add kid</h2>
+              <button type="button" onClick={() => setAddKidOpen(false)} className="rounded-md p-2 hover:bg-slate-100" aria-label="Close add kid">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input className={inputClass} value={childForm.fullName} onChange={(event) => setChildForm((current) => ({ ...current, fullName: event.target.value }))} placeholder="Child name" />
+              <Input className={inputClass} value={childForm.age} onChange={(event) => setChildForm((current) => ({ ...current, age: event.target.value }))} placeholder="Age" type="number" />
+              <Input className={inputClass} value={childForm.grade} onChange={(event) => setChildForm((current) => ({ ...current, grade: event.target.value }))} placeholder="Grade" />
+              <Input className={inputClass} value={childForm.address} onChange={(event) => setChildForm((current) => ({ ...current, address: event.target.value }))} placeholder="School address" />
+            </div>
+            <Button className="mt-4" disabled={isPending || !childForm.fullName.trim()} onClick={addChild}>
+              Add kid
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {locationAssignment && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-4">
+          <div className="w-full max-w-2xl rounded-t-xl bg-white p-4 shadow-2xl sm:rounded-xl">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold">Driver location</h2>
+                <p className="text-sm text-slate-500">{locationAssignment.driver.full_name} · {locationAssignment.child.fullName}</p>
+              </div>
+              <button type="button" onClick={() => setLocationAssignment(null)} className="rounded-md p-2 hover:bg-slate-100" aria-label="Close map">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <DriverLocationMap assignment={locationAssignment} />
+          </div>
+        </div>
+      )}
+
+      <div className="mx-auto grid w-full max-w-7xl gap-5 px-4 py-6">
+        <header className="rounded-lg border border-slate-200 bg-white p-4">
+          <p className="text-sm text-slate-500">Known driver network</p>
+          <h1 className="text-2xl font-semibold">Welcome{parentName ? `, ${parentName}` : ""}</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Track your kids with approved drivers. Add drivers from the top bar when you need to connect someone new.
+          </p>
+        </header>
+
+        <section className="rounded-lg border border-slate-200 bg-white p-4">
+          <h2 className="mb-3 text-base font-semibold">Approved drivers and child assignments</h2>
+          <div className="grid gap-4">
+            {approvedConnections.map((connection) => {
+              const selected = selectedChildrenByConnection[connection.id] || [];
+              const assignedChildIds = new Set(connection.assignments.map((assignment) => assignment.child.id));
+
+              return (
+                <div key={connection.id} className="rounded-md border border-slate-200 p-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="truncate font-semibold">{connection.driver.full_name}</h3>
+                        {connection.driver.verificationStatus === "VERIFIED" && <BadgeCheck className="h-5 w-5 text-emerald-600" aria-label="Verified" />}
+                      </div>
+                      <p className="text-xs text-slate-500">{connection.driver.shareProfile?.shareId || connection.driver.shareId || "No share ID"}</p>
+                    </div>
+                    <Button size="sm" variant="outline" disabled={isPending} onClick={() => revokeConnection(connection.id)} className="gap-2">
+                      <Trash2 className="h-4 w-4" /> Revoke
+                    </Button>
+                  </div>
+
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {children.map((child) => (
+                      <label key={child.id} className={`flex cursor-pointer items-center gap-3 rounded-md border p-3 ${selected.includes(child.id) || assignedChildIds.has(child.id) ? "border-emerald-200 bg-emerald-50" : "border-slate-200"}`}>
+                        <input type="checkbox" checked={selected.includes(child.id) || assignedChildIds.has(child.id)} disabled={assignedChildIds.has(child.id)} onChange={() => toggleChild(connection.id, child.id)} />
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-medium">{child.fullName}</span>
+                          <span className="block truncate text-xs text-slate-500">{child.address || child.grade || "No school address"}</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <Button className="mt-3" size="sm" disabled={isPending || !selected.length} onClick={() => assignChildren(connection.id)}>
+                    Save child assignments
+                  </Button>
+                </div>
+              );
+            })}
+            {!approvedConnections.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">Approve a driver from the side menu before assigning kids.</p>}
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-slate-200 bg-white p-4">
+          <h2 className="mb-3 text-base font-semibold">My kids</h2>
+          <div className="grid gap-3">
+            {activeAssignments.map((assignment) => (
+              <div key={assignment.id} className="flex flex-col gap-3 rounded-md border border-slate-200 p-3 md:flex-row md:items-center md:justify-between">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-slate-100">
+                    {assignment.child.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={assignment.child.image} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <UserRound className="h-6 w-6 text-slate-500" aria-hidden="true" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{assignment.child.fullName}</p>
+                    <p className="text-xs text-slate-500">Driver: {assignment.driver.full_name}</p>
+                    <p className="text-xs text-slate-500">Last status: {(assignment.lastStatus || "Waiting").replaceAll("_", " ")}</p>
+                    <p className="text-xs font-semibold text-slate-700">{childPlaceLabel(assignment)}</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge status={assignment.billingStatus} />
+                  <span className="text-xs text-slate-500">Trial ends {formatDate(assignment.trialEndsAt)}</span>
+                  {assignment.driver.phoneNumber && (
+                    <Button size="sm" variant="outline" asChild className="gap-2">
+                      <a href={`tel:${assignment.driver.phoneNumber}`}>
+                        <Phone className="h-4 w-4" /> Call driver
+                      </a>
+                    </Button>
+                  )}
+                  {assignment.driver.liveAddress ? (
+                    <Button size="sm" variant="outline" onClick={() => setLocationAssignment(assignment)} className="gap-2">
+                      <MapPin className="h-4 w-4" /> View location
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="outline" disabled={isPending} onClick={() => requestLocation(assignment.id)} className="gap-2">
+                      <MapPin className="h-4 w-4" /> Request location
+                    </Button>
+                  )}
+                  {/* <Button size="sm" variant="outline" disabled={isPending} onClick={() => initializePayment(assignment.id)} className="gap-2">
+                    <CreditCard className="h-4 w-4" /> Pay monthly
+                  </Button> */}
+                </div>
+              </div>
+            ))}
+            {!activeAssignments.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">Assigned kids will appear here with driver tracking and billing status.</p>}
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-slate-200 bg-white p-4">
+          <div className="flex items-start gap-3 text-sm text-slate-600">
+            <ShieldCheck className="mt-0.5 h-5 w-5 text-emerald-600" aria-hidden="true" />
+            <p>Drivers can only see child details after you approve the relationship and assign specific kids.</p>
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

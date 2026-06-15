@@ -8,7 +8,10 @@ type Params = {
   id: string;
 };
 
-export async function PATCH(req: NextRequest, { params }: { params: Promise<Params> }) {
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+async function patchDriverRequest(req: NextRequest, { params }: { params: Promise<Params> }) {
   const session = await getApiSession();
   if (!session || !["parent", "driver"].includes(session.role)) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -16,7 +19,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<Para
   const actorId = session.id;
   const isParentActor = session.role === "parent";
 
-  const body = await req.json();
+  let body: { action?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ message: "Invalid request body" }, { status: 400 });
+  }
   const action = String(body.action || "").toLowerCase();
   const { id } = await params;
 
@@ -213,4 +221,24 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<Para
     message: action === "accept" ? "Request accepted" : "Request declined",
     request: updated,
   });
+}
+
+export async function PATCH(req: NextRequest, context: { params: Promise<Params> }) {
+  try {
+    return await patchDriverRequest(req, context);
+  } catch (error) {
+    console.error("Driver request update failed:", error);
+
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return NextResponse.json(
+        { message: "Database is unavailable. Please try again shortly." },
+        { status: 503 }
+      );
+    }
+
+    return NextResponse.json(
+      { message: "Unable to update request. Please try again." },
+      { status: 500 }
+    );
+  }
 }
