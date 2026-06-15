@@ -49,6 +49,7 @@ type Assignment = {
 type Connection = {
   id: string;
   status: string;
+  requestedBy?: string | null;
   driver: DriverSummary & { shareProfile?: { shareId: string } | null };
   assignments: Assignment[];
 };
@@ -487,13 +488,18 @@ export function StandaloneParentDashboard({
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{connection.driver.full_name}</p>
                       <p className="text-xs text-slate-500">{connection.driver.shareProfile?.shareId || connection.driver.shareId || "No share ID"}</p>
+                      {connection.status === "INVITED" && connection.requestedBy === "parent" && (
+                        <p className="mt-1 text-xs font-medium text-amber-700">Waiting for driver to accept</p>
+                      )}
                     </div>
                     <StatusBadge status={connection.status} />
                   </div>
                   <div className="mt-3 flex gap-2">
-                    <Button size="sm" disabled={isPending} onClick={() => approveConnection(connection.id)} className="gap-2">
-                      <Check className="h-4 w-4" /> Approve
-                    </Button>
+                    {connection.status === "DRIVER_REQUESTED" && (
+                      <Button size="sm" disabled={isPending} onClick={() => approveConnection(connection.id)} className="gap-2">
+                        <Check className="h-4 w-4" /> Approve
+                      </Button>
+                    )}
                     <Button size="sm" variant="outline" disabled={isPending} onClick={() => revokeConnection(connection.id)}>
                       Revoke
                     </Button>
