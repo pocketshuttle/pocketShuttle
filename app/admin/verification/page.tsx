@@ -7,6 +7,11 @@ import { Prisma } from "@prisma/client";
 const AdminVerificationPage = async () => {
   const drivers = await db.driver.findMany({
     where: { accountType: "STANDALONE", schoolId: null },
+    include: {
+      shareProfile: { select: { shareId: true } },
+      parentConnections: { select: { id: true, status: true } },
+      childAssignments: { select: { id: true, status: true } },
+    },
     orderBy: [{ verificationStatus: "asc" }, { updatedAt: "desc" }],
   });
   const identityRows = drivers.length

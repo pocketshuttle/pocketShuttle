@@ -119,14 +119,14 @@ export const LoginForm = () => {
             backButtonHref="/register"
         >
             {isRoleStep ? (
-                <div className={`space-y-5 text-white`}>
+                <div className={`space-y-5 text-slate-950`}>
                     {rememberedRole && (
-                        <div className="rounded-lg border border-white/10 bg-[#141c2a] p-4">
-                            <p className="text-sm text-slate-300">Welcome back</p>
+                        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                            <p className="text-sm text-slate-600">Welcome back</p>
                             <Button
                                 type="button"
                                 onClick={handleRememberedRole}
-                                className="mt-3 h-12 w-full rounded-lg bg-[#4a48ff] text-base font-semibold text-white shadow-none hover:bg-[#5b5aff]"
+                                className="mt-3 h-12 w-full rounded-lg bg-blue-700 text-base font-semibold text-white shadow-none hover:bg-blue-800"
                             >
                                 Login as {rememberedRoleLabel}
                             </Button>
@@ -134,7 +134,7 @@ export const LoginForm = () => {
                                 type="button"
                                 variant="link"
                                 onClick={handleSwitchRole}
-                                className="mt-2 h-auto w-full text-[#a8b4ff] hover:text-white"
+                                className="mt-2 h-auto w-full text-blue-700 hover:text-slate-950"
                             >
                                 Login as someone else
                             </Button>
@@ -143,7 +143,7 @@ export const LoginForm = () => {
 
                     {!rememberedRole && (
                         <div className="space-y-3">
-                            <p className="text-sm font-medium text-slate-200">Who are you logging in as?</p>
+                            <p className="text-sm font-medium text-slate-700">Who are you logging in as?</p>
                             <div className="grid grid-cols-2 gap-3">
                                 {roleOptions.map((role) => {
                                     const Icon = role.icon;
@@ -153,7 +153,7 @@ export const LoginForm = () => {
                                             key={role.value}
                                             type="button"
                                             onClick={() => handleSelectRole(role.value)}
-                                            className="flex h-24 flex-col items-center justify-center gap-2 rounded-lg border border-white/5 bg-[#141c2a] text-sm font-medium text-slate-200 transition-colors hover:border-[#6d72c9] hover:bg-[#232b42] hover:text-white"
+                                            className="flex h-24 flex-col items-center justify-center gap-2 rounded-lg border border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 transition-colors hover:border-blue-300 hover:bg-white hover:text-slate-950"
                                         >
                                             <Icon className="h-6 w-6" aria-hidden="true" />
                                             {role.label}
@@ -167,11 +167,11 @@ export const LoginForm = () => {
             ) : (
             <Form {...form}>
                 {/* the handle submit comes from the form constant */}
-                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-5 text-white`}>
-                    <div className="flex items-center justify-between rounded-lg border border-white/5 bg-[#141c2a] px-4 py-3">
+                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-5 text-slate-950`}>
+                    <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
                         <div>
-                            <p className="text-xs text-slate-400">Logging in as</p>
-                            <p className="font-semibold text-white">
+                            <p className="text-xs text-slate-500">Logging in as</p>
+                            <p className="font-semibold text-slate-950">
                                 {roleOptions.find((role) => role.value === selectedRole)?.label || "School"}
                             </p>
                         </div>
@@ -179,7 +179,7 @@ export const LoginForm = () => {
                             type="button"
                             variant="link"
                             onClick={() => setIsRoleStep(true)}
-                            className="h-auto px-0 text-[#a8b4ff] hover:text-white"
+                            className="h-auto px-0 text-blue-700 hover:text-slate-950"
                         >
                             Change
                         </Button>
@@ -190,14 +190,14 @@ export const LoginForm = () => {
                             name="email"
                             render={({ field }) => (
                                 <FormItem className="space-y-2.5">
-                                    <FormLabel className="text-sm font-medium text-slate-200">Email Address</FormLabel>
+                                    <FormLabel className="text-sm font-medium text-slate-700">Email Address</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
                                             placeholder="ciroma@email.com"
                                             type="email"
                                             disabled={isPending}
-                                            className="h-14 rounded-lg border-white/5 bg-[#141c2a] px-4 text-white shadow-none placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#6d72c9]"
+                                            className="h-14 rounded-lg border-slate-200 bg-slate-50 px-4 text-slate-950 shadow-none placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-200"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -213,7 +213,7 @@ export const LoginForm = () => {
                             name="password"
                             render={({ field }) => (
                                 <FormItem className="space-y-2.5">
-                                    <FormLabel className="text-sm font-medium text-slate-200">Password</FormLabel>
+                                    <FormLabel className="text-sm font-medium text-slate-700">Password</FormLabel>
                                     <FormControl>
                                         <div className="relative">
                                             <Input
@@ -221,7 +221,7 @@ export const LoginForm = () => {
                                                 placeholder="******"
                                                 type={showPassword ? "text" : "password"}
                                                 disabled={isPending}
-                                                className="h-14 rounded-lg border-white/5 bg-[#141c2a] px-4 pr-12 text-white shadow-none placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#6d72c9]"
+                                                className="h-14 rounded-lg border-slate-200 bg-slate-50 px-4 pr-12 text-slate-950 shadow-none placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-200"
 
                                             />
                                             <button
@@ -229,7 +229,7 @@ export const LoginForm = () => {
                                                 disabled={isPending}
                                                 aria-label={showPassword ? "Hide password" : "Show password"}
                                                 onClick={() => setShowPassword((current) => !current)}
-                                                className="absolute right-4 top-1/2 inline-flex -translate-y-1/2 items-center justify-center text-slate-400 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                                className="absolute right-4 top-1/2 inline-flex -translate-y-1/2 items-center justify-center text-slate-500 transition-colors hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
                                             >
                                                 {showPassword ? (
                                                     <EyeOff className="h-5 w-5" aria-hidden="true" />
@@ -240,7 +240,7 @@ export const LoginForm = () => {
                                         </div>
                                     </FormControl>
                                     <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
-                                        <Button variant="link" size="sm" asChild className="h-auto justify-start px-0 text-sm font-medium text-[#a8b4ff] hover:text-white">
+                                        <Button variant="link" size="sm" asChild className="h-auto justify-start px-0 text-sm font-medium text-blue-700 hover:text-slate-950">
                                             <Link href="/reset">
                                                 Forgot Password?
                                             </Link>
@@ -257,7 +257,7 @@ export const LoginForm = () => {
                     <FormSuccess message={isSuccess} />
                     <Button
                         disabled={isPending}
-                        size="lg" className="h-14 w-full rounded-lg bg-[#4a48ff] text-base font-semibold text-white shadow-none hover:bg-[#5b5aff]" type="submit">Login</Button>
+                        size="lg" className="h-14 w-full rounded-lg bg-blue-700 text-base font-semibold text-white shadow-none hover:bg-blue-800" type="submit">Login</Button>
                 </form>
             </Form>
             )}

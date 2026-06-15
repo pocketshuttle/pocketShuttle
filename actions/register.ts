@@ -6,6 +6,8 @@ import db from "@/packages/db/client";
 import { generateVerificationToken } from "@/lib/token";
 import { sendVerificationEmail } from "@/lib/mail";
 import { redirect } from "next/navigation";
+import crypto from "crypto";
+import { ensureDriverShareProfile } from "@/lib/known-driver-network";
 
 export const register = async (values: z.infer<typeof RegisterSchema>) => {
   const validatedFields = RegisterSchema.safeParse(values);
@@ -28,6 +30,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     carColor,
     plateNumber,
     vehicleCapacity,
+    inviteToken,
   } = validatedFields.data;
   const normalizedEmail = email.toLowerCase();
 
@@ -57,7 +60,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
         },
       });
     } else if (accountRole === "driver") {
-      await db.driver.create({
+      const driver = await db.driver.create({
         data: {
           role: "driver",
           accountType: "STANDALONE",
@@ -79,6 +82,28 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
           vehicleCapacity,
         },
       });
+
+      await ensureDriverShareProfile(driver);
+
+      if (inviteToken) {
+        const tokenHash = crypto.createHash("sha256").update(inviteToken).digest("hex");
+        await db.driverInvite.updateMany({
+          where: {
+            tokenHash,
+            status: "SENT",
+            expiresAt: { gt: new Date() },
+            OR: [
+              { email: normalizedEmail },
+              ...(phoneNumber ? [{ phoneNumber }] : []),
+            ],
+          },
+          data: {
+            driverId: driver.id,
+            status: "ACCEPTED",
+            acceptedAt: new Date(),
+          },
+        });
+      }
     } else {
       await db.user.create({
         data: {

@@ -7,17 +7,17 @@ import {
     AvatarImage,
 } from "@/components/ui/avatar"; // UI components for Avatar display
 import NotificationFeed from "@/components/knock/notitification-feed"; // Notification feed component
-import Logout from "../dashboard/sidebar/logout"; // Logout button/component
-import { Plus } from "lucide-react";
+import { CarFront, Plus } from "lucide-react";
 
 
 type NavbarProps = {
     data: any;
     showAddKid?: boolean;
+    showAddDriver?: boolean;
 };
 
 
-const ParentNavbar = ({ data, showAddKid = false }: NavbarProps) => {
+const ParentNavbar = ({ data, showAddKid = false, showAddDriver = false }: NavbarProps) => {
     const [isHovering, setIsHovering] = useState(false); // Manages hover state for the profile
     const [greeting, setGreeting] = useState("Good day");
 
@@ -52,8 +52,8 @@ const ParentNavbar = ({ data, showAddKid = false }: NavbarProps) => {
     return (
         <div className="sticky top-0 z-30 flex min-h-[72px] w-full max-w-full items-center gap-2 overflow-x-hidden border-b border-black/10 bg-white px-3 py-3 text-black sm:gap-3 sm:px-4">
             <div
-                className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 sm:gap-3"
-                // onClick={() => router.back()} // Navigates back to the previous page
+                className="flex min-w-0 flex-1 cursor-pointer items-center gap-1 sm:gap-2"
+                onClick={() => window.dispatchEvent(new CustomEvent("standalone-parent:open-menu"))}
                 onMouseEnter={() => setIsHovering(true)} // Enable hover effect
                 onMouseLeave={() => setIsHovering(false)} // Disable hover effect
             >
@@ -62,9 +62,9 @@ const ParentNavbar = ({ data, showAddKid = false }: NavbarProps) => {
                 <div className="flex min-w-0 flex-1 flex-col items-start">
                     {
                         data &&
-                        <small className="text-sm leading-none text-black/45">{greeting}</small>
+                        <small className="text-xs leading-none text-black/45">{greeting}</small>
                     }
-                    <span className="w-full truncate text-[1.35rem] font-semibold capitalize leading-tight text-black sm:text-xl">
+                    <span className="w-full truncate text-[1rem] font-semibold capitalize leading-tight text-black sm:text-xl">
                         {firstName}
                     </span>
                 </div>
@@ -76,18 +76,26 @@ const ParentNavbar = ({ data, showAddKid = false }: NavbarProps) => {
                     <button
                         type="button"
                         onClick={() => window.dispatchEvent(new CustomEvent("standalone-parent:add-kid"))}
-                        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#4a48ff] text-white shadow-sm transition hover:bg-[#5b5aff] sm:h-11 sm:w-11"
+                        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#4a48ff] text-white shadow-sm transition hover:bg-[#5b5aff] focus:outline-none focus:ring-2 focus:ring-[#4a48ff]/30 active:scale-95 sm:h-11 sm:w-11"
                         aria-label="Add kid"
                         title="Add kid"
                     >
                         <Plus className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
                     </button>
                 )}
+                {showAddDriver && (
+                    <button
+                        type="button"
+                        onClick={() => window.dispatchEvent(new CustomEvent("standalone-parent:add-driver"))}
+                        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950/20 active:scale-95 sm:h-11 sm:w-11"
+                        aria-label="Add driver"
+                        title="Add driver"
+                    >
+                        <CarFront className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
+                    </button>
+                )}
                 <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full sm:h-11 sm:w-11 [&_button]:h-10 [&_button]:w-10 [&_button]:rounded-full sm:[&_button]:h-11 sm:[&_button]:w-11">
                     <NotificationFeed />
-                </span>
-                <span className="grid h-10 w-10 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-full hover:bg-black/5 sm:h-11 sm:w-11 [&_button]:h-10 [&_button]:w-10 [&_button]:justify-center [&_button]:gap-0 [&_button]:rounded-full [&_button]:p-0 sm:[&_button]:h-11 sm:[&_button]:w-11 [&_svg]:h-5 [&_svg]:w-5">
-                    <Logout />
                 </span>
             </div>
         </div>

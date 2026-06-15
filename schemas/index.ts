@@ -56,6 +56,7 @@ export const RegisterSchema = z
     carColor: z.string().optional(),
     plateNumber: z.string().optional(),
     vehicleCapacity: z.coerce.number().optional(),
+    inviteToken: z.string().optional(),
   })
   .superRefine((value, ctx) => {
     if (value.accountRole === "school" && !value.schoolname?.trim()) {

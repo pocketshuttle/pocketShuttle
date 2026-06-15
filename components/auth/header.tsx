@@ -7,8 +7,8 @@ interface HeaderProps {
 
 export const AuthHeader = ({ label, subtitle }: HeaderProps) => {
     return (
-        <div className="w-full space-y-4 text-center text-white">
-            <div className="mx-auto inline-flex   px-3 py-1 text-[0.68rem] font-semibold uppercase text-slate-300">
+        <div className="w-full space-y-4 text-center text-slate-950">
+            <div className="mx-auto inline-flex px-3 py-1 text-[0.68rem] font-semibold uppercase text-blue-700">
                 PocketShuttle
             </div>
             <h1
@@ -17,7 +17,7 @@ export const AuthHeader = ({ label, subtitle }: HeaderProps) => {
                 {label}
             </h1>
             {subtitle && (
-                <p className="mx-auto max-w-md text-sm leading-6 text-slate-300">
+                <p className="mx-auto max-w-md text-sm leading-6 text-slate-600">
                     {subtitle}
                 </p>
             )}

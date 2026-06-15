@@ -193,6 +193,8 @@ export function VerificationQueue({ drivers }: { drivers: any[] }) {
                 <p>GPS: {driver.liveAddress ? JSON.stringify(driver.liveAddress) : "N/A"}</p>
                 <p>Vehicle: {[driver.carColor, driver.carMake, driver.carModel, driver.plateNumber].filter(Boolean).join(" ") || "N/A"}</p>
                 <p>Areas: {driver.serviceAreas?.length ? driver.serviceAreas.join(", ") : "N/A"}</p>
+                <p>Share ID: {driver.shareProfile?.shareId || "N/A"}</p>
+                <p>Known network: {driver.parentConnections?.length || 0} families · {driver.childAssignments?.length || 0} kids</p>
                 <p>Driver image: {driverImageHref ? <a href={driverImageHref} target="_blank" className="text-blue-600 underline">Open image</a> : "N/A"}</p>
                 <p>Utility bill: {utilityBillHref ? <a href={utilityBillHref} target="_blank" className="text-blue-600 underline">Open document</a> : "N/A"}</p>
                 <p>ID document: {identityDocumentHref ? <a href={identityDocumentHref} target="_blank" className="text-blue-600 underline">Open passport/NIN</a> : "N/A"}</p>
