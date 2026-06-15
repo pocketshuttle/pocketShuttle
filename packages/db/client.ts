@@ -4,7 +4,7 @@ export type { StudentAttendance } from ".prisma/client";
 export type { StudentStatus } from ".prisma/client";
 export type { StudentPresence } from ".prisma/client";
 
-const PRISMA_SCHEMA_VERSION = "20260609200000_driver_identity_document";
+const PRISMA_SCHEMA_VERSION = "20260615120000_known_driver_network";
 
 const globalForPrisma = global as unknown as {
   prisma?: PrismaClient;
