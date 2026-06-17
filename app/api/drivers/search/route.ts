@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
       shareProfile: { select: { shareId: true } },
       parentConnections: {
         where: { parentId: session.id },
-        select: { id: true, status: true },
+        select: { id: true, status: true, note: true },
         take: 1,
       },
       _count: { select: { childAssignments: true } },

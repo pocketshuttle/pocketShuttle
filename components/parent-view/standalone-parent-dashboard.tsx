@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useMemo, useState, useTransition } from "react";
-import { APIProvider, AdvancedMarker, Map, Pin } from "@vis.gl/react-google-maps";
+import { APIProvider, AdvancedMarker, Map, Marker, Pin } from "@vis.gl/react-google-maps";
 import { BadgeCheck, Car, Check, CreditCard, MapPin, MailPlus, Phone, Search, ShieldCheck, Trash2, UserRound, X } from "lucide-react";
 
 import Logout from "@/components/dashboard/sidebar/logout";
@@ -29,7 +29,7 @@ type DriverSummary = {
   vehicle?: string | null;
   shareId?: string | null;
   liveAddress?: { latitude: number; longitude: number } | null;
-  existingConnection?: { id: string; status: string } | null;
+  existingConnection?: { id: string; status: string; note?: string | null } | null;
 };
 
 type Assignment = {
@@ -50,6 +50,7 @@ type Connection = {
   id: string;
   status: string;
   requestedBy?: string | null;
+  note?: string | null;
   driver: DriverSummary & { shareProfile?: { shareId: string } | null };
   assignments: Assignment[];
 };
@@ -156,6 +157,7 @@ function DriverLocationMap({
   }
 
   const center = { lat: location.latitude, lng: location.longitude };
+  const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID?.trim();
 
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200">
@@ -164,14 +166,18 @@ function DriverLocationMap({
           <Map
             defaultCenter={center}
             defaultZoom={14}
-            mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID}
+            {...(mapId ? { mapId } : {})}
             fullscreenControl={false}
             streetViewControl={false}
             mapTypeControl={false}
           >
-            <AdvancedMarker position={center} title={assignment.driver.full_name}>
-              <Pin background="#111827" borderColor="#ffffff" glyphColor="#ffffff" />
-            </AdvancedMarker>
+            {mapId ? (
+              <AdvancedMarker position={center} title={assignment.driver.full_name}>
+                <Pin background="#111827" borderColor="#ffffff" glyphColor="#ffffff" />
+              </AdvancedMarker>
+            ) : (
+              <Marker position={center} title={assignment.driver.full_name} />
+            )}
           </Map>
         </APIProvider>
       </div>
@@ -202,12 +208,18 @@ export function StandaloneParentDashboard({
   const [addDriverOpen, setAddDriverOpen] = useState(false);
   const [addKidOpen, setAddKidOpen] = useState(false);
   const [locationAssignment, setLocationAssignment] = useState<(Assignment & { driver: DriverSummary }) | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<Connection | null>(null);
+  const [revokeReason, setRevokeReason] = useState("");
+  const [requestAgainTarget, setRequestAgainTarget] = useState<DriverSummary | null>(null);
+  const [assignmentConfirmTarget, setAssignmentConfirmTarget] = useState<Connection | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const approvedConnections = connections.filter((connection) => connection.status === "PARENT_APPROVED");
   const pendingConnections = connections.filter((connection) => connection.status !== "PARENT_APPROVED");
   const activeAssignments = connections.flatMap((connection) =>
-    connection.assignments.map((assignment) => ({ ...assignment, driver: connection.driver }))
+    connection.assignments
+      .filter((assignment) => assignment.status === "ACTIVE")
+      .map((assignment) => ({ ...assignment, driver: connection.driver }))
   );
 
   const billingSummary = useMemo(() => {
@@ -296,6 +308,7 @@ export function StandaloneParentDashboard({
         setQuery("");
         setSearchResults([]);
         setAddDriverOpen(false);
+        setRequestAgainTarget(null);
         toast({ description: data.message });
       } catch (error) {
         toast({ description: error instanceof Error ? error.message : "Unable to request driver", variant: "destructive" });
@@ -353,11 +366,28 @@ export function StandaloneParentDashboard({
     });
   };
 
-  const revokeConnection = (connectionId: string) => {
+  const openRevokeModal = (connection: Connection) => {
+    setRevokeTarget(connection);
+    setRevokeReason("");
+  };
+
+  const closeRevokeModal = () => {
+    setRevokeTarget(null);
+    setRevokeReason("");
+  };
+
+  const revokeConnection = () => {
+    if (!revokeTarget) return;
+    const reason = revokeReason.trim();
+
     startTransition(async () => {
       try {
-        const data = await jsonFetch(`/api/parent-driver-connections/${connectionId}/revoke`, { method: "PATCH" });
+        const data = await jsonFetch(`/api/parent-driver-connections/${revokeTarget.id}/revoke`, {
+          method: "PATCH",
+          body: JSON.stringify({ reason }),
+        });
         await refreshConnections();
+        closeRevokeModal();
         toast({ description: data.message });
       } catch (error) {
         toast({ description: error instanceof Error ? error.message : "Unable to revoke driver", variant: "destructive" });
@@ -377,7 +407,7 @@ export function StandaloneParentDashboard({
     });
   };
 
-  const assignChildren = (connectionId: string) => {
+  const saveChildAssignments = (connectionId: string) => {
     const childIds = selectedChildrenByConnection[connectionId] || [];
     startTransition(async () => {
       try {
@@ -392,6 +422,15 @@ export function StandaloneParentDashboard({
         toast({ description: error instanceof Error ? error.message : "Unable to assign children", variant: "destructive" });
       }
     });
+  };
+
+  const assignChildren = (connection: Connection) => {
+    if (connection.note) {
+      setAssignmentConfirmTarget(connection);
+      return;
+    }
+
+    saveChildAssignments(connection.id);
   };
 
   const initializePayment = (assignmentId: string) => {
@@ -500,7 +539,7 @@ export function StandaloneParentDashboard({
                         <Check className="h-4 w-4" /> Approve
                       </Button>
                     )}
-                    <Button size="sm" variant="outline" disabled={isPending} onClick={() => revokeConnection(connection.id)}>
+                    <Button size="sm" variant="outline" disabled={isPending} onClick={() => openRevokeModal(connection)}>
                       Revoke
                     </Button>
                   </div>
@@ -580,9 +619,20 @@ export function StandaloneParentDashboard({
                           <p className="text-xs text-slate-500">{driver.shareId || "No share ID"} · {driver.vehicle || "Vehicle pending"}</p>
                         </div>
                       </div>
-                      <Button size="sm" disabled={isPending || !!driver.existingConnection} onClick={() => requestDriver(driver.id)}>
-                        {driver.existingConnection ? driver.existingConnection.status.replaceAll("_", " ") : "Request"}
-                      </Button>
+                      <div className="flex shrink-0 flex-wrap items-center gap-2">
+                        {driver.existingConnection && (
+                          <StatusBadge status={driver.existingConnection.status} />
+                        )}
+                        {driver.existingConnection?.status === "REVOKED" ? (
+                          <Button size="sm" disabled={isPending} onClick={() => setRequestAgainTarget(driver)}>
+                            Request again
+                          </Button>
+                        ) : (
+                          <Button size="sm" disabled={isPending || !!driver.existingConnection} onClick={() => requestDriver(driver.id)}>
+                            {driver.existingConnection ? driver.existingConnection.status.replaceAll("_", " ") : "Request"}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ))}
                   {!searchResults.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">Search for a driver you already know.</p>}
@@ -643,6 +693,99 @@ export function StandaloneParentDashboard({
         </div>
       )}
 
+      {revokeTarget && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-4">
+          <div className="w-full max-w-lg rounded-t-xl bg-white p-4 shadow-2xl sm:rounded-xl">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold">Revoke driver access</h2>
+                <p className="text-sm text-slate-500">{revokeTarget.driver.full_name}</p>
+              </div>
+              <button type="button" onClick={closeRevokeModal} className="rounded-md p-2 hover:bg-slate-100" aria-label="Close revoke driver">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <textarea
+              className="min-h-28 w-full resize-none rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-900 outline-none focus:border-slate-400"
+              value={revokeReason}
+              onChange={(event) => setRevokeReason(event.target.value)}
+              placeholder="Reason for revoking this driver's access"
+            />
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <Button type="button" variant="outline" disabled={isPending} onClick={closeRevokeModal}>
+                Cancel
+              </Button>
+              <Button type="button" disabled={isPending || revokeReason.trim().length < 5} onClick={revokeConnection} className="gap-2">
+                <Trash2 className="h-4 w-4" /> Revoke access
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {requestAgainTarget && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-4">
+          <div className="w-full max-w-lg rounded-t-xl bg-white p-4 shadow-2xl sm:rounded-xl">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold">Request driver again?</h2>
+                <p className="text-sm text-slate-500">{requestAgainTarget.full_name}</p>
+              </div>
+              <button type="button" onClick={() => setRequestAgainTarget(null)} className="rounded-md p-2 hover:bg-slate-100" aria-label="Close request driver again">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+              You revoked this driver due to: {requestAgainTarget.existingConnection?.note || "No reason recorded"}.
+            </div>
+            <p className="mt-3 text-sm text-slate-600">Are you sure you want to add this driver again?</p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <Button type="button" variant="outline" disabled={isPending} onClick={() => setRequestAgainTarget(null)}>
+                Search another driver
+              </Button>
+              <Button type="button" disabled={isPending} onClick={() => requestDriver(requestAgainTarget.id)}>
+                Yes, request again
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {assignmentConfirmTarget && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-4">
+          <div className="w-full max-w-lg rounded-t-xl bg-white p-4 shadow-2xl sm:rounded-xl">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold">Assign kids to this driver?</h2>
+                <p className="text-sm text-slate-500">{assignmentConfirmTarget.driver.full_name}</p>
+              </div>
+              <button type="button" onClick={() => setAssignmentConfirmTarget(null)} className="rounded-md p-2 hover:bg-slate-100" aria-label="Close assignment confirmation">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+              You previously revoked this driver due to: {assignmentConfirmTarget.note || "No reason recorded"}.
+            </div>
+            <p className="mt-3 text-sm text-slate-600">Are you sure you want to assign kids to this driver again?</p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <Button type="button" variant="outline" disabled={isPending} onClick={() => setAssignmentConfirmTarget(null)}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                disabled={isPending}
+                onClick={() => {
+                  saveChildAssignments(assignmentConfirmTarget.id);
+                  setAssignmentConfirmTarget(null);
+                }}
+              >
+                Yes, save assignments
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mx-auto grid w-full max-w-7xl gap-5 px-4 py-6">
         <header className="rounded-lg border border-slate-200 bg-white p-4">
           <p className="text-sm text-slate-500">Known driver network</p>
@@ -657,7 +800,11 @@ export function StandaloneParentDashboard({
           <div className="grid gap-4">
             {approvedConnections.map((connection) => {
               const selected = selectedChildrenByConnection[connection.id] || [];
-              const assignedChildIds = new Set(connection.assignments.map((assignment) => assignment.child.id));
+              const assignedChildIds = new Set(
+                connection.assignments
+                  .filter((assignment) => assignment.status === "ACTIVE")
+                  .map((assignment) => assignment.child.id)
+              );
 
               return (
                 <div key={connection.id} className="rounded-md border border-slate-200 p-3">
@@ -669,7 +816,7 @@ export function StandaloneParentDashboard({
                       </div>
                       <p className="text-xs text-slate-500">{connection.driver.shareProfile?.shareId || connection.driver.shareId || "No share ID"}</p>
                     </div>
-                    <Button size="sm" variant="outline" disabled={isPending} onClick={() => revokeConnection(connection.id)} className="gap-2">
+                    <Button size="sm" variant="outline" disabled={isPending} onClick={() => openRevokeModal(connection)} className="gap-2">
                       <Trash2 className="h-4 w-4" /> Revoke
                     </Button>
                   </div>
@@ -685,7 +832,7 @@ export function StandaloneParentDashboard({
                       </label>
                     ))}
                   </div>
-                  <Button className="mt-3" size="sm" disabled={isPending || !selected.length} onClick={() => assignChildren(connection.id)}>
+                  <Button className="mt-3" size="sm" disabled={isPending || !selected.length} onClick={() => assignChildren(connection)}>
                     Save child assignments
                   </Button>
                 </div>
@@ -698,50 +845,78 @@ export function StandaloneParentDashboard({
         <section className="rounded-lg border border-slate-200 bg-white p-4">
           <h2 className="mb-3 text-base font-semibold">My kids</h2>
           <div className="grid gap-3">
-            {activeAssignments.map((assignment) => (
-              <div key={assignment.id} className="flex flex-col gap-3 rounded-md border border-slate-200 p-3 md:flex-row md:items-center md:justify-between">
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-slate-100">
-                    {assignment.child.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={assignment.child.image} alt="" className="h-full w-full object-cover" />
+            {children.map((child) => {
+              const childAssignments = activeAssignments.filter((assignment) => assignment.child.id === child.id);
+              const assignment = childAssignments[0];
+              const extraDrivers = Math.max(childAssignments.length - 1, 0);
+
+              return (
+                <div key={child.id} className="flex flex-col gap-3 rounded-md border border-slate-200 p-3 md:flex-row md:items-center md:justify-between">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-slate-100">
+                      {child.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={child.image} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <UserRound className="h-6 w-6 text-slate-500" aria-hidden="true" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{child.fullName}</p>
+                      {assignment ? (
+                        <>
+                          <p className="text-xs text-slate-500">
+                            Driver: {assignment.driver.full_name}
+                            {extraDrivers ? ` + ${extraDrivers} more` : ""}
+                          </p>
+                          <p className="text-xs text-slate-500">Last status: {(assignment.lastStatus || "Waiting").replaceAll("_", " ")}</p>
+                          <p className="text-xs font-semibold text-slate-700">{childPlaceLabel(assignment)}</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-xs text-slate-500">{child.address || child.grade || "No school address"}</p>
+                          <p className="text-xs font-semibold text-slate-700">No driver assigned</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {assignment ? (
+                      <>
+                        <StatusBadge status={assignment.billingStatus} />
+                        <span className="text-xs text-slate-500">Trial ends {formatDate(assignment.trialEndsAt)}</span>
+                        {assignment.driver.phoneNumber && (
+                          <Button size="sm" variant="outline" asChild className="gap-2">
+                            <a href={`tel:${assignment.driver.phoneNumber}`}>
+                              <Phone className="h-4 w-4" /> Call driver
+                            </a>
+                          </Button>
+                        )}
+                        {assignment.driver.liveAddress ? (
+                          <Button size="sm" variant="outline" onClick={() => setLocationAssignment(assignment)} className="gap-2">
+                            <MapPin className="h-4 w-4" /> View location
+                          </Button>
+                        ) : (
+                          <Button size="sm" variant="outline" disabled={isPending} onClick={() => requestLocation(assignment.id)} className="gap-2">
+                            <MapPin className="h-4 w-4" /> Request location
+                          </Button>
+                        )}
+                        {/* <Button size="sm" variant="outline" disabled={isPending} onClick={() => initializePayment(assignment.id)} className="gap-2">
+                          <CreditCard className="h-4 w-4" /> Pay monthly
+                        </Button> */}
+                      </>
                     ) : (
-                      <UserRound className="h-6 w-6 text-slate-500" aria-hidden="true" />
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">UNASSIGNED</span>
                     )}
                   </div>
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold">{assignment.child.fullName}</p>
-                    <p className="text-xs text-slate-500">Driver: {assignment.driver.full_name}</p>
-                    <p className="text-xs text-slate-500">Last status: {(assignment.lastStatus || "Waiting").replaceAll("_", " ")}</p>
-                    <p className="text-xs font-semibold text-slate-700">{childPlaceLabel(assignment)}</p>
-                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge status={assignment.billingStatus} />
-                  <span className="text-xs text-slate-500">Trial ends {formatDate(assignment.trialEndsAt)}</span>
-                  {assignment.driver.phoneNumber && (
-                    <Button size="sm" variant="outline" asChild className="gap-2">
-                      <a href={`tel:${assignment.driver.phoneNumber}`}>
-                        <Phone className="h-4 w-4" /> Call driver
-                      </a>
-                    </Button>
-                  )}
-                  {assignment.driver.liveAddress ? (
-                    <Button size="sm" variant="outline" onClick={() => setLocationAssignment(assignment)} className="gap-2">
-                      <MapPin className="h-4 w-4" /> View location
-                    </Button>
-                  ) : (
-                    <Button size="sm" variant="outline" disabled={isPending} onClick={() => requestLocation(assignment.id)} className="gap-2">
-                      <MapPin className="h-4 w-4" /> Request location
-                    </Button>
-                  )}
-                  {/* <Button size="sm" variant="outline" disabled={isPending} onClick={() => initializePayment(assignment.id)} className="gap-2">
-                    <CreditCard className="h-4 w-4" /> Pay monthly
-                  </Button> */}
-                </div>
-              </div>
-            ))}
-            {!activeAssignments.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">Assigned kids will appear here with driver tracking and billing status.</p>}
+              );
+            })}
+            {!children.length && (
+              <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">
+                Added kids will appear here.
+              </p>
+            )}
           </div>
         </section>
 

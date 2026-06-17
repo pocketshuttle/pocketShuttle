@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { getApiSession, isParent } from "@/lib/api-auth";
 import { sendKnownDriverRealtimeEvent } from "@/lib/known-driver-network";
@@ -6,13 +6,20 @@ import db from "@/packages/db/client";
 
 type Params = { id: string };
 
-export async function PATCH(_req: Request, { params }: { params: Promise<Params> }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<Params> }) {
   const session = await getApiSession();
   if (!isParent(session)) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
+  const body = await req.json().catch(() => ({}));
+  const reason = typeof body.reason === "string" ? body.reason.trim() : "";
+
+  if (reason.length < 5) {
+    return NextResponse.json({ message: "Please provide a revocation reason" }, { status: 400 });
+  }
+
   const connection = await db.parentDriverConnection.findFirst({
     where: { id, parentId: session.id },
   });
@@ -31,6 +38,7 @@ export async function PATCH(_req: Request, { params }: { params: Promise<Params>
       where: { id: connection.id },
       data: {
         status: "REVOKED",
+        note: reason,
         revokedAt: new Date(),
       },
     });
