@@ -64,6 +64,9 @@ const AdminKnownDriversPage = async () => {
               <div key={connection.id} className="rounded-md bg-slate-50 p-3 text-sm">
                 <p className="font-medium">{connection.parent.full_name || "Parent"} ↔ {connection.driver.full_name}</p>
                 <p className="text-xs text-slate-500">{connection.status} · {connection.driver.shareProfile?.shareId || "No share ID"} · {connection._count.assignments} kids</p>
+                {connection.status === "REVOKED" && connection.note && (
+                  <p className="mt-1 text-xs text-rose-700">Reason: {connection.note}</p>
+                )}
               </div>
             ))}
           </div>
