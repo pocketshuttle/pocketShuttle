@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import db from "@/packages/db/client";
 import { getApiSession, isParent } from "@/lib/api-auth";
+import { geocodeAddress } from "@/lib/google-geocoding";
 import { ParentChildSchema } from "@/schemas";
 
 async function getStandaloneParent(parentId: string) {
@@ -45,7 +46,27 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ children });
+  const schoolCoordRows = await db.$queryRaw<Array<{ id: string; address: string | null; schoolCoords: unknown }>>`
+    SELECT "id", "address", "school_coords" AS "schoolCoords"
+    FROM "parent_children"
+    WHERE "parent_id" = ${parent.id}
+  `;
+  const schoolCoordsByChildId = new Map(schoolCoordRows.map((row) => [row.id, row.schoolCoords]));
+  const schoolCoordsByAddress = new Map(
+    schoolCoordRows
+      .filter((row) => row.address && row.schoolCoords)
+      .map((row) => [row.address!.trim().toLowerCase(), row.schoolCoords])
+  );
+
+  return NextResponse.json({
+    children: children.map((child) => ({
+      ...child,
+      schoolCoords:
+        schoolCoordsByChildId.get(child.id) ??
+        (child.address ? schoolCoordsByAddress.get(child.address.trim().toLowerCase()) : null) ??
+        null,
+    })),
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -68,6 +89,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  let schoolCoords;
+  try {
+    schoolCoords = await geocodeAddress(parsed.data.address);
+  } catch (error) {
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : "We could not locate this school address. Please enter a more specific address." },
+      { status: 400 }
+    );
+  }
+
   const child = await db.parentChild.create({
     data: {
       parentId: parent.id,
@@ -79,5 +110,11 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json({ message: "Child added", child }, { status: 201 });
+  await db.$executeRaw`
+    UPDATE "parent_children"
+    SET "school_coords" = ${JSON.stringify(schoolCoords)}::jsonb
+    WHERE "id" = ${child.id}
+  `;
+
+  return NextResponse.json({ message: "Child added", child: { ...child, schoolCoords } }, { status: 201 });
 }

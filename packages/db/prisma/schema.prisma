@@ -413,6 +413,7 @@ model ParentChild {
   age            Int?
   grade          String?
   address        String?
+  schoolCoords   Json?           @map("school_coords")
   pickupNote     String?         @map("pickup_note")
   image          String?
   activeDriverId String?         @map("active_driver_id")

@@ -129,6 +129,24 @@ const TeacherView = async () => {
                     take: 20,
                 }),
             ]);
+            const schoolCoordRows = await db.$queryRaw<Array<{ id: string; address: string | null; schoolCoords: unknown }>>`
+                SELECT "id", "address", "school_coords" AS "schoolCoords"
+                FROM "parent_children"
+                WHERE "parent_id" = ${parent.id}
+            `;
+            const schoolCoordsByChildId = new Map(schoolCoordRows.map((row) => [row.id, row.schoolCoords]));
+            const schoolCoordsByAddress = new Map(
+                schoolCoordRows
+                    .filter((row) => row.address && row.schoolCoords)
+                    .map((row) => [row.address!.trim().toLowerCase(), row.schoolCoords])
+            );
+            const childrenWithSchoolCoords = children.map((child) => ({
+                ...child,
+                schoolCoords:
+                    schoolCoordsByChildId.get(child.id) ??
+                    (child.address ? schoolCoordsByAddress.get(child.address.trim().toLowerCase()) : null) ??
+                    null,
+            }));
 
             return (
                 <Suspense>
@@ -136,7 +154,7 @@ const TeacherView = async () => {
                         <StandaloneParentDashboard
                             parentId={parent.id}
                             parentName={parent.full_name}
-                            childrenData={children as any}
+                            childrenData={childrenWithSchoolCoords as any}
                             connectionsData={connections as any}
                             invitesData={invites as any}
                         />

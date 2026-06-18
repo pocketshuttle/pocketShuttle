@@ -284,7 +284,9 @@ export const ParentChildSchema = z.object({
   }),
   age: z.coerce.number().optional(),
   grade: z.string().optional(),
-  address: z.string().optional(),
+  address: z.string().min(1, {
+    message: "School address is required!",
+  }),
   image: z.string().optional(),
 });
 

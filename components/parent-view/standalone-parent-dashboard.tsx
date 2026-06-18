@@ -16,6 +16,7 @@ type Child = {
   age?: number | null;
   grade?: string | null;
   address?: string | null;
+  schoolCoords?: { latitude: number; longitude: number } | null;
   image?: string | null;
 };
 
@@ -132,6 +133,10 @@ function childPlaceLabel(assignment: Assignment) {
   return "Waiting";
 }
 
+function schoolKey(value?: string | null) {
+  return value?.trim().toLowerCase() || "";
+}
+
 function DriverLocationMap({
   assignment,
 }: {
@@ -204,9 +209,11 @@ export function StandaloneParentDashboard({
   const [inviteForm, setInviteForm] = useState({ email: "", phoneNumber: "" });
   const [childForm, setChildForm] = useState({ fullName: "", age: "", grade: "", address: "" });
   const [selectedChildrenByConnection, setSelectedChildrenByConnection] = useState<Record<string, string[]>>({});
+  const [sharedSchoolAddressByKey, setSharedSchoolAddressByKey] = useState<Record<string, boolean>>({});
   const [sideMenuOpen, setSideMenuOpen] = useState(false);
   const [addDriverOpen, setAddDriverOpen] = useState(false);
   const [addKidOpen, setAddKidOpen] = useState(false);
+  const [editingChildId, setEditingChildId] = useState<string | null>(null);
   const [locationAssignment, setLocationAssignment] = useState<(Assignment & { driver: DriverSummary }) | null>(null);
   const [revokeTarget, setRevokeTarget] = useState<Connection | null>(null);
   const [revokeReason, setRevokeReason] = useState("");
@@ -221,6 +228,18 @@ export function StandaloneParentDashboard({
       .filter((assignment) => assignment.status === "ACTIVE")
       .map((assignment) => ({ ...assignment, driver: connection.driver }))
   );
+  const schoolCoordsByAddress = useMemo(() => {
+    const coordsByAddress = new globalThis.Map<string, { latitude: number; longitude: number }>();
+    for (const child of children) {
+      const key = schoolKey(child.address);
+      if (key && child.schoolCoords) {
+        coordsByAddress.set(key, child.schoolCoords);
+      }
+    }
+    return coordsByAddress;
+  }, [children]);
+
+  const isSharedSchoolAddressOn = (key: string) => sharedSchoolAddressByKey[key] ?? true;
 
   const billingSummary = useMemo(() => {
     const freeTrial = activeAssignments.filter((assignment) => assignment.billingStatus === "FREE_TRIAL").length;
@@ -238,7 +257,11 @@ export function StandaloneParentDashboard({
   useEffect(() => {
     const openAddDriver = () => setAddDriverOpen(true);
     const openMenu = () => setSideMenuOpen(true);
-    const openAddKid = () => setAddKidOpen(true);
+    const openAddKid = () => {
+      setEditingChildId(null);
+      setChildForm({ fullName: "", age: "", grade: "", address: "" });
+      setAddKidOpen(true);
+    };
 
     window.addEventListener("standalone-parent:add-driver", openAddDriver);
     window.addEventListener("standalone-parent:open-menu", openMenu);
@@ -337,21 +360,43 @@ export function StandaloneParentDashboard({
   const addChild = () => {
     startTransition(async () => {
       try {
-        const data = await jsonFetch("/api/parent/children", {
-          method: "POST",
+        const data = await jsonFetch(editingChildId ? `/api/parent/children/${editingChildId}` : "/api/parent/children", {
+          method: editingChildId ? "PATCH" : "POST",
           body: JSON.stringify({
             ...childForm,
             age: childForm.age ? Number(childForm.age) : undefined,
           }),
         });
-        setChildren((current) => [data.child, ...current]);
+        setChildren((current) =>
+          editingChildId
+            ? current.map((child) => {
+                if (child.id === editingChildId) return data.child;
+                if (data.schoolCoordinateUpdate?.childIds?.includes(child.id)) {
+                  return { ...child, schoolCoords: data.schoolCoordinateUpdate.schoolCoords };
+                }
+                return child;
+              })
+            : [data.child, ...current]
+        );
         setChildForm({ fullName: "", age: "", grade: "", address: "" });
+        setEditingChildId(null);
         setAddKidOpen(false);
         toast({ description: data.message });
       } catch (error) {
-        toast({ description: error instanceof Error ? error.message : "Unable to add child", variant: "destructive" });
+        toast({ description: error instanceof Error ? error.message : "Unable to save child", variant: "destructive" });
       }
     });
+  };
+
+  const editChildSchoolAddress = (child: Child) => {
+    setEditingChildId(child.id);
+    setChildForm({
+      fullName: child.fullName || "",
+      age: child.age ? String(child.age) : "",
+      grade: child.grade || "",
+      address: child.address || "",
+    });
+    setAddKidOpen(true);
   };
 
   const approveConnection = (connectionId: string) => {
@@ -403,6 +448,19 @@ export function StandaloneParentDashboard({
         [connectionId]: selected.includes(childId)
           ? selected.filter((id) => id !== childId)
           : [...selected, childId],
+      };
+    });
+  };
+
+  const setChildGroupSelection = (connectionId: string, childIds: string[], enabled: boolean) => {
+    setSelectedChildrenByConnection((current) => {
+      const selected = current[connectionId] || [];
+
+      return {
+        ...current,
+        [connectionId]: enabled
+          ? Array.from(new Set([...selected, ...childIds]))
+          : selected.filter((childId) => !childIds.includes(childId)),
       };
     });
   };
@@ -658,8 +716,17 @@ export function StandaloneParentDashboard({
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-4">
           <div className="w-full max-w-xl rounded-t-xl bg-white p-4 shadow-2xl sm:rounded-xl">
             <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold">Add kid</h2>
-              <button type="button" onClick={() => setAddKidOpen(false)} className="rounded-md p-2 hover:bg-slate-100" aria-label="Close add kid">
+              <h2 className="text-lg font-semibold">{editingChildId ? "Edit school address" : "Add kid"}</h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setAddKidOpen(false);
+                  setEditingChildId(null);
+                  setChildForm({ fullName: "", age: "", grade: "", address: "" });
+                }}
+                className="rounded-md p-2 hover:bg-slate-100"
+                aria-label="Close add kid"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -669,8 +736,8 @@ export function StandaloneParentDashboard({
               <Input className={inputClass} value={childForm.grade} onChange={(event) => setChildForm((current) => ({ ...current, grade: event.target.value }))} placeholder="Grade" />
               <Input className={inputClass} value={childForm.address} onChange={(event) => setChildForm((current) => ({ ...current, address: event.target.value }))} placeholder="School address" />
             </div>
-            <Button className="mt-4" disabled={isPending || !childForm.fullName.trim()} onClick={addChild}>
-              Add kid
+            <Button className="mt-4" disabled={isPending || !childForm.fullName.trim() || !childForm.address.trim()} onClick={addChild}>
+              {editingChildId ? "Save school address" : "Add kid"}
             </Button>
           </div>
         </div>
@@ -805,6 +872,19 @@ export function StandaloneParentDashboard({
                   .filter((assignment) => assignment.status === "ACTIVE")
                   .map((assignment) => assignment.child.id)
               );
+              const schoolGroups = Array.from(
+                children
+                  .reduce((groups, child) => {
+                    const label = child.address?.trim() || child.grade?.trim() || "School not set";
+                    const key = label.toLowerCase();
+                    const group = groups.get(key) || { label, children: [] as Child[] };
+                    group.children.push(child);
+                    groups.set(key, group);
+                    return groups;
+                  }, new globalThis.Map<string, { label: string; children: Child[] }>())
+                  .values()
+              );
+              const showSchoolGroups = schoolGroups.some((group) => group.children.length > 1);
 
               return (
                 <div key={connection.id} className="rounded-md border border-slate-200 p-3">
@@ -820,6 +900,59 @@ export function StandaloneParentDashboard({
                       <Trash2 className="h-4 w-4" /> Revoke
                     </Button>
                   </div>
+
+                  {showSchoolGroups && (
+                    <div className="mt-4 grid justify-start gap-2">
+                      {schoolGroups
+                        .filter((group) => group.children.length > 1)
+                        .map((group) => {
+                          const groupKey = schoolKey(group.label);
+                          const groupChildIds = group.children.map((child) => child.id);
+                          const availableChildIds = group.children
+                            .map((child) => child.id)
+                            .filter((childId) => !assignedChildIds.has(childId));
+                          const checked = isSharedSchoolAddressOn(groupKey);
+                          const nextChecked = !checked;
+                          const allAlreadyAssigned =
+                            groupChildIds.length > 0 &&
+                            groupChildIds.every((childId) => assignedChildIds.has(childId));
+
+                          return (
+                            <button
+                              key={group.label}
+                              type="button"
+                              role="switch"
+                              aria-checked={checked}
+                              onClick={() => {
+                                setSharedSchoolAddressByKey((current) => ({ ...current, [groupKey]: nextChecked }));
+                                setChildGroupSelection(connection.id, availableChildIds, nextChecked);
+                              }}
+                              className="flex max-w-full items-center gap-3 rounded-md px-1 py-2 text-left"
+                            >
+                              <span
+                                className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
+                                  checked ? "bg-emerald-600" : "bg-slate-300"
+                                }`}
+                              >
+                                <span
+                                  className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                                    checked ? "translate-x-5" : "translate-x-0"
+                                  }`}
+                                />
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block truncate text-sm font-semibold">
+                                  {schoolGroups.length === 1 ? "All kids at this school" : `${group.children.length} kids at this school`}
+                                </span>
+                                <span className="block truncate text-xs text-slate-500">
+                                  {allAlreadyAssigned ? `${group.label} · already assigned` : group.label}
+                                </span>
+                              </span>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  )}
 
                   <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {children.map((child) => (
@@ -849,6 +982,11 @@ export function StandaloneParentDashboard({
               const childAssignments = activeAssignments.filter((assignment) => assignment.child.id === child.id);
               const assignment = childAssignments[0];
               const extraDrivers = Math.max(childAssignments.length - 1, 0);
+              const childSchoolKey = schoolKey(child.address);
+              const effectiveSchoolCoords =
+                child.schoolCoords ||
+                (isSharedSchoolAddressOn(childSchoolKey) ? schoolCoordsByAddress.get(childSchoolKey) : null) ||
+                null;
 
               return (
                 <div key={child.id} className="flex flex-col gap-3 rounded-md border border-slate-200 p-3 md:flex-row md:items-center md:justify-between">
@@ -877,6 +1015,14 @@ export function StandaloneParentDashboard({
                           <p className="text-xs text-slate-500">{child.address || child.grade || "No school address"}</p>
                           <p className="text-xs font-semibold text-slate-700">No driver assigned</p>
                         </>
+                      )}
+                      {!effectiveSchoolCoords && (
+                        <div className="mt-1 flex flex-wrap items-center gap-2">
+                          <p className="text-xs font-medium text-amber-700">School location missing</p>
+                          <Button size="sm" variant="outline" onClick={() => editChildSchoolAddress(child)} className="h-7 px-2 text-xs">
+                            Edit
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>

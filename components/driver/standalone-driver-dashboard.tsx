@@ -22,6 +22,7 @@ type Assignment = {
     age?: number | null;
     grade?: string | null;
     address?: string | null;
+    schoolCoords?: { latitude: number; longitude: number } | null;
     image?: string | null;
   };
   events?: Array<{ id: string; eventType: string; createdAt: string | Date }>;
@@ -136,6 +137,21 @@ function childPlaceLabel(assignment: Assignment) {
   }
 
   return "Waiting";
+}
+
+function getCurrentGpsPosition() {
+  return new Promise<GeolocationPosition>((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error("GPS is not available in this browser."));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: true,
+      timeout: 20000,
+      maximumAge: 0,
+    });
+  });
 }
 
 export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
@@ -346,9 +362,15 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
   const markChildStatus = (assignmentId: string, action: "on_the_way" | "picked_up" | "dropped_off") => {
     startTransition(async () => {
       try {
+        const gpsPosition = action === "dropped_off" ? await getCurrentGpsPosition() : null;
         const data = await jsonFetch(`/api/child-driver-assignments/${assignmentId}/status`, {
           method: "PATCH",
-          body: JSON.stringify({ action }),
+          body: JSON.stringify({
+            action,
+            latitude: gpsPosition?.coords.latitude,
+            longitude: gpsPosition?.coords.longitude,
+            accuracy: gpsPosition?.coords.accuracy,
+          }),
         });
         if (data.assignment) {
           setConnections((current) =>
