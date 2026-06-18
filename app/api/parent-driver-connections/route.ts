@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 
 import { getApiSession } from "@/lib/api-auth";
+import { markDriverActive } from "@/lib/driver-activity";
 import { sendKnownDriverRealtimeEvent } from "@/lib/known-driver-network";
 import db from "@/packages/db/client";
 
@@ -45,8 +47,22 @@ export async function GET() {
     orderBy: { updatedAt: "desc" },
   });
 
+  const driverIds = Array.from(new Set(connections.map((connection) => connection.driver.id)));
+  const driverActivityRows = driverIds.length
+    ? await db.$queryRaw<Array<{ id: string; lastActiveAt: Date | null }>>`
+        SELECT "id", "last_active_at" AS "lastActiveAt"
+        FROM "Driver"
+        WHERE "id" IN (${Prisma.join(driverIds)})
+      `
+    : [];
+  const driverActivityById = new Map(driverActivityRows.map((row) => [row.id, row.lastActiveAt]));
+
   const response = connections.map((connection) => ({
     ...connection,
+    driver: {
+      ...connection.driver,
+      lastActiveAt: driverActivityById.get(connection.driver.id) ?? null,
+    },
     assignments:
       session.role === "driver" && connection.status !== "PARENT_APPROVED"
         ? []
@@ -104,6 +120,9 @@ export async function POST(req: NextRequest) {
   });
 
   await sendKnownDriverRealtimeEvent({ parentId, driverId, event: "connection-updated" });
+  if (session.role === "driver") {
+    await markDriverActive(session.id);
+  }
 
   return NextResponse.json({ message: "Connection request saved", connection }, { status: 201 });
 }

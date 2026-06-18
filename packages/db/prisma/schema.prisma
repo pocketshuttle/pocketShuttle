@@ -336,6 +336,7 @@ model Driver {
   image                      String?
   address                    String
   liveAddress                Json?                      @map("live_address")
+  lastActiveAt               DateTime?                  @map("last_active_at")
   landmark                   String?
   utilityBillUrl             String?                    @map("utility_bill_url")
   identityDocumentUrl        String?                    @map("identity_document_url")

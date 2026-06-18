@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getApiSession } from "@/lib/api-auth";
+import { markDriverActive } from "@/lib/driver-activity";
 import { sendKnownDriverRealtimeEvent } from "@/lib/known-driver-network";
 import db from "@/packages/db/client";
 
@@ -46,6 +47,10 @@ export async function PATCH(_req: Request, { params }: { params: Promise<Params>
     driverId: updated.driverId,
     event: "connection-approved",
   });
+
+  if (isDriverSession) {
+    await markDriverActive(session.id);
+  }
 
   return NextResponse.json({ message: "Connection approved", connection: updated });
 }

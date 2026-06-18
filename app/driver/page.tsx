@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { StandaloneDriverDashboard } from "@/components/driver/standalone-driver-dashboard";
+import { markDriverActive } from "@/lib/driver-activity";
 import { ensureDriverShareProfile } from "@/lib/known-driver-network";
 import { getUserSession } from "@/lib/session";
 import db from "@/packages/db/client";
@@ -44,15 +45,20 @@ const DriverPage = async () => {
     redirect("/dashboard");
   }
 
-  const identityRows = await db.$queryRaw<{ identityDocumentUrl: string | null }[]>`
-    SELECT "identity_document_url" AS "identityDocumentUrl"
+  await markDriverActive(driver.id);
+
+  const driverMetaRows = await db.$queryRaw<{ identityDocumentUrl: string | null; lastActiveAt: Date | null }[]>`
+    SELECT
+      "identity_document_url" AS "identityDocumentUrl",
+      "last_active_at" AS "lastActiveAt"
     FROM "Driver"
     WHERE "id" = ${driver.id}
     LIMIT 1
   `;
   const driverData = {
     ...driver,
-    identityDocumentUrl: identityRows[0]?.identityDocumentUrl || null,
+    identityDocumentUrl: driverMetaRows[0]?.identityDocumentUrl || null,
+    lastActiveAt: driverMetaRows[0]?.lastActiveAt || null,
     shareProfile:
       driver.shareProfile ||
       (await ensureDriverShareProfile({

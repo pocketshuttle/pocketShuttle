@@ -1,68 +1,18 @@
 "use client";
 
-import { ChangeEvent, useEffect, useMemo, useState, useTransition } from "react";
-import { APIProvider, AdvancedMarker, Map, Marker, Pin } from "@vis.gl/react-google-maps";
-import { BadgeCheck, Car, Check, CreditCard, MapPin, MailPlus, Phone, Search, ShieldCheck, Trash2, UserRound, X } from "lucide-react";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { BadgeCheck, Car, Check, Clock3, CreditCard, MapPin, Phone, Save, ShieldCheck, Trash2, UserRound, UsersRound, X } from "lucide-react";
 
-import Logout from "@/components/dashboard/sidebar/logout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
+import { AddDriverModal } from "@/components/parent-view/standalone/add-driver-modal";
+import { DriverLocationMap } from "@/components/parent-view/standalone/driver-location-map";
+import { ParentSideMenu } from "@/components/parent-view/standalone/parent-side-menu";
+import { StatusBadge } from "@/components/parent-view/standalone/status-badge";
+import type { AssignmentWithDriver, Child, Connection, DriverSummary, Invite } from "@/components/parent-view/standalone/types";
+import { childPlaceLabel, formatDate, formatRelativeActivity, inputClass, jsonFetch, schoolKey } from "@/components/parent-view/standalone/utils";
 import { pusherClient } from "@/pusher/client";
-
-type Child = {
-  id: string;
-  fullName: string;
-  age?: number | null;
-  grade?: string | null;
-  address?: string | null;
-  schoolCoords?: { latitude: number; longitude: number } | null;
-  image?: string | null;
-};
-
-type DriverSummary = {
-  id: string;
-  full_name: string;
-  email?: string | null;
-  phoneNumber?: string | null;
-  image?: string | null;
-  verificationStatus?: string | null;
-  vehicle?: string | null;
-  shareId?: string | null;
-  liveAddress?: { latitude: number; longitude: number } | null;
-  existingConnection?: { id: string; status: string; note?: string | null } | null;
-};
-
-type Assignment = {
-  id: string;
-  status: string;
-  billingStatus: string;
-  trialEndsAt?: string | Date | null;
-  monthlyAmount?: number | null;
-  currency?: string | null;
-  lastStatus?: string | null;
-  lastStatusAt?: string | Date | null;
-  child: Child;
-  events?: Array<{ id: string; eventType: string; createdAt: string | Date }>;
-  payments?: Array<{ id: string; status: string; authorizationUrl?: string | null }>;
-};
-
-type Connection = {
-  id: string;
-  status: string;
-  requestedBy?: string | null;
-  note?: string | null;
-  driver: DriverSummary & { shareProfile?: { shareId: string } | null };
-  assignments: Assignment[];
-};
-
-type Invite = {
-  id: string;
-  email?: string | null;
-  phoneNumber?: string | null;
-  status: string;
-  expiresAt: string | Date;
-};
 
 type Props = {
   parentId: string;
@@ -71,128 +21,6 @@ type Props = {
   connectionsData: Connection[];
   invitesData: Invite[];
 };
-
-const inputClass =
-  "h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-none";
-
-async function jsonFetch(url: string, init?: RequestInit) {
-  const response = await fetch(url, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers || {}),
-    },
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data?.message || "Request failed");
-  return data;
-}
-
-function formatDate(value?: string | Date | null) {
-  if (!value) return "N/A";
-  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
-}
-
-function statusTone(status?: string | null) {
-  if (status === "PARENT_APPROVED" || status === "ACTIVE" || status === "COMPLETED") {
-    return "bg-emerald-50 text-emerald-700";
-  }
-  if (status === "REVOKED" || status === "DECLINED" || status === "FAILED" || status === "PAST_DUE") {
-    return "bg-rose-50 text-rose-700";
-  }
-  return "bg-amber-50 text-amber-700";
-}
-
-function StatusBadge({ status }: { status?: string | null }) {
-  return (
-    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone(status)}`}>
-      {(status || "UNKNOWN").replaceAll("_", " ")}
-    </span>
-  );
-}
-
-function childPlaceLabel(assignment: Assignment) {
-  const statusEvents = (assignment.events || [])
-    .filter((event) => ["ON_THE_WAY_TO_SCHOOL", "PICKED_UP", "DROPPED_OFF"].includes(event.eventType))
-    .slice()
-    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-  const pickupCount = statusEvents.filter((event) => event.eventType === "PICKED_UP").length;
-
-  if (assignment.lastStatus === "DROPPED_OFF") {
-    return pickupCount > 0 && pickupCount % 2 === 0 ? "At home" : "In school";
-  }
-
-  if (assignment.lastStatus === "PICKED_UP") {
-    return pickupCount > 0 && pickupCount % 2 === 0 ? "On the way home" : "On the way to school";
-  }
-
-  if (assignment.lastStatus === "ON_THE_WAY_TO_SCHOOL") {
-    return "Driver on the way";
-  }
-
-  return "Waiting";
-}
-
-function schoolKey(value?: string | null) {
-  return value?.trim().toLowerCase() || "";
-}
-
-function DriverLocationMap({
-  assignment,
-}: {
-  assignment: Assignment & { driver: DriverSummary };
-}) {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  const location = assignment.driver.liveAddress;
-
-  if (!location) {
-    return (
-      <div className="grid h-72 place-items-center rounded-lg bg-slate-100 px-4 text-center text-sm text-slate-500">
-        Driver has not shared a live location yet.
-      </div>
-    );
-  }
-
-  if (!apiKey) {
-    return (
-      <div className="grid h-72 place-items-center rounded-lg bg-slate-100 px-4 text-center text-sm text-slate-500">
-        Google Maps is unavailable because the API key is missing.
-      </div>
-    );
-  }
-
-  const center = { lat: location.latitude, lng: location.longitude };
-  const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID?.trim();
-
-  return (
-    <div className="overflow-hidden rounded-lg border border-slate-200">
-      <div className="h-72">
-        <APIProvider apiKey={apiKey}>
-          <Map
-            defaultCenter={center}
-            defaultZoom={14}
-            {...(mapId ? { mapId } : {})}
-            fullscreenControl={false}
-            streetViewControl={false}
-            mapTypeControl={false}
-          >
-            {mapId ? (
-              <AdvancedMarker position={center} title={assignment.driver.full_name}>
-                <Pin background="#111827" borderColor="#ffffff" glyphColor="#ffffff" />
-              </AdvancedMarker>
-            ) : (
-              <Marker position={center} title={assignment.driver.full_name} />
-            )}
-          </Map>
-        </APIProvider>
-      </div>
-      <div className="border-t border-slate-200 bg-white p-3 text-sm text-slate-600">
-        {assignment.driver.full_name} for {assignment.child.fullName}
-        {assignment.lastStatusAt ? ` · last child update ${formatDate(assignment.lastStatusAt)}` : ""}
-      </div>
-    </div>
-  );
-}
 
 export function StandaloneParentDashboard({
   parentId,
@@ -214,7 +42,7 @@ export function StandaloneParentDashboard({
   const [addDriverOpen, setAddDriverOpen] = useState(false);
   const [addKidOpen, setAddKidOpen] = useState(false);
   const [editingChildId, setEditingChildId] = useState<string | null>(null);
-  const [locationAssignment, setLocationAssignment] = useState<(Assignment & { driver: DriverSummary }) | null>(null);
+  const [locationAssignment, setLocationAssignment] = useState<AssignmentWithDriver | null>(null);
   const [revokeTarget, setRevokeTarget] = useState<Connection | null>(null);
   const [revokeReason, setRevokeReason] = useState("");
   const [requestAgainTarget, setRequestAgainTarget] = useState<DriverSummary | null>(null);
@@ -370,12 +198,12 @@ export function StandaloneParentDashboard({
         setChildren((current) =>
           editingChildId
             ? current.map((child) => {
-                if (child.id === editingChildId) return data.child;
-                if (data.schoolCoordinateUpdate?.childIds?.includes(child.id)) {
-                  return { ...child, schoolCoords: data.schoolCoordinateUpdate.schoolCoords };
-                }
-                return child;
-              })
+              if (child.id === editingChildId) return data.child;
+              if (data.schoolCoordinateUpdate?.childIds?.includes(child.id)) {
+                return { ...child, schoolCoords: data.schoolCoordinateUpdate.schoolCoords };
+              }
+              return child;
+            })
             : [data.child, ...current]
         );
         setChildForm({ fullName: "", age: "", grade: "", address: "" });
@@ -535,181 +363,33 @@ export function StandaloneParentDashboard({
         />
       )}
 
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(92vw,420px)] flex-col overflow-y-auto border-r border-slate-200 bg-white shadow-2xl transition-transform duration-300 ${sideMenuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
-      >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white p-4">
-          <div className="min-w-0">
-            <p className="text-xs uppercase text-slate-500">Parent dashboard</p>
-            <p className="truncate text-base font-semibold">{parentName || "Parent"}</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setSideMenuOpen(false)}
-            className="rounded-md p-2 text-slate-500 hover:bg-slate-100"
-            aria-label="Close menu"
-          >
-            <X className="h-5 w-5" aria-hidden="true" />
-          </button>
-        </div>
-
-        <div className="grid gap-5 p-4">
-          <section className="rounded-lg border border-slate-200 bg-white p-4">
-            <h2 className="mb-3 text-base font-semibold">Payment plan</h2>
-            <div className="grid grid-cols-3 gap-2 text-center text-sm">
-              <div className="rounded-md bg-slate-50 p-3">
-                <p className="text-lg font-semibold">{billingSummary.freeTrial}</p>
-                <p className="text-xs text-slate-500">Trials</p>
-              </div>
-              <div className="rounded-md bg-slate-50 p-3">
-                <p className="text-lg font-semibold">{billingSummary.active}</p>
-                <p className="text-xs text-slate-500">Active</p>
-              </div>
-              <div className="rounded-md bg-slate-50 p-3">
-                <p className="text-lg font-semibold">{billingSummary.pastDue}</p>
-                <p className="text-xs text-slate-500">Past due</p>
-              </div>
-            </div>
-            <p className="mt-3 text-xs text-slate-500">
-              Next trial ending: {billingSummary.nextTrialEnd ? formatDate(billingSummary.nextTrialEnd) : "N/A"}
-            </p>
-          </section>
-
-          <section className="rounded-lg border border-slate-200 bg-white p-4">
-            <h2 className="mb-3 text-base font-semibold">Pending drivers</h2>
-            <div className="grid gap-3">
-              {pendingConnections.map((connection) => (
-                <div key={connection.id} className="rounded-md border border-slate-200 p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold">{connection.driver.full_name}</p>
-                      <p className="text-xs text-slate-500">{connection.driver.shareProfile?.shareId || connection.driver.shareId || "No share ID"}</p>
-                      {connection.status === "INVITED" && connection.requestedBy === "parent" && (
-                        <p className="mt-1 text-xs font-medium text-amber-700">Waiting for driver to accept</p>
-                      )}
-                    </div>
-                    <StatusBadge status={connection.status} />
-                  </div>
-                  <div className="mt-3 flex gap-2">
-                    {connection.status === "DRIVER_REQUESTED" && (
-                      <Button size="sm" disabled={isPending} onClick={() => approveConnection(connection.id)} className="gap-2">
-                        <Check className="h-4 w-4" /> Approve
-                      </Button>
-                    )}
-                    <Button size="sm" variant="outline" disabled={isPending} onClick={() => openRevokeModal(connection)}>
-                      Revoke
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              {!pendingConnections.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">No pending drivers.</p>}
-            </div>
-          </section>
-
-          <section className="rounded-lg border border-slate-200 bg-white p-4">
-            <h2 className="mb-3 text-base font-semibold">Invites</h2>
-            <div className="grid gap-2">
-              {invites.map((invite) => (
-                <div key={invite.id} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 p-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{invite.email || invite.phoneNumber || "Driver invite"}</p>
-                    <p className="text-xs text-slate-500">Expires {formatDate(invite.expiresAt)}</p>
-                  </div>
-                  <StatusBadge status={invite.status} />
-                </div>
-              ))}
-              {!invites.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">No registration invites yet.</p>}
-            </div>
-          </section>
-
-          <section className="rounded-lg border border-slate-200 bg-white p-4">
-            <h2 className="mb-3 text-base font-semibold">Approved drivers</h2>
-            <div className="grid gap-2">
-              {approvedConnections.map((connection) => (
-                <div key={connection.id} className="rounded-md border border-slate-200 p-3">
-                  <p className="truncate text-sm font-semibold">{connection.driver.full_name}</p>
-                  <p className="text-xs text-slate-500">{connection.assignments.length} assigned kid{connection.assignments.length === 1 ? "" : "s"}</p>
-                </div>
-              ))}
-              {!approvedConnections.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">No approved drivers yet.</p>}
-            </div>
-          </section>
-
-          <section className="rounded-lg border border-slate-200 bg-white p-4">
-            <Logout />
-          </section>
-        </div>
-      </aside>
+      <ParentSideMenu
+        open={sideMenuOpen}
+        parentName={parentName}
+        billingSummary={billingSummary}
+        pendingConnections={pendingConnections}
+        approvedConnections={approvedConnections}
+        invites={invites}
+        isPending={isPending}
+        onClose={() => setSideMenuOpen(false)}
+        onApproveConnection={approveConnection}
+        onRevokeConnection={openRevokeModal}
+      />
 
       {addDriverOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-4">
-          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-xl bg-white p-4 shadow-2xl sm:rounded-xl">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold">Add driver</h2>
-              <button type="button" onClick={() => setAddDriverOpen(false)} className="rounded-md p-2 hover:bg-slate-100" aria-label="Close add driver">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-              <section className="rounded-lg border border-slate-200 p-4">
-                <h3 className="mb-3 text-base font-semibold">Find known driver</h3>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <Input className={inputClass} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Driver share ID, email, or phone" />
-                  <Button disabled={isPending || !query.trim()} onClick={searchDrivers} className="gap-2">
-                    <Search className="h-4 w-4" /> Search
-                  </Button>
-                </div>
-                <div className="mt-4 grid gap-3">
-                  {searchResults.map((driver) => (
-                    <div key={driver.id} className="flex flex-col gap-3 rounded-md border border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-slate-100">
-                          {driver.image ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={driver.image} alt="" className="h-full w-full object-cover" />
-                          ) : (
-                            <Car className="h-6 w-6 text-slate-500" aria-hidden="true" />
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="truncate font-semibold">{driver.full_name}</p>
-                          <p className="text-xs text-slate-500">{driver.shareId || "No share ID"} · {driver.vehicle || "Vehicle pending"}</p>
-                        </div>
-                      </div>
-                      <div className="flex shrink-0 flex-wrap items-center gap-2">
-                        {driver.existingConnection && (
-                          <StatusBadge status={driver.existingConnection.status} />
-                        )}
-                        {driver.existingConnection?.status === "REVOKED" ? (
-                          <Button size="sm" disabled={isPending} onClick={() => setRequestAgainTarget(driver)}>
-                            Request again
-                          </Button>
-                        ) : (
-                          <Button size="sm" disabled={isPending || !!driver.existingConnection} onClick={() => requestDriver(driver.id)}>
-                            {driver.existingConnection ? driver.existingConnection.status.replaceAll("_", " ") : "Request"}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {!searchResults.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">Search for a driver you already know.</p>}
-                </div>
-              </section>
-
-              <section className="rounded-lg border border-slate-200 p-4">
-                <h3 className="mb-3 text-base font-semibold">Invite unregistered driver</h3>
-                <div className="grid gap-2">
-                  <Input className={inputClass} value={inviteForm.email} onChange={(event: ChangeEvent<HTMLInputElement>) => setInviteForm((current) => ({ ...current, email: event.target.value }))} placeholder="Driver email" />
-                  <Input className={inputClass} value={inviteForm.phoneNumber} onChange={(event: ChangeEvent<HTMLInputElement>) => setInviteForm((current) => ({ ...current, phoneNumber: event.target.value }))} placeholder="Driver phone" />
-                  <Button disabled={isPending || (!inviteForm.email.trim() && !inviteForm.phoneNumber.trim())} onClick={inviteDriver} className="gap-2">
-                    <MailPlus className="h-4 w-4" /> Send invite
-                  </Button>
-                </div>
-              </section>
-            </div>
-          </div>
-        </div>
+        <AddDriverModal
+          query={query}
+          searchResults={searchResults}
+          inviteForm={inviteForm}
+          isPending={isPending}
+          onClose={() => setAddDriverOpen(false)}
+          onQueryChange={setQuery}
+          onInviteFormChange={setInviteForm}
+          onSearchDrivers={searchDrivers}
+          onRequestDriver={requestDriver}
+          onRequestAgain={setRequestAgainTarget}
+          onInviteDriver={inviteDriver}
+        />
       )}
 
       {addKidOpen && (
@@ -853,17 +533,33 @@ export function StandaloneParentDashboard({
         </div>
       )}
 
-      <div className="mx-auto grid w-full max-w-7xl gap-5 px-4 py-6">
-        <header className="rounded-lg border border-slate-200 bg-white p-4">
-          <p className="text-sm text-slate-500">Known driver network</p>
-          <h1 className="text-2xl font-semibold">Welcome{parentName ? `, ${parentName}` : ""}</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Track your kids with approved drivers. Add drivers from the top bar when you need to connect someone new.
-          </p>
+      <div className="mx-auto grid w-full max-w-7xl gap-4 px-4 py-4">
+        <header className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <div className="grid gap-4 p-4 sm:grid-cols-[1fr_13rem] sm:items-center">
+            <div>
+              <p className="text-xs font-medium uppercase text-slate-500">Known driver network</p>
+              <h1 className="mt-1 text-xl font-semibold">Welcome{parentName ? `, ${parentName}` : ""}</h1>
+              <p className="mt-1 max-w-2xl text-sm text-slate-500">
+                Track your kids with approved drivers. Add drivers from the top bar when you need to connect someone new.
+              </p>
+            </div>
+            <div className="hidden h-28 overflow-hidden rounded-md bg-slate-100 sm:block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/family.jpg" alt="" className="h-full w-full object-cover" />
+            </div>
+          </div>
         </header>
 
-        <section className="rounded-lg border border-slate-200 bg-white p-4">
-          <h2 className="mb-3 text-base font-semibold">Approved drivers and child assignments</h2>
+        <section className="rounded-lg  bg-white p-4">
+          {/* <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">Approved drivers and child assignments</h2>
+              <p className="mt-1 text-sm text-slate-500">Manage which children each driver can see and track.</p>
+            </div>
+            <span className="hidden rounded-full bg-emerald-50 p-3 text-emerald-700 sm:grid">
+              <ShieldCheck className="h-6 w-6" aria-hidden="true" />
+            </span>
+          </div> */}
           <div className="grid gap-4">
             {approvedConnections.map((connection) => {
               const selected = selectedChildrenByConnection[connection.id] || [];
@@ -887,22 +583,39 @@ export function StandaloneParentDashboard({
               const showSchoolGroups = schoolGroups.some((group) => group.children.length > 1);
 
               return (
-                <div key={connection.id} className="rounded-md border border-slate-200 p-3">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="truncate font-semibold">{connection.driver.full_name}</h3>
-                        {connection.driver.verificationStatus === "VERIFIED" && <BadgeCheck className="h-5 w-5 text-emerald-600" aria-label="Verified" />}
+                <div key={connection.id} className="rounded-md ">
+                  <div className="flex flex-col gap-3 rounded-md border border-slate-200 bg-white p-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-slate-100">
+                        {connection.driver.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={connection.driver.image} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <Car className="h-6 w-6 text-slate-500" aria-hidden="true" />
+                        )}
                       </div>
-                      <p className="text-xs text-slate-500">{connection.driver.shareProfile?.shareId || connection.driver.shareId || "No share ID"}</p>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="truncate text-lg font-semibold">{connection.driver.full_name}</h3>
+                          {connection.driver.verificationStatus === "VERIFIED" && <BadgeCheck className="h-5 w-5 text-emerald-600" aria-label="Verified" />}
+                        </div>
+                        <div className="py-1 space-x-7">
+                          <span className="rounded-md bg-indigo-50 px-2 py-1 font-medium text-indigo-700 text-sm">{connection.driver.shareProfile?.shareId || connection.driver.shareId || "No share ID"}</span>
+                          <Button size="sm" variant="outline" disabled={isPending} onClick={() => openRevokeModal(connection)} className="gap-1 border-rose-200 text-rose-700 hover:bg-rose-50">
+                            <Trash2 className="h-4 w-4" /> Revoke
+                          </Button>
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-[0.65rem] text-slate-500">
+                          <span className="inline-flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5" /> Approved driver</span>
+                          <span className="inline-flex items-center gap-1"><Clock3 className="h-3.5 w-3.5" /> {formatRelativeActivity(connection.driver.lastActiveAt)}</span>
+                        </div>
+                      </div>
                     </div>
-                    <Button size="sm" variant="outline" disabled={isPending} onClick={() => openRevokeModal(connection)} className="gap-2">
-                      <Trash2 className="h-4 w-4" /> Revoke
-                    </Button>
+
                   </div>
 
                   {showSchoolGroups && (
-                    <div className="mt-4 grid justify-start gap-2">
+                    <div className="mt-4 grid gap-2">
                       {schoolGroups
                         .filter((group) => group.children.length > 1)
                         .map((group) => {
@@ -927,26 +640,24 @@ export function StandaloneParentDashboard({
                                 setSharedSchoolAddressByKey((current) => ({ ...current, [groupKey]: nextChecked }));
                                 setChildGroupSelection(connection.id, availableChildIds, nextChecked);
                               }}
-                              className="flex max-w-full items-center gap-3 rounded-md px-1 py-2 text-left"
-                            >
-                              <span
-                                className={`flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
-                                  checked ? "bg-emerald-600" : "bg-slate-300"
+                              className={`flex items-center justify-between gap-3 rounded-md border p-3 text-left transition ${checked ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-white hover:bg-slate-50"
                                 }`}
-                              >
-                                <span
-                                  className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                                    checked ? "translate-x-5" : "translate-x-0"
-                                  }`}
-                                />
+                            >
+                              <span className="flex min-w-0 items-center gap-3">
+                                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${checked ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+                                  <UsersRound className="h-5 w-5" aria-hidden="true" />
+                                </span>
+                                <span className="min-w-0">
+                                  <span className="block truncate text-sm font-medium">
+                                    {schoolGroups.length === 1 ? "Assign all linked students" : `${group.children.length} students at this school`}
+                                  </span>
+                                  <span className="block truncate text-xs text-slate-500">
+                                    {allAlreadyAssigned ? `${group.label} · already assigned` : group.label}
+                                  </span>
+                                </span>
                               </span>
-                              <span className="min-w-0 flex-1">
-                                <span className="block truncate text-sm font-semibold">
-                                  {schoolGroups.length === 1 ? "All kids at this school" : `${group.children.length} kids at this school`}
-                                </span>
-                                <span className="block truncate text-xs text-slate-500">
-                                  {allAlreadyAssigned ? `${group.label} · already assigned` : group.label}
-                                </span>
+                              <span className={`flex h-7 w-12 shrink-0 items-center rounded-full p-0.5 transition-colors ${checked ? "bg-emerald-600" : "bg-slate-300"}`}>
+                                <span className={`h-6 w-6 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0"}`} />
                               </span>
                             </button>
                           );
@@ -954,20 +665,53 @@ export function StandaloneParentDashboard({
                     </div>
                   )}
 
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {children.map((child) => (
-                      <label key={child.id} className={`flex cursor-pointer items-center gap-3 rounded-md border p-3 ${selected.includes(child.id) || assignedChildIds.has(child.id) ? "border-emerald-200 bg-emerald-50" : "border-slate-200"}`}>
-                        <input type="checkbox" checked={selected.includes(child.id) || assignedChildIds.has(child.id)} disabled={assignedChildIds.has(child.id)} onChange={() => toggleChild(connection.id, child.id)} />
-                        <span className="min-w-0">
-                          <span className="block truncate text-sm font-medium">{child.fullName}</span>
-                          <span className="block truncate text-xs text-slate-500">{child.address || child.grade || "No school address"}</span>
-                        </span>
-                      </label>
-                    ))}
+                  <div className="mt-4 rounded-md border border-slate-200 p-3">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <h3 className="text-sm font-medium">Children assigned to driver</h3>
+                      <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                        {assignedChildIds.size + selected.length} selected
+                      </span>
+                    </div>
+                    <div className="grid gap-2">
+                      {children.map((child) => {
+                        const checked = selected.includes(child.id) || assignedChildIds.has(child.id);
+                        return (
+                          <label key={child.id} className={`flex cursor-pointer items-center gap-3 rounded-md border p-3 ${checked ? "border-emerald-200 bg-emerald-50" : "border-slate-200"}`}>
+                            <input type="checkbox" checked={checked} disabled={assignedChildIds.has(child.id)} onChange={() => toggleChild(connection.id, child.id)} />
+                            <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-slate-100">
+                              {child.image ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={child.image} alt="" className="h-full w-full object-cover" />
+                              ) : (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src="/images/child.jpg" alt="" className="h-full w-full object-cover" />
+                              )}
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-medium">{child.fullName}</span>
+                              <span className="block truncate text-xs text-slate-500">{child.address || "No school address"}{child.grade ? ` · ${child.grade}` : ""}</span>
+                            </span>
+                            {checked && (
+                              <span className="hidden rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 sm:inline-flex">
+                                <Check className="mr-1 h-3.5 w-3.5" /> Assigned
+                              </span>
+                            )}
+                          </label>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <Button className="mt-3" size="sm" disabled={isPending || !selected.length} onClick={() => assignChildren(connection)}>
-                    Save child assignments
-                  </Button>
+                  <div className="mt-4 flex flex-col gap-3 rounded-md border border-indigo-100 bg-indigo-50/50 p-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3 text-sm text-slate-600">
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-indigo-700">
+                        <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+                      </span>
+                      <p>Only approved drivers can view information for assigned children.</p>
+                    </div>
+                    <Button className="gap-2" size="sm" disabled={isPending || !selected.length} onClick={() => assignChildren(connection)}>
+                      <Save className="h-4 w-4" /> Save assignments
+                    </Button>
+                  </div>
                 </div>
               );
             })}
@@ -996,7 +740,8 @@ export function StandaloneParentDashboard({
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={child.image} alt="" className="h-full w-full object-cover" />
                       ) : (
-                        <UserRound className="h-6 w-6 text-slate-500" aria-hidden="true" />
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src="/images/child.jpg" alt="" className="h-full w-full object-cover" />
                       )}
                     </div>
                     <div className="min-w-0">
