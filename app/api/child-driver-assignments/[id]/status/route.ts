@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 
 import { getApiSession, isDriver } from "@/lib/api-auth";
+import { markDriverActive } from "@/lib/driver-activity";
 import { distanceMeters, isCoordinates, type Coordinates } from "@/lib/google-geocoding";
 import { recordChildDriverEvent } from "@/lib/known-driver-network";
 import db from "@/packages/db/client";
@@ -133,6 +134,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<Para
       dropoffVerification,
     },
   });
+  await markDriverActive(session.id);
 
   const updatedAssignment = await db.childDriverAssignment.findUnique({
     where: { id: assignment.id },

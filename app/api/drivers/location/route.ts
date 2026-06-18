@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getApiSession, isDriver } from "@/lib/api-auth";
+import { markDriverActive } from "@/lib/driver-activity";
 import { recordChildDriverEvent } from "@/lib/known-driver-network";
 import db from "@/packages/db/client";
 
@@ -24,6 +25,7 @@ export async function POST(req: NextRequest) {
       liveAddress: { latitude, longitude },
     },
   });
+  await markDriverActive(session.id);
 
   const activeAssignments = await db.childDriverAssignment.findMany({
     where: {

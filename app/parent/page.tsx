@@ -3,6 +3,7 @@ import { NetworkError } from '@/components/errorsandsuccess/error/error'
 import { Button } from '@/components/ui/button'
 import { getUserSession } from '@/lib/session'
 import { unstable_noStore as noStore } from 'next/cache'
+import { Prisma } from '@prisma/client'
 import React, { Suspense } from 'react'
 import NewParentPage from '@/components/parent-view/new-parent-view'
 import { StandaloneParentDashboard } from '@/components/parent-view/standalone-parent-dashboard'
@@ -147,6 +148,22 @@ const TeacherView = async () => {
                     (child.address ? schoolCoordsByAddress.get(child.address.trim().toLowerCase()) : null) ??
                     null,
             }));
+            const driverIds = Array.from(new Set(connections.map((connection) => connection.driver.id)));
+            const driverActivityRows = driverIds.length
+                ? await db.$queryRaw<Array<{ id: string; lastActiveAt: Date | null }>>`
+                    SELECT "id", "last_active_at" AS "lastActiveAt"
+                    FROM "Driver"
+                    WHERE "id" IN (${Prisma.join(driverIds)})
+                `
+                : [];
+            const driverActivityById = new Map(driverActivityRows.map((row) => [row.id, row.lastActiveAt]));
+            const connectionsWithDriverActivity = connections.map((connection) => ({
+                ...connection,
+                driver: {
+                    ...connection.driver,
+                    lastActiveAt: driverActivityById.get(connection.driver.id) ?? null,
+                },
+            }));
 
             return (
                 <Suspense>
@@ -155,7 +172,7 @@ const TeacherView = async () => {
                             parentId={parent.id}
                             parentName={parent.full_name}
                             childrenData={childrenWithSchoolCoords as any}
-                            connectionsData={connections as any}
+                            connectionsData={connectionsWithDriverActivity as any}
                             invitesData={invites as any}
                         />
                     </div>
