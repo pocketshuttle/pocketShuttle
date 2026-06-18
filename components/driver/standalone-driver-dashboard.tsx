@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useRef, useState, useTransition } from "react";
-import { BadgeCheck, Car, Check, CircleSlash, Copy, Crosshair, FileBadge, ImagePlus, LockKeyhole, MapPin, Phone, Upload, UserRound, X } from "lucide-react";
+import { BadgeCheck, Calendar, Car, Check, ChevronRight, CircleSlash, Copy, Crosshair, FileBadge, ImagePlus, LockKeyhole, MapPin, Navigation, Phone, Radio, ShieldCheck, Upload, UserRound, UsersRound, X } from "lucide-react";
 
 import Logout from "@/components/dashboard/sidebar/logout";
 import NotificationFeed from "@/components/knock/notitification-feed";
@@ -417,9 +417,8 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(92vw,420px)] flex-col overflow-y-auto border-r border-slate-200 bg-white shadow-2xl transition-transform duration-300 ${
-          settingsOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(92vw,420px)] flex-col overflow-y-auto border-r border-slate-200 bg-white shadow-2xl transition-transform duration-300 ${settingsOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white p-4">
           <div className="flex min-w-0 items-center gap-3">
@@ -553,52 +552,145 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
       </nav>
 
       <div className="mx-auto grid w-full max-w-7xl gap-5 px-4 py-6">
-        <section className="grid gap-4 lg:grid-cols-3">
-          <div className="rounded-lg border border-slate-200 bg-white p-4">
-            <p className="text-sm text-slate-500">Approved families</p>
-            <p className="mt-2 text-3xl font-semibold">{approvedConnections.length}</p>
+        <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-1">
+            <div className="grid justify-items-center rounded-lg border border-slate-200 bg-white p-4 text-center">
+              <span className="grid h-10 w-10 place-items-center rounded-full bg-emerald-50 text-emerald-700">
+                <UsersRound className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <p className="text-sm text-slate-500">Approved families</p>
+              <p className="mt-2 text-3xl font-semibold">{approvedConnections.length}</p>
+            </div>
+            <div className="grid justify-items-center rounded-lg border border-slate-200 bg-white p-4 text-center">
+              <span className="grid h-10 w-10 place-items-center rounded-full bg-sky-50 text-sky-700">
+                <UserRound className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <p className="text-sm text-slate-500">Assigned kids</p>
+              <p className="mt-2 text-3xl font-semibold">{assignments.length}</p>
+            </div>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4">
-            <p className="text-sm text-slate-500">Assigned kids</p>
-            <p className="mt-2 text-3xl font-semibold">{assignments.length}</p>
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-white p-4">
-            <p className="text-sm text-slate-500">Pending relationships</p>
+          <div className="grid justify-items-center rounded-lg border border-slate-200 bg-white p-4 text-center">
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-amber-50 text-amber-700">
+              <CircleSlash className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <p className="text-sm text-slate-500">Pending families</p>
             <p className="mt-2 text-3xl font-semibold">{pendingConnections.length}</p>
           </div>
         </section>
 
-        <section className="rounded-lg border border-slate-200 bg-white p-4">
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-base font-semibold">Share live location</h2>
-              <p className="text-sm text-slate-500">Parents with approved assigned kids can see your latest active location.</p>
+        <section className="rounded-lg border border-slate-200 bg-white p-3">
+          <div className="grid gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-start gap-3">
+                <span className={`relative grid h-10 w-10 shrink-0 place-items-center rounded-full ${liveSharingOn ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-700"}`}>
+                  <MapPin className="h-5 w-5" aria-hidden="true" />
+                  {liveSharingOn && (
+                    <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full bg-emerald-500 text-white ring-2 ring-white">
+                      <Check className="h-3 w-3" aria-hidden="true" />
+                    </span>
+                  )}
+                </span>
+                <div className="min-w-0">
+                  <h2 className="font-semibold">Share live location</h2>
+                  <p className="mt-1 max-w-xl text-xs leading-4 text-slate-500">Parents with approved, assigned kids can see your latest active location.</p>
+                </div>
+              </div>
+              {/* <span className={`inline-flex w-fit items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold ${liveSharingOn ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
+                <span className={`h-2 w-2 rounded-full ${liveSharingOn ? "bg-emerald-500" : "bg-slate-400"}`} />
+                {liveSharingOn ? "Active" : "Inactive"}
+              </span> */}
             </div>
-            <div className="flex flex-wrap gap-2">
-            <Button disabled={isPending} onClick={() => captureLocation(false)} className="gap-2">
-              <Crosshair className="h-4 w-4" /> Share location now
-            </Button>
-            <Button
+
+            <div className={`rounded-md border bg-white p-3 ${liveSharingOn ? "border-emerald-200" : "border-slate-200"}`}>
+              <div className="flex items-start gap-2.5">
+                <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${liveSharingOn ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+                  <Radio className="h-4 w-4" aria-hidden="true" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-950">{liveSharingOn ? "Continuous sharing is on" : "Continuous sharing is off"}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {liveSharingOn ? "Your location is being shared automatically." : "Your location is not being shared continuously."}
+                  </p>
+                </div>
+              </div>
+              <div className="my-3 border-t border-dashed border-slate-200" />
+              <div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-[1fr_auto] sm:items-center">
+                <div className="flex min-w-0 items-start gap-2.5">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-50 text-blue-700">
+                    <Crosshair className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-medium text-slate-500">Latest location</p>
+                    <p className="break-words font-semibold text-slate-950">
+                      {verification.liveAddress
+                        ? `${verification.liveAddress.latitude}, ${verification.liveAddress.longitude}`
+                        : "No live GPS shared yet."}
+                    </p>
+                  </div>
+                </div>
+                {lastSharedAt && (
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <Calendar className="h-4 w-4" aria-hidden="true" />
+                    {formatDateTime(lastSharedAt)}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <button
+              type="button"
               disabled={isPending}
-              variant={liveSharingOn ? "default" : "outline"}
-              onClick={toggleLiveSharing}
-              className="gap-2"
+              onClick={() => captureLocation(false)}
+              className="flex items-center justify-between gap-3 rounded-md bg-blue-700 p-3 text-left text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              <MapPin className="h-4 w-4" />
-              {liveSharingOn ? "Live location on" : "Keep live location on"}
-            </Button>
+              <span className="flex min-w-0 items-center gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/15">
+                  <Navigation className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold">Share location now</span>
+                  <span className="block text-xs text-white/75">Send your current location to parents</span>
+                </span>
+              </span>
+              <ChevronRight className="h-5 w-5 shrink-0" aria-hidden="true" />
+            </button>
+
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={toggleLiveSharing}
+              role="switch"
+              aria-checked={liveSharingOn}
+              className="flex items-center justify-between gap-3 rounded-md border border-blue-200 bg-white p-3 text-left transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              <span className="flex min-w-0 items-center gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-blue-100 bg-white text-blue-700">
+                  <MapPin className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold text-blue-700">Keep live location on</span>
+                  <span className="block text-xs text-slate-500">Share automatically in real time</span>
+                </span>
+              </span>
+              <span className={`flex h-7 w-12 shrink-0 items-center rounded-full p-0.5 transition-colors ${liveSharingOn ? "bg-emerald-500" : "bg-slate-200"}`}>
+                <span className={`h-6 w-6 rounded-full bg-white shadow transition-transform ${liveSharingOn ? "translate-x-5" : "translate-x-0"}`} />
+              </span>
+            </button>
+
+            <div className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+              <div className="flex items-center gap-2.5">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-50 text-blue-700">
+                  <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                </span>
+                <p>Your location is only shared with approved parents of your assigned kids.</p>
+              </div>
+              <LockKeyhole className="h-4 w-4 shrink-0 text-blue-700" aria-hidden="true" />
             </div>
           </div>
-          <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">
-            {verification.liveAddress
-              ? `Latest location: ${verification.liveAddress.latitude}, ${verification.liveAddress.longitude}`
-              : "No live GPS shared yet."}
-            {lastSharedAt ? ` · shared ${formatDateTime(lastSharedAt)}` : ""}
-          </p>
         </section>
 
         <section className="rounded-lg border border-slate-200 bg-white p-4">
-          <h2 className="mb-4 text-base font-semibold">Pending parent relationships</h2>
+          <h2 className="mb-4 text-base font-semibold">Pending families</h2>
           <div className="grid gap-3">
             {pendingConnections.map((connection) => (
               <div key={connection.id} className="flex flex-col gap-3 rounded-md border border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between">
