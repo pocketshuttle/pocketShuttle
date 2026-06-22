@@ -187,6 +187,16 @@ enum DriverInviteStatus {
   CANCELLED
 }
 
+enum SupportTicketStatus {
+  PENDING
+  FIXED
+}
+
+enum SupportTicketPriority {
+  HIGH
+  NORMAL
+}
+
 model SuperUser {
   id        String   @id @default(cuid())
   name      String?
@@ -362,6 +372,7 @@ model Driver {
   childAssignments           ChildDriverAssignment[]
   driverInvites              DriverInvite[]
   childDriverEvents          ChildDriverEvent[]
+  supportTickets             SupportTicket[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -399,6 +410,7 @@ model Parent {
   knownDriverPayments KnownDriverPayment[]
   notifications ParentNotification[]
   Pickup        Pickup[]
+  supportTickets SupportTicket[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -596,6 +608,32 @@ model KnownDriverPayment {
   @@index([parentId, status])
   @@index([assignmentId, status])
   @@map("known_driver_payments")
+}
+
+model SupportTicket {
+  id                  String              @id @default(cuid())
+  requesterRole       String              @default("driver") @map("requester_role")
+  driverId            String?             @map("driver_id")
+  parentId            String?             @map("parent_id")
+  requesterName       String              @map("requester_name")
+  requesterIdentifier String              @map("requester_identifier")
+  message             String
+  status              SupportTicketStatus @default(PENDING)
+  priority            SupportTicketPriority @default(NORMAL)
+  fixedAt             DateTime?           @map("fixed_at")
+  deletedAt           DateTime?           @map("deleted_at")
+  driver              Driver?             @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  parent              Parent?             @relation(fields: [parentId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([status, createdAt])
+  @@index([priority, status, createdAt])
+  @@index([deletedAt])
+  @@index([driverId, createdAt])
+  @@index([parentId, createdAt])
+  @@map("support_tickets")
 }
 
 model Student {
