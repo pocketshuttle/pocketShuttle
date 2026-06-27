@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/input'
 import React, { Dispatch, SetStateAction, useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { RouteSchema } from "@/schemas"
-import { useSession } from "next-auth/react"
 import { usePost } from "@/hooks/usePost"
 import { Button } from "@/components/ui/button"
+import { useSession } from "@/hooks/useSession"
 
 
 interface RouteModalProps {
@@ -17,8 +17,8 @@ interface RouteModalProps {
     isOpenModal: boolean
 }
 const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    const session = useSession()
+    const userId = session?.id
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined)
@@ -31,32 +31,33 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
     const form = useForm<z.infer<typeof RouteSchema>>({
         resolver: zodResolver(RouteSchema),
         defaultValues: {
-            school_id: userId,
+            school_id: "",
             route_name: "",
             route_description: ""
         }
     })
 
     const onSubmit = async (values: z.infer<typeof RouteSchema>) => {
-        console.log(values)
+        if (userId) {
+            values.school_id = userId;
+        }
         startTransition(() => {
             setSubmittedData(values)
         })
     }
 
-    console.log(userId)
     return (
         <div>
 
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 ">
-                <div className="relative bg-gray-900  rounded-md w-3/6 ">
+            <div className="modal-overlay">
+                <div className="modal-panel w-3/6">
 
                     <TeacherCardWrapper
                         headLabel="Add a Route"
                         action={() => handleCloseModal()}
                     >
-                        <div className=" flex justify-center">
-                            <div className="flex-1 px-5 ">
+                        <div className="form-surface flex justify-center text-slate-900 dark:text-slate-100">
+                            <div className="flex-1 px-2">
                                 <Form {...form}>
                                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                                         <div className="flex gap-3">
@@ -73,7 +74,8 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
                                                                     placeholder="Tesla"
                                                                     type="text"
                                                                     disabled={isPending}
-                                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                    className="add-form-input"
+
                                                                 />
                                                             </FormControl>
                                                             <FormMessage />
@@ -94,7 +96,7 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
                                                                     placeholder="Tesla"
                                                                     type="text"
                                                                     disabled={isPending}
-                                                                    className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                    className="add-form-input"
                                                                 />
                                                             </FormControl>
                                                             <FormMessage />
@@ -103,7 +105,7 @@ const RoutesModal = ({ setIsOpenModal, isOpenModal }: RouteModalProps) => {
                                                 />
                                             </div>
                                         </div>
-                                        <Button variant="secondary" type="submit">
+                                        <Button variant="secondary" type="submit" className="h-12 w-full rounded-lg bg-[#4a48ff] text-white shadow-none transition-transform duration-150 hover:scale-[1.01] hover:bg-[#5b5aff]">
                                             Submit
                                         </Button>
                                     </form>

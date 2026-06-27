@@ -1,4 +1,6 @@
-import { StudentAttendance } from "@prisma/client";
+// import { StudentAttendance } from "@prisma/client";
+
+import { StudentAttendance } from "./packages/db/client";
 
 export type DriversProps = {
   _id: string;
@@ -17,6 +19,7 @@ export type BusProps = {
   bus_product_name: string;
   color: string;
   seat_number: string;
+  availableSeats?: number;
   driver: DriversProps;
   bus_number: string;
   students: StudentProps[];
@@ -37,6 +40,19 @@ export type TeacherProps = {
   address: string;
   image: string;
   bus: BusProps;
+  weeklyTotal?: number;
+};
+
+export type ParentProps = {
+  id: string;
+  full_name: string;
+  email: string;
+  phoneNumber: string;
+  address: string;
+  addressCoords?: { latitude: number; longitude: number };
+  image: string;
+  bus: BusProps;
+  Student: StudentProps[];
 };
 
 export type StudentProps = {
@@ -51,6 +67,8 @@ export type StudentProps = {
   attendance: StudentAttendance | null;
   status: string;
   presence: string;
+  parent?: ParentProps;
+  parentId?: string;
 };
 
 export type SelectProps = {

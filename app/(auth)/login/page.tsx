@@ -1,10 +1,17 @@
 import { LoginForm } from '@/components/auth/login-form'
-import React from 'react'
+import React, { Suspense } from 'react'
 const LoginPage = () => {
 
     return (
-        <div className='flex items-center justify-center h-screen' >
-            < LoginForm />
+        <div className=' items-center justify-center  w-full' >
+
+            <div className='flex items-center justify-center   w-full'>
+                <Suspense>
+                    < LoginForm />
+                </Suspense>
+            </div>
+
+
         </div>
     )
 }

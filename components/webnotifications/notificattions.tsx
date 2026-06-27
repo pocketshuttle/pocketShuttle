@@ -5,10 +5,10 @@ import { toast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { urlB64ToUint8Array } from "@/lib/utils";
 import { saveSubscriptionToDatabase, removeNotification } from "@/actions/notification/helper";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/hooks/useSession";
 
 export default function NotificationRequest() {
-	const { data: session } = useSession();
+	const session = useSession();
 	const queryClient = useQueryClient();
 	const [notificationPermission, setNotificationPermission] = useState<"granted" | "denied" | "default">(
 		"default"
@@ -36,6 +36,13 @@ export default function NotificationRequest() {
 	async function subscribeUser() {
 		if ("serviceWorker" in navigator) {
 			try {
+				if (process.env.NODE_ENV === "development") {
+					toast({
+						description: "Push notifications are disabled in development.",
+					});
+					return;
+				}
+
 				const registration = await navigator.serviceWorker.getRegistration();
 				if (registration) {
 					await generateSubscribeEndPoint(registration);
@@ -62,8 +69,9 @@ export default function NotificationRequest() {
 			userVisibleOnly: true,
 		};
 
-		console.log(session?.user?.id, "session")
+		// console.log(session?.user?.id, "session")
 		try {
+			// @ts-ignore
 			const subscription = await registration.pushManager.subscribe(options);
 
 			const subscriptionData = {
@@ -76,7 +84,7 @@ export default function NotificationRequest() {
 				},
 			};
 			// Call server action to save the subscription
-			await saveSubscriptionToDatabase(subscriptionData, session?.user?.id!);
+			await saveSubscriptionToDatabase(subscriptionData, session.id!);
 
 			queryClient.invalidateQueries({ queryKey: ["user"] });
 		} catch (error) {
@@ -87,9 +95,9 @@ export default function NotificationRequest() {
 	}
 
 	async function handleRemoveNotification() {
-		if (!session?.user?.id) return;
+		if (!session.id) return;
 
-		const result = await removeNotification(session.user.id);
+		const result = await removeNotification(session.id);
 
 		if (result.error) {
 			toast({
@@ -102,6 +110,16 @@ export default function NotificationRequest() {
 	}
 
 	useEffect(() => {
+		if (process.env.NODE_ENV === "development" && "serviceWorker" in navigator) {
+			navigator.serviceWorker.getRegistrations().then((registrations) => {
+				registrations.forEach((registration) => registration.unregister());
+			});
+
+			caches.keys().then((cacheNames) => {
+				cacheNames.forEach((cacheName) => caches.delete(cacheName));
+			});
+		}
+
 		setNotificationPermission(Notification.permission);
 	}, []);
 

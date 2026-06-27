@@ -1,19 +1,32 @@
 import { revalidateTag } from "next/cache";
-import { db } from "@/lib/db";
-import { Prisma } from "@prisma/client";
+import db from "@/packages/db/client";
+import { getUserSession } from "@/lib/session";
 
 export const getTeachers = async (
   id: string,
   searchParams: URLSearchParams
 ) => {
   try {
+    const user = await getUserSession();
+    if (!user) {
+      return { message: "Unauthorized: Please log in", status: 401 };
+    }
+
+    //  Authorization
+    if (!["admin", "school", "ADMIN"].includes(user.role as string)) {
+      return { message: "Forbidden: You do not have permission", status: 403 };
+    }
     const ITEM_PER_PAGE = 2;
 
     // Extract search parameters
     const searchName = searchParams.get("q") || "";
     const page = parseInt(searchParams.get("page") || "1", 10);
 
-    const whereClause: Prisma.TeacherWhereInput = {
+    type TeacherWhere = NonNullable<
+      Parameters<typeof db.teacher.findMany>[0]
+    >["where"];
+
+    const whereClause: TeacherWhere = {
       OR: [{ schoolId: id }, { id: id }],
       ...(searchName && {
         full_name: {

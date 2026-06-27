@@ -1,6 +1,7 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { getUserSession } from "@/lib/session";
+import db from "@/packages/db/client";
 import { revalidateTag } from "next/cache";
 
 export const removeTeacherFromBus = async (
@@ -8,6 +9,10 @@ export const removeTeacherFromBus = async (
   busId: string
 ) => {
   try {
+    const user = await getUserSession();
+    if (!user || !["teacher", "admin", "ADMIN"].includes(user.role as string)) {
+      return { message: "Unauthorized", status: 401 };
+    }
     if (!teacherId || !busId) {
       return {
         message: "Both studentId and busId are required",

@@ -1,85 +1,121 @@
-import NextAuth from "next-auth";
-import authConfig from "@/auth.config";
-import { getToken } from "next-auth/jwt";
 import {
   DEFAULT_LOGIN_REDIRECT,
-  apiAuthPrefix,
   authRoutes,
   publicRoutes,
   DEFAULT_USER_ROLE,
+  DEFAULT_PARENT_ROLE,
+  DEFAULT_DRIVER_ROLE,
 } from "@/routes";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { decrypt } from "./lib/create-session";
+import {
+  LAST_SCREEN_COOKIE_NAME,
+  SESSION_COOKIE_NAME,
+  routeStateCookieOptions,
+} from "@/lib/auth-cookies";
 
-const { auth } = NextAuth(authConfig);
-//@ts-ignore
-
-export default auth(async (req) => {
+export async function middleware(req: NextRequest) {
   const { nextUrl } = req;
+  const pathname = nextUrl.pathname;
+
   try {
-    const token = await getToken({
-      req,
-      //@ts-ignore
-      secret: process.env.NEXTAUTH_SECRET,
-    });
+    const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
+
+    const token = await decrypt(cookie);
+
     const userRole = token?.role;
-    console.log(userRole);
     const isLoggedIn = !!token;
+    const isPublicRoute = publicRoutes.includes(pathname);
+    const isHomePage = pathname === "/";
+    const isAdminRoute = pathname.startsWith("/admin");
+    const response = NextResponse.next();
 
-    console.log(userRole, "user role");
-
-    const isAPIAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
-
-    //   //if the nexturl.pathname is included in the publicroutes array, then it requires no auth
-    const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
-
-    //   //if the nexturl.pathname is included in the authroutes array, then it requires auth
-    // const isAuthRoute = authRoutes.includes(nextUrl.pathname);
-    if (isAPIAuthRoute) {
-      return null;
+    if (!isPublicRoute && !pathname.startsWith("/api")) {
+      response.cookies.set(
+        LAST_SCREEN_COOKIE_NAME,
+        pathname + nextUrl.search,
+        routeStateCookieOptions
+      );
     }
 
     // Matching for both static and dynamic routes
     const isAuthRoute = authRoutes.some((route) =>
-      nextUrl.pathname.startsWith(route)
+      pathname.startsWith(route)
     );
 
-    console.log(isAuthRoute, "auth in", nextUrl.pathname);
+    if (isHomePage && isLoggedIn) {
+      if (userRole === "superadmin") {
+        return NextResponse.redirect(new URL("/admin", nextUrl));
+      }
+      if (userRole === "parent") {
+        return NextResponse.redirect(new URL(DEFAULT_PARENT_ROLE, nextUrl));
+      }
+      if (userRole === "driver") {
+        return NextResponse.redirect(new URL(DEFAULT_DRIVER_ROLE, nextUrl));
+      }
+      if (userRole === "teacher") {
+        return NextResponse.redirect(new URL(DEFAULT_USER_ROLE, nextUrl));
+      }
+      return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+    }
 
     if (isAuthRoute) {
-      console.log(isAuthRoute, "auth route");
       if (isLoggedIn) {
-        console.log(isLoggedIn, "login boolean");
-
-        if (userRole === "parent") {
-          console.log("Redirecting to parent page");
-          return Response.redirect(new URL(DEFAULT_USER_ROLE, nextUrl));
+        if (userRole === "superadmin") {
+          return NextResponse.redirect(new URL("/admin", nextUrl));
         }
-
-        return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+        if (userRole === "parent") {
+          return NextResponse.redirect(new URL(DEFAULT_PARENT_ROLE, nextUrl));
+        }
+        if (userRole === "driver") {
+          return NextResponse.redirect(new URL(DEFAULT_DRIVER_ROLE, nextUrl));
+        }
+        if (userRole === "teacher") {
+          return NextResponse.redirect(new URL(DEFAULT_USER_ROLE, nextUrl));
+        }
+        return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
       }
 
-      return null;
+      return response;
     }
 
-    console.log(userRole, "user role 2");
+    if (isAdminRoute && pathname !== "/admin/login") {
+      if (!isLoggedIn) {
+        return NextResponse.redirect(new URL("/admin/login", nextUrl));
+      }
+      if (userRole !== "superadmin") {
+        return NextResponse.redirect(new URL("/", nextUrl));
+      }
+      return response;
+    }
 
+    // If user is not logged in and it's not a public route, redirect to login
     if (!isLoggedIn && !isPublicRoute) {
-      return Response.redirect(new URL("/login", nextUrl));
+      //taking users back to the previous used route
+      let callbackUrl = pathname;
+
+      if (nextUrl.search && nextUrl.search.startsWith("?")) {
+        callbackUrl += nextUrl.search;
+      }
+
+      const encodeCallbackUrl = encodeURIComponent(callbackUrl);
+
+      return NextResponse.redirect(
+        new URL(`/login?callbackUrl=${encodeCallbackUrl}`, nextUrl)
+      );
     }
 
-    return null;
+    return response;
   } catch (error) {
-    console.error("Error fetching token:", error);
-    // Handle error, e.g., redirect to login or display an error message
-    return Response.redirect(new URL("/login", nextUrl));
+    return NextResponse.redirect(new URL("/login", req.url));
   }
-});
+}
 
 export const config = {
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: ["/((?!api|trpc|.*\\..*|_next).*)", "/"],
   unstable_allowDynamic: [
     "mongoose/dist/browser.umd.js",
     "./(models)/Parent.ts",
-    "/node_modules/function-bind/**", // use a glob to allow anything in the function-bind 3rd party module
+    "/node_modules/function-bind/**",
   ],
 };

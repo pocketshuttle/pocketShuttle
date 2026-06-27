@@ -1,124 +1,64 @@
 "use server";
 
-import { db } from "@/lib/db";
-import { Knock } from "@knocklabs/node";
-import { StudentStatus } from "@prisma/client";
+import { StudentStatus } from "@/packages/db/client";
+import { logMorningPickup } from "./report-folder/log-morning-pickup";
+import z from "zod";
+import { getUserSession } from "@/lib/session";
+import {
+  applyStudentStatusUpdate,
+  getCurrentHourInTimeZone,
+  getStudentScopeForActor,
+} from "@/lib/student-state";
+import { recordStudentMovementTripEvent } from "@/lib/trip-events";
 
-type ParamsProps = {
-  id: string;
-};
-
-const knock = new Knock(process.env.KNOCK_SECRET_API_SECRET);
-
-function getCurrentHourInTimeZone(timezone: string): number {
-  const date = new Date();
-  const tz = new Date(date.toLocaleString("en-US", { timeZone: timezone }));
-  return tz.getHours();
-}
+const StudentStatusSchema = z.enum(["PICKED", "DROPPED"]);
 
 export const updateStudentStatus = async (id: string, data: StudentStatus) => {
-  console.log(data, "status data");
+  const user = await getUserSession();
+  const role = String(user?.role ?? "").toLowerCase();
+  if (!user || !["teacher", "admin", "school"].includes(role)) {
+    return { message: "Unauthorized", status: 401 };
+  }
+
   try {
     if (!data) {
       return { message: "No data provided", status: 400 };
     }
 
-    const updatedStudent = await db.student.update({
-      where: { id: id },
-      data: {
-        status: data,
-      },
-      include: {
-        parent: true,
-        Buses: true,
-        bus: true,
-      },
-    });
-
-    console.log(updatedStudent);
-
-    if (updatedStudent.status === "PICKED" && updatedStudent.busId) {
-      await db.buses.update({
-        where: { id: updatedStudent.busId },
-        data: {
-          seat_number: {
-            decrement: 1,
-          },
-        },
-      });
-    } else if (updatedStudent.status === "DROPPED" && updatedStudent.busId) {
-      await db.buses.update({
-        where: { id: updatedStudent.busId },
-        data: {
-          seat_number: {
-            increment: 1,
-          },
-        },
-      });
+    const parsedStatus = StudentStatusSchema.safeParse(data);
+    if (!parsedStatus.success) {
+      return { status: 400, message: "Invalid status" };
     }
 
     const hours = getCurrentHourInTimeZone("Africa/Lagos");
-
-    if (updatedStudent.status === "PICKED" && hours >= 6 && hours < 9) {
-      await db.student.update({
-        where: { id: id },
-        data: {
-          presence: "IN_BUS",
-        },
-      });
-
-      await knock.workflows.trigger("in-bus", {
-        data: {
-          bus_product_name: updatedStudent?.bus?.bus_product_name,
-        },
-        recipients: [
-          {
-            id: updatedStudent?.parent?.id!,
-            name: updatedStudent?.parent?.full_name!,
-            email: "abusomwansantos@gmail.com",
-          },
-        ],
-      });
-    } else if (updatedStudent.status === "PICKED" && hours >= 9 && hours < 16) {
-      await db.student.update({
-        where: { id: id },
-        data: {
-          presence: "AT_SCHOOL",
-        },
-      });
-      await knock.workflows.trigger("in-bus", {
-        data: {
-          bus_product_name: updatedStudent?.bus?.bus_product_name,
-        },
-        recipients: [
-          {
-            id: updatedStudent?.parent?.id!,
-            name: updatedStudent?.parent?.full_name!,
-            email: "abusomwansantos@gmail.com",
-          },
-        ],
-      });
-    } else if (
-      updatedStudent.status === "DROPPED" &&
-      hours >= 17 &&
-      hours < 19
-    ) {
-      await db.student.update({
-        where: { id: id },
-        data: {
-          presence: "NONE",
-        },
-      });
-    } else if (updatedStudent.status === "DROPPED" && hours > 19) {
-      await db.student.update({
-        where: { id: id },
-        data: {
-          presence: "NONE",
-          status: "DROPPED",
-          attendance: "ABSENT",
-        },
-      });
+    const result = await applyStudentStatusUpdate(
+      getStudentScopeForActor(id, user),
+      data,
+      hours
+    );
+    if (!result) {
+      return { message: "Student not found", status: 404 };
     }
+
+    const updatedStudent = result.student;
+
+    if (!result.changed) {
+      return {
+        message: `Status is already ${data}`,
+        student: updatedStudent,
+        status: 200,
+      };
+    }
+
+    await recordStudentMovementTripEvent({
+      student: updatedStudent,
+      actorId: String(user.id),
+      actorType: role,
+      source: "status",
+      value: data,
+    });
+
+    await logMorningPickup(updatedStudent, hours);
 
     return {
       message: "Status updated successfully",

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath, revalidateTag } from "next/cache";
-import { db } from "@/lib/db";
+import { revalidateTag } from "next/cache";
+
+import { canManageStudentRecords, getApiSession } from "@/lib/api-auth";
+import { applyStudentAttendanceUpdate } from "@/lib/student-state";
 
 type ParamsProps = {
   id: string;
@@ -8,10 +10,16 @@ type ParamsProps = {
 
 export const PATCH = async (
   req: NextRequest,
-  { params }: { params: ParamsProps }
+  { params }: { params: Promise<ParamsProps> }
 ) => {
   try {
-    const { id } = params;
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageStudentRecords(session) || !schoolId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
     const data = await req.json();
 
     if (!data || !data.attendance) {
@@ -21,24 +29,24 @@ export const PATCH = async (
       );
     }
 
-    const updatedStudent = await db.student.update({
-      where: { id: id },
-      data: {
-        attendance: data.attendance,
-        ...data,
-      },
-    });
-    if (!updatedStudent) {
+    const result = await applyStudentAttendanceUpdate(
+      { studentId: id, schoolId },
+      data.attendance
+    );
+    if (!result) {
       return NextResponse.json(
         { message: "Student not found" },
         { status: 404 }
       );
     }
 
-    revalidateTag("collection");
-
     return NextResponse.json(
-      { message: "Attendance updated successfully", student: updatedStudent },
+      {
+        message: result.changed
+          ? "Attendance updated successfully"
+          : `Attendance is already ${result.student.attendance}`,
+        student: result.student,
+      },
       { status: 200 }
     );
   } catch (error) {

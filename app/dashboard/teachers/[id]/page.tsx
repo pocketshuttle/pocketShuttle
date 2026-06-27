@@ -12,16 +12,16 @@ import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { Textarea } from "@/components/ui/textarea"
 import { usePost } from "@/hooks/usePost"
-import { FormSuccess } from "@/components/ui/form-success"
-import { useSession } from "next-auth/react"
+
 import { useFetch } from "@/hooks/useFetch"
 import { usePathname, useSearchParams } from "next/navigation"
-import { SelectTrigger } from "@/components/ui/select"
-import { SelectProperty } from "@/components/ui/select-wrapper"
+
 import spinner from "@/public/images/spinner.gif"
 import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { Spinner } from "@/components/ui/spinner"
+import { useSession } from "@/hooks/useSession"
+import { AddressComponent } from "@/components/maps/Map/searchbox"
 
 
 
@@ -33,7 +33,7 @@ const SingleTeacherPage = () => {
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState(false)
     const [dataMessage, setDataMessage] = useState("")
-
+    const [addressValue, setAddressValue] = useState('');
     const [newAvatar, setNewAvatar] = useState<string>("")
 
     const [selectBus, setSelectedBus] = useState<string>("")
@@ -42,8 +42,8 @@ const SingleTeacherPage = () => {
     const pathname = usePathname()
     const id = pathname.split('/').pop()
 
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    const session = useSession()
+    const userId = session?.id
 
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
     // const { data: studentData, isPending: studentPending, errorMessage: studentError } = useFetch(`/api/addstudent/${userId}`, userId);
@@ -55,7 +55,7 @@ const SingleTeacherPage = () => {
     const teacherData = teachersData?.teacher
     const [isLoadingImage, setisLoadingImage] = useState<boolean>(false)
 
-    console.log(teacherData)
+
 
     const form = useForm<z.infer<typeof TeacherSchema>>({
         resolver: zodResolver(TeacherSchema),
@@ -86,6 +86,12 @@ const SingleTeacherPage = () => {
     }, [teacherData, form, userId]);
 
     useEffect(() => {
+        if (userId) {
+            form.setValue('school_id', userId);
+        }
+    }, [userId, form]);
+
+    useEffect(() => {
         setNewData(teacherData && teacherData[0].full_name)
     }, [id, teacherData])
 
@@ -105,7 +111,12 @@ const SingleTeacherPage = () => {
         }
     }, [success]);
 
-
+    const handleSuggestionChange = (d: {}) => {
+        // setAddressValue(d)
+        // const selectedValue = d.features?.[0]?.place_name || "";
+        console.log(d)
+        // form.setValue("address", d)
+    }
 
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
@@ -172,6 +183,11 @@ const SingleTeacherPage = () => {
         form.setValue("studentId", value)
     }
 
+    const handleAddressChange = (d: string) => {
+        setAddressValue(d)
+
+        form.setValue("address", d)
+    }
 
     return (
         <div >
@@ -298,27 +314,13 @@ const SingleTeacherPage = () => {
 
 
                                 <div className="space-y-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="address"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Address</FormLabel>
-                                                <FormControl>
-                                                    <Textarea
-                                                        {...field}
-                                                        className="py-3 border-none bg-[var(--bgSoft)] outline-none "
-                                                        placeholder="Teachers Address..."
-                                                        disabled={isPending}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
+                                    <FormItem>
+                                        <FormLabel>Address</FormLabel>
+                                        <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} handleSuggestionChange={handleSuggestionChange} />
+                                        <FormMessage />
 
-                                                {/* <Image src={eye} alt="eye" /> */}
-                                            </FormItem>
-                                        )}
-                                    >
-                                    </FormField>
+                                    </FormItem>
+
                                 </div>
                                 <div className="flex gap-3">
                                     <div className="w-3/6">

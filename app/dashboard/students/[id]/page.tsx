@@ -16,12 +16,13 @@ import { usePathname } from "next/navigation"
 import { useFetch } from "@/hooks/useFetch"
 import { Textarea } from "@/components/ui/textarea"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
-import { useSession } from "next-auth/react"
 import { grades, buses, gender } from "@/data/schooldata"
 import spinner from "@/public/images/spinner.gif"
 import { usePost } from "@/hooks/usePost"
 import { BeatLoader } from "react-spinners"
 import { Spinner } from "@/components/ui/spinner"
+import { useSession } from "@/hooks/useSession"
+import { AddressComponent } from "@/components/maps/Map/searchbox"
 
 
 
@@ -29,8 +30,8 @@ const SingleStudent = () => {
     const pathname = usePathname()
     const id = pathname.split('/').pop()
 
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    const session = useSession()
+    const userId = session?.id
 
     const { data, isPending: studentPending, errorMessage: studentError } = useFetch(`/api/addstudent/${id}`, id);
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
@@ -54,6 +55,7 @@ const SingleStudent = () => {
     const [selectTeacher, setSelectTeacher] = useState<string>("")
     const [filterGrade, setFilterGrade] = useState<string>("")
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
+    const [addressValue, setAddressValue] = useState("")
 
     const { data: postData, loading, errorMessage, success } = usePost(`/api/addstudent/${id}`, submittedData, "PATCH")
 
@@ -88,6 +90,12 @@ const SingleStudent = () => {
         }
     }, [studentData, form, userId]);
 
+    useEffect(() => {
+        if (userId) {
+            form.setValue('school_id', userId);  // Set the userId after session is loaded
+        }
+    }, [userId, form]);
+
     const onSubmit = (values: z.infer<typeof StudentSchema>) => {
         startTransition(() => {
             setSubmittedData(values)
@@ -96,7 +104,20 @@ const SingleStudent = () => {
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
         inputElement?.click()
-        // console.log(inputElement)
+    }
+
+    const handleAddressChange = (d: string) => {
+        setAddressValue(d)
+        // const selectedValue = d.features?.[0]?.place_name || "";
+        console.log(d)
+
+        // form.setnpm i @geoapify/leaflet-address-search-pluginValue("address", d)
+    }
+    const handleSuggestionChange = (d: {}) => {
+        // setAddressValue(d)
+        // const selectedValue = d.features?.[0]?.place_name || "";
+        console.log(d)
+        // form.setValue("address", d)
     }
 
     const handleCameraInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -143,9 +164,8 @@ const SingleStudent = () => {
         form.setValue("gender", value); // Update form value
     };
     const handleSelectBus = (value: string) => {
-        console.log(value)
         setSelectBus(value)
-                //@ts-ignore
+        //@ts-ignore
 
         form.setValue("busId", value.id);
     };
@@ -176,7 +196,6 @@ const SingleStudent = () => {
                                 onChange={handleCameraInputChange}
                             />
                             <Image src={
-
                                 newAvatar ? isLoadingImage ? spinner : newAvatar :
                                     studentData && studentData[0]?.image ?
                                         studentData[0]?.image : avatar
@@ -253,28 +272,12 @@ const SingleStudent = () => {
                                         </div>
                                     </div>
                                     <div className="space-y-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="address"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Student Address</FormLabel>
-                                                    <FormControl>
-                                                        <Textarea
-                                                            {...field}
-                                                            placeholder="Student Address..."
-                                                            disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none "
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
+                                        <FormItem>
+                                            <FormLabel>Students Address</FormLabel>
+                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} handleSuggestionChange={handleSuggestionChange} />
+                                            <FormMessage />
 
-                                                    {/* <Image src={eye} alt="eye" /> */}
-                                                </FormItem>
-                                            )}
-                                        >
-
-                                        </FormField>
+                                        </FormItem>
                                     </div>
 
                                     {/* <FormError message={isError} /> */}

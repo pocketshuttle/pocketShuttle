@@ -1,18 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { revalidatePath, revalidateTag } from "next/cache";
+
+import db from "@/packages/db/client";
+import { revalidateTag } from "next/cache";
+import { canManageSchool, getApiSession } from "@/lib/api-auth";
 
 type ParamsProps = {
   id: string;
 };
+
 export const PATCH = async (
   req: NextRequest,
-  { params }: { params: ParamsProps }
+  { params }: { params: Promise<ParamsProps> }
 ) => {
   try {
-    const { id } = params;
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+    }
 
+    const { id } = await params;
     const data = await req.json();
+
     if (!data) {
       return NextResponse.json(
         {
@@ -21,7 +30,15 @@ export const PATCH = async (
         { status: 404 }
       );
     }
+
     const { studentId, busId } = data.attendance;
+
+    if (studentId && studentId !== id) {
+      return NextResponse.json(
+        { message: "Student ID mismatch" },
+        { status: 400 }
+      );
+    }
 
     if (!studentId || !busId) {
       return NextResponse.json(
@@ -31,6 +48,7 @@ export const PATCH = async (
         { status: 400 }
       );
     }
+
     const student = await db.student.findUnique({
       where: { id },
       include: {
@@ -38,7 +56,26 @@ export const PATCH = async (
       },
     });
 
-    if (student?.bus && student?.bus.id.toString() === busId) {
+    if (!student || student.schoolId !== schoolId) {
+      return NextResponse.json(
+        { message: "Student not found in your school" },
+        { status: 404 }
+      );
+    }
+
+    const bus = await db.buses.findFirst({
+      where: { id: busId, schoolId },
+      select: { id: true },
+    });
+
+    if (!bus) {
+      return NextResponse.json(
+        { message: "Bus not found in your school" },
+        { status: 404 }
+      );
+    }
+
+    if (student.bus && student.bus.id === busId) {
       return NextResponse.json(
         {
           message: "Student is already in this bus",
@@ -52,7 +89,7 @@ export const PATCH = async (
       data: {
         students: {
           connect: {
-            id: id,
+            id,
           },
         },
       },
@@ -84,12 +121,25 @@ export const PATCH = async (
 
 export const DELETE = async (
   req: NextRequest,
-  { params }: { params: ParamsProps }
+  { params }: { params: Promise<ParamsProps> }
 ) => {
   try {
-    const data = await req.json();
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+    }
 
+    const { id } = await params;
+    const data = await req.json();
     const { studentId, busId } = data.attendance;
+
+    if (studentId && studentId !== id) {
+      return NextResponse.json(
+        { message: "Student ID mismatch" },
+        { status: 400 }
+      );
+    }
 
     if (!studentId || !busId) {
       return NextResponse.json(
@@ -107,25 +157,24 @@ export const DELETE = async (
       where: { id: studentId },
     });
 
-    if (!bus) {
+    if (!bus || bus.schoolId !== schoolId) {
       return NextResponse.json(
         {
-          message: "Bus not found",
+          message: "Bus not found in your school",
         },
         { status: 404 }
       );
     }
 
-    if (!student) {
+    if (!student || student.schoolId !== schoolId) {
       return NextResponse.json(
         {
-          message: "Student not found",
+          message: "Student not found in your school",
         },
         { status: 404 }
       );
     }
 
-    // Remove the bus reference from the student document
     await db.buses.update({
       where: { id: busId },
       data: {

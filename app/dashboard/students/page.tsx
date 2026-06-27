@@ -1,32 +1,39 @@
+"use server"
 import LoginButton from "@/components/auth/login-button";
-import { Student } from "@/components/students/students"
+import { NetworkError } from "@/components/errorsandsuccess/error/error";
 import { StudentsData } from "@/components/students/ui/Table";
 import { Button } from "@/components/ui/button";
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import { getUserSession } from "@/lib/session";
-import { revalidateTag } from "next/cache";
 
-const Students = async ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
+const Students = async ({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) => {
     const user = await getUserSession();
+    const resolvedSearchParams = await searchParams;
 
-    const page = typeof searchParams.page === "string" ? Number(searchParams.page) : 1
-    const searchQuery = typeof searchParams.q === "string" ? searchParams.q : "";
-    // const gradeQuery = typeof searchParams.grade === "string" ? searchParams.grade : ""
-    // const gradeQuery = typeof searchParams.grade === "string" ? decodeURIComponent(searchParams.grade) : "";
-    const gradeQuery = typeof searchParams.grade === "string"
-        ? decodeURIComponent(decodeURIComponent(searchParams.grade.replace(/\+/g, ' ')))
+    const page = typeof resolvedSearchParams.page === "string" ? Number(resolvedSearchParams.page) : 1
+    const searchQuery = typeof resolvedSearchParams.q === "string" ? resolvedSearchParams.q : "";
+    // const gradeQuery = typeof resolvedSearchParams.grade === "string" ? resolvedSearchParams.grade : ""
+    // const gradeQuery = typeof resolvedSearchParams.grade === "string" ? decodeURIComponent(resolvedSearchParams.grade) : "";
+    const gradeQuery = typeof resolvedSearchParams.grade === "string"
+        ? decodeURIComponent(decodeURIComponent(resolvedSearchParams.grade.replace(/\+/g, ' ')))
         : "";
-    const ITEM_PER_PAGE = 4;
-    if (!user) {
-        return <div>
-            User session is not available. Please log in.
-            <LoginButton>
-                <Button size={"lg"} >Login</Button>
-            </LoginButton>
+    const ITEM_PER_PAGE = 20;
 
-        </div>
+    // if no user, that means you havent logged in, so redirect back to login page
+    if (!user || typeof user.id !== 'string') {
+        return (
+            <div className="flex items-center justify-center">
+                <div>
+                    User session is not available. Please log in.
+                    <LoginButton>
+                        <Button size={"lg"}>Login</Button>
+                    </LoginButton>
+                </div>
+            </div>
+        )
     }
     const userId = user?.id;
+
 
     const query = {
         OR: [
@@ -63,7 +70,6 @@ const Students = async ({ searchParams }: { searchParams: { [key: string]: strin
             // Handle the case where teacher data is not found
             return <div>No Students data found for this user.</div>;
         }
-        revalidateTag("students");
 
         const count = await db.student.count({
             where: {
@@ -84,22 +90,28 @@ const Students = async ({ searchParams }: { searchParams: { [key: string]: strin
         });
 
         if (bus) {
-            revalidateTag("bus")
         }
+
 
         return (
             <div>
                 {/* @ts-ignore */}
-                <StudentsData studentsData={students} totalCount={count} busData={bus} />
+                <StudentsData studentsData={students} totalCount={count} busData={bus} schoolId={user?.id} />
             </div>
         )
 
-    } catch (error) {
-        console.error("Error fetching teacher data:", error);
-        return <div>An error occurred while fetching student data.</div>;
+    } catch (error: any) {
+        if (error.message.includes("Can't reach database server at")) {
+            return <div className=" flex items-center justify-center">
+                <NetworkError error="Connection" />
+            </div>
+        } else {
+            <div className="flex items-center justify-center ">
+                please refresh
+            </div>
+        }
     }
 
-    console.log(gradeQuery, "next params from the server component ")
 
 
 }

@@ -7,13 +7,11 @@ import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "
 import { NewPasswordSchema } from "@/schemas"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Login } from "@/actions/login"
 import { useState, useTransition } from "react"
 import { FormError } from "@/components/errorsandsuccess/form-error"
 import { FormSuccess } from "@/components/errorsandsuccess/form-success"
 import { useSearchParams } from "next/navigation"
 import { newPassword } from "@/actions/new-password"
-
 
 export const NewPasswordForm = () => {
     const searchParams = useSearchParams()
@@ -22,6 +20,7 @@ export const NewPasswordForm = () => {
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState<string | undefined>("")
     const [isSuccess, setIsSuccess] = useState<string | undefined>("")
+
     {/**
      Initialize the form with react-hook-form, integrating Zod for validation
  - The form's validation schema is defined using Zod's `NewPasswordSchema`
@@ -37,10 +36,11 @@ export const NewPasswordForm = () => {
             password: "",
         }
     })
+
     const onSubmit = (values: z.infer<typeof NewPasswordSchema>) => {
         setIsError("")
         setIsSuccess("")
-        console.log(values)
+
         // using the useTransition hook from react
         startTransition(() => {
             newPassword(values, token).then((data) => {
@@ -52,26 +52,28 @@ export const NewPasswordForm = () => {
 
     return (
         <CardWrapper
-            headLabel="Forgot your password"
+            headLabel="Create a new password"
+            subLabel="Choose a fresh password to regain access securely."
             backButtonLabel="Back to Login?"
             backButtonHref="/login"
         >
             <Form {...form}>
                 {/* the handle submit comes from the form constant */}
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-5 text-slate-800`}>
+                    <div className="space-y-5">
                         <FormField
                             control={form.control}
                             name="password"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>New Password</FormLabel>
+                                <FormItem className="space-y-2.5">
+                                    <FormLabel className="text-sm font-medium text-slate-700">New Password</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
                                             placeholder="******"
                                             type="password"
                                             disabled={isPending}
+                                            className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-slate-900 shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-slate-300"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -84,7 +86,7 @@ export const NewPasswordForm = () => {
                     <FormSuccess message={isSuccess} />
                     <Button
                         disabled={isPending}
-                        size="lg" className="w-full" type="submit">Change Password</Button>
+                        size="lg" className="h-12 w-full rounded-xl bg-blue-700 text-base font-semibold text-white hover:bg-blue-800" type="submit">Change Password</Button>
                 </form>
             </Form>
         </CardWrapper>

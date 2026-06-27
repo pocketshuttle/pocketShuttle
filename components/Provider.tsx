@@ -1,19 +1,14 @@
 "use client"
-import { SessionProvider } from "next-auth/react"
-import { ReactNode } from "react"
+import { ReactNode, } from "react";
+import { RecoilRoot } from "recoil";
 
-type ProviderProps = {
-    children: ReactNode;
-    session?: any
-
-}
-
-const Provider = ({ children, session }: ProviderProps) => {
+// Retrieve user session for the app's session context
+const Provider = ({ children }: { children: ReactNode }) => {
     return (
-        <SessionProvider session={session}>
+        <RecoilRoot>
             {children}
-        </SessionProvider>
-    )
-}
+        </RecoilRoot>
+    );
+};
 
-export default Provider
+export default Provider;

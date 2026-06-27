@@ -1,9 +1,9 @@
-import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
-import Buses from "@/(models)/Bus";
+
+import db from "@/packages/db/client";
 import { BusSchema } from "@/schemas";
-import { db } from "@/lib/db";
 import { revalidateTag } from "next/cache";
+import { canManageSchool, getApiSession } from "@/lib/api-auth";
 
 type ParamProp = {
   id: string;
@@ -11,14 +11,20 @@ type ParamProp = {
 
 export const GET = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
-    const { id } = params;
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+    }
+
+    const { id } = await params;
+    const where = id === schoolId ? { schoolId } : { id, schoolId };
+
     const bus = await db.buses.findMany({
-      where: {
-        OR: [{ id: id }, { schoolId: id }],
-      },
+      where,
       include: {
         route: true,
         teacher: true,
@@ -26,8 +32,10 @@ export const GET = async (
         driver: true,
       },
     });
+
     revalidateTag("bus");
-    if (!bus) {
+
+    if (!bus || bus.length === 0) {
       return new Response(JSON.stringify({ message: "Bus not found" }), {
         status: 404,
       });
@@ -38,30 +46,28 @@ export const GET = async (
     });
   } catch (error) {
     console.error(error);
-    if (error instanceof Error) {
-      return new Response(
-        JSON.stringify({
-          message: "Error fetching Bus",
-          error: error.message,
-        }),
-        { status: 500 }
-      );
-    } else {
-      return new Response(
-        JSON.stringify({ message: "Unknown error occurred" }),
-        { status: 500 }
-      );
-    }
+    return new Response(
+      JSON.stringify({
+        message: "Error fetching Bus",
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      { status: 500 }
+    );
   }
 };
 
 export const PATCH = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
-    await connectToDB();
-    const { id } = params;
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+    }
+
+    const { id } = await params;
     const data = await req.json();
     const validatedData = BusSchema.safeParse(data);
 
@@ -71,65 +77,95 @@ export const PATCH = async (
         { status: 400 }
       );
     }
-    console.log(data);
+
+    const existingBus = await db.buses.findFirst({
+      where: { id, schoolId },
+      select: {
+        id: true,
+        seat_number: true,
+        availableSeats: true,
+      },
+    });
+
+    if (!existingBus) {
+      return NextResponse.json({ message: "Bus not found" }, { status: 404 });
+    }
+
+    const routeId = validatedData.data.route;
+    if (routeId) {
+      const routeRecord = await db.route.findFirst({
+        where: { id: routeId, schoolId },
+        select: { id: true },
+      });
+
+      if (!routeRecord) {
+        return NextResponse.json(
+          { message: "Route not found in your school" },
+          { status: 400 }
+        );
+      }
+    }
+
+    const capacityDelta = data.seat_number - existingBus.seat_number;
+    const nextAvailableSeats = Math.max(
+      0,
+      existingBus.availableSeats + capacityDelta
+    );
 
     const updatedBus = await db.buses.update({
       where: {
-        id: id,
+        id,
       },
       data: {
-        schoolId: data.school_id,
+        schoolId,
         bus_product_name: data.bus_product_name,
         bus_number: data.bus_number,
         color: data.color,
         seat_number: data.seat_number,
+        availableSeats: nextAvailableSeats,
+        routeId: routeId || undefined,
       },
     });
-
-    if (!updatedBus) {
-      return new Response(JSON.stringify({ message: "Bus not found" }), {
-        status: 404,
-      });
-    }
 
     return new Response(JSON.stringify(updatedBus), {
       status: 200,
     });
   } catch (error) {
     console.error(error);
-    if (error instanceof Error) {
-      return new Response(
-        JSON.stringify({
-          message: "Error updating Bus",
-          error: error.message,
-        }),
-        { status: 500 }
-      );
-    } else {
-      return new Response(
-        JSON.stringify({ message: "Unknown error occurred" }),
-        { status: 404 }
-      );
-    }
+    return new Response(
+      JSON.stringify({
+        message: "Error updating Bus",
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      { status: 500 }
+    );
   }
 };
 
 export const DELETE = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
-    await connectToDB();
-    const { id } = params;
-    const deletedBus = await db.buses.delete({
-      where: { id: id },
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+    }
+
+    const { id } = await params;
+    const existingBus = await db.buses.findFirst({
+      where: { id, schoolId },
+      select: { id: true },
     });
 
-    if (!deletedBus) {
-      return new Response(JSON.stringify({ message: "Bus not found" }), {
-        status: 404,
-      });
+    if (!existingBus) {
+      return NextResponse.json({ message: "Bus not found" }, { status: 404 });
     }
+
+    await db.buses.delete({
+      where: { id },
+    });
 
     return new Response(
       JSON.stringify({ message: "Bus deleted successfully" }),
@@ -139,19 +175,12 @@ export const DELETE = async (
     );
   } catch (error) {
     console.error(error);
-    if (error instanceof Error) {
-      return new Response(
-        JSON.stringify({
-          message: "Error deleting Bus",
-          error: error.message,
-        }),
-        { status: 500 }
-      );
-    } else {
-      return new Response(
-        JSON.stringify({ message: "Unknown error occurred" }),
-        { status: 500 }
-      );
-    }
+    return new Response(
+      JSON.stringify({
+        message: "Error deleting Bus",
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      { status: 500 }
+    );
   }
 };

@@ -3,7 +3,7 @@
  * @type string
  *
  */
-export const publicRoutes = ["/", "/new-verification"];
+export const publicRoutes = ["/", "/new-verification", "/confirm-email", "/admin/login"];
 
 /**
  *  An array of auth routes,
@@ -19,7 +19,6 @@ export const authRoutes = [
   "/reset",
   "/reset-password",
 ];
-
 /**
  *  the prefix for api auth routes,
  * routes with this prefix are used for api auth
@@ -44,3 +43,4 @@ export const DEFAULT_LOGIN_REDIRECT = "/dashboard";
  */
 export const DEFAULT_USER_ROLE = "/teacher";
 export const DEFAULT_PARENT_ROLE = "/parent";
+export const DEFAULT_DRIVER_ROLE = "/driver";

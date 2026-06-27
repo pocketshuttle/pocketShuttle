@@ -1,0 +1,61 @@
+import { io } from "socket.io-client";
+
+export async function connectSocket(
+  teacherId: string,
+  schoolId: string,
+  parentId?: string
+) {
+  //we fetch the auth from the socket api
+  const res = await fetch("/api/socket-auth", {
+    method: "GET",
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error("Failed to get socket token");
+
+  const { token } = await res.json();
+
+  const SOCKET_URL = "https://pocketshuttle.onrender.com";
+
+  // console.log("Connecting to socket at:", SOCKET_URL);
+
+  const socket = io(SOCKET_URL, {
+    auth: { token },
+    transports: ["websocket", "polling"], 
+    timeout: 10000, // Increase timeout
+    reconnection: true, // Enable reconnection
+    reconnectionAttempts: 5, // Number of reconnection attempts
+    reconnectionDelay: 1000, // Start with 1s delay
+    reconnectionDelayMax: 5000, // Max delay of 5s
+  });
+
+  socket.on("connect", () => {
+    // console.log("socket connected", socket.id);
+
+    if (teacherId && parentId) {
+      socket.emit("subscribe-teacher", { teacherId });
+    }
+
+    if (schoolId && !teacherId) {
+      socket.emit("subscribe-school");
+      // console.log(`🏫 Subscribed to school-${schoolId}`);
+    }
+  });
+
+  socket.on("teacher-location-update", (data) => {
+    // console.log(" Teacher location update:", data);
+  });
+
+  socket.on("unauthorized", (err) => {
+    console.error("Unauthorized:", err.message);
+  });
+
+  socket.on("rate-limit", (msg) => {
+    console.warn(" Rate limit hit:", msg.message);
+  });
+
+  socket.on("connect_error", (err) => {
+    console.error("Socket connect_error:", err.message);
+  });
+
+  return socket;
+}

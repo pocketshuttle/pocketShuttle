@@ -5,19 +5,41 @@
 body,
 html,
 :root {
-  --bg: #151c2c;
-  --bg-root: #05050a;
-  --bgSoft: #182237;
-  --text: white;
-  --textSoft: #b7cac1;
-  --hoverBg: #16171c;
-  --hoverBgTable: #21222739;
+  --bg: #000000;
+  --bg-root: #000000;
+  --bgSoft: #0a0a0a;
+  --text: #ffffff;
+  --textSoft: #d4d4d4;
+  --hoverBg: #1a1a1a;
+  --hoverBgTable: #111111;
+  --tw-bg-opacity: 1;
   height: 100%;
+}
+
+:root.light {
+  --bg: #ffffff;
+  --bg-root: #f3f4f6;
+  --bgSoft: #ffffff;
+  --text: #000000;
+  --textSoft: #404040;
+  --hoverBg: #f2f2f2;
+  --hoverBgTable: #f7f7f7;
+}
+
+:root.dark {
+  --bg: #000000;
+  --bg-root: #000000;
+  --bgSoft: #0a0a0a;
+  --text: #ffffff;
+  --textSoft: #d4d4d4;
+  --hoverBg: #1a1a1a;
+  --hoverBgTable: #111111;
 }
 
 body {
   background-color: var(--bg-root);
   color: var(--text);
+  font-family: "Inter", "Roboto", sans-serif;
 }
 * {
   margin: 0;
@@ -62,33 +84,33 @@ a {
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 0%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 83%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 10%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 100%;
   }
 }
 
@@ -98,5 +120,45 @@ a {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .modal-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm;
+    animation: modal-fade-in 160ms ease-out;
+  }
+
+  .modal-panel {
+    @apply relative max-h-[92vh] overflow-y-auto rounded-lg border border-white/10 bg-[var(--bgSoft)] text-[var(--text)] shadow-none;
+    animation: modal-slide-in 180ms ease-out;
+  }
+
+  .form-surface {
+    @apply rounded-lg border border-black/5 bg-white/70 p-4 text-slate-900 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-100;
+  }
+
+  .add-form-input {
+    @apply h-12 rounded-lg border border-slate-200 bg-white px-3 text-slate-900 shadow-none outline-none transition-colors placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#6d72c9] dark:border-white/10 dark:bg-[#111827] dark:text-white;
+  }
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }

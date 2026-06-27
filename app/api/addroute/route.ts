@@ -1,36 +1,70 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import db from "@/packages/db/client";
 import { RouteSchema } from "@/schemas";
-import { db } from "@/lib/db";
+import { canManageSchool, getApiSession } from "@/lib/api-auth";
 
 export const POST = async (req: NextRequest) => {
   try {
-    const data = await req.json();
-    console.log(data);
-    const validatedData = RouteSchema.safeParse(data);
-
-    if (!validatedData.success) {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
       return NextResponse.json(
-        { message: "Validation error", errors: validatedData.error.errors },
+        { message: "Unauthorized access" },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json();
+    const validated = RouteSchema.safeParse(body);
+
+    if (!validated.success) {
+      return NextResponse.json(
+        { message: "Validation error", errors: validated.error.errors },
         { status: 400 }
       );
     }
 
-    const { school_id, route_description, route_name } = validatedData.data;
+    const { route_description, route_name } = validated.data;
 
-    await db.route.create({
-      data: {
-        schoolId: school_id,
-        route_name,
-        route_description,
+    const existingRoute = await db.route.findFirst({
+      where: {
+        route_name: {
+          equals: route_name,
+          mode: "insensitive",
+        },
+        schoolId,
       },
     });
 
-    return Response.json(
-      { message: "Route added Succesfully " },
+    if (existingRoute) {
+      return NextResponse.json(
+        { message: "A route with this name already exists for this school." },
+        { status: 409 }
+      );
+    }
+
+    const newRoute = await db.$transaction(async (tx) => {
+      return tx.route.create({
+        data: {
+          schoolId,
+          route_name,
+          route_description,
+        },
+      });
+    });
+
+    return NextResponse.json(
+      {
+        message: "Route added successfully",
+        routeId: newRoute.id,
+        status: 200,
+      },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error adding Route:", error);
+    console.error(" Error adding Route:", error);
+
     return NextResponse.json(
       {
         message: "Error adding Route",

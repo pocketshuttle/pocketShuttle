@@ -12,6 +12,8 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "baseUrl": ".",
+    "target": "ES2020",
     "plugins": [
       {
         "name": "next"
@@ -20,13 +22,20 @@
     "paths": {
       "@/*": ["./*"]
     }
+    // "typeRoots": ["./node_modules/@types", "./packages/db/node_modules/.prisma"]
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "worker/index.js"
+    "worker/index.js",
+    "app/api/events/attendance-events.ts",
+    "prisma/seed.mjs",
+    "prisma/seed.mjs",
+    "components/pick-logs/pickup-time-flow.tsx",
+    "dropoff-backend/lib/db.js",
+    "dropoff-backend/server.ts"
   ],
   "exclude": ["node_modules"]
 }

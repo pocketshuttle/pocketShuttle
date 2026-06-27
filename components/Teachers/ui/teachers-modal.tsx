@@ -16,11 +16,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
 import { usePost } from "@/hooks/usePost"
 import { FormSuccess } from "@/components/ui/form-success"
-import { useSession } from "next-auth/react"
+
 import { useFetch } from "@/hooks/useFetch"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
 import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 import { AddRoles } from "@/components/ui/add-role"
+import { useSession } from "@/hooks/useSession"
+import { AddressComponent } from "@/components/maps/Map/searchbox"
 
 
 interface DriverModalProps {
@@ -32,12 +34,12 @@ interface DriverModalProps {
 
 export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route }: DriverModalProps) => {
 
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    const session = useSession()
+    const userId = session?.id
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined);
-
+    const [addressValue, setAddressValue] = useState('');
     const [isError, setIsError] = useState("")
     const [isSuccess, setIsSuccess] = useState(false)
     const [dataMessage, setDataMessage] = useState("")
@@ -52,13 +54,23 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
     const { data: studentData, isPending: studentPending, errorMessage: studentError } = useFetch(`/api/addstudent/${userId}`, userId);
 
+    const roleData = [
+        {
+            value: "parent",
+            label: "Parent",
+        },
+        {
+            value: "teacher",
+            label: "Teacher",
+        },
+    ];
 
     const useSchema = mode === "driver" ? DriverSchema : TeacherSchema
 
     const form = useForm<z.infer<typeof useSchema>>({
         resolver: zodResolver(useSchema),
         defaultValues: {
-            school_id: userId,
+            school_id: "",
             full_name: "",
             email: "",
             phoneNumber: "",
@@ -71,9 +83,16 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
         }
     })
 
-
+    useEffect(() => {
+        if (!session.loading && userId) {
+            form.setValue("school_id", userId);
+        }
+    }, [session.loading, userId, form]);
 
     const onSubmit = (values: z.infer<typeof useSchema>) => {
+        if (userId) {
+            values.school_id = userId;
+        }
         startTransition(() => {
             setSubmittedData(values)
             window.localStorage.removeItem("new_user_selected_avatar_url")
@@ -91,8 +110,8 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
     const handleCameraClick = () => {
         const inputElement = document.getElementById("cameraInput")
         inputElement?.click()
-        // console.log(inputElement)
     }
+
     const handleCameraInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
 
@@ -115,7 +134,6 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
 
             const data = new FormData()
             data.append('file', file)
-            // data.append("upload_preset", 'images')
 
             const res = await fetch(`/api/upload/`, {
                 method: 'POST',
@@ -156,25 +174,42 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
         console.log(value)
         form.setValue("role", value)
     }
+    const handleSuggestionChange = (d: {}) => {
+        // setAddressValue(d)
+        // const selectedValue = d.features?.[0]?.place_name || "";
+        console.log(d)
+        // form.setValue("address", d)
+    }
     const handleSelectStudent = (value: string) => {
         setSelectedStudent(value)
         form.setValue("studentId", value)
     }
+    const handleAddressChange = (d: string) => {
+        setAddressValue(d)
+
+        form.setValue("address", d)
+    }
+
+    useEffect(() => {
+        if (success && data) {
+            setTimeout(() => setIsOpenModal(false), 2000)
+        }
+    }, [success])
 
     if (isSuccess) {
         return <FormSuccess message={dataMessage} setIsOpenModal={setIsOpenModal} />
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-            <div className="relative bg-gray-900  rounded-md w-5/6 ">
+        <div className="modal-overlay">
+            <div className="modal-panel w-5/6">
                 <TeacherCardWrapper
                     headLabel={mode === "driver" ? "Add a Driver" : "Add a Teacher"}
                     action={() => handleCloseModal()}
                 >
 
-                    <div className=" flex ">
-                        <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[23.5rem] p-2 rounded-md" >
+                    <div className="form-surface flex gap-5">
+                        <div className="w-[25%] items-center rounded-lg bg-slate-100 p-2 dark:bg-white/5" >
                             <input
                                 id="cameraInput"
                                 type="file"
@@ -185,10 +220,10 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                             />
                             <Image src={isLoadingImage ? spinner : newAvatar || avatar} alt="avatar" width={100} height={215} className="cursor-pointer rounded-md h-[22.5rem] w-full  object-fill" onClick={() => handleCameraClick()} />
                         </div>
-                        <div className="flex-1 px-5 ">
+                        <div className="flex-1 px-2 text-slate-900 dark:text-slate-100 ">
                             <Form {...form}>
                                 {/* the handle submit comes from the form constant */}
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                                     <div className="space-y-4">
                                         <FormField
                                             control={form.control}
@@ -199,10 +234,10 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                                     <FormControl>
                                                         <Input
                                                             {...field}
-                                                            placeholder="John Doe"
+                                                            placeholder="Femi Osinachi Usman"
                                                             type="text"
                                                             disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                            className="add-form-input"
                                                         />
                                                     </FormControl>
                                                     <FormMessage />
@@ -226,7 +261,7 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                                                 placeholder="ciroma@email.com"
                                                                 type="email"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                className="add-form-input"
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
@@ -248,7 +283,8 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                                                 placeholder="08012345678"
                                                                 type="number"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                className="add-form-input"
+
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
@@ -275,7 +311,8 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                                                 placeholder="******"
                                                                 type="password"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                className="add-form-input"
+
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
@@ -290,29 +327,17 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
 
 
                                     <div className="space-y-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="address"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Address</FormLabel>
-                                                    <FormControl>
-                                                        <Textarea
-                                                            {...field}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none "
-                                                            placeholder={mode === "teacher" ? "Teachers Address..." : "Drivers Address..."}
-                                                            disabled={isPending}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
 
-                                                    {/* <Image src={eye} alt="eye" /> */}
-                                                </FormItem>
-                                            )}
-                                        >
-                                        </FormField>
+                                        <FormItem>
+                                            <FormLabel>Address</FormLabel>
+                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue}
+                                                handleSuggestionChange={handleSuggestionChange}
+                                            />
+                                            <FormMessage />
+
+                                        </FormItem>
+
                                     </div>
-
                                     <div className="flex gap-3 w-full">
                                         <div className="w-3/6">
                                             {
@@ -322,8 +347,8 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                         </div>
                                         {
                                             mode === "teacher" &&
-                                            <div className="w-3/6" >
-                                                < AddRoles handleSelectChange={handleSelectRole} />
+                                            <div className="w-full" >
+                                                < AddRoles handleSelectChange={handleSelectRole} data={roleData} />
                                             </div>
                                         }
                                     </div>
@@ -331,8 +356,12 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
                                     {/* <FormError message={isError} /> */}
                                     {/* <FormSuccess message={isSuccess} /> */}
                                     <Button
-                                        // disabled={isPending}
-                                        size="lg" className="w-full bg-[teal] " type="submit">{mode === "driver" ? "Add Driver" : "Add Teacher"}
+                                        disabled={session?.loading || isPending}
+                                        size="lg"
+                                        className="h-12 w-full rounded-lg bg-[#4a48ff] py-4 text-white shadow-none transition-transform duration-150 hover:scale-[1.01] hover:bg-[#5b5aff]"
+                                        type="submit"
+                                    >
+                                        {isPending ? "Submitting..." : mode === "driver" ? "Add Driver" : "Add Teacher"}
                                     </Button>
                                 </form>
                             </Form>
@@ -344,4 +373,3 @@ export const DriverAndTeacherModal = ({ isOpenModal, setIsOpenModal, mode, route
         </div >
     )
 }
-

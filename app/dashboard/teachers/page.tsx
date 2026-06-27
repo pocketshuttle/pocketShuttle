@@ -2,30 +2,37 @@ import LoginButton from '@/components/auth/login-button'
 import { Teachers } from '@/components/Teachers/teachers'
 import { TeachersTable } from '@/components/Teachers/ui/TeacherTable'
 import { Button } from '@/components/ui/button'
-import { db } from '@/lib/db'
 import { getUserSession } from '@/lib/session'
+import db from '@/packages/db/client'
 import { revalidateTag } from 'next/cache'
 import React from 'react'
 
-const TeachersDrivers = async ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
+const TeachersDrivers = async ({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) => {
     const user = await getUserSession()
-    // if no user, that means you havent logged in, so redirect back to login page
-    if (!user) {
-        return <div>
-            User session is not available. Please log in.
-            <LoginButton>
-                <Button size={"lg"} >Login</Button>
-            </LoginButton>
+    const resolvedSearchParams = await searchParams;
 
-        </div>
+    // If no user session, redirect to login
+    if (!user || typeof user.id !== 'string') {
+        return (
+            <div className="flex items-center justify-center">
+                <div>
+                    User session is not available. Please log in.
+                    <LoginButton>
+                        <Button size={"lg"}>Login</Button>
+                    </LoginButton>
+                </div>
+            </div>
+        )
     }
 
     const userId = user?.id
-    const page = typeof searchParams.page === "string" ? Number(searchParams.page) : 1
-    const searchQuery = typeof searchParams.q === "string" ? searchParams.q : ""
-    const ITEM_PER_PAGE = 4;
+    const page = typeof resolvedSearchParams.page === "string" ? Number(resolvedSearchParams.page) : 1
+    const searchQuery = typeof resolvedSearchParams.q === "string" ? resolvedSearchParams.q : ""
+    const ITEM_PER_PAGE = 10;
 
-    const queryClause = {
+    type TeacherWhere = NonNullable<Parameters<typeof db.teacher.findMany>[0]>['where']
+
+    const queryClause: TeacherWhere = {
         OR: [
             {
                 schoolId: userId,
@@ -50,7 +57,6 @@ const TeachersDrivers = async ({ searchParams }: { searchParams: { [key: string]
         })
 
         const teacherData = await db.teacher.findMany({
-            //@ts-ignore
             where: queryClause,
             include: {
                 Student: true,
@@ -68,8 +74,6 @@ const TeachersDrivers = async ({ searchParams }: { searchParams: { [key: string]
             // Handle the case where teacher data is not found
             return <div className='text-center'>No teacher data found for this user, try again or add a Teacher</div>;
         }
-        revalidateTag("teacher")
-
 
         const bus = await db.buses.findMany({
             where: {
@@ -83,6 +87,11 @@ const TeachersDrivers = async ({ searchParams }: { searchParams: { [key: string]
             },
         });
 
+        if (!teacherData) {
+            // Handle the case where parent data is not found
+            return <div className='text-center flex items-center '>No Student found data found for this user, please refresh or contact school admin.</div>;
+        }
+
         return (
             <div>
                 <Teachers teacherCount={teacherCount} teacherData={teacherData} bus={bus} />
@@ -92,7 +101,7 @@ const TeachersDrivers = async ({ searchParams }: { searchParams: { [key: string]
 
     } catch (error) {
         console.error("Error fetching Parents data:", error);
-        return <div className='text-center'>An error occurred while fetching Parents data, please refresh or try again later.</div>;
+        return <div className='text-center'>An error occurred while fetching Teachers data, please refresh or try again later.</div>;
     }
 
 }

@@ -15,6 +15,7 @@ export const AddData = ({ action, label }: ButtonProps) => {
             <Button variant="secondary" onClick={action}
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
+                className="h-10 rounded-lg bg-[#4a48ff] px-4 font-medium text-white shadow-none transition-transform duration-150 hover:scale-[1.02] hover:bg-[#5b5aff]"
             >
                 <div
                     className='w-[23px] h-[23px] mr-[0.2rem]'
@@ -26,4 +27,3 @@ export const AddData = ({ action, label }: ButtonProps) => {
         </div>
     )
 }
-

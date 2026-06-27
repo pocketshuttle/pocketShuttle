@@ -3,6 +3,10 @@
     {
       "path": "/api/cron-jobs/reset-student",
       "schedule": "45 2 * * *"
+    },
+    {
+      "path": "/api/cron-jobs/reset-status",
+      "schedule": "0 9 * * *"
     }
   ]
 }

@@ -1,0 +1,885 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum ActionType {
+  CREATE_SCHOOL
+  DELETE_SCHOOL
+  RESET_PASSWORD
+  UPDATE_SUBSCRIPTION
+  MODIFY_SETTINGS
+}
+
+enum NotificationType {
+  PICKUP
+  DROPOFF
+  LOCATION_UPDATE
+  SYSTEM
+}
+
+enum BusStatus {
+  ENROUTE
+  PARKED
+}
+
+enum StudentStatus {
+  DROPPED
+  PICKED
+}
+
+enum StudentAttendance {
+  ABSENT
+  PRESENT
+}
+
+enum StudentPresence {
+  IN_BUS
+  AT_SCHOOL
+  ON_THE_WAY
+  NONE
+}
+
+enum TripType {
+  family_trip
+  school_trip
+  interstate_trip
+  corporate_trip
+}
+
+enum TripStatus {
+  scheduled
+  active
+  paused
+  completed
+  cancelled
+  emergency
+}
+
+enum TripParticipantRole {
+  passenger
+  child
+  driver
+  assistant
+  traveler
+}
+
+enum TripParticipantStatus {
+  scheduled
+  boarded
+  dropped
+  absent
+}
+
+enum TripViewerPermission {
+  view_location
+  view_events
+  receive_alerts
+  emergency_contact
+}
+
+enum TripEventType {
+  trip_started
+  trip_paused
+  trip_ended
+  participant_present
+  participant_boarded
+  participant_dropped
+  participant_absent
+  stop_reached
+  route_deviation
+  unusual_stop
+  emergency_triggered
+  emergency_resolved
+  eta_updated
+}
+
+enum SafetyState {
+  normal
+  attention
+  emergency
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum AccountType {
+  SCHOOL_MANAGED
+  STANDALONE
+}
+
+enum DriverVerificationStatus {
+  UNSUBMITTED
+  PENDING_REVIEW
+  VERIFIED
+  REJECTED
+}
+
+enum DriverRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+}
+
+enum ParentDriverConnectionStatus {
+  INVITED
+  DRIVER_REQUESTED
+  PARENT_APPROVED
+  DECLINED
+  REVOKED
+}
+
+enum ChildDriverAssignmentStatus {
+  ACTIVE
+  PAUSED
+  REVOKED
+}
+
+enum ChildDriverEventType {
+  ON_THE_WAY_TO_SCHOOL
+  PICKED_UP
+  DROPPED_OFF
+  LOCATION_UPDATED
+  LOCATION_REQUESTED
+  ALERT_SENT
+}
+
+enum KnownDriverBillingStatus {
+  FREE_TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+}
+
+enum KnownDriverPaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum DriverInviteStatus {
+  SENT
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
+enum SupportTicketStatus {
+  PENDING
+  FIXED
+}
+
+enum SupportTicketPriority {
+  HIGH
+  NORMAL
+}
+
+model SuperUser {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  password  String
+  role      String   @default("SUPERADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  actions SuperUserAction[]
+}
+
+model SuperUserAction {
+  id          String    @id @default(cuid())
+  superUserId String
+  action      String
+  targetId    String?
+  createdAt   DateTime  @default(now())
+  metadata    Json?
+  superUser   SuperUser @relation(fields: [superUserId], references: [id])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  role          UserRole  @default(ADMIN)
+  password      String?
+  suspendedAt   DateTime? @map("suspended_at")
+  suspendedReason String? @map("suspended_reason")
+  suspendedById String?   @map("suspended_by_id")
+
+  Subscription   Subscription[]
+  NewUser        NewUser[]
+  Account        Account[]
+  Teacher        Teacher[]
+  Driver         Driver[]
+  Parent         Parent[]
+  Student        Student[]
+  Route          Route[]
+  Buses          Buses[]
+  Payment        Payment[]
+  SchoolSettings SchoolSettings?
+  AuditLog       AuditLog[]
+
+  @@map("users")
+}
+
+model Plan {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  price         Float
+  duration      Int // in days
+  description   String?
+  features      Json?
+  isActive      Boolean        @default(true) @map("is_active")
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id               String           @id @default(cuid())
+  userId           String
+  planId           String
+  startDate        DateTime         @default(now())
+  endDate          DateTime
+  status           String           @default("ACTIVE")
+  subscriptionPlan SubscriptionPlan @default(FREE)
+  user             User             @relation(fields: [userId], references: [id])
+  plan             Plan             @relation(fields: [planId], references: [id])
+  Payment          Payment[]
+}
+
+model NewUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  teacherId String?
+  teacher   Teacher? @relation(fields: [teacherId], references: [id])
+  schoolId  String
+  school    User     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  parent    Parent?  @relation(fields: [parentId], references: [id])
+  parentId  String?
+  userId    String?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Teacher {
+  id            String    @id @default(cuid())
+  teacherId     String?   @map("teacher_id")
+  role          String
+  full_name     String?
+  image         String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  password      String?
+  phoneNumber   String?
+  address       String
+  schoolId      String?
+  school        User?     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  busId         String?   @unique
+  bus           Buses?    @relation(fields: [busId], references: [id], onDelete: Cascade)
+  NewUser       NewUser[]
+  Student       Student[]
+  Pickup        Pickup[]
+  userId        String?
+  suspendedAt   DateTime? @map("suspended_at")
+  suspendedReason String? @map("suspended_reason")
+  suspendedById String?   @map("suspended_by_id")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([email, schoolId])
+}
+
+model Driver {
+  id                         String                     @id @default(cuid())
+  driverId                   String?                    @map("driver_id")
+  role                       String                     @default("driver")
+  accountType                AccountType                @default(SCHOOL_MANAGED)
+  full_name                  String
+  email                      String?                    @unique
+  emailVerified              DateTime?                  @map("email_verified")
+  password                   String?
+  phoneNumber                String?
+  image                      String?
+  address                    String
+  liveAddress                Json?                      @map("live_address")
+  lastActiveAt               DateTime?                  @map("last_active_at")
+  landmark                   String?
+  utilityBillUrl             String?                    @map("utility_bill_url")
+  identityDocumentUrl        String?                    @map("identity_document_url")
+  verificationStatus         DriverVerificationStatus   @default(UNSUBMITTED) @map("verification_status")
+  verificationRejectionReason String?                   @map("verification_rejection_reason")
+  serviceAreas               String[]                   @default([]) @map("service_areas")
+  carMake                    String?                    @map("car_make")
+  carModel                   String?                    @map("car_model")
+  carColor                   String?                    @map("car_color")
+  plateNumber                String?                    @map("plate_number")
+  vehicleCapacity            Int?                       @map("vehicle_capacity")
+  suspendedAt                DateTime?                  @map("suspended_at")
+  suspendedReason            String?                    @map("suspended_reason")
+  suspendedById              String?                    @map("suspended_by_id")
+  schoolId                   String?
+  busId                      String?                    @unique
+  bus                        Buses?                     @relation(fields: [busId], references: [id])
+  school                     User?                      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  ParentChild                ParentChild[]
+  DriverRequest              DriverRequest[]
+  shareProfile               DriverShareProfile?
+  parentConnections          ParentDriverConnection[]
+  childAssignments           ChildDriverAssignment[]
+  driverInvites              DriverInvite[]
+  childDriverEvents          ChildDriverEvent[]
+  supportTickets             SupportTicket[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([accountType, schoolId])
+  @@index([verificationStatus])
+}
+
+model Parent {
+  id            String               @id @default(cuid())
+  role          String
+  accountType   AccountType          @default(SCHOOL_MANAGED)
+  full_name     String?
+  image         String?
+  email         String?              @unique
+  emailVerified DateTime?            @map("email_verified")
+  password      String?
+  phoneNumber   String?
+  address       String?
+  addressCoords Json?
+  suspendedAt   DateTime?              @map("suspended_at")
+  suspendedReason String?              @map("suspended_reason")
+  suspendedById String?                @map("suspended_by_id")
+  schoolId      String?
+  school        User?                @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  busId         String?
+  NewUser       NewUser[]
+  Student       Student[]
+  ParentChild   ParentChild[]
+  DriverRequest DriverRequest[]
+  driverConnections ParentDriverConnection[]
+  childDriverAssignments ChildDriverAssignment[]
+  driverInvites DriverInvite[]
+  childDriverEvents ChildDriverEvent[]
+  knownDriverPayments KnownDriverPayment[]
+  notifications ParentNotification[]
+  Pickup        Pickup[]
+  supportTickets SupportTicket[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([schoolId])
+  @@index([accountType, schoolId])
+}
+
+model ParentChild {
+  id             String          @id @default(cuid())
+  parentId       String          @map("parent_id")
+  fullName       String          @map("full_name")
+  age            Int?
+  grade          String?
+  address        String?
+  schoolCoords   Json?           @map("school_coords")
+  pickupNote     String?         @map("pickup_note")
+  image          String?
+  activeDriverId String?         @map("active_driver_id")
+  parent         Parent          @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  activeDriver   Driver?         @relation(fields: [activeDriverId], references: [id])
+  DriverRequest  DriverRequest[]
+  driverAssignments ChildDriverAssignment[]
+  childDriverEvents ChildDriverEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([parentId])
+  @@index([activeDriverId])
+  @@map("parent_children")
+}
+
+model DriverRequest {
+  id          String              @id @default(cuid())
+  parentId    String              @map("parent_id")
+  childId     String              @map("child_id")
+  driverId    String              @map("driver_id")
+  status      DriverRequestStatus @default(PENDING)
+  routeArea   String?             @map("route_area")
+  note        String?
+  parent      Parent              @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  child       ParentChild         @relation(fields: [childId], references: [id], onDelete: Cascade)
+  driver      Driver              @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  respondedAt DateTime?           @map("responded_at")
+  pickedUpAt  DateTime?           @map("picked_up_at")
+  droppedOffAt DateTime?          @map("dropped_off_at")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([parentId, status])
+  @@index([driverId, status])
+  @@index([childId, status])
+  @@map("driver_requests")
+}
+
+model DriverShareProfile {
+  id              String   @id @default(cuid())
+  driverId        String   @unique @map("driver_id")
+  shareId         String   @unique @map("share_id")
+  searchableEmail String?  @map("searchable_email")
+  searchablePhone String?  @map("searchable_phone")
+  driver          Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([shareId])
+  @@index([searchableEmail])
+  @@index([searchablePhone])
+  @@map("driver_share_profiles")
+}
+
+model ParentDriverConnection {
+  id          String                       @id @default(cuid())
+  parentId    String                       @map("parent_id")
+  driverId    String                       @map("driver_id")
+  status      ParentDriverConnectionStatus @default(INVITED)
+  requestedBy String?                      @map("requested_by")
+  note        String?
+  approvedAt  DateTime?                    @map("approved_at")
+  revokedAt   DateTime?                    @map("revoked_at")
+  parent      Parent                       @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  driver      Driver                       @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  assignments ChildDriverAssignment[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([parentId, driverId])
+  @@index([driverId, status])
+  @@index([parentId, status])
+  @@map("parent_driver_connections")
+}
+
+model ChildDriverAssignment {
+  id                 String                      @id @default(cuid())
+  parentId           String                      @map("parent_id")
+  driverId           String                      @map("driver_id")
+  childId            String                      @map("child_id")
+  connectionId       String                      @map("connection_id")
+  status             ChildDriverAssignmentStatus @default(ACTIVE)
+  billingStatus      KnownDriverBillingStatus    @default(FREE_TRIAL) @map("billing_status")
+  monthlyAmount      Float?                      @map("monthly_amount")
+  currency           String                      @default("NGN")
+  trialStartedAt     DateTime                    @default(now()) @map("trial_started_at")
+  trialEndsAt        DateTime                    @map("trial_ends_at")
+  currentPeriodStart DateTime?                   @map("current_period_start")
+  currentPeriodEnd   DateTime?                   @map("current_period_end")
+  lastStatus         ChildDriverEventType?       @map("last_status")
+  lastStatusAt       DateTime?                   @map("last_status_at")
+  parent             Parent                      @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  driver             Driver                      @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  child              ParentChild                 @relation(fields: [childId], references: [id], onDelete: Cascade)
+  connection         ParentDriverConnection      @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  events             ChildDriverEvent[]
+  payments           KnownDriverPayment[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([childId, driverId])
+  @@index([parentId, status])
+  @@index([driverId, status])
+  @@index([billingStatus, trialEndsAt])
+  @@map("child_driver_assignments")
+}
+
+model DriverInvite {
+  id              String             @id @default(cuid())
+  parentId        String             @map("parent_id")
+  driverId        String?            @map("driver_id")
+  email           String?
+  phoneNumber     String?            @map("phone_number")
+  tokenHash       String             @unique @map("token_hash")
+  status          DriverInviteStatus @default(SENT)
+  expiresAt       DateTime           @map("expires_at")
+  acceptedAt      DateTime?          @map("accepted_at")
+  parent          Parent             @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  driver          Driver?            @relation(fields: [driverId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([parentId, status])
+  @@index([email])
+  @@index([phoneNumber])
+  @@map("driver_invites")
+}
+
+model ChildDriverEvent {
+  id           String               @id @default(cuid())
+  assignmentId String               @map("assignment_id")
+  parentId     String               @map("parent_id")
+  driverId     String               @map("driver_id")
+  childId      String               @map("child_id")
+  eventType    ChildDriverEventType @map("event_type")
+  actorId      String?              @map("actor_id")
+  actorType    String?              @map("actor_type")
+  latitude     Float?
+  longitude    Float?
+  payload      Json?
+  assignment   ChildDriverAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  parent       Parent               @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  driver       Driver               @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  child        ParentChild          @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([assignmentId, createdAt])
+  @@index([parentId, createdAt])
+  @@index([driverId, createdAt])
+  @@map("child_driver_events")
+}
+
+model KnownDriverPayment {
+  id               String                   @id @default(cuid())
+  parentId         String                   @map("parent_id")
+  assignmentId     String                   @map("assignment_id")
+  amount           Float
+  currency         String                   @default("NGN")
+  status           KnownDriverPaymentStatus @default(PENDING)
+  provider         String                   @default("PAYSTACK")
+  providerRef      String?                  @unique @map("provider_ref")
+  authorizationUrl String?                  @map("authorization_url")
+  paidAt           DateTime?                @map("paid_at")
+  metadata         Json?
+  parent           Parent                   @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  assignment       ChildDriverAssignment    @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([parentId, status])
+  @@index([assignmentId, status])
+  @@map("known_driver_payments")
+}
+
+model SupportTicket {
+  id                  String              @id @default(cuid())
+  requesterRole       String              @default("driver") @map("requester_role")
+  driverId            String?             @map("driver_id")
+  parentId            String?             @map("parent_id")
+  requesterName       String              @map("requester_name")
+  requesterIdentifier String              @map("requester_identifier")
+  message             String
+  status              SupportTicketStatus @default(PENDING)
+  priority            SupportTicketPriority @default(NORMAL)
+  fixedAt             DateTime?           @map("fixed_at")
+  deletedAt           DateTime?           @map("deleted_at")
+  driver              Driver?             @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  parent              Parent?             @relation(fields: [parentId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([status, createdAt])
+  @@index([priority, status, createdAt])
+  @@index([deletedAt])
+  @@index([driverId, createdAt])
+  @@index([parentId, createdAt])
+  @@map("support_tickets")
+}
+
+model Student {
+  id         String             @id @default(cuid())
+  parentId   String?            @map("parent_id")
+  full_name  String?
+  image      String?
+  grade      String?
+  gender     String?
+  age        Int?
+  address    String?
+  attendance StudentAttendance? @default(ABSENT)
+  status     StudentStatus?     @default(DROPPED)
+  presence   StudentPresence?   @default(NONE)
+  parent     Parent?            @relation(fields: [parentId], references: [id])
+  schoolId   String
+  teacherId  String?
+  teacher    Teacher?           @relation(fields: [teacherId], references: [id])
+  school     User               @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  busId      String?
+  bus        Buses?             @relation("BusStudents", fields: [busId], references: [id])
+  Buses      Buses[]
+  Pickup     Pickup[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Route {
+  id                String  @id @default(cuid())
+  route_name        String
+  schoolId          String
+  route_description String
+  school            User    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  Buses             Buses[]
+}
+
+model Buses {
+  id               String    @id @default(cuid())
+  bus_product_name String
+  bus_number       String    @unique
+  seat_number      Int
+  availableSeats   Int       @default(0) @map("available_seats")
+  color            String?
+  schoolId         String
+  school           User      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  routeId          String
+  studentId        String?
+  students         Student[] @relation("BusStudents")
+  route            Route?    @relation(fields: [routeId], references: [id])
+  teacher          Teacher?
+  Student          Student[]
+  driver           Driver?
+
+  @@map("buses")
+}
+
+model Notification {
+  id               String               @id @default(cuid())
+  notificationJson String
+  parents          ParentNotification[]
+}
+
+model ParentNotification {
+  id               String        @id @default(cuid())
+  parentId         String?
+  notificationId   String?
+  parent           Parent?       @relation(fields: [parentId], references: [id])
+  notificationJson Notification? @relation(fields: [notificationId], references: [id])
+
+  @@unique([parentId])
+}
+
+model Trip {
+  id          String      @id @default(cuid())
+  tripType    TripType    @map("trip_type")
+  title       String
+  status      TripStatus  @default(scheduled)
+  safetyState SafetyState @default(normal) @map("safety_state")
+  origin      Json?
+  destination Json?
+  driverId    String?     @map("driver_id")
+  vehicleId   String?     @map("vehicle_id")
+  startedAt   DateTime?   @map("started_at")
+  endedAt     DateTime?   @map("ended_at")
+  createdBy   String?     @map("created_by")
+  schoolId    String?     @map("legacy_school_id")
+  busId       String?     @map("legacy_bus_id")
+  metadata    Json?
+
+  participants TripParticipant[]
+  viewers      TripViewer[]
+  events       TripEvent[]
+  locations    TripLocation[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([tripType, status])
+  @@index([schoolId, vehicleId, createdAt])
+  @@map("trips")
+}
+
+model TripParticipant {
+  id              String                @id @default(cuid())
+  tripId          String                @map("trip_id")
+  participantId   String                @map("participant_id")
+  participantType String                @map("participant_type")
+  userId          String?               @map("user_id")
+  role            TripParticipantRole
+  status          TripParticipantStatus @default(scheduled)
+  boardedAt       DateTime?             @map("boarded_at")
+  droppedAt       DateTime?             @map("dropped_at")
+  metadata        Json?
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([tripId, participantType, participantId])
+  @@index([participantType, participantId])
+  @@index([userId])
+  @@map("trip_participants")
+}
+
+model TripViewer {
+  id          String                 @id @default(cuid())
+  tripId      String                 @map("trip_id")
+  viewerId    String                 @map("viewer_id")
+  viewerType  String                 @map("viewer_type")
+  permissions TripViewerPermission[]
+  expiresAt   DateTime?              @map("expires_at")
+  metadata    Json?
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([tripId, viewerType, viewerId])
+  @@index([viewerType, viewerId])
+  @@map("trip_viewers")
+}
+
+model TripEvent {
+  id        String        @id @default(cuid())
+  tripId    String        @map("trip_id")
+  eventType TripEventType @map("event_type")
+  actorId   String?       @map("actor_id")
+  actorType String?       @map("actor_type")
+  payload   Json?
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  timestamp DateTime @default(now())
+
+  @@index([tripId, timestamp])
+  @@index([eventType, timestamp])
+  @@map("trip_events")
+}
+
+model TripLocation {
+  id        String   @id @default(cuid())
+  tripId    String   @map("trip_id")
+  lat       Float
+  lng       Float
+  speed     Float?
+  heading   Float?
+  accuracy  Float?
+  timestamp DateTime @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId, timestamp])
+  @@map("trip_locations")
+}
+
+model verificationToken {
+  id      String   @id @default(cuid())
+  email   String
+  role    String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model ResetPasswordToken {
+  id      String   @id @default(cuid())
+  email   String
+  role    String?
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model Pickup {
+  id          String    @id @default(cuid())
+  studentId   String
+  teacherId   String
+  parentId    String
+  pickUpTime  DateTime  @default(now())
+  arrivalTime DateTime?
+  confirmedBy String?
+
+  // Relations
+  Parent  Parent  @relation(fields: [parentId], references: [id])
+  Student Student @relation(fields: [studentId], references: [id])
+  Teacher Teacher @relation(fields: [teacherId], references: [id])
+}
+
+//FUTURE WORK FLOW
+model Payment {
+  id             String        @id @default(cuid())
+  userId         String
+  subscriptionId String?
+  amount         Float
+  currency       String        @default("NGN")
+  status         PaymentStatus @default(PENDING)
+  transactionId  String        @unique
+  createdAt      DateTime      @default(now())
+
+  user         User          @relation(fields: [userId], references: [id])
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+}
+
+model SchoolSettings {
+  id             String   @id @default(cuid())
+  schoolId       String
+  pickupWindow   Int      @default(15)
+  notifyDistance Int      @default(500)
+  school         User     @relation(fields: [schoolId], references: [id])
+  updatedAt      DateTime @updatedAt
+
+  @@unique([schoolId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  details   Json?
+  timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, timestamp])
+}

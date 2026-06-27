@@ -1,59 +1,83 @@
-"use server"
+"use server";
+
 import LoginButton from '@/components/auth/login-button';
+import { NetworkError } from '@/components/errorsandsuccess/error/error';
 import { TeachersViewData } from '@/components/teachers-view/teachersdata';
 import { Button } from '@/components/ui/button';
-import { db } from '@/lib/db';
+// import { db } from '@/dropoff-backend/lib/db';
 import { getUserSession } from '@/lib/session';
-import { revalidateTag } from 'next/cache';
+import db from '@/packages/db/client';
 import React from 'react';
 
 const TeacherView = async () => {
     const user = await getUserSession();
 
-    if (!user) {
-        // Handle the case where the user session is not available
-        return <div>
-            User session is not available. Please log in.
-            <LoginButton>
-                <Button size={"lg"} >Login</Button>
-            </LoginButton>
-
-        </div>
+    if (!user?.id || typeof user.id !== "string") {
+        return (
+            <div className="flex items-center justify-center min-h-screen text-center">
+                <div>
+                    <p className="mb-4 text-black/70 dark:text-white/70">User session is not available. Please log in.</p>
+                    <LoginButton>
+                        <Button size="lg">Login</Button>
+                    </LoginButton>
+                </div>
+            </div>
+        );
     }
 
     try {
         const teacherData = await db.teacher.findUnique({
-            where: {
-                id: user.id,  // Removed optional chaining since user is confirmed to exist
-            },
-            include: {
-                Student: true,
+            where: { id: user.id },
+            select: {
+                Student: {
+                    include: {
+                        parent: {
+                            select: { address: true },
+                        },
+                    },
+                },
                 bus: {
                     include: {
-                        students: true,
+                        students: {
+                            include: {
+                                parent: {
+                                    select: { address: true },
+                                },
+                            }
+                        },
                         driver: true,
                     },
                 },
             },
         });
 
+
         if (!teacherData) {
-            // Handle the case where teacher data is not found
-            return <div>No teacher data found for this user.</div>;
+            return (
+                <div className="flex items-center justify-center min-h-screen">
+                    <p className="text-black/60 dark:text-white/60">No teacher data found for this user.</p>
+                </div>
+            );
         }
 
-        // Revalidate the cache with the "collection" tag
-        revalidateTag("collection");
-
         return (
-            <div>
-                {/* @ts-ignore */}
+            <div className="min-h-screen ">
                 <TeachersViewData userId={user.id} user={user} data={teacherData} />
             </div>
         );
-    } catch (error) {
-        console.error("Error fetching teacher data:", error);
-        return <div>An error occurred while fetching teacher data.</div>;
+    } catch (error: any) {
+        if (error.message.includes("Can't reach database server at")) {
+            return (
+                <div className="flex items-center justify-center">
+                    <NetworkError error="Connection" />
+                </div>
+            );
+        }
+        return (
+            <div className="flex items-center justify-center min-h-screen text-red-600">
+                <p>An error occurred. Please refresh or try again later.</p>
+            </div>
+        );
     }
 };
 

@@ -1,12 +1,13 @@
-import ResetPasswordToken from "@/(models)/ResetPassword";
-import VerificationToken from "@/(models)/VerificationToken";
 import { getResetPasswordTokenByEmail } from "@/data/password-reset-token";
 import { getVerificationTokenByEmail } from "@/data/verification-token";
-import { v4 as uuidv4 } from "uuid";
-import { db } from "./db";
+import db from "@/packages/db/client";
 
-export const generateVerificationToken = async (email: string) => {
-  const token = uuidv4();
+export const generateVerificationToken = async (
+  email: string,
+  role: string
+) => {
+  const token = crypto.randomUUID();
+
   // it expires in one hour
   const expires = new Date(Date.now() + 3600 * 1000);
 
@@ -23,6 +24,7 @@ export const generateVerificationToken = async (email: string) => {
   const verificationToken = await db.verificationToken.create({
     data: {
       email,
+      role,
       token,
       expires,
     },
@@ -31,8 +33,11 @@ export const generateVerificationToken = async (email: string) => {
   return verificationToken;
 };
 
-export const generatePasswordResetToken = async (email: string) => {
-  const token = uuidv4();
+export const generatePasswordResetToken = async (
+  email: string,
+  role: string
+) => {
+  const token = crypto.randomUUID();
   // it expires in one hour
   const expires = new Date(Date.now() + 3600 * 1000);
   const existingToken = await getResetPasswordTokenByEmail(email);
@@ -46,7 +51,7 @@ export const generatePasswordResetToken = async (email: string) => {
   }
 
   const resetPasswordToken = await db.resetPasswordToken.create({
-    data: { email, token, expires },
+    data: { email, role, token, expires },
   });
 
   return resetPasswordToken;

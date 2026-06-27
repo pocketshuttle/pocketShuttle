@@ -1,19 +1,20 @@
 import LoginButton from '@/components/auth/login-button'
-import Parent from '@/components/parent/parent'
 import { ParentData } from '@/components/parent/ui/parent-table'
 import { Button } from '@/components/ui/button'
-import { db } from '@/lib/db'
 import { getUserSession } from '@/lib/session'
-import { Prisma } from '@prisma/client'
 import { revalidateTag } from 'next/cache'
-import React from 'react'
+import db from "@/packages/db/client";
+import { Prisma } from "@prisma/client";
+import { NetworkError } from '@/components/errorsandsuccess/error/error'
 
-const Parents = async ({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) => {
+
+const Parents = async ({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) => {
     const user = await getUserSession()
+    const resolvedSearchParams = await searchParams;
 
     // if no user, that means you havent logged in, so redirect back to login page
-    if (!user) {
-        return <div>
+    if (!user || typeof user?.id !== "string") {
+        return <div className="flex items-center justify-center">
             User session is not available. Please log in.
             <LoginButton>
                 <Button size={"lg"} >Login</Button>
@@ -23,20 +24,13 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
     }
     const userId = user?.id
     //if the next req for the next page is a string, we convert it to number then pass it as a params, if its unavailable , we set it to 1
-    const page = typeof searchParams.page === "string" ? Number(searchParams.page) : 1
-    const searchQuery = typeof searchParams.q === "string" ? searchParams.q : ""
-    const ITEM_PER_PAGE = 4;
+    const page = typeof resolvedSearchParams.page === "string" ? Number(resolvedSearchParams.page) : 1
+    const searchQuery = typeof resolvedSearchParams.q === "string" ? resolvedSearchParams.q : ""
+    const ITEM_PER_PAGE = 10;
 
     const query: Prisma.ParentWhereInput = {
-        //we fetch our data by either school id or user Id
-        OR: [
-            {
-                schoolId: userId,
-            },
-            {
-                id: userId,
-            },
-        ],
+        schoolId: userId,
+        accountType: "SCHOOL_MANAGED",
 
         //we check the search query has a value, all searches are cases insensitive
         // you can search by full_name
@@ -47,7 +41,8 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
     try {
         const parentCount = await db.parent.count({
             where: {
-                id: userId
+                schoolId: userId,
+                accountType: "SCHOOL_MANAGED",
             }
         });
 
@@ -73,18 +68,10 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
             // Handle the case where teacher data is not found
             return <div className='text-center'>No parent data found for this user, try again or add a Parent</div>;
         }
-        revalidateTag("parent");
 
         const studentData = await db.student.findMany({
             where: {
-                OR: [
-                    {
-                        schoolId: userId,
-                    },
-                    {
-                        id: userId,
-                    },
-                ],
+                schoolId: userId,
             }
         })
 
@@ -93,9 +80,19 @@ const Parents = async ({ searchParams }: { searchParams: { [key: string]: string
                 <ParentData parentData={parent} totalCount={parentCount} studentData={studentData} />
             </div>
         )
-    } catch (error) {
-        console.error("Error fetching Parents data:", error);
-        return <div className='text-center'>An error occurred while fetching Parents data, please refresh or try again later.</div>;
+    } catch (error: any) {
+        if (error.message.includes("Can't reach database server at")) {
+            return (
+                <div className="flex items-center justify-center">
+                    <NetworkError error="Connection" />
+                </div>
+            );
+        }
+        return (
+            <div className="flex min-h-screen items-center justify-center text-[var(--text)]">
+                <p>An error occurred. Please refresh or try again later.</p>
+            </div>
+        );
     }
 
 

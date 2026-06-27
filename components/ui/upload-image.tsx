@@ -1,17 +1,17 @@
 "use client"
 import Image, { StaticImageData } from 'next/image'
 import React, { ChangeEvent, Dispatch, SetStateAction, useState } from 'react'
-import { UseFormReturn } from 'react-hook-form'
+import { FieldValues, Path, UseFormReturn } from 'react-hook-form'
 import LottieAnimation from '../dashboard/sidebar/menuLink/lottie-animation'
 import upload from "@/public/images/upload.json"
-type ImageProps = {
+type ImageProps<TFormValues extends FieldValues> = {
     newAvatar: string,
     avatar: StaticImageData,
-    form: UseFormReturn,
+    form: UseFormReturn<TFormValues>,
     setNewAvatar: Dispatch<SetStateAction<string>>,
 }
 
-export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }: ImageProps) => {
+export const UploadImage = <TFormValues extends FieldValues>({ newAvatar, avatar, form, setNewAvatar }: ImageProps<TFormValues>) => {
     const [isLoading, setIsLoading] = React.useState<boolean>(false)
     const [isHovering, setIsHovering] = useState(false);
 
@@ -54,7 +54,7 @@ export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }: ImageProp
 
             if (res.ok) {
                 const data = await res.json()
-                form.setValue("image", data.url)
+                form.setValue("image" as Path<TFormValues>, data.url)
                 setNewAvatar(data.url)
             }
         }
@@ -75,17 +75,20 @@ export const UploadImage = ({ newAvatar, avatar, form, setNewAvatar }: ImageProp
                 style={{ display: 'none' }}
                 onChange={handleCameraInputChange}
             />
-            <div>
-                {
-                    isLoading ?
-                        <div
-                            className='w-[300px] h-[300px] mr-[0.2rem] flex items-center justify-center'
-                        >
-                            <LottieAnimation isHovering={true} animationData={upload} />
-
-                        </div> :
-                        <Image src={newAvatar || avatar} alt="avatar" width={100} height={330} className="cursor-pointer rounded-md  w-full  object-fill" onClick={() => handleCameraClick()} />
-                }
+            <div className="w-[300px] h-[300px] relative">
+                {isLoading ? (
+                    <div className="w-full h-full flex items-center justify-center">
+                        <LottieAnimation isHovering={true} animationData={upload} />
+                    </div>
+                ) : (
+                    <Image
+                        src={newAvatar || avatar}
+                        alt="avatar"
+                        fill
+                        className="cursor-pointer rounded-md object-cover" 
+                        onClick={() => handleCameraClick()}
+                    />
+                )}
             </div>
         </div>
     )

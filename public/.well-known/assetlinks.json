@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.pocketshuttle.app.twa",
+      "sha256_cert_fingerprints": [
+        "A8:42:6B:B8:4E:9C:60:71:EF:C1:C6:18:16:BE:24:2B:05:8E:AB:1B:EC:D9:79:1E:73:D2:69:39:09:1E:2C:D2"
+      ]
+    }
+  }
+]

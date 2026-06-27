@@ -1,5 +1,6 @@
 "use server";
-import { db } from "@/lib/db";
+import { getUserSession } from "@/lib/session";
+import db from "@/packages/db/client";
 import { revalidateTag } from "next/cache";
 
 export const addParent = async (
@@ -8,10 +9,17 @@ export const addParent = async (
   confirmation?: string
 ) => {
   try {
+    const user = await getUserSession();
+
+    if (!user || !["admin", "school", "ADMIN"].includes(user.role as string)) {
+      return {
+        message: "Unauthorized: Only admins or school staff can add Parent.",
+        status: 403,
+      };
+    }
     const available = await db.student.findUnique({
       where: { id: studentId },
     });
-
 
     if (available?.parentId !== null) {
       return { message: "Student already belong to a parent", status: 100 };
@@ -43,9 +51,9 @@ export const addParent = async (
 
     revalidateTag("parent");
 
-    return { message: "Student added to parent" };
+    return { message: "Student added to parent", status: 200 };
   } catch (error) {
     console.error("Error adding Parent:", error);
-    return { message: "Error adding Parent" };
+    return { message: "Error adding Parent", status: 400 };
   }
 };

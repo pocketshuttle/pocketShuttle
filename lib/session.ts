@@ -1,23 +1,23 @@
-// utils/session.ts
-import { auth } from "@/auth";
-import authConfig from "@/auth.config";
-import {
-  GetServerSidePropsContext,
-  NextApiRequest,
-  NextApiResponse,
-} from "next";
+"use server";
+import { cookies } from "next/headers";
+import { decrypt } from "./create-session";
+import { SESSION_COOKIE_NAME } from "@/lib/auth-cookies";
 import { cache } from "react";
+import { redirect } from "next/navigation";
 
-export const getUserSession = cache(
-  async (
-    ...args:
-      | [GetServerSidePropsContext["req"], GetServerSidePropsContext["res"]]
-      | [NextApiRequest, NextApiResponse]
-      | []
-  ) => {
+export const getUserSession = cache(async () => {
+  const cookie = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
 
-    const session = await auth();
-
-    return session?.user;
+  if (!cookie) {
+    console.log("No cookie found");
+    redirect("/login");
   }
-);
+
+  const session = await decrypt(cookie);
+
+  if (!session?.id) {
+    redirect("/login");
+  }
+
+  return session;
+});

@@ -1,39 +1,60 @@
 import { Resend } from "resend";
+import PocketshuttleResetPasswordEmail from "../components/emails/reset-password";
+import PocketshuttleLoginCodeEmail from "../components/emails/confirm-email";
+import React from "react";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const domain = "https://app.pocketshuttle.com/";
+// const domain = "http://localhost:3000/";
 
 export const sendVerificationEmail = async (email: string, token: string) => {
-  const confirmLink = `http://localhost:3000/new-verification?token=${token}`;
+  const confirmLink = `${domain}new-verification?token=${token}`;
 
   await resend.emails.send({
-    from: "onboarding@resend.dev",
+    from: "onboarding@pocketshuttle.com",
     to: email,
     subject: "Thank you for joining PocketShuttle, please confirm your email",
-    html: `
-      <div style="text-align: center; background-color: #000; padding: 20px; height: 40rem; width: 100%;">
-        <small style="color: #b7cac1">PocketShuttle</small>
-        <h1 style="font-size: 1.5rem; font-weight: bold;">Please confirm your account</h1>
-        <p style="font-size: 1rem; color: #b7cac1">Thank you for signing up for PocketShuttle. To confirm your account, please click the button below.</p>
-        <a href="${confirmLink}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px; margin-top: 20px;">Confirm email</a>
-      </div>
-   `,
+    react: React.createElement(PocketshuttleLoginCodeEmail, {
+      verificationLink: confirmLink,
+    }),
   });
 };
 
 export const sendResetPasswordEmail = async (email: string, token: string) => {
-  const passwordLink = `http://localhost:3000/reset-password?token=${token}`;
+  const passwordLink = `${domain}reset-password?token=${token}`;
 
   await resend.emails.send({
-    from: "onboarding@resend.dev",
+    from: "onboarding@pocketshuttle.com",
     to: email,
-    subject: "Please click on the link to reset your password",
+    subject: "Pocketshuttle reset your password",
+    react: React.createElement(PocketshuttleResetPasswordEmail, {
+      resetPasswordLink: passwordLink,
+    }),
+  });
+};
+
+export const sendDriverInviteEmail = async ({
+  email,
+  token,
+  parentName,
+}: {
+  email: string;
+  token: string;
+  parentName?: string | null;
+}) => {
+  const inviteLink = `${domain}register?role=driver&invite=${encodeURIComponent(token)}`;
+
+  await resend.emails.send({
+    from: "onboarding@pocketshuttle.com",
+    to: email,
+    subject: "You have been invited to join PocketShuttle as a driver",
     html: `
-      <div style="text-align: center; background-color: #000; padding: 20px; height: 40rem; width: 100%;">
-        <small style="color: #b7cac1">PocketShuttle</small>
-        <h1 style="font-size: 1.5rem; font-weight: bold;">Please click on the button to reset your password</h1>
-        <p style="font-size: 1rem; color: #b7cac1">Thank you for signing up for PocketShuttle. To reset your password please click the button below.</p>
-        <a href="${passwordLink}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px; margin-top: 20px;">Reset Password</a>
+      <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+        <h2>PocketShuttle driver invite</h2>
+        <p>${parentName || "A parent"} invited you to manage school pickup and dropoff updates on PocketShuttle.</p>
+        <p><a href="${inviteLink}" style="display:inline-block;background:#4a48ff;color:white;padding:12px 16px;border-radius:8px;text-decoration:none;">Create driver account</a></p>
+        <p>If the button does not work, open this link: ${inviteLink}</p>
       </div>
-   `,
+    `,
   });
 };

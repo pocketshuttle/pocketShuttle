@@ -9,14 +9,17 @@ import { BusSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { useFetch } from "@/hooks/useFetch"
-import { useSession } from "next-auth/react"
+
 import { usePost } from "@/hooks/usePost"
 import { SelectDataProperty } from "@/components/ui/select-data-wrapper"
 import { usePathname, useSearchParams } from "next/navigation"
+import { useSession } from "@/hooks/useSession"
 
 const SingleBus = () => {
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+
+    const session = useSession()
+    const userId = session?.id
+    
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined)
     const getPathname = usePathname()
     const busId = getPathname.split("/").pop()
@@ -34,7 +37,6 @@ const SingleBus = () => {
     const { data: postData, loading: postLoading, errorMessage: postError, success } = usePost(`/api/addbus/${busId}`, submittedData, "PATCH")
 
 
-    console.log(busData)
 
     const form = useForm<z.infer<typeof BusSchema>>({
         resolver: zodResolver(BusSchema),

@@ -5,12 +5,27 @@ import {
     AvatarFallback,
     AvatarImage,
 } from "@/components/ui/avatar";
+import LoginButton from "@/components/auth/login-button";
+import { Button } from "@/components/ui/button";
 // type userNameProps = {
 //     isHovering: boolean
 
 // }
 export const UserName = async () => {
     const user = await getUserSession()
+    if (!user || typeof user.name !== 'string' || typeof user.image !== 'string') {
+        return (
+            <div className="flex items-center justify-center">
+                <div>
+                    User session is not available. Please log in.
+                    <LoginButton>
+                        <Button size={"lg"}>Login</Button>
+                    </LoginButton>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div>
             <Avatar>

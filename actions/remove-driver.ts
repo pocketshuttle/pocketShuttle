@@ -1,13 +1,16 @@
 "use server";
 
-import Buses from "@/(models)/Bus";
-import Driver from "@/(models)/Driver";
-import { db } from "@/lib/db";
-import { connectToDB } from "@/utils/connect-to-db";
+import { getUserSession } from "@/lib/session";
+import db from "@/packages/db/client";
 
 export const removeDriverFromBus = async (driverId: string, busId: string) => {
   console.log(driverId, busId, "ids ");
   try {
+    const user = await getUserSession();
+    if (!user || !["teacher", "admin", "ADMIN"].includes(user.role as string)) {
+      return { message: "Unauthorized", status: 401 };
+    }
+
     if (!driverId || !busId) {
       return {
         message: "Both studentId and busId are required",

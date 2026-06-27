@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table"
 
 import { SelectProperty } from "@/components/ui/select-wrapper"
-import { grades } from "@/data/schooldata"
+import { BusesProps, grades } from "@/data/schooldata"
 import { SelectPassengerBus } from "@/components/ui/select-bus-wrapper"
 import {
     AlertDialog,
@@ -48,23 +48,73 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { removeStudentFromBus } from "@/actions/remove-student-bus"
+import { ImportStudentsForm } from "../batch-student/import-student"
+import { CopyableText } from "@/components/ui/copyable-text"
+import { tableStyle } from "@/components/ui/table-style"
+
 type IdProps = {
     studentsData: StudentProps[]
     totalCount: number
+    busData: BusesProps[]
+    schoolId: string
 }
-//  @ts-ignore  
-export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => {
+
+const mockStudentsData: StudentProps[] = [
+    {
+        id: "mock-student-1",
+        full_name: "Noah Carter",
+        gender: "male",
+        age: 8,
+        grade: "Grade 3",
+        address: "18 Maple Close, Victoria Island, Lagos",
+        image: "",
+        presence: "IN_SCHOOL",
+        bus: {
+            id: "mock-bus-1",
+            bus_product_name: "Toyota Coaster",
+            bus_number: "PS-102",
+        },
+    } as StudentProps,
+    {
+        id: "mock-student-2",
+        full_name: "Maya Evans",
+        gender: "female",
+        age: 7,
+        grade: "Grade 2",
+        address: "42 Orchid Road, Lekki Phase 1, Lagos",
+        image: "",
+        presence: "IN_BUS",
+        bus: {
+            id: "mock-bus-2",
+            bus_product_name: "Mercedes Sprinter",
+            bus_number: "PS-218",
+        },
+    } as StudentProps,
+    {
+        id: "mock-student-3",
+        full_name: "Leo Bennett",
+        gender: "male",
+        age: 9,
+        grade: "Grade 4",
+        address: "7 Queens Drive, Ikoyi, Lagos",
+        image: "",
+        presence: "NONE",
+        bus: {
+            id: "mock-bus-3",
+            bus_product_name: "Hyundai County",
+            bus_number: "PS-330",
+        },
+    } as StudentProps,
+];
+
+export const StudentsData = ({ studentsData, busData, totalCount, schoolId }: IdProps) => {
     const [isPending, startTransition] = useTransition()
     const [filterGrade, setFilterGrade] = useState<string>("")
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
 
-
-    // TODO: CHECK FOR THE CORRECT METHOD FOR SCHOOL GRADE
     const handleGradeChange = (value: string) => {
-        console.log(value)
         setFilterGrade(value)
         const updatedGradeQuery = value !== "All" ? `&grade=${value}` : "";
-      
     }
 
     const [isHovering, setIsHovering] = useState(false);
@@ -102,41 +152,42 @@ export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => 
         })
     }
 
+    const displayStudentsData = Array.isArray(studentsData) && studentsData.length ? studentsData : mockStudentsData
+
     return (
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root))]">
-            <div className="p-4 flex justify-end items-center ">
-                <div className="gap-3 flex">
-                    <Link href="/dashboard/students/allstudents">
-                        <Button variant="link" className="ml-2 text-blue-600">View All Students</Button>
-                    </Link>
-                    < AddData label="Student" action={handleModal} />
-                </div>
+        <div className={tableStyle.wrapper}>
+            <div className="p-4 flex justify-between gap-3 items-center">
+                < AddData label="Student" action={handleModal} />
+                <Link href="/dashboard/students/allstudents">
+                    <Button variant="link" className="ml-2 text-blue-600">View All Students</Button>
+                </Link>
+                <ImportStudentsForm schoolId={schoolId} />
             </div>
             {
                 isOpenModal && <StudentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
             }
-            <Table>
-                <TableHeader className="bg-[var(--hoverBg)] ">
-                    <TableRow className="capitalize text-[0.7rem] border-[1px] border-gray-500 rounded-md ">
-                        <TableHead className="w-[250px]">Full Name</TableHead>
-                        <TableHead>Gender</TableHead>
-                        <TableHead className="">Age</TableHead>
-                        <TableHead className="w-[185px]">
+            <Table className={tableStyle.table}>
+                <TableHeader>
+                    <TableRow className={tableStyle.headerRow}>
+                        <TableHead className={`w-[300px] ${tableStyle.head}`}>Full Name</TableHead>
+                        <TableHead className={tableStyle.head}>Gender</TableHead>
+                        <TableHead className={tableStyle.head}>Age</TableHead>
+                        <TableHead className={`w-[185px] ${tableStyle.head}`}>
                             < SelectProperty placeholder="Grade" label="Filter by Grade" data={grades} handleSelectChange={handleGradeChange} setFilterGrade={setFilterGrade} />
                         </TableHead>
-                        <TableHead className="w-[300px]">Address</TableHead>
-                        <TableHead className="w-[200px]">Bus</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead className={`w-[260px] ${tableStyle.head}`}>Address</TableHead>
+                        <TableHead className={`w-[200px] ${tableStyle.head}`}>Bus</TableHead>
+                        <TableHead className={tableStyle.head}>Actions</TableHead>
 
                     </TableRow>
 
                 </TableHeader>
-                <TableBody className="text-[0.8rem] text-[var(--textSoft)]">
+                <TableBody className={tableStyle.body}>
                     {
-                        studentsData && studentsData?.map((student: StudentProps) => {
+                        displayStudentsData.map((student: StudentProps) => {
                             return (
-                                <TableRow key={student.id}>
-                                    <TableCell className=" ">
+                                <TableRow key={student.id} className={tableStyle.row}>
+                                    <TableCell className={tableStyle.firstCell}>
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger>
@@ -157,24 +208,24 @@ export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => 
                                         </TooltipProvider>
 
                                     </TableCell>
-                                    <TableCell className="text-[0.6rem]">
+                                    <TableCell className={tableStyle.cell}>
                                         {student.gender}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className={tableStyle.cell}>
                                         {student.age}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className={tableStyle.cell}>
                                         {student.grade}
                                     </TableCell>
-                                    <TableCell>
-                                        {student.address}
+                                    <TableCell className={`max-w-[260px] ${tableStyle.cell}`}>
+                                        <CopyableText label="Address" value={student.address} fallback="No address" truncateClassName="max-w-[240px]" />
                                     </TableCell>
-                                    <TableCell className="capitalize">
+                                    <TableCell className={`${tableStyle.cell} capitalize`}>
                                         {
-                                            student.bus ?
-                                                <div className=" space-x-2 flex"> {student.bus && student.bus.bus_product_name}
+                                            student?.bus ?
+                                                <div className=" space-x-2 flex"> {student?.bus && student?.bus?.bus_product_name}
                                                     <span>
-                                                        ({student.bus && student.bus.bus_number})
+                                                        ({student?.bus && student?.bus?.bus_number})
                                                     </span>
                                                     <AlertDialog>
                                                         <AlertDialogTrigger asChild>
@@ -214,6 +265,7 @@ export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => 
                                                         < SelectPassengerBus
                                                             placeholder="Select Bus"
                                                             label="Select Bus"
+                                                            // @ts-ignore
                                                             data={busData}
                                                             studentId={student.id}
                                                         />
@@ -222,7 +274,7 @@ export const StudentsData = ({ studentsData, busData, totalCount }: IdProps) => 
                                         }
                                     </TableCell>
 
-                                    <TableCell>
+                                    <TableCell className={tableStyle.actionCell}>
                                         <div className="space-x-2 text-gray-200 flex">
                                             <EditData link={`/dashboard/students/${student.id}`} mode="edit" />
 

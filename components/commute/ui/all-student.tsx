@@ -7,13 +7,13 @@ import { useState } from "react"
 import {
     Table,
     TableBody,
-    TableCaption,
     TableCell,
-    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { CopyableText } from "@/components/ui/copyable-text"
+import { tableStyle } from "@/components/ui/table-style"
 
 
 type StudentProps = {
@@ -27,50 +27,55 @@ type StudentProps = {
     image: string
 }
 
-//@ts-ignore
-export const StudentsData = ({ data }: StudentProps[]) => {
+export const StudentsData = ({ data }: { data?: StudentProps[] }) => {
 
     return (
-        <div className=" w-full shadow-md sm:rounded-lg bg-[#182237]">
+        <div className="w-full bg-transparent">
             <div className="p-4 flex justify-between items-center ">
                 <Search placeholder="Search for students..." classname="border border-gray-700  outline-none focus-visible:outline-none px-2 py-0 focus-visible:ring-0 w-2/5" />
             </div>
 
-            <Table>
+            <Table className={tableStyle.compactTable}>
                 <TableHeader>
-                    <TableRow className=" uppercase text-[0.7rem]">
-                        <TableHead className="">Bus</TableHead>
-                        <TableHead className="w-[250px]">Full Name</TableHead>
-                        <TableHead>Gender</TableHead>
-                        <TableHead className="">Age</TableHead>
-                        <TableHead className="">Grade</TableHead>
-                        <TableHead className="w-[250px]">Address</TableHead>
-                        <TableHead>Status</TableHead>
+                    <TableRow className={tableStyle.headerRow}>
+                        <TableHead className={tableStyle.head}>Bus</TableHead>
+                        <TableHead className={`w-[260px] ${tableStyle.head}`}>Full Name</TableHead>
+                        <TableHead className={tableStyle.head}>Gender</TableHead>
+                        <TableHead className={tableStyle.head}>Age</TableHead>
+                        <TableHead className={tableStyle.head}>Grade</TableHead>
+                        <TableHead className={`w-[250px] ${tableStyle.head}`}>Address</TableHead>
+                        <TableHead className={tableStyle.head}>Status</TableHead>
                     </TableRow>
 
                 </TableHeader>
-                <TableBody className="text-[0.8rem] text-[var(--textSoft)]">
+                <TableBody className={tableStyle.body}>
                     {
                         data && data?.map((student: StudentProps) => {
                             return (
-                                <TableRow key={student._id}>
-                                    <TableCell className="">
+                                <TableRow key={student._id} className={tableStyle.row}>
+                                    <TableCell className={tableStyle.firstCell}>
+                                        {student.bus || "No bus"}
+                                    </TableCell>
+                                    <TableCell className="px-6 py-5 align-middle">
                                         <div className="flex items-center gap-2">
                                             <Image src={student.image && student.image || dashboard} alt={student.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
                                             <span className="">{student.full_name}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className={tableStyle.cell}>
                                         {student.gender}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className={tableStyle.cell}>
                                         {student.age}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className={tableStyle.cell}>
                                         {student.grade}
                                     </TableCell>
-                                    <TableCell>
-                                        {student.address}
+                                    <TableCell className={`max-w-[260px] ${tableStyle.cell}`}>
+                                        <CopyableText label="Address" value={student.address} fallback="No address" truncateClassName="max-w-[240px]" />
+                                    </TableCell>
+                                    <TableCell className={`${tableStyle.actionCell} text-black/75 dark:text-white/70`}>
+                                        -
                                     </TableCell>
 
                                 </TableRow>
@@ -80,8 +85,7 @@ export const StudentsData = ({ data }: StudentProps[]) => {
                 </TableBody>
             </Table>
 
-            {/* @ts-ignore */}
-            <Pagination count={10} />
+            <Pagination count={10} pageCount={10} />
         </div >
 
     )

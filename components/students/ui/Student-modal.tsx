@@ -12,7 +12,6 @@ import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
 import { SelectProperty } from "@/components/ui/select-wrapper"
-import { useSession } from "next-auth/react"
 import { grades, buses, gender } from "@/data/schooldata"
 import { usePost } from "@/hooks/usePost"
 import { SelectBusWrapper } from "@/components/Teachers/ui/select-bus-wrapper"
@@ -20,6 +19,8 @@ import { useFetch } from "@/hooks/useFetch"
 import { Textarea } from "@/components/ui/textarea"
 import { UploadImage } from "@/components/ui/upload-image"
 import { FormSuccess } from "@/components/ui/form-success"
+import { useSession } from "@/hooks/useSession"
+import { AddressComponent } from "@/components/maps/Map/searchbox"
 
 interface StudentModalProps {
     setIsOpenModal: Dispatch<SetStateAction<boolean>>
@@ -39,10 +40,12 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
     const [selectParent, setSelectParent] = useState<string>("")
     const [selectDriver, setSelectDriver] = useState<string>("")
     const [selectTeacher, setSelectTeacher] = useState<string>("")
+    const [addressValue, setAddressValue] = useState("")
 
 
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    const session = useSession()
+    const userId = session?.id
+
 
     const { data, loading, errorMessage, success } = usePost("/api/addstudent", submittedData, "POST")
     const { data: busData, isPending: busPending, errorMessage: busError } = useFetch(`/api/addbus/${userId}`, userId);
@@ -50,7 +53,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
     const form = useForm<z.infer<typeof StudentSchema>>({
         resolver: zodResolver(StudentSchema),
         defaultValues: {
-            school_id: userId || "",
+            school_id: "",
             full_name: "",
             age: 0,
             image: newAvatar || "",
@@ -64,12 +67,19 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
         }
     })
 
-
+    useEffect(() => {
+        if (!session.loading && userId) {
+            form.setValue("school_id", userId);
+        }
+    }, [session.loading, userId, form]);
 
     const onSubmit = (values: z.infer<typeof StudentSchema>) => {
+        if (userId) {
+            values.school_id = userId;
+        }
         startTransition(() => {
             setSubmittedData(values)
-            setNewAvatar("")
+            // setNewAvatar("")
         });
 
     }
@@ -77,7 +87,6 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
     const handleCloseModal = () => {
         setIsOpenModal(false)
     }
-
 
     const handleGenderChange = (value: string) => {
         setSelectGender(value);
@@ -93,35 +102,43 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
         setSelectParent(value);
         form.setValue("parentId", value);
     };
+    const handleSuggestionChange = (d: {}) => {
+        // setAddressValue(d)
+        // const selectedValue = d.features?.[0]?.place_name || "";
+        console.log(d)
+        // form.setValue("address", d)
+    }
 
     const handleGradeChange = (value: string) => {
         setClassGrade(value);
         form.setValue("grade", value);
     };
 
+    const handleAddressChange = (d: string) => {
+        setAddressValue(d)
+
+        form.setValue("address", d)
+    }
+
     if (success) {
         return <FormSuccess message={"Successfully added"} setIsOpenModal={setIsOpenModal} />
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-            <div className="relative bg-gray-900  rounded-md w-5/6 ">
-
+        <div className="modal-overlay">
+            <div className="modal-panel w-4/6">
                 <TeacherCardWrapper
                     headLabel="Add Student"
                     action={() => handleCloseModal()}
                 >
-                    <div className=" flex ">
-                        <div className=" w-[25%] items-center  bg-[var(--bgSoft)] h-[21.5rem] p-2 rounded-md" >
-                            {/* @ts-ignore */}
+                    <div className="form-surface flex gap-5">
+                        {/* @ts-ignore */}
+                        < UploadImage form={form} newAvatar={newAvatar} setNewAvatar={setNewAvatar} avatar={avatar} />
+                        <div className="flex-1 px-2 text-slate-900 dark:text-slate-100 ">
 
-                            < UploadImage form={form} newAvatar={newAvatar} setNewAvatar={setNewAvatar} avatar={avatar} />
-                        </div>
-                        <div className="flex-1 px-5 ">
-
-                            <Form {...form}>
+                            <Form {...form} >
                                 {/* the handle submit comes from the form constant */}
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" >
                                     <div className="space-y-4">
                                         <FormField
                                             control={form.control}
@@ -135,7 +152,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                                             placeholder="John Doe"
                                                             type="text"
                                                             disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                            className="add-form-input"
                                                         />
                                                     </FormControl>
                                                     <FormMessage />
@@ -144,8 +161,9 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                         >
                                         </FormField>
                                     </div>
-                                    <div className="space-x-4 flex items-center w-full justify-center">
-                                        <div className="w-5/6">
+
+                                    <div className="space-x-4 flex items-center w-full justify-between">
+                                        <div className="w-3/6 flex-1">
                                             <FormField
                                                 control={form.control}
                                                 name="age"
@@ -158,7 +176,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                                                 placeholder="mm/dd/yyyy"
                                                                 type="number"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                className="add-form-input"
                                                                 onChange={e => field.onChange(Number(e.target.value))}
                                                             />
                                                         </FormControl>
@@ -167,10 +185,10 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                                 )}
                                             />
                                         </div>
-
-                                        <div className="w-full">
+                                        <div className="w-3/6 flex-1 mt-8">
                                             < SelectProperty placeholder="Gender" label="Student Grade" data={gender} handleSelectChange={handleGenderChange} />
                                         </div>
+
                                     </div>
 
                                     <div className="flex space-x-3 justify-between w-full ">
@@ -183,35 +201,18 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
                                         </div>
                                     </div>
                                     <div className="space-y-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="address"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Student Address</FormLabel>
-                                                    <FormControl>
-                                                        <Textarea
-                                                            {...field}
-                                                            placeholder="Teachers Address"
-                                                            disabled={isPending}
-                                                            className="py-3 border-none bg-[var(--bgSoft)] outline-none "
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-
-                                                    {/* <Image src={eye} alt="eye" /> */}
-                                                </FormItem>
-                                            )}
-                                        >
-
-                                        </FormField>
+                                        <FormItem>
+                                            <FormLabel>Parent Address</FormLabel>
+                                            <  AddressComponent handleAddressChange={handleAddressChange} value={addressValue} handleSuggestionChange={handleSuggestionChange} />
+                                            <FormMessage />
+                                        </FormItem>
                                     </div>
 
                                     {/* <FormError message={isError} /> */}
                                     {/* <FormSuccess message={isSuccess} /> */}
                                     <Button
                                         disabled={isPending}
-                                        size="lg" className="w-full bg-[teal] p-5" type="submit">Add Student
+                                        size="lg" className="w-full bg-[#1B1464] p-5" type="submit">Add Student
                                     </Button>
                                 </form>
                             </Form>
@@ -223,4 +224,3 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
         </div>
     )
 }
-

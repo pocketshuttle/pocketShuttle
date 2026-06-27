@@ -7,18 +7,17 @@ import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "
 import { ResetPasswordSchema } from "@/schemas"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Login } from "@/actions/login"
 import { useState, useTransition } from "react"
 import { FormError } from "@/components/errorsandsuccess/form-error"
 import { FormSuccess } from "@/components/errorsandsuccess/form-success"
-import Link from "next/link"
 import { reset } from "@/actions/reset"
-
+import { AddRoles } from "../ui/add-role"
 
 export const ResetPasswordForm = () => {
     const [isPending, startTransition] = useTransition()
     const [isError, setIsError] = useState<string | undefined>("")
     const [isSuccess, setIsSuccess] = useState<string | undefined>("")
+    const [selectedRole, setSelectedRole] = useState<string>("admin")
     {/**
      Initialize the form with react-hook-form, integrating Zod for validation
  - The form's validation schema is defined using Zod's `ResetPasswordSchema`
@@ -28,16 +27,36 @@ export const ResetPasswordForm = () => {
  @Usage:
  This setup enables the form to use `ResetPasswordSchema` for validating the email and password fields.
 */}
+    const data = [
+        {
+            value: "admin",
+            label: "Admin"
+        },
+        {
+            value: "parent",
+            label: "Parent",
+        },
+        {
+            value: "teacher",
+            label: "Teacher",
+        },
+    ];
     const form = useForm<z.infer<typeof ResetPasswordSchema>>({
         resolver: zodResolver(ResetPasswordSchema),
         defaultValues: {
             email: "",
+            role: "admin"
         }
     })
+
+    const handleSelectRole = (value: string) => {
+        setSelectedRole(value)
+        form.setValue("role", value)
+    }
     const onSubmit = (values: z.infer<typeof ResetPasswordSchema>) => {
         setIsError("")
         setIsSuccess("")
-        console.log(values)
+
         // using the useTransition hook from react
         startTransition(() => {
             reset(values).then((data) => {
@@ -49,26 +68,28 @@ export const ResetPasswordForm = () => {
 
     return (
         <CardWrapper
-            headLabel="Forgot your password"
+            headLabel="Reset your password"
+            subLabel="Enter the account email and role, and we’ll send you a secure reset link."
             backButtonLabel="Back to Login?"
             backButtonHref="/login"
         >
             <Form {...form}>
                 {/* the handle submit comes from the form constant */}
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    <div className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-5 text-slate-800`}>
+                    <div className="space-y-5">
                         <FormField
                             control={form.control}
                             name="email"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Email</FormLabel>
+                                <FormItem className="space-y-2.5">
+                                    <FormLabel className="text-sm font-medium text-slate-700">Email address</FormLabel>
                                     <FormControl>
                                         <Input
                                             {...field}
                                             placeholder="ciroma@email.com"
                                             type="email"
                                             disabled={isPending}
+                                            className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-slate-900 shadow-none placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-slate-300"
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -77,11 +98,15 @@ export const ResetPasswordForm = () => {
                         >
                         </FormField>
                     </div>
+                    <div>
+                        <AddRoles handleSelectChange={handleSelectRole} data={data} value={selectedRole} />
+
+                    </div>
                     <FormError message={isError} />
                     <FormSuccess message={isSuccess} />
                     <Button
                         disabled={isPending}
-                        size="lg" className="w-full" type="submit">Send reset email</Button>
+                        size="lg" className="h-12 w-full rounded-xl bg-blue-700 text-base font-semibold text-white hover:bg-blue-800" type="submit">Send reset email</Button>
                 </form>
             </Form>
         </CardWrapper>

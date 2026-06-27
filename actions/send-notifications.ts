@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import db from "@/packages/db/client";
 import webpush from "web-push";
 
 export const sendNotification = async (

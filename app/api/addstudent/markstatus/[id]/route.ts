@@ -1,28 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { StudentStatus } from "@/packages/db/client";
+import { canManageStudentRecords, getApiSession } from "@/lib/api-auth";
+import {
+  applyStudentStatusUpdate,
+  getCurrentHourInTimeZone,
+} from "@/lib/student-state";
 
 type ParamsProps = {
   id: string;
 };
 
-function getCurrentHourInTimeZone(timezone: string): number {
-  const date = new Date();
-  const tz = new Date(date.toLocaleString("en-US", { timeZone: timezone }));
-  return tz.getHours();
-}
-
 export const PATCH = async (
   req: NextRequest,
-  { params }: { params: ParamsProps }
+  { params }: { params: Promise<ParamsProps> }
 ) => {
   try {
-    const { id } = params;
-    const data = await req.json();
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageStudentRecords(session) || !schoolId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
-    /**
-     * we check if we receive any data from the req, we
-     */
+    const { id } = await params;
+    const data = await req.json();
 
     if (!data) {
       return NextResponse.json(
@@ -31,92 +31,34 @@ export const PATCH = async (
       );
     }
 
-    /**
-     * we update the student based on the data provided
-     */
-
-    const updatedStudent = await db.student.update({
-      where: { id: id },
-      data: {
-        status: data.attendance,
-      },
-    });
-    revalidatePath("http://localhost:3000/teacher");
-
-    //we decrease the available car seat when a student is picked
-    if (updatedStudent.status === "PICKED" && updatedStudent.busId) {
-      await db.buses.update({
-        where: { id: updatedStudent.busId },
-        data: {
-          seat_number: {
-            decrement: 1,
-          },
-        },
-      });
-      //we increase the available car seat when a student is dropped
-    } else if (updatedStudent.status === "DROPPED" && updatedStudent.busId) {
-      await db.buses.update({
-        where: { id: updatedStudent.busId },
-        data: {
-          seat_number: {
-            increment: 1,
-          },
-        },
-      });
+    const nextStatus = (data.status ?? data.attendance) as StudentStatus | undefined;
+    if (!nextStatus) {
+      return NextResponse.json(
+        { message: "Invalid status" },
+        { status: 400 }
+      );
     }
 
     const hours = getCurrentHourInTimeZone("Africa/Lagos");
-
-    //from 6am-9am picked student should be in bus or in school
-    if (updatedStudent.status === "PICKED" && hours >= 6 && hours < 9) {
-      await db.student.update({
-        where: { id: id },
-        data: {
-          presence: "IN_BUS",
-        },
-      });
-
-      //from 9am-4pm picked student should be in school
-    } else if (updatedStudent.status === "PICKED" && hours >= 9 && hours < 16) {
-      await db.student.update({
-        where: { id: id },
-        data: {
-          presence: "AT_SCHOOL",
-        },
-      });
-
-      //from 5pm-7pm picked student should be all dropped at home
-    } else if (
-      updatedStudent.status === "DROPPED" &&
-      hours >= 17 &&
-      hours < 19
-    ) {
-      await db.student.update({
-        where: { id: id },
-        data: {
-          presence: "NONE",
-        },
-      });
-    } else if (updatedStudent.status === "DROPPED" && hours > 19) {
-      await db.student.update({
-        where: { id: id },
-        data: {
-          presence: "NONE",
-          status: "DROPPED",
-          attendance: "ABSENT",
-        },
-      });
-    }
-
-    if (updatedStudent) {
+    const result = await applyStudentStatusUpdate(
+      { studentId: id, schoolId },
+      nextStatus,
+      hours
+    );
+    if (!result) {
       return NextResponse.json(
-        { message: "Student updated successfully" },
-        { status: 200 }
+        { message: "Student not found" },
+        { status: 404 }
       );
     }
 
     return NextResponse.json(
-      { message: "Status updated successfully", student: updatedStudent },
+      {
+        message: result.changed
+          ? "Student updated successfully"
+          : `Status is already ${result.student.status}`,
+        student: result.student,
+      },
       { status: 200 }
     );
   } catch (error) {

@@ -1,5 +1,6 @@
 {
-  "theme_color": "#182237",
+  "id": "meshboc",
+  "theme_color": "#16171c",
   "background_color": "#16171c",
   "display": "standalone",
   "scope": "/",
@@ -7,6 +8,7 @@
   "name": "PocketShuttle",
   "short_name": "pocketshuttle",
   "description": "Safety of your kids",
+  "orientation": "portrait",
   "dir": "auto",
   "related_applications": [
     {
@@ -48,6 +50,22 @@
       "src": "/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "pks3.png",
+      "sizes": "640x320",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Wonder Widgets"
+    },
+    {
+      "src": "pks2.png",
+      "sizes": "640x320",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Wonder Widgets"
     }
   ]
 }

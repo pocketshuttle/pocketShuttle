@@ -1,37 +1,51 @@
-import { connectToDB } from "@/utils/connect-to-db";
-import { NextRequest, NextResponse } from "next/server";
-import Teacher from "@/(models)/Teachers";
-import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
-import { revalidatePath, revalidateTag } from "next/cache";
-import { Prisma } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
+import z from "zod";
+
+import db from "@/packages/db/client";
+import { canManageSchool, getApiSession } from "@/lib/api-auth";
 
 type ParamProp = {
   id: string;
 };
 
+const ParamsSchema = z.object({
+  id: z.string().cuid(),
+});
+
 export const GET = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
-    const ITEM_PER_PAGE = 2;
+    const parsedResult = ParamsSchema.safeParse(await params);
 
+    if (!parsedResult.success) {
+      return NextResponse.json(
+        { message: "Invalid parent ID" },
+        { status: 400 }
+      );
+    }
+
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = parsedResult.data;
+    const itemPerPage = 2;
     const url = new URL(req.url).searchParams;
     const searchName = url.get("q") || "";
-    const page: number = parseInt(url.get("page") || "1", 10);
-    const { id } = params;
+    const page = parseInt(url.get("page") || "1", 10);
 
-    const whereClause: Prisma.TeacherWhereInput = {
-      OR: [
-        {
-          schoolId: id,
-        },
-        {
-          id: id,
-        },
-      ],
+    type TeacherWhere = NonNullable<
+      Parameters<typeof db.teacher.findMany>[0]
+    >["where"];
 
+    const whereClause: TeacherWhere = {
+      ...(id === schoolId ? { schoolId } : { id, schoolId }),
       ...(searchName && {
         full_name: {
           contains: searchName,
@@ -55,11 +69,11 @@ export const GET = async (
           },
         },
       },
-      take: ITEM_PER_PAGE,
-      skip: ITEM_PER_PAGE * (page - 1),
+      take: itemPerPage,
+      skip: itemPerPage * (page - 1),
     });
 
-    if (!teacher) {
+    if (!teacher || teacher.length === 0) {
       return new NextResponse(
         JSON.stringify({ message: "Teacher not found!" }),
         {
@@ -72,6 +86,9 @@ export const GET = async (
 
     return new Response(JSON.stringify({ teacher, count }), {
       status: 200,
+      headers: {
+        "Cache-Control": "no-store",
+      },
     });
   } catch (error) {
     console.error(error);
@@ -87,39 +104,23 @@ export const GET = async (
 
 export const PATCH = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
-    const { id } = params;
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
     const data = await req.json();
 
-    // const hashedPassword = a
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-
-    const updatedTeacher = await db.teacher.update({
-      where: { id: id },
-      data: {
-        // school: {
-        //   connect: { id: data.school_id },
-        // },
-        schoolId: data.school_id,
-        busId: data.busId || undefined,
-        teacherId: data.teacherId || undefined,
-        full_name: data.full_name,
-        address: data.address,
-        image: data.image,
-        email: data.email,
-        password: hashedPassword,
-        role: data.role,
-      },
+    const existingTeacher = await db.teacher.findFirst({
+      where: { id, schoolId },
     });
 
-    // const updatedTeacher = await Teacher.findByIdAndUpdate(id, data, {
-    //   new: true, // Return the updated document
-    //   runValidators: true, // Ensure the update adheres to the schema validation
-    // });
-
-    if (!updatedTeacher) {
+    if (!existingTeacher) {
       return Response.json(
         { message: "Teacher not found!" },
         {
@@ -127,6 +128,49 @@ export const PATCH = async (
         }
       );
     }
+
+    if (data.busId) {
+      const bus = await db.buses.findFirst({
+        where: { id: data.busId, schoolId },
+        select: { id: true },
+      });
+
+      if (!bus) {
+        return NextResponse.json(
+          { message: "Bus not found in your school" },
+          { status: 400 }
+        );
+      }
+    }
+
+    const updateData: {
+      schoolId: string;
+      busId?: string | null;
+      full_name?: string;
+      address?: string;
+      image?: string;
+      email?: string;
+      password?: string;
+      role?: string;
+    } = {
+      schoolId,
+      busId: data.busId || null,
+      full_name: data.full_name,
+      address: data.address,
+      image: data.image,
+      email: data.email,
+      role: data.role,
+    };
+
+    if (data.password) {
+      updateData.password = await bcrypt.hash(data.password, 10);
+    }
+
+    await db.teacher.update({
+      where: { id },
+      data: updateData,
+    });
+
     return Response.json(
       { message: "Teacher Added Successfully" },
       {
@@ -134,38 +178,43 @@ export const PATCH = async (
       }
     );
   } catch (error) {
-    if (error instanceof Error) {
-      console.log(error);
-      return Response.json(
-        {
-          message: "Error updating Student",
-          error: error.message,
-        },
-        { status: 500 }
-      );
-    } else {
-      return Response.json(
-        { message: "Unknown error occurred" },
-        { status: 500 }
-      );
-    }
+    console.log(error);
+    return Response.json(
+      {
+        message: "Error updating teacher",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 };
 
 export const DELETE = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
-    await connectToDB();
-    const { id } = params;
-    const deletedTeacher = await Teacher.findByIdAndDelete(id);
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
-    if (!deletedTeacher) {
+    const { id } = await params;
+    const existingTeacher = await db.teacher.findFirst({
+      where: { id, schoolId },
+      select: { id: true },
+    });
+
+    if (!existingTeacher) {
       return new Response(JSON.stringify({ message: "Teacher not found" }), {
         status: 404,
       });
     }
+
+    await db.teacher.delete({
+      where: { id },
+    });
 
     return new Response(
       JSON.stringify({ message: "Teacher deleted successfully" }),
@@ -174,19 +223,12 @@ export const DELETE = async (
       }
     );
   } catch (error) {
-    if (error instanceof Error) {
-      return new Response(
-        JSON.stringify({
-          message: "Error deleting teacher",
-          error: error.message,
-        }),
-        { status: 500 }
-      );
-    } else {
-      return new Response(
-        JSON.stringify({ message: "Unknown error occurred" }),
-        { status: 500 }
-      );
-    }
+    return new Response(
+      JSON.stringify({
+        message: "Error deleting teacher",
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      { status: 500 }
+    );
   }
 };

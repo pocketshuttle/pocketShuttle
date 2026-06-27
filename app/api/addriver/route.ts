@@ -1,40 +1,69 @@
-import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
+
+import db from "@/packages/db/client";
 import { DriverSchema } from "@/schemas";
-import { db } from "@/lib/db";
+import { canManageSchool, getApiSession } from "@/lib/api-auth";
 
 export const POST = async (req: NextRequest) => {
   try {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
+      return NextResponse.json(
+        { message: "Unauthorized access" },
+        { status: 401 }
+      );
+    }
+
     const data = await req.json();
-    console.log("Received data:", data);
 
     const validatedData = DriverSchema.safeParse(data);
     if (!validatedData.success) {
-      console.log("Validation error:", validatedData.error.errors);
       return NextResponse.json(
         { message: "Validation error", errors: validatedData.error.errors },
         { status: 400 }
       );
     }
 
-    const { school_id, full_name, phoneNumber, image, address, email, busId } =
+    const { full_name, phoneNumber, image, address, email, busId } =
       validatedData.data;
+
+    const existingDriver = await db.driver.findFirst({
+      where: {
+        OR: [{ email }, { phoneNumber }],
+      },
+    });
+
+    if (existingDriver) {
+      return NextResponse.json(
+        { message: "Driver already exists with this email or phone" },
+        { status: 409 }
+      );
+    }
+
+    if (busId) {
+      const bus = await db.buses.findFirst({
+        where: { id: busId, schoolId },
+        select: { id: true },
+      });
+
+      if (!bus) {
+        return NextResponse.json(
+          { message: "Bus not found in your school" },
+          { status: 400 }
+        );
+      }
+    }
 
     const newDriver = await db.driver.create({
       data: {
-        school: {
-          connect: { id: school_id },
-        },
+        schoolId,
         full_name,
         phoneNumber,
         image,
         address,
         email,
-        ...(busId && {
-          bus: {
-            connect: { id: busId },
-          },
-        }),
+        busId: busId || undefined,
       },
     });
 
@@ -48,12 +77,12 @@ export const POST = async (req: NextRequest) => {
         },
       });
     }
+
     return NextResponse.json(
       { message: "Driver added successfully" },
       { status: 200 }
     );
   } catch (error) {
-    // Handle errors
     console.error("Error adding driver:", error);
     return NextResponse.json(
       {

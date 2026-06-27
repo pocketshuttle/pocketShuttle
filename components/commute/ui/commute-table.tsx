@@ -1,20 +1,13 @@
 "use client";
-import { Search } from "@/components/dashboard/search/search";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import avatar from "@/public/images/avatar.jpg"
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Pagination } from "@/components/dashboard/pagination/pagination";
 import Link from "next/link";
-import { useFetch } from "@/hooks/useFetch";
-import { useSession } from "next-auth/react";
 import {
     Table,
     TableBody,
-    TableCaption,
     TableCell,
-    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
@@ -30,68 +23,154 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-//@ts-ignore
-export const CommuteTable = ({ busData }: BusProps[]) => {
+import useSWR from "swr";
+import { FormError } from "@/components/errorsandsuccess/form-error";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getCurrentHourInTimeZone } from "@/lib/utils";
+import { CopyableText } from "@/components/ui/copyable-text";
+import { ArrowUpRight, BusFront, ChevronDown, ChevronUp } from "lucide-react";
+import { tableStyle } from "@/components/ui/table-style";
+
+type BusApiResponse = BusProps[] | { message?: string; error?: string };
+
+const fetcher = async (url: string): Promise<BusApiResponse> => {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (res.status === 404) {
+        return [];
+    }
+
+    if (!res.ok) {
+        throw new Error(data?.message || data?.error || "Unable to fetch buses");
+    }
+
+    return data;
+};
+
+export const CommuteTable = ({ userId }: { userId: string }) => {
+
+    const { data: busData, error, isLoading } = useSWR<BusApiResponse>(
+        `/api/addbus/${userId}`,
+        fetcher,
+        { refreshInterval: 5000 }
+    );
+    const buses = Array.isArray(busData) ? busData : [];
+    const hours = getCurrentHourInTimeZone("Africa/Lagos")
+
     const [openBusId, setOpenBusId] = useState<string | null>(null);
     return (
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[#182237] mt-4">
-            <Table>
+        <div className={`${tableStyle.wrapper} mt-4`}>
+            <Table className={tableStyle.compactTable}>
                 <TableHeader>
-                    <TableRow className="text-[0.7rem]">
-                        <TableHead className="w-[250px] text-gray-300">Bus No</TableHead>
-                        <TableHead className="text-gray-300">Route</TableHead>
-                        <TableHead className="text-gray-300">Status</TableHead>
-                        <TableHead className="text-gray-300">No of Kids</TableHead>
-                        <TableHead className="text-gray-300">Actions</TableHead>
+                    <TableRow className={tableStyle.headerRow}>
+                        <TableHead className={`w-[280px] ${tableStyle.head}`}>Bus No</TableHead>
+                        <TableHead className={tableStyle.head}>Route</TableHead>
+                        <TableHead className={tableStyle.head}>Status</TableHead>
+                        <TableHead className={tableStyle.head}>No of Kids</TableHead>
+                        <TableHead className={tableStyle.head}>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
-                <TableBody className="text-[0.75rem] text-gray-400">
-                    {busData?.map((bus: BusProps) => {
+                <TableBody className={tableStyle.body}>
+
+                    {
+                        isLoading && (
+                            <TableRow className="hover:bg-transparent dark:hover:bg-transparent">
+                                <TableCell colSpan={5}>
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-12 w-full mb-2 " />
+                                        <Skeleton className="h-12 w-full" />
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )
+                    }
+
+                    {error && (
+                        <TableRow>
+                            <TableCell colSpan={5}>
+                                <FormError message={error.message} />
+                            </TableCell>
+                        </TableRow>
+                    )}
+
+                    {!isLoading && !error && buses.length === 0 && (
+                        <TableRow>
+                            <TableCell colSpan={5} className={tableStyle.emptyCell}>
+                                No buses found.
+                            </TableCell>
+                        </TableRow>
+                    )}
+
+                    {buses.map((bus: BusProps) => {
                         const isBusOpen = openBusId === bus.id;
+                        const students = Array.isArray(bus.students) ? bus.students : [];
                         return (
                             <React.Fragment key={bus.id}>
-                                <TableRow>
-                                    <TableCell className="text-[0.7rem] capitalize">
+                                <TableRow className={tableStyle.row}>
+                                    <TableCell className={`${tableStyle.firstCell} text-[0.8rem] capitalize`}>
                                         <span>{bus.color} </span>
                                         {bus.bus_product_name || "No Bus"}
                                         <span> ({bus.bus_number})</span>
                                     </TableCell>
-                                    <TableCell className="capitalize">
+                                    <TableCell className={`${tableStyle.cell} capitalize`}>
                                         {bus.route?.route_name || "No Route"}
                                     </TableCell>
-                                    <TableCell className="capitalize">
-                                        <span className={`px-2 py-[0.2rem] rounded-md text-gray-300 ${bus.status === "parked" ? "bg-[teal]" : "bg-[crimson]"}`}>
+                                    <TableCell className="px-6 py-5 align-middle capitalize">
+                                        <span className={`rounded-full px-3 py-1 text-xs font-medium ${bus.status === "parked" ? "bg-black/10 text-black dark:bg-white/15 dark:text-white" : "bg-black text-white dark:bg-white dark:text-black"}`}>
                                             {bus.status}
                                         </span>
                                     </TableCell>
-                                    <TableCell className="capitalize">
-                                        {bus.students?.length ? bus.students.length : "no kids"}
+                                    <TableCell className={`${tableStyle.cell} capitalize`}>
+                                        {students.length ? students.length : "no kids"}
                                     </TableCell>
-                                    <TableCell>
-                                        <Button variant="outline" onClick={() => setOpenBusId(isBusOpen ? null : bus.id)}>
-                                            {isBusOpen ? "Hide Bus Details" : "View Bus Details"}
-                                        </Button>
+                                    <TableCell className={tableStyle.actionCell}>
+                                        <div className="flex flex-wrap gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => setOpenBusId(isBusOpen ? null : bus.id)}
+                                                className="h-10 rounded-lg border-black/10 bg-white px-4 text-black shadow-sm hover:bg-black/5 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+                                            >
+                                                {isBusOpen ? (
+                                                    <ChevronUp className="mr-2 h-4 w-4" />
+                                                ) : (
+                                                    <ChevronDown className="mr-2 h-4 w-4" />
+                                                )}
+                                                {isBusOpen ? "Hide roster" : "Roster"}
+                                            </Button>
+                                            <Button
+                                                asChild
+                                                className="h-10 rounded-lg bg-black px-4 text-white  hover:bg-black/85 dark:bg-white dark:text-black dark:hover:bg-white/90"
+                                            >
+                                                <Link href={`/dashboard/bus?busId=${bus.id}`}>
+                                                    <BusFront className="mr-2 h-4 w-4" />
+                                                    View bus
+                                                    <ArrowUpRight className="ml-2 h-4 w-4" />
+                                                </Link>
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                                 {isBusOpen && (
-                                    <TableRow>
+                                    <TableRow className="hover:bg-transparent dark:hover:bg-transparent">
                                         <TableCell colSpan={5}>
-                                            <div className="bg-gray-800 p-4 rounded-md">
-                                                <Table>
+                                            <div className="rounded-2xl bg-white p-4 shadow-[0_8px_22px_rgba(15,23,42,0.06)] dark:bg-white/5 dark:shadow-none">
+                                                <Table className="min-w-[820px] border-separate border-spacing-y-2 bg-transparent">
                                                     <TableHeader>
-                                                        <TableRow className=" uppercase text-[0.7rem]">
-                                                            <TableHead className="w-[250px]">Full Name</TableHead>
-                                                            <TableHead>Gender</TableHead>
-                                                            <TableHead className="">Age</TableHead>
-                                                            <TableHead className="">Grade</TableHead>
-                                                            <TableHead className="w-[250px]">Address</TableHead>
-                                                            <TableHead>Status</TableHead>
+                                                        <TableRow className={tableStyle.headerRow}>
+                                                            <TableHead className={`w-[260px] ${tableStyle.head}`}>Full Name</TableHead>
+                                                            <TableHead className={tableStyle.head}>Gender</TableHead>
+                                                            <TableHead className={tableStyle.head}>Age</TableHead>
+                                                            <TableHead className={tableStyle.head}>Grade</TableHead>
+                                                            <TableHead className={`w-[260px] ${tableStyle.head}`}>Address</TableHead>
+                                                            <TableHead className={tableStyle.head}>Status</TableHead>
                                                         </TableRow>
                                                     </TableHeader>
-                                                    <TableBody>
-                                                        {bus.students.map((student: StudentProps) => (
-                                                            <TableRow key={student.id}>
-                                                                <TableCell className="">
+                                                    <TableBody className={tableStyle.body}>
+                                                        {students.map((student: StudentProps) => (
+                                                            <TableRow key={student.id} className={tableStyle.row}>
+                                                                <TableCell className="rounded-l-2xl px-4 py-4 align-middle">
                                                                     <TooltipProvider>
                                                                         <Tooltip>
                                                                             <TooltipTrigger>
@@ -102,21 +181,27 @@ export const CommuteTable = ({ busData }: BusProps[]) => {
                                                                                 </div>
                                                                             </TooltipTrigger>
                                                                             <TooltipContent>
-                                                                                <p>{
-                                                                                    student.presence === "NONE" ? `${student.full_name} is not in school` :
-                                                                                        student.presence === "IN_BUS" ? `${student.full_name} is currently in Bus`
-                                                                                            : `${student.full_name} is currently in School`
-                                                                                }</p>
+
+                                                                                <p>
+                                                                                    {
+                                                                                        student.presence === "NONE" ? `${student.full_name} is not in school` :
+                                                                                            student.presence === "IN_BUS" ? `${student.full_name} is currently in Bus`
+                                                                                                : `${student.full_name} is currently in School`
+                                                                                    }
+                                                                                </p>
+
                                                                             </TooltipContent>
                                                                         </Tooltip>
                                                                     </TooltipProvider>
                                                                 </TableCell>
-                                                                <TableCell>{student.gender}</TableCell>
-                                                                <TableCell>{student.age}</TableCell>
-                                                                <TableCell>{student.grade}</TableCell>
-                                                                <TableCell>{student.address}</TableCell>
+                                                                <TableCell className="px-4 py-4 text-black/75 dark:text-white/70">{student.gender}</TableCell>
+                                                                <TableCell className="px-4 py-4 text-black/75 dark:text-white/70">{student.age}</TableCell>
+                                                                <TableCell className="px-4 py-4 text-black/75 dark:text-white/70">{student.grade}</TableCell>
+                                                                <TableCell className="px-4 py-4 text-black/75 dark:text-white/70">
+                                                                    <CopyableText label="Address" value={student.address} fallback="No address" truncateClassName="max-w-[240px]" />
+                                                                </TableCell>
 
-                                                                <TableCell >
+                                                                <TableCell className="rounded-r-2xl px-4 py-4">
                                                                     {
                                                                         student.attendance === "ABSENT" ? "" :
                                                                             <span className={`${student.status === "PICKED" ? "bg-[teal]" : "bg-[crimson]"} rounded-md p-[0.3rem] text-gray-200`}>

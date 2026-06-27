@@ -6,17 +6,14 @@ import { useState, useTransition } from "react"
 import {
     Table,
     TableBody,
-    TableCaption,
-    TableCell,
-    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
+    TableCell,
 } from "@/components/ui/table"
 
 import { ParentModal } from "./parent-modal"
 import { ViewStudent } from "@/components/students/ui/view-student-wrapper"
-import { useSearchParams } from "next/navigation"
 import { EditData } from "@/components/ui/edit-data-link"
 import { AddData } from "@/components/ui/add-data-button"
 import {
@@ -35,38 +32,73 @@ import LottieAnimation from "@/components/dashboard/sidebar/menuLink/lottie-anim
 import { handleDelete } from "@/actions/delete-student"
 import { toast } from "@/components/ui/use-toast"
 import { AddStudents } from "./add-to-parent"
+import { CopyableText } from "@/components/ui/copyable-text"
+
+type ParentStudent = {
+    id: string
+    full_name?: string | null
+    image?: string | null
+    status?: string | null
+}
 
 type ParentProps = {
     id: string,
-    full_name: string,
-    phoneNumber: number,
-    email: string,
-    Student: string,
-    address: string,
-    image: string
+    full_name: string | null,
+    phoneNumber: number | string | null,
+    email: string | null,
+    Student: ParentStudent[],
+    address: string | null,
+    image: string | null
     student?: string
 }
 
-type SessionProps = {
-    userId: string
+type ParentDataProps = {
+    parentData?: ParentProps[]
+    totalCount: number
+    studentData: ParentStudent[]
 }
-// @ts-ignore
-export const ParentData = ({ parentData, totalCount, studentData }) => {
 
-    const getParams = useSearchParams()
-    const page = getParams.get("page") || ""
+const mockParentData: ParentProps[] = [
+    {
+        id: "mock-parent-1",
+        full_name: "Edgar Humbert",
+        phoneNumber: 8093456701,
+        email: "edgar.humbert@pocketshuttle.test",
+        Student: [{ id: "mock-student-1", full_name: "Noah Carter", image: "/images/no-avatar.webp", status: "PICKED" }],
+        address: "18 Maple Close, Victoria Island, Lagos",
+        image: "",
+    },
+    {
+        id: "mock-parent-2",
+        full_name: "Craig Howard",
+        phoneNumber: 8093456702,
+        email: "craig.howard@pocketshuttle.test",
+        Student: [{ id: "mock-student-2", full_name: "Maya Evans", image: "/images/no-avatar.webp", status: "PENDING" }],
+        address: "42 Orchid Road, Lekki Phase 1, Lagos",
+        image: "",
+    },
+    {
+        id: "mock-parent-3",
+        full_name: "Timothy Hines",
+        phoneNumber: 8093456703,
+        email: "timothy.hines@pocketshuttle.test",
+        Student: [{ id: "mock-student-3", full_name: "Leo Bennett", image: "/images/no-avatar.webp", status: "PICKED" }],
+        address: "7 Queens Drive, Ikoyi, Lagos",
+        image: "",
+    },
+];
 
-
-
+export const ParentData = ({ parentData, totalCount, studentData }: ParentDataProps) => {
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false)
 
     const [isHovering, setIsHovering] = useState(false);
-    const [isPending, startTransition] = useTransition()
+    const [, startTransition] = useTransition()
 
     const handleModal = () => {
         setIsOpenModal(true)
         // setSelectedParent(parentId);
     }
+
     const handleParentDelete = (id: string, mode: string) => {
         startTransition(() => {
             handleDelete(id, mode).then((data) => {
@@ -83,10 +115,12 @@ export const ParentData = ({ parentData, totalCount, studentData }) => {
         })
     }
 
+    const displayParentData = Array.isArray(parentData) && parentData.length ? parentData : mockParentData
+
 
     return (
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-[var(--bg-root)]">
-            <div className="p-4 flex justify-end items-center ">
+        <div className="relative overflow-x-auto bg-transparent">
+            <div className="flex items-center justify-end px-1 pb-4">
 
                 < AddData label="Parent" action={handleModal} />
 
@@ -95,49 +129,47 @@ export const ParentData = ({ parentData, totalCount, studentData }) => {
                 isOpenModal && <ParentModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} />
             }
 
-            <Table>
+            <Table className="min-w-[1120px] border-separate border-spacing-y-3 bg-transparent">
                 <TableHeader>
-                    <TableRow className=" uppercase text-[0.7rem]">
-                        <TableHead className="w-[250px]">Full Name</TableHead>
-                        <TableHead className="">
-                            kids
-                        </TableHead>
-                        <TableHead className="w-[250px]">Address</TableHead>
-                        <TableHead className="">Email</TableHead>
-                        <TableHead className="">Phone Number</TableHead>
-                        <TableHead>Add Kids</TableHead>
+                    <TableRow className="text-xs uppercase tracking-wide hover:bg-transparent dark:hover:bg-transparent">
+                        <TableHead className="w-[320px] text-black/60 dark:text-white/55">Full Name</TableHead>
+                        <TableHead className="w-[150px] text-black/60 dark:text-white/55">Kids</TableHead>
+                        <TableHead className="w-[240px] text-black/60 dark:text-white/55">Address</TableHead>
+                        <TableHead className="w-[240px] pl-8 text-black/60 dark:text-white/55">Email</TableHead>
+                        <TableHead className="text-black/60 dark:text-white/55">Phone Number</TableHead>
+                        <TableHead className="text-black/60 dark:text-white/55">Add Kids</TableHead>
+                        <TableHead className="text-black/60 dark:text-white/55">Actions</TableHead>
                     </TableRow>
-
                 </TableHeader>
-                <TableBody className="text-[0.8rem] text-[var(--textSoft)]">
+                <TableBody className="text-sm text-black dark:text-white">
                     {
-                        parentData && parentData?.map((parent: ParentProps) => {
+                        displayParentData.map((parent: ParentProps) => {
                             return (
-                                <TableRow key={parent.id}>
-                                    <TableCell className="">
-                                        <div className="flex items-center gap-2">
-                                            <Image src={parent.image && parent.image || dashboard} alt={parent.full_name} className="rounded-md object-cover w-9 h-9" width={100} height={100} />
-                                            <span className="">{parent.full_name}</span>
+                                <TableRow key={parent.id} className="border-0 bg-white text-black shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition-colors hover:bg-white dark:bg-white/5 dark:text-white dark:shadow-none dark:hover:bg-white/10">
+                                    <TableCell className="rounded-l-2xl px-6 py-5 align-middle">
+                                        <div className="flex items-center gap-3">
+                                            <Image src={parent.image || dashboard} alt={parent.full_name || "Parent"} className="h-10 w-10 rounded-full object-cover" width={100} height={100} />
+                                            <span className="font-medium">{parent.full_name || "Unnamed parent"}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
                                         {parent.Student.length ? <ViewStudent data={parent.Student} /> : "no kids"}
                                     </TableCell>
-                                    <TableCell>
-                                        {parent.address}
+                                    <TableCell className="max-w-[240px] px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                        <CopyableText label="Address" value={parent.address} fallback="No address" truncateClassName="max-w-[220px]" />
                                     </TableCell>
-                                    <TableCell>
-                                        {parent.email}
+                                    <TableCell className="px-6 py-5 pl-8 align-middle text-black/75 dark:text-white/70">
+                                        <CopyableText label="Email" value={parent.email} fallback="No email" truncateClassName="max-w-[220px]" />
                                     </TableCell>
-                                    <TableCell>
-                                        {parent.phoneNumber}
+                                    <TableCell className="px-6 py-5 align-middle text-black/75 dark:text-white/70">
+                                        <CopyableText label="Phone number" value={parent.phoneNumber} fallback="No phone" truncateClassName="max-w-[140px]" />
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="px-6 py-5 align-middle">
                                         <AddStudents data={studentData} parentId={parent.id} />
                                     </TableCell>
 
-                                    <TableCell>
-                                        <div className="space-x-2 flex">
+                                    <TableCell className="rounded-r-2xl px-6 py-5 align-middle">
+                                        <div className="flex items-center gap-3">
                                             <EditData link={`/dashboard/parent/${parent.id}`} mode="edit" />
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
@@ -150,13 +182,12 @@ export const ParentData = ({ parentData, totalCount, studentData }) => {
                                                     </div>
 
                                                 </AlertDialogTrigger>
-                                                <AlertDialogContent className="bg-gray-900 border-none">
+                                                <AlertDialogContent className="border-0 bg-white text-black dark:bg-black dark:text-white">
                                                     <AlertDialogHeader>
                                                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                                        <AlertDialogDescription className="text-gray-500 text-md capitalize">
+                                                        <AlertDialogDescription className="text-md capitalize text-black/60 dark:text-white/60">
                                                             {` You're about to delete 
-                                                                 ${parent.full_name} ?
-        `}
+                                                                 ${parent.full_name || "this parent"} ?`}
                                                         </AlertDialogDescription>
                                                     </AlertDialogHeader>
                                                     <AlertDialogFooter>
@@ -172,8 +203,6 @@ export const ParentData = ({ parentData, totalCount, studentData }) => {
                                             </AlertDialog>
                                         </div>
                                     </TableCell>
-
-
                                 </TableRow>
                             )
                         })

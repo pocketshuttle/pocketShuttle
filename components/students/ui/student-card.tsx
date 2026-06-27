@@ -49,7 +49,7 @@ const StudentCard = ({ data, busData }) => {
             <Image src={data.image && data.image} alt={data.full_name} className="rounded-full w-24 h-24 object-cover " width={100} height={100} />
 
             <div className='flex items-center gap-1'>
-                <h5 className="mb-1 text-xl font-medium text-gray-300 dark:text-white ">{data.full_name}
+                <h5 className="mb-1 capitalize text-xl font-medium text-gray-300 dark:text-white ">{data.full_name}
                 </h5>
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{data.age}yrs old</span>
             </div>

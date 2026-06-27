@@ -2,7 +2,6 @@
 import dashboard from "@/public/images/dashboard.svg"
 import { DriverAndTeacherModal } from "./teachers-modal"
 import { Pagination } from "@/components/dashboard/pagination/pagination"
-import { useSession } from "next-auth/react"
 import {
     Table,
     TableBody,
@@ -35,6 +34,8 @@ import { useState, useTransition } from "react"
 import { removeTeacherFromBus } from "@/actions/remove-teacher-bus"
 import { toast } from "@/components/ui/use-toast"
 import { handleDelete } from "@/actions/delete-student"
+import { CopyableText } from "@/components/ui/copyable-text"
+import { tableStyle } from "@/components/ui/table-style"
 
 
 type userProps = {
@@ -43,24 +44,59 @@ type userProps = {
     busData?: any[]
 }
 
+const mockTeachersData: TeacherProps[] = [
+    {
+        id: "mock-teacher-1",
+        full_name: "Amelia Hart",
+        email: "amelia.hart@pocketshuttle.test",
+        phoneNumber: "08012341001",
+        address: "12 Cedar Avenue, Ikoyi, Lagos",
+        image: "/images/no-avatar.webp",
+        bus: {
+            id: "mock-bus-1",
+            color: "yellow",
+            bus_product_name: "Toyota Coaster",
+            bus_number: "PS-102",
+        },
+    } as TeacherProps,
+    {
+        id: "mock-teacher-2",
+        full_name: "Grace Wilson",
+        email: "grace.wilson@pocketshuttle.test",
+        phoneNumber: "08012341002",
+        address: "8 Admiralty Way, Lekki, Lagos",
+        image: "/images/no-avatar.webp",
+        bus: {
+            id: "mock-bus-2",
+            color: "white",
+            bus_product_name: "Mercedes Sprinter",
+            bus_number: "PS-218",
+        },
+    } as TeacherProps,
+    {
+        id: "mock-teacher-3",
+        full_name: "Helen Moore",
+        email: "helen.moore@pocketshuttle.test",
+        phoneNumber: "08012341003",
+        address: "23 Bourdillon Road, Ikoyi, Lagos",
+        image: "/images/no-avatar.webp",
+        bus: {
+            id: "mock-bus-3",
+            color: "blue",
+            bus_product_name: "Hyundai County",
+            bus_number: "PS-330",
+        },
+    } as TeacherProps,
+];
+
 export const TeachersTable = ({ teacherCount, teachersData, busData }: userProps) => {
-    const { data: session } = useSession()
-    const userId = session?.user?.id
-
     const [isPending, startTransition] = useTransition()
-
-
     const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
     const [isHovering, setIsHovering] = useState(false);
-
-
 
     const handleModal = () => {
         setIsOpenModal(!isOpenModal);
     };
-
-
-
 
     const handleRemove = (teacherId: string, busId: string) => {
         startTransition(() => {
@@ -91,48 +127,50 @@ export const TeachersTable = ({ teacherCount, teachersData, busData }: userProps
         })
     }
 
+    const displayTeachersData = Array.isArray(teachersData) && teachersData.length ? teachersData : mockTeachersData
+
     return (
         <div>
-            {
+            {/* {
                 isOpenModal && <DriverAndTeacherModal isOpenModal={isOpenModal} setIsOpenModal={setIsOpenModal} mode="teacher" />
             }
             <div className="p-4 flex justify-end items-center ">
-                < AddData label="Teacher" action={handleModal} />
+                < AddData label="Add a Teacher" action={handleModal} />
+            </div> */}
 
-            </div>
-
-            <Table>
+            <Table className={tableStyle.table}>
                 <TableHeader>
-                    <TableRow className=" text-[0.7rem] bg-[var(--hoverBg)]">
-                        <TableHead className="w-[250px] text-gray-300">Full Name</TableHead>
-                        <TableHead className="text-gray-300">Email</TableHead>
-                        <TableHead className="text-gray-300">Phone Number</TableHead>
-                        <TableHead className="text-gray-300">Address</TableHead>
-                        <TableHead className="text-gray-300">Bus No</TableHead>
+                    <TableRow className={tableStyle.headerRow}>
+                        <TableHead className={`w-[300px] ${tableStyle.head}`}>Full Name</TableHead>
+                        <TableHead className={tableStyle.head}>Email</TableHead>
+                        <TableHead className={tableStyle.head}>Phone Number</TableHead>
+                        <TableHead className={tableStyle.head}>Address</TableHead>
+                        <TableHead className={tableStyle.head}>Bus No</TableHead>
+                        <TableHead className={tableStyle.head}>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
 
-                <TableBody className="text-[0.75rem] text-gray-400 ">
+                <TableBody className={tableStyle.body}>
                     {
-                        teachersData?.map((teacher: TeacherProps) => {
+                        displayTeachersData.map((teacher: TeacherProps) => {
                             return (
-                                <TableRow key={teacher.id}>
-                                    <TableCell className="">
+                                <TableRow key={teacher.id} className={tableStyle.row}>
+                                    <TableCell className={tableStyle.firstCell}>
                                         <div className="flex items-center gap-2">
                                             <img src={teacher.image && teacher.image || dashboard} alt={teacher.full_name} className="rounded-md object-cover w-9 h-9" />
                                             <span className="capitalize">{teacher.full_name}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell>
-                                        {teacher.email}
+                                    <TableCell className={tableStyle.cell}>
+                                        <CopyableText label="Email" value={teacher.email} fallback="No email" truncateClassName="max-w-[220px]" />
                                     </TableCell>
-                                    <TableCell>
-                                        {teacher.phoneNumber}
+                                    <TableCell className={tableStyle.cell}>
+                                        <CopyableText label="Phone number" value={teacher.phoneNumber} fallback="No phone" truncateClassName="max-w-[140px]" />
                                     </TableCell>
-                                    <TableCell>
-                                        {teacher.address}
+                                    <TableCell className={`max-w-[240px] ${tableStyle.cell}`}>
+                                        <CopyableText label="Address" value={teacher.address} fallback="No address" truncateClassName="max-w-[220px]" />
                                     </TableCell>
-                                    <TableCell className="text-[0.7rem] capitalize ">
+                                    <TableCell className={`${tableStyle.cell} text-[0.7rem] capitalize`}>
                                         {
                                             teacher.bus ? <div className="flex space-x-1">
                                                 <div>
@@ -188,7 +226,7 @@ export const TeachersTable = ({ teacherCount, teachersData, busData }: userProps
                                                 </div>
                                         }
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className={tableStyle.actionCell}>
                                         <div className="space-x-2 flex">
                                             <EditData link={`/dashboard/teachers/${teacher.id}`} mode="edit" />
                                             <AlertDialog>

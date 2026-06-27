@@ -1,8 +1,8 @@
-import { connectToDB } from "@/utils/connect-to-db";
 import { NextRequest, NextResponse } from "next/server";
-import Route from "@/(models)/Route";
+
+import db from "@/packages/db/client";
 import { RouteSchema } from "@/schemas";
-import { db } from "@/lib/db";
+import { canManageSchool, getApiSession } from "@/lib/api-auth";
 
 type ParamProp = {
   id: string;
@@ -10,134 +10,125 @@ type ParamProp = {
 
 export const GET = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
-    await connectToDB();
-    const { id } = params;
-    const route = await db.route.findMany({
-      where: {
-        OR: [{ id: id }, { schoolId: id }],
-      },
-    });
-
-    
-
-    if (!route) {
-      return new Response(JSON.stringify({ message: "Route not found" }), {
-        status: 404,
-      });
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    return new Response(JSON.stringify(route), {
-      status: 200,
+    const { id } = await params;
+
+    const routes = await db.route.findMany({
+      where: id === schoolId ? { schoolId } : { id, schoolId },
     });
+
+    if (!routes || routes.length === 0) {
+      return NextResponse.json({ message: "Route not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(routes, { status: 200 });
   } catch (error) {
-    console.error(error);
-    if (error instanceof Error) {
-      return new Response(
-        JSON.stringify({
-          message: "Error fetching Route",
-          error: error.message,
-        }),
-        { status: 500 }
-      );
-    } else {
-      return new Response(
-        JSON.stringify({ message: "Unknown error occurred" }),
-        { status: 500 }
-      );
-    }
+    console.error("Error fetching route:", error);
+
+    return NextResponse.json(
+      {
+        message: "Error fetching Route",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 };
 
 export const PATCH = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
-    await connectToDB();
-    const { id } = params;
-    const data = await req.json();
-    const validatedData = RouteSchema.safeParse(data);
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
-    if (!validatedData.success) {
+    const { id } = await params;
+    const body = await req.json();
+    const validated = RouteSchema.safeParse(body);
+
+    if (!validated.success) {
       return NextResponse.json(
-        { message: "Validation error", errors: validatedData.error.errors },
+        { message: "Validation error", errors: validated.error.errors },
         { status: 400 }
       );
     }
 
-    const updatedRoute = await Route.findByIdAndUpdate(id, data, {
-      new: true, // Return the updated document
-      runValidators: true, // Ensure the update adheres to the schema validation
-    });
-
-    if (!updatedRoute) {
-      return new Response(JSON.stringify({ message: "Bus not found" }), {
-        status: 404,
-      });
+    const existingRoute = await db.route.findFirst({ where: { id, schoolId } });
+    if (!existingRoute) {
+      return NextResponse.json({ message: "Route not found" }, { status: 404 });
     }
 
-    return new Response(JSON.stringify(updatedRoute), {
-      status: 200,
+    const updatedRoute = await db.route.update({
+      where: { id },
+      data: {
+        schoolId,
+        route_name: validated.data.route_name,
+        route_description: validated.data.route_description,
+      },
     });
+
+    return NextResponse.json(
+      { message: "Route updated successfully", route: updatedRoute },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error(error);
-    if (error instanceof Error) {
-      return new Response(
-        JSON.stringify({
-          message: "Error updating Route",
-          error: error.message,
-        }),
-        { status: 500 }
-      );
-    } else {
-      return new Response(
-        JSON.stringify({ message: "Unknown error occurred" }),
-        { status: 404 }
-      );
-    }
+    console.error(" Error updating route:", error);
+
+    return NextResponse.json(
+      {
+        message: "Error updating route",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 };
 
 export const DELETE = async (
   req: NextRequest,
-  { params }: { params: ParamProp }
+  { params }: { params: Promise<ParamProp> }
 ) => {
   try {
-    const { id } = params;
-    const deletedRoute = await db.route.delete({
-      where: { id: id },
-    });
-
-    if (!deletedRoute) {
-      return new Response(JSON.stringify({ message: "Route not found" }), {
-        status: 404,
-      });
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    return new Response(
-      JSON.stringify({ message: "Route deleted successfully" }),
-      {
-        status: 200,
-      }
+    const { id } = await params;
+    const existingRoute = await db.route.findFirst({ where: { id, schoolId } });
+
+    if (!existingRoute) {
+      return NextResponse.json({ message: "Route not found" }, { status: 404 });
+    }
+
+    const deleted = await db.route.delete({ where: { id } });
+
+    return NextResponse.json(
+      { message: "Route deleted successfully", deletedRouteId: deleted.id },
+      { status: 200 }
     );
   } catch (error) {
-    console.error(error);
-    if (error instanceof Error) {
-      return new Response(
-        JSON.stringify({
-          message: "Error deleting Route",
-          error: error.message,
-        }),
-        { status: 500 }
-      );
-    } else {
-      return new Response(
-        JSON.stringify({ message: "Unknown error occurred" }),
-        { status: 500 }
-      );
-    }
+    console.error("Error deleting route:", error);
+
+    return NextResponse.json(
+      {
+        message: "Error deleting Route",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 };

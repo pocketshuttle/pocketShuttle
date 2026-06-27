@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input"
 import { BusSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
 import { TeacherCardWrapper } from "@/components/ui/card-wrapper"
-import { useSession } from "next-auth/react"
 import { usePost } from "@/hooks/usePost"
 import { useFetch } from "@/hooks/useFetch"
 import { BusSelectWrapper } from "./bus-select-wrapper"
+import { useSession } from "@/hooks/useSession"
+import { addBus } from "@/actions/add-bus"
+import { toast } from "@/components/ui/use-toast"
 
 interface BusModalProps {
     setIsOpenModal: Dispatch<SetStateAction<boolean>>
@@ -19,13 +21,11 @@ interface BusModalProps {
 }
 
 export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
-    const { data: session } = useSession()
-    const userId = session?.user?.id
+    const session = useSession()
+    const userId = session?.id
 
     const [isPending, startTransition] = useTransition()
     const [submittedData, setSubmittedData] = useState<object | undefined>(undefined)
-    const [isError, setIsError] = useState("")
-    const [isSuccess, setIsSuccess] = useState("")
     const [selectRoute, setSelectedRoute] = useState<string>("")
     const { data, loading, errorMessage, success } = usePost("/api/addbus", submittedData, "POST")
     const { data: routeData, isPending: routePending, errorMessage: routeError } = useFetch(`/api/addroute/${userId}`, userId);
@@ -34,7 +34,7 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
     const form = useForm<z.infer<typeof BusSchema>>({
         resolver: zodResolver(BusSchema),
         defaultValues: {
-            school_id: userId,
+            school_id: "",
             bus_number: "",
             driver: "",
             seat_number: 0,
@@ -48,11 +48,25 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
     })
 
     const onSubmit = (values: z.infer<typeof BusSchema>) => {
+        if (userId) {
+            values.school_id = userId;
+        }
         startTransition(async () => {
-            setSubmittedData(values)
-        })
-    }
+            const res = await addBus(values)
+            if (res.status === 200) {
+                toast({
+                    //@ts-ignore
+                    description: res.message,
+                });
+            } else {
+                toast({
+                    //@ts-ignore
+                    description: res.message,
+                });
+            }
 
+        });
+    }
 
     const handleCloseModal = () => {
         setIsOpenModal(false)
@@ -63,15 +77,15 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 ">
-            <div className="relative bg-gray-900  rounded-md w-3/6 ">
+        <div className="modal-overlay">
+            <div className="modal-panel w-3/6">
 
                 <TeacherCardWrapper
                     headLabel="Add a Bus"
                     action={() => handleCloseModal()}
                 >
-                    <div className=" flex justify-center">
-                        <div className="flex-1 px-5 ">
+                    <div className="form-surface flex justify-center">
+                        <div className="flex-1 px-2 text-slate-900 dark:text-slate-100">
                             <Form {...form}>
                                 {/* the handle submit comes from the form constant */}
                                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -90,7 +104,9 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                                                 placeholder="Tesla"
                                                                 type="text"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                // className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                className="add-form-input"
+
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
@@ -114,7 +130,8 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                                                 placeholder="abc-1234"
                                                                 type="text"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                className="add-form-input"
+
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
@@ -122,14 +139,10 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                                 )}
                                             />
                                         </div>
-
-
                                     </div>
 
                                     <div className="space-x-4 flex items-center w-full justify-between">
-
                                         <div className="space-y-4 w-3/6">
-
                                             <FormField
                                                 control={form.control}
                                                 name="seat_number"
@@ -142,9 +155,11 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                                                 placeholder="20"
                                                                 type="number"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
-                                                                onChange={(e) => field.onChange(Number(e.target.value))}
-
+                                                                className="add-form-input"
+                                                                onChange={(e) => {
+                                                                    const value = e.target.value;
+                                                                    field.onChange(value === "" ? "" : Number(value));
+                                                                }}
                                                             />
                                                         </FormControl>
                                                     </FormItem>
@@ -165,7 +180,7 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                                                 placeholder="red"
                                                                 type="text"
                                                                 disabled={isPending}
-                                                                className="py-3 border-none bg-[var(--bgSoft)] outline-none h-12"
+                                                                className="add-form-input"
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
@@ -181,11 +196,9 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
                                     {/* <div className="flex  justify-between ">
                                         < SelectProperty placeholder="Bus" label="Bus Name" item="Bus A" />
                                     </div> */}
-                                    {/* <FormError message={isError} /> */}
-                                    {/* <FormSuccess message={isSuccess} /> */}
                                     <Button
                                         disabled={isPending}
-                                        size="lg" className="w-full bg-[teal] p-5" type="submit">Add Bus
+                                        size="lg" className="h-12 w-full rounded-lg bg-[#4a48ff] p-5 text-white shadow-none transition-transform duration-150 hover:scale-[1.01] hover:bg-[#5b5aff]" type="submit">Add Bus
                                     </Button>
                                 </form>
                             </Form>
@@ -197,4 +210,3 @@ export const BusModal = ({ isOpenModal, setIsOpenModal }: BusModalProps) => {
         </div >
     )
 }
-

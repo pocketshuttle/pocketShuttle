@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import db from "@/packages/db/client";
 import { BusSchema } from "@/schemas";
-import { db } from "@/lib/db";
+import { canManageSchool, getApiSession } from "@/lib/api-auth";
 
 export const POST = async (req: NextRequest) => {
   try {
+    const session = await getApiSession();
+    const schoolId = session?.schoolId;
+    if (!canManageSchool(session) || !schoolId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+    }
+
     const data = await req.json();
     const validatedData = BusSchema.safeParse(data);
 
     if (!validatedData.success) {
-      console.log("Validation error:", validatedData.error.errors);
       return NextResponse.json(
         { message: "Validation error", errors: validatedData.error.errors },
         { status: 400 }
@@ -17,9 +23,7 @@ export const POST = async (req: NextRequest) => {
     }
 
     const {
-      school_id,
       bus_number,
-      driver,
       seat_number,
       teacher,
       student,
@@ -27,19 +31,59 @@ export const POST = async (req: NextRequest) => {
       bus_product_name,
       route,
     } = validatedData.data;
-    console.log(route);
+
+    const routeRecord = await db.route.findFirst({
+      where: { id: route, schoolId },
+      select: { id: true },
+    });
+
+    if (!routeRecord) {
+      return NextResponse.json(
+        { message: "Route not found in your school" },
+        { status: 400 }
+      );
+    }
+
+    if (teacher) {
+      const teacherRecord = await db.teacher.findFirst({
+        where: { id: teacher, schoolId },
+        select: { id: true },
+      });
+
+      if (!teacherRecord) {
+        return NextResponse.json(
+          { message: "Teacher not found in your school" },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (student) {
+      const studentRecord = await db.student.findFirst({
+        where: { id: student, schoolId },
+        select: { id: true },
+      });
+
+      if (!studentRecord) {
+        return NextResponse.json(
+          { message: "Student not found in your school" },
+          { status: 400 }
+        );
+      }
+    }
 
     await db.buses.create({
       data: {
         school: {
-          connect: { id: school_id },
+          connect: { id: schoolId },
         },
         bus_number,
         bus_product_name,
         seat_number,
+        availableSeats: seat_number,
         color,
         route: {
-          connect: { id: route },
+          connect: { id: routeRecord.id },
         },
         ...(teacher && {
           teacher: {
