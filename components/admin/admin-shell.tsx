@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Building2, Car, ClipboardCheck, CreditCard, LayoutDashboard, Network, ScrollText, Shield, UserRound, Users } from "lucide-react";
+import { BarChart3, Building2, Car, ClipboardCheck, CreditCard, Headphones, LayoutDashboard, Network, ScrollText, Shield, UserRound, Users } from "lucide-react";
 
 import Logout from "@/components/dashboard/sidebar/logout";
 
@@ -14,6 +14,7 @@ const navItems = [
   { href: "/admin/drivers", label: "Drivers", icon: Car },
   { href: "/admin/verification", label: "Verification", icon: ClipboardCheck },
   { href: "/admin/known-drivers", label: "Known drivers", icon: Network },
+  { href: "/admin/support", label: "Support", icon: Headphones },
   { href: "/admin/payment-plans", label: "Payment plans", icon: CreditCard },
   { href: "/admin/reports", label: "Reports", icon: BarChart3 },
   { href: "/admin/audit-log", label: "Audit log", icon: ScrollText },

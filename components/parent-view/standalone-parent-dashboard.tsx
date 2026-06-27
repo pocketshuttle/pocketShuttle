@@ -365,6 +365,7 @@ export function StandaloneParentDashboard({
 
       <ParentSideMenu
         open={sideMenuOpen}
+        parentId={parentId}
         parentName={parentName}
         billingSummary={billingSummary}
         pendingConnections={pendingConnections}

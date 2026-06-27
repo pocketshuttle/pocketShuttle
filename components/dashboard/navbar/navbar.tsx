@@ -2,9 +2,11 @@
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { MdNotifications, MdOutlineChat } from "react-icons/md"
-import { Settings } from "lucide-react"
+import { LifeBuoy, Settings } from "lucide-react"
+import { useState } from "react"
 import { ModeSwitch } from "@/components/theme/mode-switch"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { SupportTicketDialog } from "@/components/support/support-ticket-dialog"
 import bluefullname from "@/public/bluefullname.png"
 import whitefullname from "@/public/Whitefullname.png"
 
@@ -23,6 +25,7 @@ const getGreeting = () => {
 };
 
 const Navbar = ({ data }: { data?: any }) => {
+    const [supportOpen, setSupportOpen] = useState(false)
     const pathname = usePathname()
     const currentSegment = pathname.split("/").filter(Boolean).at(-1) || "dashboard";
     const pageTitle = currentSegment
@@ -69,6 +72,15 @@ const Navbar = ({ data }: { data?: any }) => {
                 </button>
 
                 <ModeSwitch />
+                <button
+                    type="button"
+                    onClick={() => setSupportOpen(true)}
+                    className="grid h-12 w-12 place-items-center rounded-full bg-black/5 text-black transition-colors hover:bg-black/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+                    aria-label="Contact support"
+                    title="Contact support"
+                >
+                    <LifeBuoy className="h-5 w-5" />
+                </button>
                 <button className="grid h-12 w-12 place-items-center rounded-full bg-black/5 text-black transition-colors hover:bg-black/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15" aria-label="Settings">
                     <Settings className="h-5 w-5" />
                 </button>
@@ -89,6 +101,13 @@ const Navbar = ({ data }: { data?: any }) => {
                     </div>
                 </div>
             </div>
+            <SupportTicketDialog
+                open={supportOpen}
+                onClose={() => setSupportOpen(false)}
+                requesterName={data?.name}
+                requesterId={data?.id}
+                requesterLabel="School"
+            />
         </header>
     )
 }

@@ -1,0 +1,170 @@
+const HIGH_PRIORITY_PATTERNS = [
+  /\bkids?\b/i,
+  /\bkidz?\b/i,
+  /\bkds?\b/i,
+  /\bchildren?\b/i,
+  /\bchild(?:ren)?\b/i,
+  /\bch?i?ld?rn?\b/i,
+  /\bkidn?a+p+p?(?:e?d|ing|er?s?)?\b/i,
+  /\bkidn?a+p+t\b/i,
+  /\bkidn?a+p+d\b/i,
+  /\bkin+a+p+p?(?:e?d|ing|er?s?)?\b/i,
+  /\bkid\s*n?a+p+\w*\b/i,
+  /\bkin\s*a+p+\w*\b/i,
+  /\babduct\w*\b/i,
+  /\babduc?ted\b/i,
+  /\babduc?tion\b/i,
+  /\bmiss?i?n?g\b/i,
+  /\bm+i+s+i+n+g\b/i,
+  /\bm+i+s+s?ng\b/i,
+  /\bmss?i?ng\b/i,
+  /\blost\b/i,
+  /\bcan\s*not\s*find\b/i,
+  /\bcant\s*find\b/i,
+  /\bnot\s*found\b/i,
+  /\bacc+i?d+e?n?t\b/i,
+  /\bac+i?d+e?n?t\b/i,
+  /\bacc?ed+e?n?t\b/i,
+  /\bax+i?d+e?n?t\b/i,
+  /\bcrash\w*\b/i,
+  /\bcra?sh?d\b/i,
+  /\bcollis\w*\b/i,
+  /\bhit\s*(?:by|with)?\b/i,
+  /\bcrash\w*\b/i,
+  /\bpol+i[cs]e+\b/i,
+  /\bpol+is+e?\b/i,
+  /\bpol+ce\b/i,
+  /\bcops?\b/i,
+  /\brob+b?i?n?g\b/i,
+  /\brob+b?e?r+s?\b/i,
+  /\brob+b?e?r+y\b/i,
+  /\brob+e?r+s?\b/i,
+  /\brob+d\b/i,
+  /\brob+ed\b/i,
+  /\brob+ery\b/i,
+  /\bthef+t\b/i,
+  /\bthie+ves\b/i,
+  /\bstol+en\b/i,
+  /\battack\w*\b/i,
+  /\bat+ac?k\w*\b/i,
+  /\binjur\w*\b/i,
+  /\bhurt\b/i,
+  /\bwound\w*\b/i,
+  /\bble+ding\b/i,
+  /\bble+d\b/i,
+  /\bblood\b/i,
+  /\bemergenc\w*\b/i,
+  /\bemergn?cy\b/i,
+  /\burgent\b/i,
+  /\bsos\b/i,
+  /\bhelp\b/i,
+  /\bdanger\w*\b/i,
+  /\bweapon\w*\b/i,
+  /\bgun\w*\b/i,
+  /\bknife\w*\b/i,
+  /\bhostage\w*\b/i,
+  /\bthreat\w*\b/i,
+];
+
+const HIGH_PRIORITY_TERMS = [
+  "kidnap",
+  "kidnapped",
+  "kidnaped",
+  "kidnapt",
+  "kidnapd",
+  "kidnapping",
+  "kidnaping",
+  "kidnaper",
+  "kidnapper",
+  "kinap",
+  "kinaped",
+  "kinapped",
+  "kinaping",
+  "kinapping",
+  "abduct",
+  "abducted",
+  "abduction",
+  "missing",
+  "mising",
+  "missng",
+  "mssing",
+  "mssng",
+  "missin",
+  "lost",
+  "accident",
+  "acident",
+  "accdent",
+  "accidnt",
+  "accedent",
+  "accidant",
+  "axident",
+  "crash",
+  "crashed",
+  "collision",
+  "police",
+  "polise",
+  "polce",
+  "polis",
+  "rob",
+  "robbed",
+  "robed",
+  "robbing",
+  "robers",
+  "robbers",
+  "robber",
+  "robbery",
+  "robery",
+  "thief",
+  "theif",
+  "thieves",
+  "stolen",
+  "attack",
+  "atack",
+  "attacked",
+  "injury",
+  "injured",
+  "hurt",
+  "wound",
+  "bleeding",
+  "bleding",
+  "blood",
+  "emergency",
+  "emergncy",
+  "emergancy",
+  "urgent",
+  "danger",
+  "weapon",
+  "gun",
+  "knife",
+  "hostage",
+  "threat",
+  "sos",
+];
+
+function normalizeSupportMessage(message: string) {
+  return message
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function squashRepeatedLetters(message: string) {
+  return message.replace(/([a-z])\1{2,}/g, "$1$1");
+}
+
+function containsPriorityTerm(message: string) {
+  const words = message.split(" ");
+  return HIGH_PRIORITY_TERMS.some((term) => words.includes(term) || (term.length > 3 && message.includes(term)));
+}
+
+export function getSupportTicketPriority(message: string): "HIGH" | "NORMAL" {
+  const normalized = normalizeSupportMessage(message);
+  const squashed = squashRepeatedLetters(normalized);
+
+  return HIGH_PRIORITY_PATTERNS.some((pattern) => pattern.test(normalized) || pattern.test(squashed)) ||
+    containsPriorityTerm(normalized) ||
+    containsPriorityTerm(squashed)
+    ? "HIGH"
+    : "NORMAL";
+}
