@@ -15,6 +15,8 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { LifeBuoy } from "lucide-react";
+import { SupportTicketDialog } from "@/components/support/support-ticket-dialog";
 
 import { getCurrentLocation } from "../maps/lib/utils"; // Utility functions for geolocation and sending location
 import { connectSocket } from "@/utils/socket-client";
@@ -59,6 +61,7 @@ function getDistanceMetersFast(coord1: any, coord2: any) {
 }
 
 const Navbar = ({ data }: NavbarProps) => {
+    const [supportOpen, setSupportOpen] = useState(false);
     const [isHovering, setIsHovering] = useState(false);
     const [isTracking, setIsTracking] = useState<boolean>(false);
     const [newLocation, setNewLocation] = useState<TeacherLocationPayload>({
@@ -332,6 +335,7 @@ const Navbar = ({ data }: NavbarProps) => {
 
 
     return (
+        <>
         <div className="flex h-[64px] w-full items-center justify-between border-b border-black/10 bg-white px-5 py-5 text-black shadow-sm transition-colors duration-200 dark:border-white/10 dark:bg-black dark:text-white">
             {/* Left section: Avatar + Greeting */}
             <div
@@ -386,11 +390,29 @@ const Navbar = ({ data }: NavbarProps) => {
                     <NotificationFeed />
                 </div>
 
+                <button
+                    type="button"
+                    onClick={() => setSupportOpen(true)}
+                    className="rounded-full p-2 transition-colors duration-200 hover:bg-blue-600/10"
+                    aria-label="Contact support"
+                    title="Contact support"
+                >
+                    <LifeBuoy className="h-5 w-5" aria-hidden="true" />
+                </button>
+
                 <button className="hover:bg-red-600/20 transition-colors duration-200 rounded-full p-2">
                     <Logout />
                 </button>
             </div>
         </div>
+        <SupportTicketDialog
+            open={supportOpen}
+            onClose={() => setSupportOpen(false)}
+            requesterName={data?.name}
+            requesterId={data?.id}
+            requesterLabel="Teacher"
+        />
+        </>
 
     );
 };
