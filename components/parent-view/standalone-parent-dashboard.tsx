@@ -108,6 +108,32 @@ export function StandaloneParentDashboard({
   };
 
   useEffect(() => {
+    if (!locationAssignment) return;
+
+    const refreshedAssignment = connections
+      .flatMap((connection) =>
+        connection.assignments.map((assignment) => ({
+          ...assignment,
+          driver: connection.driver,
+        }))
+      )
+      .find((assignment) => assignment.id === locationAssignment.id);
+
+    const currentLocation = locationAssignment.driver.liveAddress;
+    const nextLocation = refreshedAssignment?.driver.liveAddress;
+    const locationChanged =
+      currentLocation?.latitude !== nextLocation?.latitude ||
+      currentLocation?.longitude !== nextLocation?.longitude;
+    const statusChanged =
+      locationAssignment.lastStatus !== refreshedAssignment?.lastStatus ||
+      String(locationAssignment.lastStatusAt || "") !== String(refreshedAssignment?.lastStatusAt || "");
+
+    if (refreshedAssignment && (locationChanged || statusChanged)) {
+      setLocationAssignment(refreshedAssignment);
+    }
+  }, [connections, locationAssignment]);
+
+  useEffect(() => {
     if (!parentId) return;
 
     const refresh = () => {
@@ -120,6 +146,7 @@ export function StandaloneParentDashboard({
 
     channel?.bind("child-driver-event", refresh);
     channel?.bind("connection-updated", refresh);
+    channel?.bind("driver-location-updated", refresh);
 
     const pollId = window.setInterval(refresh, 15000);
 
@@ -127,6 +154,7 @@ export function StandaloneParentDashboard({
       window.clearInterval(pollId);
       channel?.unbind("child-driver-event", refresh);
       channel?.unbind("connection-updated", refresh);
+      channel?.unbind("driver-location-updated", refresh);
       if (channel) pusherClient.unsubscribe(channelName);
     };
   }, [parentId]);
@@ -758,7 +786,7 @@ export function StandaloneParentDashboard({
                         </>
                       ) : (
                         <>
-                          <p className="text-xs text-slate-500">{child.address || child.grade || "No school address"}</p>
+                          <p className="max-w-full truncate text-xs text-slate-500">{child.address || child.grade || "No school address"}</p>
                           <p className="text-xs font-semibold text-slate-700">No driver assigned</p>
                         </>
                       )}

@@ -949,8 +949,9 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{assignment.child.fullName}</p>
                       <p className="text-xs text-slate-500">Parent: {assignment.parent.full_name || "Parent"}</p>
-                      <p className="flex items-center gap-1 text-xs text-slate-500">
-                        <MapPin className="h-3.5 w-3.5" /> {assignment.child.address || "No school address"}
+                      <p className="flex min-w-0 items-center gap-1 text-xs text-slate-500">
+                        <MapPin className="h-3.5 w-3.5 shrink-0" />
+                        <span className="min-w-0 truncate">{assignment.child.address || "No school address"}</span>
                       </p>
                       <p className="mt-1 text-xs text-slate-500">
                         Last status: {(assignment.lastStatus || "Waiting").replaceAll("_", " ")}

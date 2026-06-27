@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getApiSession, isDriver } from "@/lib/api-auth";
 import { markDriverActive } from "@/lib/driver-activity";
-import { recordChildDriverEvent } from "@/lib/known-driver-network";
+import {
+  recordChildDriverEvent,
+  sendKnownDriverRealtimeEvent,
+} from "@/lib/known-driver-network";
 import db from "@/packages/db/client";
 
 export async function POST(req: NextRequest) {
@@ -36,7 +39,7 @@ export async function POST(req: NextRequest) {
         status: "ACTIVE",
         connection: { status: "PARENT_APPROVED" },
       },
-      select: { id: true },
+      select: { id: true, parentId: true, driverId: true },
     });
 
     await Promise.all(
@@ -56,6 +59,16 @@ export async function POST(req: NextRequest) {
           notifyParent: false,
         }).catch((error) => {
           console.error("Driver location assignment event failed:", error);
+        })
+      )
+    );
+
+    await Promise.all(
+      activeAssignments.map((assignment) =>
+        sendKnownDriverRealtimeEvent({
+          parentId: assignment.parentId,
+          driverId: assignment.driverId,
+          event: "driver-location-updated",
         })
       )
     );

@@ -183,6 +183,30 @@ export const DriverSchema = z.object({
     .optional(),
 });
 
+const AddressCoordsSchema = z.preprocess(
+  (value) => {
+    if (
+      value &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      Object.keys(value).length === 0
+    ) {
+      return undefined;
+    }
+
+    return value;
+  },
+  z
+    .object({
+      latitude: z.number().min(-90).max(90, { message: "Invalid latitude" }),
+      longitude: z
+        .number()
+        .min(-180)
+        .max(180, { message: "Invalid longitude" }),
+    })
+    .optional()
+);
+
 export const ParentSchema = z.object({
   school_id: z
     .string()
@@ -195,9 +219,7 @@ export const ParentSchema = z.object({
   }),
   image: z
     .string()
-    .min(1, {
-      message: "Image is required!",
-    })
+    .transform((value) => (value === "" ? undefined : value))
     .optional(),
   password: z.string().min(6, {
     message: "Password must be more 6 characters!",
@@ -214,19 +236,31 @@ export const ParentSchema = z.object({
   address: z.string().min(1, {
     message: "Please add the teacher's address",
   }),
-  addressCoords: z
-    .object({
-      latitude: z.number().min(-90).max(90, { message: "Invalid latitude" }),
-      longitude: z
-        .number()
-        .min(-180)
-        .max(180, { message: "Invalid longitude" }),
-    })
-    .optional(),
+  addressCoords: AddressCoordsSchema,
   studentId: z
     .string()
     .transform((value) => (value === "" ? undefined : value))
     .optional(),
+});
+
+export const ParentUpdateSchema = ParentSchema.extend({
+  busId: z
+    .string()
+    .transform((value) => (value === "" ? undefined : value))
+    .optional(),
+  school_id: z
+    .string()
+    .transform((value) => (value === "" ? undefined : value))
+    .optional(),
+  password: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z
+      .string()
+      .min(6, {
+        message: "Password must be more 6 characters!",
+      })
+      .optional()
+  ),
 });
 
 export const StudentSchema = z.object({

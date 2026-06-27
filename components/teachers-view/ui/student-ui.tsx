@@ -215,7 +215,7 @@ export const EachStudent = ({
                             </div>
                         </div>
 
-                        <p className="truncate text-sm capitalize leading-snug text-black/60 dark:text-white/60">
+                        <p className="max-w-full truncate text-sm capitalize leading-snug text-black/60 dark:text-white/60">
                             {student.address || "No address"}
                         </p>
                     </div>

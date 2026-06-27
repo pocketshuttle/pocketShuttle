@@ -46,13 +46,13 @@ export const CopyableText = ({
                     <button
                         type="button"
                         onClick={handleCopy}
-                        className={`block truncate text-left transition-colors hover:text-black dark:hover:text-white ${truncateClassName} ${className}`}
+                        className={`block min-w-0 max-w-full overflow-hidden truncate whitespace-nowrap text-left transition-colors hover:text-black dark:hover:text-white ${truncateClassName} ${className}`}
                         aria-label={`Copy ${label.toLowerCase()}`}
                     >
                         {displayValue}
                     </button>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-[320px] bg-black text-white dark:bg-white dark:text-black">
+                <TooltipContent className="max-w-[320px] break-words bg-black text-white dark:bg-white dark:text-black">
                     {displayValue}
                 </TooltipContent>
             </Tooltip>

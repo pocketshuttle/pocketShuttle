@@ -79,7 +79,7 @@ export const GuardianPage = ({ data }: { data: StudentProps }) => {
                                 {data?.parent?.email}
                             </p>
 
-                            <p className="text-sm text-gray-700 leading-snug">
+                            <p className="max-w-[240px] break-words text-sm leading-snug text-gray-700">
                                 {data?.parent?.address}
                             </p>
                         </div>

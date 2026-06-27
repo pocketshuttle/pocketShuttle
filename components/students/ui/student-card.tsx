@@ -53,9 +53,9 @@ const StudentCard = ({ data, busData }) => {
                 </h5>
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{data.age}yrs old</span>
             </div>
-            <div className='space-x-2'>
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{data.grade},</span>
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{data.address}</span>
+            <div className='flex max-w-full items-center gap-2 text-center'>
+                <span className="shrink-0 text-xs font-medium text-gray-500 dark:text-gray-400">{data.grade},</span>
+                <span className="min-w-0 truncate text-xs font-medium text-gray-500 dark:text-gray-400">{data.address}</span>
             </div>
             <div className='mt-4 flex items-center space-x-4'>
                 {

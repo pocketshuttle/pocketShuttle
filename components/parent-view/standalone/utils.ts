@@ -6,6 +6,7 @@ export const inputClass =
 export async function jsonFetch(url: string, init?: RequestInit) {
   const response = await fetch(url, {
     ...init,
+    cache: init?.cache ?? "no-store",
     headers: {
       "Content-Type": "application/json",
       ...(init?.headers || {}),

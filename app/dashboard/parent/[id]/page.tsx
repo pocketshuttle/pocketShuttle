@@ -6,11 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormLabel, FormItem, FormMessage } from "@/components/ui/form"
 import { useEffect, useState, useTransition } from "react"
 import { Input } from "@/components/ui/input"
-import { ParentSchema } from "@/schemas"
+import { ParentUpdateSchema } from "@/schemas"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import avatar from "@/public/images/avatar.jpg"
-import { usePost } from "@/hooks/usePost"
 import { useFetch } from "@/hooks/useFetch"
 import { usePathname } from "next/navigation"
 import spinner from "@/public/images/spinner.gif"
@@ -25,8 +24,6 @@ const SingleParentPage = () => {
     const [isPending, startTransition] = useTransition()
     const [newAvatar, setNewAvatar] = useState<string>("")
     const [isLoadingImage, setIsLoadingImage] = useState<boolean>(false)
-    const [addressValue, setAddressValue] = useState("")
-    const [addressValueCoords, setAddressValueCoords] = useState<{ lat: number; lng: number } | null>(null)
     const pathname = usePathname()
     const id = pathname.split("/").pop()
     const session = useSession()
@@ -35,8 +32,8 @@ const SingleParentPage = () => {
     const { data: parentsData, isPending: parentPending } = useFetch(`/api/addparent/${id}`, userId)
     const parentData = parentsData
 
-    const form = useForm<z.infer<typeof ParentSchema>>({
-        resolver: zodResolver(ParentSchema),
+    const form = useForm<z.infer<typeof ParentUpdateSchema>>({
+        resolver: zodResolver(ParentUpdateSchema),
         defaultValues: {
             school_id: userId,
             full_name: "",
@@ -57,35 +54,50 @@ const SingleParentPage = () => {
                 school_id: userId,
                 full_name: parentData.full_name || "",
                 email: parentData.email || "",
+                password: "",
                 phoneNumber: parentData.phoneNumber || "",
                 address: parentData.address || "",
                 addressCoords: parentData.addressCoords || {},
                 image: newAvatar || parentData.image || "",
                 role: parentData.role || "parent",
             });
-            setAddressValue(parentData.address || "")
-            if (parentData.addressCoords) {
-                setAddressValueCoords(parentData.addressCoords)
-            }
         }
     }, [parentData, userId, newAvatar, form]);
 
-    //  handle address selection (geocode once)
-    const handleSuggestionChange = (suggestion: { address: string; lat: number; lng: number }) => {
-        setAddressValue(suggestion.address)
-        setAddressValueCoords({ lat: suggestion.lat, lng: suggestion.lng })
-
-        form.setValue("address", suggestion.address)
-        form.setValue("addressCoords", { latitude: suggestion.lat, longitude: suggestion.lng })
+    const handleAddressChange = (value: string) => {
+        form.setValue("address", value, { shouldDirty: true, shouldValidate: true })
+        form.setValue("addressCoords", undefined, { shouldDirty: true, shouldValidate: true })
     }
 
-    const onSubmit = (values: z.infer<typeof ParentSchema>) => {
+    //  handle address selection (geocode once)
+    const handleSuggestionChange = (suggestion: { address: string; lat: number; lng: number }) => {
+        form.setValue("address", suggestion.address, { shouldDirty: true, shouldValidate: true })
+        form.setValue("addressCoords", { latitude: suggestion.lat, longitude: suggestion.lng }, { shouldDirty: true, shouldValidate: true })
+    }
+
+    const onSubmit = (values: z.infer<typeof ParentUpdateSchema>) => {
         startTransition(async () => {
-            const response = await updateParent(id!, values)
+            let payload = values
+
+            if (values.address && !values.addressCoords) {
+                const coords = await googleFetchCoordinates(values.address)
+
+                if (coords) {
+                    payload = {
+                        ...values,
+                        addressCoords: {
+                            latitude: coords[0],
+                            longitude: coords[1],
+                        },
+                    }
+                }
+            }
+
+            const response = await updateParent(id!, payload)
             if (response.status === 200) {
                 toast({ description: response.message })
             } else {
-                toast({ description: "An error occurred. Please try again." })
+                toast({ description: response.message || "An error occurred. Please try again.", variant: "destructive" })
             }
         })
     }
@@ -212,10 +224,10 @@ const SingleParentPage = () => {
 
                                 {/* Address with coords */}
                                 <FormItem>
-                                    <FormLabel>Student Address</FormLabel>
+                                    <FormLabel>Parent Address</FormLabel>
                                     <AddressComponent
                                         value={form.watch("address")}
-                                        handleAddressChange={(v) => form.setValue("address", v)}
+                                        handleAddressChange={handleAddressChange}
                                         handleSuggestionChange={handleSuggestionChange}
                                     />
                                     <FormMessage />
