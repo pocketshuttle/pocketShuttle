@@ -1,12 +1,17 @@
 export const dynamic = "force-dynamic";
 
 import { PaymentPlansManager } from "@/components/admin/admin-controls";
+import { ensurePlanCatalog } from "@/lib/billing/accounts";
 import db from "@/packages/db/client";
 
 const AdminPaymentPlansPage = async () => {
+  await ensurePlanCatalog();
   const plans = await db.plan.findMany({
-    include: { _count: { select: { subscriptions: true } } },
-    orderBy: { price: "asc" },
+    include: {
+      _count: { select: { subscriptions: true } },
+      prices: { orderBy: { createdAt: "desc" } },
+    },
+    orderBy: [{ audience: "asc" }, { tier: "asc" }],
   });
 
   return (

@@ -4,6 +4,11 @@ import { getApiSession, isParent } from "@/lib/api-auth";
 import { createInviteToken, normalizeLookup, normalizePhone } from "@/lib/known-driver-network";
 import { sendDriverInviteEmail } from "@/lib/mail";
 import db from "@/packages/db/client";
+import {
+  assertWithinLimit,
+  getEntitlements,
+} from "@/lib/billing/entitlements";
+import { upgradeRequiredResponse } from "@/lib/billing/responses";
 
 export async function POST(req: NextRequest) {
   const session = await getApiSession();
@@ -26,6 +31,23 @@ export async function POST(req: NextRequest) {
 
   if (!parent) {
     return NextResponse.json({ message: "Standalone parent not found" }, { status: 404 });
+  }
+
+  try {
+    const [resolved, connectionCount] = await Promise.all([
+      getEntitlements(session),
+      db.parentDriverConnection.count({
+        where: {
+          parentId: parent.id,
+          status: { notIn: ["DECLINED", "REVOKED"] },
+        },
+      }),
+    ]);
+    assertWithinLimit(resolved, "max_connected_drivers", connectionCount);
+  } catch (error) {
+    const response = upgradeRequiredResponse(error);
+    if (response) return response;
+    throw error;
   }
 
   const existingDriver = await db.driver.findFirst({

@@ -10,6 +10,7 @@
 /packages/db/node_modules
 /packages/db/.gitignore
 /packages/db/.env
+/packages/db/.env.backup
 # testing
 /coverage
 

@@ -6,6 +6,8 @@ import { sendSmsForBusArrival } from "@/actions/notification/bus-arrival";
 import { sendPushNotification } from "@/onesignal/send-push";
 import db from "@/packages/db/client";
 import { TripEventType } from "@prisma/client";
+import { getTripOwnerEntitlements } from "@/lib/billing/trip-entitlements";
+import { consumePremiumMessage } from "@/lib/billing/premium-messages";
 
 type TripEventNotificationInput = {
   tripId: string;
@@ -42,6 +44,10 @@ function getTripEventMessage(eventType: TripEventType, payload?: Record<string, 
       return `Emergency alert resolved for ${busName}.`;
     case "trip_ended":
       return `${busName} has arrived safely.`;
+    case "eta_updated":
+      return payload?.nearby === true
+        ? `${busName} is nearby. ETA: ${String(payload?.etaMinutes ?? "a few")} minutes.`
+        : null;
     default:
       return null;
   }
@@ -112,6 +118,9 @@ export async function dispatchTripNotifications({
     const phoneNumber = getString(payload, "parentPhone");
     if (phoneNumber) {
       try {
+        const resolved = await getTripOwnerEntitlements(tripId);
+        if (!resolved) throw new Error("No billing account owns this trip");
+        await consumePremiumMessage(resolved, "whatsapp");
         await sendSmsForBusArrival({
           student_name: getString(payload, "studentName") ?? "",
           parent_name: getString(payload, "parentName") ?? "",

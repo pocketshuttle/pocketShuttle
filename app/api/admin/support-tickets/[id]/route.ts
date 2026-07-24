@@ -34,6 +34,7 @@ export async function PATCH(
         UPDATE "support_tickets"
         SET "status" = 'FIXED'::"SupportTicketStatus",
             "fixed_at" = NOW(),
+            "first_responded_at" = COALESCE("first_responded_at", NOW()),
             "deleted_at" = NOW(),
             "updated_at" = NOW()
         WHERE "id" = ${id}
@@ -54,6 +55,7 @@ export async function PATCH(
       SET "status" = ${status}::"SupportTicketStatus",
           "fixed_at" = NULL,
           "deleted_at" = NULL,
+          "first_responded_at" = COALESCE("first_responded_at", NOW()),
           "updated_at" = NOW()
       WHERE "id" = ${id}
     `;

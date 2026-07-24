@@ -3,6 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 import db from "@/packages/db/client";
 import { BusSchema } from "@/schemas";
 import { canManageSchool, getApiSession } from "@/lib/api-auth";
+import {
+  assertWithinLimit,
+  getEntitlements,
+} from "@/lib/billing/entitlements";
+import { upgradeRequiredResponse } from "@/lib/billing/responses";
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -11,6 +16,12 @@ export const POST = async (req: NextRequest) => {
     if (!canManageSchool(session) || !schoolId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
+
+    const [resolved, busCount] = await Promise.all([
+      getEntitlements(session),
+      db.buses.count({ where: { schoolId } }),
+    ]);
+    assertWithinLimit(resolved, "max_buses", busCount);
 
     const data = await req.json();
     const validatedData = BusSchema.safeParse(data);
@@ -103,6 +114,8 @@ export const POST = async (req: NextRequest) => {
       { status: 200 }
     );
   } catch (error) {
+    const entitlementResponse = upgradeRequiredResponse(error);
+    if (entitlementResponse) return entitlementResponse;
     console.error("Error adding Bus:", error);
     return NextResponse.json(
       {

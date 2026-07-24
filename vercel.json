@@ -7,6 +7,18 @@
     {
       "path": "/api/cron-jobs/reset-status",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron-jobs/subscriptions",
+      "schedule": "15 * * * *"
+    },
+    {
+      "path": "/api/cron-jobs/trip-templates",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron-jobs/outbound-webhooks",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AlertTriangle, Check, CheckCircle2, Clock3, Copy, LifeBuoy, PlusCircle, Send, Ticket, X } from "lucide-react";
 
 import Logout from "@/components/dashboard/sidebar/logout";
@@ -168,6 +169,9 @@ export function ParentSideMenu({
           <p className="mt-3 text-xs text-slate-500">
             Next trial ending: {billingSummary.nextTrialEnd ? formatDate(billingSummary.nextTrialEnd) : "N/A"}
           </p>
+          <Button asChild variant="outline" className="mt-3 w-full">
+            <Link href="/billing">Manage PocketShuttle plan</Link>
+          </Button>
         </section>
 
         <section className="rounded-lg border border-slate-200 bg-white p-4">

@@ -8,6 +8,10 @@ import { sendVerificationEmail } from "@/lib/mail";
 import { redirect } from "next/navigation";
 import crypto from "crypto";
 import { ensureDriverShareProfile } from "@/lib/known-driver-network";
+import {
+  ensureFamilyBillingAccount,
+  ensureSchoolBillingAccount,
+} from "@/lib/billing/accounts";
 
 export const register = async (values: z.infer<typeof RegisterSchema>) => {
   const validatedFields = RegisterSchema.safeParse(values);
@@ -48,7 +52,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
     }
 
     if (accountRole === "parent") {
-      await db.parent.create({
+      const parent = await db.parent.create({
         data: {
           role: "parent",
           accountType: "STANDALONE",
@@ -59,6 +63,7 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
           password: hashedPassword,
         },
       });
+      await ensureFamilyBillingAccount(parent.id);
     } else if (accountRole === "driver") {
       const driver = await db.driver.create({
         data: {
@@ -105,13 +110,14 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
         });
       }
     } else {
-      await db.user.create({
+      const school = await db.user.create({
         data: {
           name: schoolname,
           email: normalizedEmail,
           password: hashedPassword,
         },
       });
+      await ensureSchoolBillingAccount(school.id);
     }
 
     const verificationToken = await generateVerificationToken(

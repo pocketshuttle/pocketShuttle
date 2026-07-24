@@ -5,6 +5,11 @@ import { revalidateTag } from "next/cache";
 import db from "@/packages/db/client";
 import { TeacherSchema } from "@/schemas";
 import { canManageSchool, getApiSession } from "@/lib/api-auth";
+import {
+  assertWithinLimit,
+  getEntitlements,
+} from "@/lib/billing/entitlements";
+import { upgradeRequiredResponse } from "@/lib/billing/responses";
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -18,6 +23,13 @@ export const POST = async (req: NextRequest) => {
         { status: 403 }
       );
     }
+
+    const [resolved, teacherCount, driverCount] = await Promise.all([
+      getEntitlements(session),
+      db.teacher.count({ where: { schoolId } }),
+      db.driver.count({ where: { schoolId } }),
+    ]);
+    assertWithinLimit(resolved, "max_staff", teacherCount + driverCount);
 
     const data = await req.json();
     const validatedData = TeacherSchema.safeParse(data);
@@ -121,6 +133,8 @@ export const POST = async (req: NextRequest) => {
       { status: 200 }
     );
   } catch (error) {
+    const entitlementResponse = upgradeRequiredResponse(error);
+    if (entitlementResponse) return entitlementResponse;
     console.error("Error adding Teacher:", error);
     return NextResponse.json(
       {

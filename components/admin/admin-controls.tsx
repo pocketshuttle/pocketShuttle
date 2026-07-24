@@ -244,7 +244,29 @@ export function VerificationQueue({ drivers }: { drivers: any[] }) {
 
 export function PaymentPlansManager({ plans }: { plans: any[] }) {
   const [rows, setRows] = useState(plans);
-  const [form, setForm] = useState({ name: "", price: "", duration: "30", description: "", features: "" });
+  const [form, setForm] = useState({
+    code: "",
+    name: "",
+    audience: "SCHOOL",
+    tier: "PRO",
+    amountMinor: "",
+    description: "",
+    features: "",
+    entitlements: "{}",
+  });
+  const [priceDrafts, setPriceDrafts] = useState<Record<string, string>>(
+    Object.fromEntries(
+      plans.map((plan) => [
+        plan.id,
+        String(plan.prices?.find((price: any) => price.isActive)?.amountMinor ?? 0),
+      ])
+    )
+  );
+  const [entitlementDrafts, setEntitlementDrafts] = useState<Record<string, string>>(
+    Object.fromEntries(
+      plans.map((plan) => [plan.id, JSON.stringify(plan.entitlements || {}, null, 2)])
+    )
+  );
   const [isPending, startTransition] = useTransition();
 
   const createPlan = () => {
@@ -255,7 +277,16 @@ export function PaymentPlansManager({ plans }: { plans: any[] }) {
           body: JSON.stringify(form),
         });
         setRows((current) => [...current, data.plan]);
-        setForm({ name: "", price: "", duration: "30", description: "", features: "" });
+        setForm({
+          code: "",
+          name: "",
+          audience: "SCHOOL",
+          tier: "PRO",
+          amountMinor: "",
+          description: "",
+          features: "",
+          entitlements: "{}",
+        });
         toast({ description: data.message });
       } catch (error) {
         toast({ description: error instanceof Error ? error.message : "Unable to create plan", variant: "destructive" });
@@ -263,14 +294,18 @@ export function PaymentPlansManager({ plans }: { plans: any[] }) {
     });
   };
 
-  const togglePlan = (plan: any) => {
+  const updatePlan = (plan: any, patch: Record<string, unknown>) => {
     startTransition(async () => {
       try {
         const data = await jsonFetch(`/api/admin/payment-plans/${plan.id}`, {
           method: "PATCH",
-          body: JSON.stringify({ isActive: !plan.isActive }),
+          body: JSON.stringify(patch),
         });
         setRows((current) => current.map((row) => (row.id === plan.id ? data.plan : row)));
+        setEntitlementDrafts((current) => ({
+          ...current,
+          [plan.id]: JSON.stringify(data.plan.entitlements || {}, null, 2),
+        }));
         toast({ description: data.message });
       } catch (error) {
         toast({ description: error instanceof Error ? error.message : "Unable to update plan", variant: "destructive" });
@@ -282,26 +317,37 @@ export function PaymentPlansManager({ plans }: { plans: any[] }) {
     <div className="grid gap-5">
       <section className="rounded-lg border border-slate-200 bg-white p-4">
         <h2 className="mb-3 text-base font-semibold">Create plan</h2>
-        <div className="grid gap-3 md:grid-cols-5">
+        <div className="grid gap-3 md:grid-cols-4">
+          <Input placeholder="Stable code (FAMILY_PLUS)" value={form.code} onChange={(event) => setForm((current) => ({ ...current, code: event.target.value.toUpperCase() }))} />
           <Input placeholder="Name" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} />
-          <Input placeholder="Price" type="number" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} />
-          <Input placeholder="Duration days" type="number" value={form.duration} onChange={(event) => setForm((current) => ({ ...current, duration: event.target.value }))} />
+          <select className="rounded-md border border-slate-200 px-3 text-sm" value={form.audience} onChange={(event) => setForm((current) => ({ ...current, audience: event.target.value }))}>
+            <option value="FAMILY">Family</option>
+            <option value="SCHOOL">School</option>
+            <option value="ENTERPRISE">Enterprise</option>
+          </select>
+          <select className="rounded-md border border-slate-200 px-3 text-sm" value={form.tier} onChange={(event) => setForm((current) => ({ ...current, tier: event.target.value }))}>
+            <option value="FREE">Free</option>
+            <option value="PRO">Pro</option>
+            <option value="ENTERPRISE">Enterprise</option>
+          </select>
+          <Input placeholder="Monthly price in kobo" type="number" value={form.amountMinor} onChange={(event) => setForm((current) => ({ ...current, amountMinor: event.target.value }))} />
           <Input placeholder="Features, comma separated" value={form.features} onChange={(event) => setForm((current) => ({ ...current, features: event.target.value }))} />
-          <Button disabled={isPending || !form.name.trim()} onClick={createPlan} className="gap-2">
+          <textarea className="min-h-24 rounded-md border border-slate-200 p-3 font-mono text-xs md:col-span-2" aria-label="Entitlements JSON" value={form.entitlements} onChange={(event) => setForm((current) => ({ ...current, entitlements: event.target.value }))} />
+          <Button disabled={isPending || !form.name.trim() || !form.code.trim()} onClick={createPlan} className="gap-2">
             <Plus className="h-4 w-4" /> Create
           </Button>
         </div>
       </section>
 
       <section className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <table className="w-full min-w-[760px] text-left text-sm">
+        <table className="w-full min-w-[1050px] text-left text-sm">
           <thead className="bg-slate-50 text-xs uppercase text-slate-500">
             <tr>
               <th className="px-4 py-3">Plan</th>
-              <th className="px-4 py-3">Price</th>
-              <th className="px-4 py-3">Duration</th>
+              <th className="px-4 py-3">Monthly price</th>
+              <th className="px-4 py-3">Entitlements</th>
               <th className="px-4 py-3">Subscriptions</th>
-              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Visibility</th>
               <th className="px-4 py-3 text-right">Action</th>
             </tr>
           </thead>
@@ -310,16 +356,53 @@ export function PaymentPlansManager({ plans }: { plans: any[] }) {
               <tr key={plan.id}>
                 <td className="px-4 py-3">
                   <p className="font-semibold">{plan.name}</p>
+                  <p className="font-mono text-xs text-slate-500">{plan.code}</p>
+                  <p className="text-xs text-slate-500">{plan.audience} · {plan.tier}</p>
                   <p className="text-xs text-slate-500">{plan.description || "No description"}</p>
                 </td>
-                <td className="px-4 py-3">NGN {Number(plan.price).toLocaleString()}</td>
-                <td className="px-4 py-3">{plan.duration} days</td>
-                <td className="px-4 py-3">{plan._count?.subscriptions || 0}</td>
-                <td className="px-4 py-3"><StatusBadge value={plan.isActive ? "ACTIVE" : "DISABLED"} /></td>
-                <td className="px-4 py-3 text-right">
-                  <Button size="sm" variant="outline" disabled={isPending} onClick={() => togglePlan(plan)} className="gap-2">
-                    <Save className="h-4 w-4" /> {plan.isActive ? "Disable" : "Enable"}
+                <td className="px-4 py-3">
+                  <div className="flex min-w-52 gap-2">
+                    <Input
+                      aria-label={`${plan.name} monthly price in kobo`}
+                      type="number"
+                      value={priceDrafts[plan.id] ?? "0"}
+                      onChange={(event) => setPriceDrafts((current) => ({ ...current, [plan.id]: event.target.value }))}
+                    />
+                    <Button size="sm" variant="outline" disabled={isPending || plan.tier === "FREE"} onClick={() => updatePlan(plan, { amountMinor: Number(priceDrafts[plan.id] || 0) })}>
+                      Save
+                    </Button>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">NGN {(Number(priceDrafts[plan.id] || 0) / 100).toLocaleString()}</p>
+                </td>
+                <td className="px-4 py-3">
+                  <textarea
+                    className="min-h-28 w-80 rounded-md border border-slate-200 p-2 font-mono text-[11px]"
+                    aria-label={`${plan.name} entitlements JSON`}
+                    value={entitlementDrafts[plan.id] ?? "{}"}
+                    onChange={(event) => setEntitlementDrafts((current) => ({ ...current, [plan.id]: event.target.value }))}
+                  />
+                  <Button size="sm" variant="outline" disabled={isPending} onClick={() => updatePlan(plan, { entitlements: entitlementDrafts[plan.id] })}>
+                    Save limits
                   </Button>
+                </td>
+                <td className="px-4 py-3">{plan._count?.subscriptions || 0}</td>
+                <td className="space-y-1 px-4 py-3">
+                  <StatusBadge value={plan.isActive ? "ACTIVE" : "DISABLED"} />
+                  <StatusBadge value={plan.isPublic ? "PUBLIC" : "HIDDEN"} />
+                  <StatusBadge value={plan.isPurchasable ? "CHECKOUT ON" : "CHECKOUT OFF"} />
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="grid gap-2">
+                    <Button size="sm" variant="outline" disabled={isPending} onClick={() => updatePlan(plan, { isActive: !plan.isActive })} className="gap-2">
+                    <Save className="h-4 w-4" /> {plan.isActive ? "Disable" : "Enable"}
+                    </Button>
+                    <Button size="sm" variant="outline" disabled={isPending} onClick={() => updatePlan(plan, { isPublic: !plan.isPublic })}>
+                      {plan.isPublic ? "Hide" : "Show"}
+                    </Button>
+                    <Button size="sm" variant="outline" disabled={isPending || plan.tier === "FREE"} onClick={() => updatePlan(plan, { isPurchasable: !plan.isPurchasable })}>
+                      {plan.isPurchasable ? "Close checkout" : "Open checkout"}
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}

@@ -22,27 +22,71 @@ async function seedPlans() {
   const plans = [
     {
       id: "seed-plan-free",
-      name: "Free",
+      code: "FREE_SCHOOL",
+      name: "Free School",
       price: 0,
       duration: 30,
       description: "Starter plan for testing school commute operations.",
       features: ["3 buses", "basic reports", "parent alerts"],
+      entitlements: {
+        basic_live_location: true,
+        pickup_dropoff_status: true,
+        emergency_alerts: true,
+        push_notifications: true,
+        max_buses: 1,
+        max_students: 30,
+        max_staff: 3,
+        history_hours: 24,
+      },
+      audience: "SCHOOL",
+      tier: "FREE",
+      isPublic: true,
     },
     {
       id: "seed-plan-pro",
-      name: "Pro",
+      code: "SCHOOL_PRO",
+      name: "School Pro",
       price: 25000,
       duration: 30,
       description: "Operational plan with reports, route visibility, and notifications.",
       features: ["fleet dashboard", "pickup reports", "trip events"],
+      entitlements: {
+        basic_live_location: true,
+        emergency_alerts: true,
+        fleet_map: true,
+        analytics: true,
+        csv_import: true,
+        csv_export: true,
+        max_buses: 25,
+        max_students: 1000,
+        max_staff: 100,
+        history_hours: 8760,
+      },
+      audience: "SCHOOL",
+      tier: "PRO",
     },
     {
       id: "seed-plan-enterprise",
+      code: "ENTERPRISE",
       name: "Enterprise",
       price: 75000,
       duration: 30,
       description: "Advanced plan for large schools and transport operators.",
       features: ["multi-branch", "audit logs", "priority support"],
+      entitlements: {
+        basic_live_location: true,
+        emergency_alerts: true,
+        multiple_branches: true,
+        custom_roles: true,
+        api_access: true,
+        outbound_webhooks: true,
+        max_buses: null,
+        max_students: null,
+        max_staff: null,
+        history_hours: null,
+      },
+      audience: "ENTERPRISE",
+      tier: "ENTERPRISE",
     },
   ];
 
@@ -492,9 +536,25 @@ async function seedPickups(students, teachers, parents) {
 }
 
 async function seedBilling(schoolId, plans) {
+  const billingAccount = await db.billingAccount.upsert({
+    where: { userId: schoolId },
+    update: {
+      billingEmail: "admin@pocketshuttle.test",
+      enforcementEnabled: true,
+    },
+    create: {
+      id: "seed-school-billing",
+      type: "SCHOOL",
+      userId: schoolId,
+      billingEmail: "admin@pocketshuttle.test",
+      enforcementEnabled: true,
+    },
+  });
+
   const subscriptions = [
     {
       id: "seed-subscription-free",
+      billingAccountId: billingAccount.id,
       userId: schoolId,
       planId: plans[0].id,
       startDate: daysFromNow(-45),
@@ -504,6 +564,7 @@ async function seedBilling(schoolId, plans) {
     },
     {
       id: "seed-subscription-pro",
+      billingAccountId: billingAccount.id,
       userId: schoolId,
       planId: plans[1].id,
       startDate: daysFromNow(-10),
@@ -513,11 +574,12 @@ async function seedBilling(schoolId, plans) {
     },
     {
       id: "seed-subscription-enterprise",
+      billingAccountId: billingAccount.id,
       userId: schoolId,
       planId: plans[2].id,
       startDate: daysFromNow(30),
       endDate: daysFromNow(60),
-      status: "SCHEDULED",
+      status: "TRIALING",
       subscriptionPlan: "ENTERPRISE",
     },
   ];

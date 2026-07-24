@@ -10,6 +10,7 @@ const navItems = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/users", label: "All users", icon: Users },
   { href: "/admin/schools", label: "Schools", icon: Building2 },
+  { href: "/admin/organizations", label: "Organizations", icon: Network },
   { href: "/admin/parents", label: "Parents", icon: UserRound },
   { href: "/admin/drivers", label: "Drivers", icon: Car },
   { href: "/admin/verification", label: "Verification", icon: ClipboardCheck },
