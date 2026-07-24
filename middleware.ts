@@ -29,6 +29,63 @@ export async function middleware(req: NextRequest) {
     const isHomePage = pathname === "/";
     const isAdminRoute = pathname.startsWith("/admin");
     const response = NextResponse.next();
+    const isApiRoute = pathname.startsWith("/api/");
+
+    if (isApiRoute) {
+      const platformActorId =
+        typeof token?.platformActorId === "string" ? token.platformActorId : null;
+      const workspaceSessionId =
+        typeof token?.workspaceSessionId === "string"
+          ? token.workspaceSessionId
+          : null;
+      const mutation = !["GET", "HEAD", "OPTIONS"].includes(req.method);
+      if (platformActorId && workspaceSessionId && mutation) {
+        if (pathname === "/api/admin/workspaces/current") {
+          return response;
+        }
+        const sensitivePrefixes = [
+          "/api/billing/",
+          "/api/support-tickets",
+          "/api/drivers/location",
+          "/api/driver/verification",
+          "/api/bustracking",
+          "/api/send-push",
+          "/api/upload",
+        ];
+        const sensitive =
+          sensitivePrefixes.some((prefix) => pathname.startsWith(prefix)) ||
+          /\/api\/trips\/[^/]+\/(emergency|location)/.test(pathname) ||
+          /\/api\/child-driver-assignments\/[^/]+\/status/.test(pathname) ||
+          pathname.startsWith("/api/addstudent/markattendance") ||
+          pathname.startsWith("/api/addstudent/markstatus");
+        if (sensitive) {
+          return NextResponse.json(
+            {
+              code: "MANAGED_ACTION_BLOCKED",
+              message:
+                "Use the dedicated platform-admin correction or safety control for this action.",
+            },
+            { status: 403 }
+          );
+        }
+        const accessRole = String(token?.platformAccessRole || "");
+        if (!["OWNER", "ADMIN"].includes(accessRole)) {
+          return NextResponse.json(
+            {
+              code: "MANAGED_WORKSPACE_READ_ONLY",
+              message: "Your platform role provides read-only workspace access.",
+            },
+            { status: 403 }
+          );
+        }
+        const requestHeaders = new Headers(req.headers);
+        requestHeaders.set("x-platform-audit-request-id", crypto.randomUUID());
+        requestHeaders.set("x-platform-audit-method", req.method);
+        requestHeaders.set("x-platform-audit-path", pathname);
+        return NextResponse.next({ request: { headers: requestHeaders } });
+      }
+      return response;
+    }
 
     if (!isPublicRoute && !pathname.startsWith("/api")) {
       response.cookies.set(
@@ -79,7 +136,11 @@ export async function middleware(req: NextRequest) {
       return response;
     }
 
-    if (isAdminRoute && pathname !== "/admin/login") {
+    if (
+      isAdminRoute &&
+      pathname !== "/admin/login" &&
+      pathname !== "/admin/invite"
+    ) {
       if (!isLoggedIn) {
         return NextResponse.redirect(new URL("/admin/login", nextUrl));
       }
@@ -112,7 +173,7 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|trpc|.*\\..*|_next).*)", "/"],
+  matcher: ["/((?!trpc|.*\\..*|_next).*)", "/", "/api/:path*"],
   unstable_allowDynamic: [
     "mongoose/dist/browser.umd.js",
     "./(models)/Parent.ts",

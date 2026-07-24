@@ -7,6 +7,7 @@ import { AlertTriangle, MapPin, MessageSquareWarning, Phone, Users } from "lucid
 import { SupportTicketControls } from "@/components/admin/support/support-ticket-controls";
 import { SupportTicketLiveUpdater } from "@/components/admin/support/support-ticket-live-updater";
 import db from "@/packages/db/client";
+import { requirePlatformPermission } from "@/lib/admin/platform";
 
 type SupportTicketRow = {
   id: string;
@@ -77,19 +78,10 @@ const AdminSupportPage = async ({
 }: {
   searchParams: Promise<{ view?: string | string[] }>;
 }) => {
+  await requirePlatformPermission("accounts.read");
   const params = await searchParams;
   const showHistory = params.view === "history";
   let loadError: string | null = null;
-
-  try {
-    await db.$executeRaw`
-      DELETE FROM "support_tickets"
-      WHERE "deleted_at" IS NOT NULL
-        AND "deleted_at" < NOW() - INTERVAL '21 days'
-    `;
-  } catch (error) {
-    console.error("Support ticket history cleanup skipped:", error);
-  }
 
   let rows: SupportTicketRow[] = [];
   try {

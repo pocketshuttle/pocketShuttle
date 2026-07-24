@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Check, Eye, PauseCircle, PlayCircle, Plus, Save, X } from "lucide-react";
+import Link from "next/link";
+import { Check, ExternalLink, Eye, PauseCircle, PlayCircle, Plus, Save, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,6 +60,36 @@ export function AdminUsersTable({ users }: { users: any[] }) {
     setSelected(data);
   };
 
+  const openWorkspace = (user: any) => {
+    const reason =
+      window.prompt(
+        "Access reason: SUPPORT, ONBOARDING, BILLING_INVESTIGATION, or DATA_CORRECTION",
+        "SUPPORT"
+      ) || "";
+    if (!reason) return;
+    const note = window.prompt("Optional access note", "") || "";
+    startTransition(async () => {
+      try {
+        const data = await jsonFetch("/api/admin/workspaces", {
+          method: "POST",
+          body: JSON.stringify({
+            subjectType: String(user.type).toUpperCase(),
+            subjectId: user.id,
+            reason: reason.toUpperCase(),
+            note,
+          }),
+        });
+        window.location.assign(data.redirectUrl);
+      } catch (error) {
+        toast({
+          description:
+            error instanceof Error ? error.message : "Unable to open workspace",
+          variant: "destructive",
+        });
+      }
+    });
+  };
+
   const toggleSuspension = (user: any) => {
     const suspend = user.status !== "SUSPENDED";
     const reason = suspend ? window.prompt("Suspension reason", "Suspended by super admin") : null;
@@ -113,9 +144,28 @@ export function AdminUsersTable({ users }: { users: any[] }) {
                   <td className="px-4 py-3 text-slate-600">{user.meta}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
-                      <Button size="sm" variant="outline" disabled={isPending} onClick={() => refreshUser(user.key)} className="gap-2">
-                        <Eye className="h-4 w-4" /> View
-                      </Button>
+                      {user.type !== "superadmin" ? (
+                        <Button size="sm" variant="outline" asChild className="gap-2">
+                          <Link href={`/admin/accounts/${user.type}/${user.id}`}>
+                            <Eye className="h-4 w-4" /> View
+                          </Link>
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline" disabled={isPending} onClick={() => refreshUser(user.key)} className="gap-2">
+                          <Eye className="h-4 w-4" /> View
+                        </Button>
+                      )}
+                      {user.type !== "superadmin" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={isPending}
+                          onClick={() => openWorkspace(user)}
+                          className="gap-2"
+                        >
+                          <ExternalLink className="h-4 w-4" /> Open workspace
+                        </Button>
+                      )}
                       {user.type !== "superadmin" && (
                         <Button size="sm" variant="outline" disabled={isPending} onClick={() => toggleSuspension(user)} className="gap-2">
                           {user.status === "SUSPENDED" ? <PlayCircle className="h-4 w-4" /> : <PauseCircle className="h-4 w-4" />}

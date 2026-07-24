@@ -3,14 +3,31 @@ import "server-only";
 import { Prisma } from "@prisma/client";
 
 import { ApiSession, canManagePlatform, getApiSession } from "@/lib/api-auth";
+import {
+  hasPlatformPermission,
+  PlatformPermission,
+} from "@/lib/admin/permissions";
 import db from "@/packages/db/client";
 
 export type AdminAccountType = "school" | "parent" | "driver" | "teacher" | "superadmin";
 
 export async function requirePlatformAdmin(): Promise<ApiSession> {
   const session = await getApiSession();
-  if (!canManagePlatform(session)) {
+  if (!canManagePlatform(session) || !session.platformAccessRole) {
     throw new Error("UNAUTHORIZED");
+  }
+  return session;
+}
+
+export async function requirePlatformPermission(
+  permission: PlatformPermission
+): Promise<ApiSession> {
+  const session = await requirePlatformAdmin();
+  if (
+    !session.platformAccessRole ||
+    !hasPlatformPermission(session.platformAccessRole, permission)
+  ) {
+    throw new Error("FORBIDDEN");
   }
   return session;
 }
@@ -25,11 +42,13 @@ export function parseUserKey(key: string): { type: AdminAccountType; id: string 
 
 export async function logSuperUserAction({
   superUserId,
+  workspaceSessionId,
   action,
   targetId,
   metadata,
 }: {
   superUserId: string;
+  workspaceSessionId?: string | null;
   action: string;
   targetId?: string | null;
   metadata?: Prisma.InputJsonValue;
@@ -37,6 +56,7 @@ export async function logSuperUserAction({
   return db.superUserAction.create({
     data: {
       superUserId,
+      workspaceSessionId: workspaceSessionId ?? null,
       action,
       targetId,
       metadata,
@@ -123,6 +143,10 @@ export async function getPlatformOverview() {
     suspendedParents,
     suspendedDrivers,
     suspendedTeachers,
+    activeTrips,
+    safetyAlerts,
+    billingAccounts,
+    organizations,
   ] = await Promise.all([
     db.user.count(),
     db.parent.count(),
@@ -154,6 +178,12 @@ export async function getPlatformOverview() {
     countSuspended("parents"),
     countSuspended("drivers"),
     countSuspended("teachers"),
+    db.trip.count({ where: { status: { in: ["active", "paused", "emergency"] } } }),
+    db.trip.count({
+      where: { OR: [{ safetyState: { not: "normal" } }, { status: "emergency" }] },
+    }),
+    db.billingAccount.count(),
+    db.organization.count(),
   ]);
 
   return {
@@ -171,6 +201,10 @@ export async function getPlatformOverview() {
     multiFamilyDrivers: multiFamilyDriverRows.filter((row) => row._count.parentId > 1).length,
     trialsEndingSoon,
     overdueKnownDriverPayments,
+    activeTrips,
+    safetyAlerts,
+    billingAccounts,
+    organizations,
     suspendedAccounts: suspendedSchools + suspendedParents + suspendedDrivers + suspendedTeachers,
   };
 }
@@ -249,7 +283,17 @@ export async function getUnifiedUsers() {
       orderBy: { full_name: "asc" },
     }),
     db.superUser.findMany({
-      select: { id: true, name: true, email: true, role: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        accessRole: true,
+        status: true,
+        lastLoginAt: true,
+        disabledAt: true,
+        createdAt: true,
+      },
       orderBy: { createdAt: "desc" },
     }),
   ]);
@@ -321,10 +365,10 @@ export async function getUnifiedUsers() {
       role: user.role,
       accountType: "PLATFORM",
       phoneNumber: null,
-      status: "ACTIVE",
-      suspendedAt: null,
+      status: user.status,
+      suspendedAt: user.disabledAt,
       suspendedReason: null,
-      meta: "Platform access",
+      meta: `${user.accessRole.replaceAll("_", " ")} platform access${user.lastLoginAt ? ` · last login ${user.lastLoginAt.toISOString()}` : ""}`,
     })),
   ];
 }

@@ -1,9 +1,11 @@
 import { OrganizationManager } from "@/components/admin/organization-manager";
 import db from "@/packages/db/client";
+import { requirePlatformPermission } from "@/lib/admin/platform";
 
 export const dynamic = "force-dynamic";
 
 export default async function OrganizationsPage() {
+  await requirePlatformPermission("accounts.read");
   const organizations = await db.organization.findMany({
     include: {
       branches: true,

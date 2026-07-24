@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 
-import { logSuperUserAction, requirePlatformAdmin } from "@/lib/admin/platform";
+import { assertSameOrigin } from "@/lib/admin/request-security";
+import { logSuperUserAction, requirePlatformPermission } from "@/lib/admin/platform";
 import { ensurePlanCatalog } from "@/lib/billing/accounts";
 import {
   FEATURE_KEYS,
@@ -36,7 +37,7 @@ function parseEntitlements(value: unknown) {
 
 export async function GET() {
   try {
-    await requirePlatformAdmin();
+    await requirePlatformPermission("billing.read");
     await ensurePlanCatalog();
     const plans = await db.plan.findMany({
       include: {
@@ -55,7 +56,8 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requirePlatformAdmin();
+    assertSameOrigin(req);
+    const session = await requirePlatformPermission("plans.manage");
     const body = await req.json();
     const code = String(body.code || "").trim().toUpperCase();
     if (!/^[A-Z][A-Z0-9_]{2,63}$/.test(code)) {

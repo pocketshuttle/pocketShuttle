@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 
-import { requirePlatformAdmin } from "@/lib/admin/platform";
+import { assertSameOrigin } from "@/lib/admin/request-security";
+import { requirePlatformPermission } from "@/lib/admin/platform";
 import db from "@/packages/db/client";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requirePlatformAdmin();
+    assertSameOrigin(req);
+    await requirePlatformPermission("enterprise.manage");
     const { id } = await params;
     const body = await req.json().catch(() => ({}));
     const branding = await db.organizationBranding.upsert({

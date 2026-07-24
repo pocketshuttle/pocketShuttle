@@ -3,8 +3,10 @@ export const dynamic = "force-dynamic";
 import { PaymentPlansManager } from "@/components/admin/admin-controls";
 import { ensurePlanCatalog } from "@/lib/billing/accounts";
 import db from "@/packages/db/client";
+import { requirePlatformPermission } from "@/lib/admin/platform";
 
 const AdminPaymentPlansPage = async () => {
+  await requirePlatformPermission("billing.read");
   await ensurePlanCatalog();
   const plans = await db.plan.findMany({
     include: {

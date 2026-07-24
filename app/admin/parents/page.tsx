@@ -1,8 +1,10 @@
 export const dynamic = "force-dynamic";
 
 import db from "@/packages/db/client";
+import { requirePlatformPermission } from "@/lib/admin/platform";
 
 const AdminParentsPage = async () => {
+  await requirePlatformPermission("accounts.read");
   const parents = await db.parent.findMany({
     include: {
       school: { select: { name: true, email: true } },

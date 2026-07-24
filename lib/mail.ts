@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import PocketshuttleResetPasswordEmail from "../components/emails/reset-password";
 import PocketshuttleLoginCodeEmail from "../components/emails/confirm-email";
 import React from "react";
+import { platformBaseUrl } from "@/lib/admin/request-security";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const domain = "https://app.pocketshuttle.com/";
@@ -57,4 +58,35 @@ export const sendDriverInviteEmail = async ({
       </div>
     `,
   });
+};
+
+export const sendPlatformAdminInviteEmail = async ({
+  email,
+  token,
+  inviterName,
+  role,
+}: {
+  email: string;
+  token: string;
+  inviterName?: string | null;
+  role: string;
+}) => {
+  const inviteLink = `${platformBaseUrl()}/admin/invite?token=${encodeURIComponent(token)}`;
+  const result = await resend.emails.send({
+    from: "onboarding@pocketshuttle.com",
+    to: email,
+    subject: "You have been invited to PocketShuttle Platform Admin",
+    html: `
+      <div style="font-family:Arial,sans-serif;line-height:1.5;color:#0f172a">
+        <h2>PocketShuttle platform invitation</h2>
+        <p>${inviterName || "A PocketShuttle owner"} invited you to join the platform admin console as <strong>${role.replaceAll("_", " ")}</strong>.</p>
+        <p>This invitation expires in 48 hours and can only be used once.</p>
+        <p><a href="${inviteLink}" style="display:inline-block;background:#4a48ff;color:#fff;padding:12px 16px;border-radius:8px;text-decoration:none">Accept invitation</a></p>
+        <p>If the button does not work, open this link: ${inviteLink}</p>
+      </div>
+    `,
+  });
+  if (result.error) {
+    throw new Error(result.error.message || "Unable to deliver admin invitation");
+  }
 };

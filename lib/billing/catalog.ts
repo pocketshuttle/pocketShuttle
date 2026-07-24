@@ -137,7 +137,7 @@ export const PLAN_CATALOG: Record<PlanCode, PlanDefinition> = {
       max_recurring_trip_templates: 10,
       premium_messages_per_month: 100,
     },
-    isPublic: false,
+    isPublic: true,
     isPurchasable: false,
   },
   FREE_SCHOOL: {

@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Check, CreditCard, ExternalLink, LockKeyhole } from "lucide-react";
+import { ArrowLeft, Check, CreditCard, ExternalLink, LockKeyhole } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ type Plan = {
   description?: string | null;
   features?: unknown;
   isPurchasable: boolean;
+  checkoutState: "INCLUDED" | "READY" | "PAYSTACK_SETUP_REQUIRED" | "CLOSED";
   price: {
     amountMinor: number;
     currency: string;
@@ -60,6 +62,8 @@ export function SubscriptionPanel({ audience }: { audience: "family" | "school" 
   const [snapshot, setSnapshot] = useState<SubscriptionSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [pendingCode, setPendingCode] = useState<string | null>(null);
+  const backHref = audience === "family" ? "/parent" : "/dashboard";
+  const backLabel = audience === "family" ? "Back to family dashboard" : "Back to dashboard";
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -136,11 +140,28 @@ export function SubscriptionPanel({ audience }: { audience: "family" | "school" 
   };
 
   if (loading) {
-    return <div className="rounded-lg border bg-white p-6">Loading subscription…</div>;
+    return (
+      <div className="mx-auto grid w-full max-w-6xl gap-4">
+        <Button asChild variant="ghost" className="w-fit gap-2 px-2 text-slate-600">
+          <Link href={backHref}>
+            <ArrowLeft className="h-4 w-4" />
+            {backLabel}
+          </Link>
+        </Button>
+        <div className="rounded-lg border bg-white p-6">Loading subscription…</div>
+      </div>
+    );
   }
 
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-6">
+      <Button asChild variant="ghost" className="w-fit gap-2 px-2 text-slate-600">
+        <Link href={backHref}>
+          <ArrowLeft className="h-4 w-4" />
+          {backLabel}
+        </Link>
+      </Button>
+
       <section className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-sm text-slate-500">Current subscription</p>
@@ -183,7 +204,9 @@ export function SubscriptionPanel({ audience }: { audience: "family" | "school" 
               <p className="mt-5 text-2xl font-semibold">
                 {plan.price
                   ? `${plan.price.currency} ${(plan.price.amountMinor / 100).toLocaleString()}`
-                  : "Free"}
+                  : paid
+                    ? "Price pending"
+                    : "Free"}
                 {plan.price ? <span className="text-sm font-normal text-slate-500"> / month</span> : null}
               </p>
               <ul className="my-5 grid gap-2 text-sm">
@@ -207,6 +230,8 @@ export function SubscriptionPanel({ audience }: { audience: "family" | "school" 
                     ? pendingCode === plan.code
                       ? "Opening checkout…"
                       : "Upgrade"
+                    : plan.checkoutState === "PAYSTACK_SETUP_REQUIRED"
+                      ? "Payment setup pending"
                     : paid
                       ? "Coming soon"
                       : "Included"}

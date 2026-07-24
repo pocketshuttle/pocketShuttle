@@ -33,22 +33,39 @@ export async function GET(req: NextRequest) {
   });
 
   return NextResponse.json({
-    plans: plans.map((plan) => ({
-      code: plan.code,
-      name: plan.name,
-      audience: plan.audience,
-      tier: plan.tier,
-      description: plan.description,
-      features: plan.features,
-      entitlements: plan.entitlements,
-      isPurchasable: plan.isPurchasable,
-      price: plan.prices[0]
-        ? {
-            amountMinor: plan.prices[0].amountMinor,
-            currency: plan.prices[0].currency,
-            interval: plan.prices[0].interval,
-          }
-        : null,
-    })),
+    plans: plans.map((plan) => {
+      const price = plan.prices[0];
+      const checkoutReady = Boolean(
+        plan.isPurchasable &&
+          price?.paystackPlanCode &&
+          process.env.PAYSTACK_SECRET_KEY
+      );
+
+      return {
+        code: plan.code,
+        name: plan.name,
+        audience: plan.audience,
+        tier: plan.tier,
+        description: plan.description,
+        features: plan.features,
+        entitlements: plan.entitlements,
+        isPurchasable: checkoutReady,
+        checkoutState:
+          plan.tier === "FREE"
+            ? "INCLUDED"
+            : checkoutReady
+              ? "READY"
+              : !price?.paystackPlanCode || !process.env.PAYSTACK_SECRET_KEY
+                ? "PAYSTACK_SETUP_REQUIRED"
+                : "CLOSED",
+        price: price
+          ? {
+              amountMinor: price.amountMinor,
+              currency: price.currency,
+              interval: price.interval,
+            }
+          : null,
+      };
+    }),
   });
 }

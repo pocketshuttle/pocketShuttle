@@ -239,26 +239,127 @@ enum SupportTicketPriority {
   NORMAL
 }
 
-model SuperUser {
-  id        String   @id @default(cuid())
-  name      String?
-  email     String   @unique
-  password  String
-  role      String   @default("SUPERADMIN")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+enum PlatformAdminRole {
+  OWNER
+  ADMIN
+  SUPPORT
+  BILLING
+  READ_ONLY
+}
 
-  actions SuperUserAction[]
+enum PlatformAdminStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum PlatformAdminInviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+enum PlatformAdminInviteDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum PlatformAdminWorkspaceReason {
+  SUPPORT
+  ONBOARDING
+  BILLING_INVESTIGATION
+  DATA_CORRECTION
+}
+
+enum PlatformAdminSubjectType {
+  SCHOOL
+  PARENT
+  DRIVER
+  TEACHER
+}
+
+model SuperUser {
+  id            String              @id @default(cuid())
+  name          String?
+  email         String              @unique
+  password      String
+  role          String              @default("SUPERADMIN")
+  accessRole    PlatformAdminRole   @default(ADMIN) @map("access_role")
+  status        PlatformAdminStatus @default(ACTIVE)
+  lastLoginAt   DateTime?           @map("last_login_at")
+  disabledAt    DateTime?           @map("disabled_at")
+  invitedById   String?             @map("invited_by_id")
+  invitedBy     SuperUser?          @relation("SuperUserInvitations", fields: [invitedById], references: [id], onDelete: SetNull)
+  invitedAdmins SuperUser[]         @relation("SuperUserInvitations")
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @default(now()) @updatedAt
+
+  actions           SuperUserAction[]
+  sentAdminInvites  PlatformAdminInvite[]          @relation("PlatformInviteSender")
+  acceptedInvites   PlatformAdminInvite[]          @relation("PlatformInviteAcceptor")
+  workspaceSessions PlatformAdminWorkspaceSession[]
+
+  @@index([status, accessRole])
 }
 
 model SuperUserAction {
-  id          String    @id @default(cuid())
-  superUserId String
-  action      String
-  targetId    String?
-  createdAt   DateTime  @default(now())
-  metadata    Json?
-  superUser   SuperUser @relation(fields: [superUserId], references: [id])
+  id                 String                         @id @default(cuid())
+  superUserId        String
+  workspaceSessionId String?                        @map("workspace_session_id")
+  action             String
+  targetId           String?
+  createdAt          DateTime                       @default(now())
+  metadata           Json?
+  superUser          SuperUser                      @relation(fields: [superUserId], references: [id])
+  workspaceSession   PlatformAdminWorkspaceSession? @relation(fields: [workspaceSessionId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceSessionId, createdAt])
+}
+
+model PlatformAdminInvite {
+  id             String                            @id @default(cuid())
+  name           String
+  email          String
+  accessRole     PlatformAdminRole                 @map("access_role")
+  tokenHash      String                            @unique @map("token_hash")
+  status         PlatformAdminInviteStatus         @default(PENDING)
+  deliveryStatus PlatformAdminInviteDeliveryStatus @default(PENDING) @map("delivery_status")
+  deliveryError  String?                           @map("delivery_error")
+  invitedById    String                            @map("invited_by_id")
+  acceptedById   String?                           @map("accepted_by_id")
+  expiresAt      DateTime                          @map("expires_at")
+  acceptedAt     DateTime?                         @map("accepted_at")
+  revokedAt      DateTime?                         @map("revoked_at")
+  invitedBy      SuperUser                         @relation("PlatformInviteSender", fields: [invitedById], references: [id])
+  acceptedBy     SuperUser?                        @relation("PlatformInviteAcceptor", fields: [acceptedById], references: [id], onDelete: SetNull)
+  createdAt      DateTime                          @default(now()) @map("created_at")
+  updatedAt      DateTime                          @default(now()) @updatedAt @map("updated_at")
+
+  @@index([email, status])
+  @@index([invitedById, createdAt])
+  @@map("platform_admin_invites")
+}
+
+model PlatformAdminWorkspaceSession {
+  id          String                       @id @default(cuid())
+  superUserId String                       @map("super_user_id")
+  subjectType PlatformAdminSubjectType     @map("subject_type")
+  subjectId   String                       @map("subject_id")
+  subjectRole String                       @map("subject_role")
+  subjectName String?                      @map("subject_name")
+  schoolId    String?                      @map("school_id")
+  reason      PlatformAdminWorkspaceReason
+  note        String?
+  expiresAt   DateTime                     @map("expires_at")
+  endedAt     DateTime?                    @map("ended_at")
+  superUser   SuperUser                    @relation(fields: [superUserId], references: [id])
+  actions     SuperUserAction[]
+  createdAt   DateTime                     @default(now()) @map("created_at")
+
+  @@index([superUserId, endedAt, expiresAt])
+  @@index([subjectType, subjectId, createdAt])
+  @@map("platform_admin_workspace_sessions")
 }
 
 model User {

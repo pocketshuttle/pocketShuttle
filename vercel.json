@@ -19,6 +19,10 @@
     {
       "path": "/api/cron-jobs/outbound-webhooks",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron-jobs/support-retention",
+      "schedule": "20 3 * * *"
     }
   ]
 }

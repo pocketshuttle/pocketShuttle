@@ -2,33 +2,47 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Building2, Car, ClipboardCheck, CreditCard, Headphones, LayoutDashboard, Network, ScrollText, Shield, UserRound, Users } from "lucide-react";
+import { Activity, BarChart3, BellRing, CreditCard, Headphones, LayoutDashboard, Network, ScrollText, Shield, ShieldAlert, Users } from "lucide-react";
 
 import Logout from "@/components/dashboard/sidebar/logout";
+import {
+  hasPlatformPermission,
+  PlatformAdminAccessRole,
+  PlatformPermission,
+} from "@/lib/admin/permissions";
 
 const navItems = [
-  { href: "/admin", label: "Overview", icon: LayoutDashboard },
-  { href: "/admin/users", label: "All users", icon: Users },
-  { href: "/admin/schools", label: "Schools", icon: Building2 },
-  { href: "/admin/organizations", label: "Organizations", icon: Network },
-  { href: "/admin/parents", label: "Parents", icon: UserRound },
-  { href: "/admin/drivers", label: "Drivers", icon: Car },
-  { href: "/admin/verification", label: "Verification", icon: ClipboardCheck },
-  { href: "/admin/known-drivers", label: "Known drivers", icon: Network },
-  { href: "/admin/support", label: "Support", icon: Headphones },
-  { href: "/admin/payment-plans", label: "Payment plans", icon: CreditCard },
-  { href: "/admin/reports", label: "Reports", icon: BarChart3 },
-  { href: "/admin/audit-log", label: "Audit log", icon: ScrollText },
-];
+  { href: "/admin", label: "Overview", icon: LayoutDashboard, permission: "overview.read" },
+  { href: "/admin/users", label: "Accounts", icon: Users, permission: "accounts.read" },
+  { href: "/admin/operations", label: "Operations", icon: Activity, permission: "operations.read" },
+  { href: "/admin/safety", label: "Safety", icon: ShieldAlert, permission: "safety.read" },
+  { href: "/admin/billing", label: "Billing", icon: CreditCard, permission: "billing.read" },
+  { href: "/admin/notifications", label: "Notifications", icon: BellRing, permission: "operations.read" },
+  { href: "/admin/support", label: "Support", icon: Headphones, permission: "accounts.read" },
+  { href: "/admin/organizations", label: "Enterprise", icon: Network, permission: "accounts.read" },
+  { href: "/admin/admins", label: "Admins", icon: Shield, permission: "admins.read" },
+  { href: "/admin/reports", label: "Reports", icon: BarChart3, permission: "reports.read" },
+  { href: "/admin/audit-log", label: "Audit", icon: ScrollText, permission: "audit.read" },
+] satisfies Array<{
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  permission: PlatformPermission;
+}>;
 
 export function AdminShell({
   children,
   name,
+  accessRole,
 }: {
   children: React.ReactNode;
   name?: string | null;
+  accessRole: PlatformAdminAccessRole;
 }) {
   const pathname = usePathname();
+  const visibleItems = navItems.filter((item) =>
+    hasPlatformPermission(accessRole, item.permission)
+  );
 
   return (
     <div className="flex min-h-screen bg-slate-100 text-slate-950">
@@ -44,7 +58,7 @@ export function AdminShell({
         </div>
 
         <nav className="grid gap-1">
-          {navItems.map((item) => {
+          {visibleItems.map((item) => {
             const Icon = item.icon;
             const active = item.href === "/admin" ? pathname === item.href : pathname.startsWith(item.href);
             return (
@@ -79,7 +93,7 @@ export function AdminShell({
             </div>
           </div>
           <nav className="mt-3 flex gap-2 overflow-x-auto lg:hidden">
-            {navItems.map((item) => (
+            {visibleItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}

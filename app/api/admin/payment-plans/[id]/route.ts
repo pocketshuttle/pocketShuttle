@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 
-import { logSuperUserAction, requirePlatformAdmin } from "@/lib/admin/platform";
+import { assertSameOrigin } from "@/lib/admin/request-security";
+import { logSuperUserAction, requirePlatformPermission } from "@/lib/admin/platform";
 import {
   FEATURE_KEYS,
   LIMIT_KEYS,
@@ -32,7 +33,8 @@ function parseEntitlements(value: unknown) {
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<Params> }) {
   try {
-    const session = await requirePlatformAdmin();
+    assertSameOrigin(req);
+    const session = await requirePlatformPermission("plans.manage");
     const body = await req.json();
     const { id } = await params;
     const current = await db.plan.findUnique({
@@ -52,25 +54,31 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<Para
         ? Math.max(0, Math.round(Number(body.amountMinor)))
         : undefined;
     const currency = String(body.currency || current.prices[0]?.currency || "NGN").toUpperCase();
-    let providerPlanCode: string | null | undefined;
-    if (
+    const requestedPurchasable =
+      body.isPurchasable !== undefined
+        ? Boolean(body.isPurchasable)
+        : current.isPurchasable;
+    const currentPrice = current.prices[0];
+    const effectiveAmountMinor = amountMinor ?? currentPrice?.amountMinor ?? 0;
+    const priceChanged =
       amountMinor !== undefined &&
       amountMinor > 0 &&
-      amountMinor !== current.prices[0]?.amountMinor
-    ) {
+      amountMinor !== currentPrice?.amountMinor;
+    const providerSyncRequired =
+      effectiveAmountMinor > 0 &&
+      !currentPrice?.paystackPlanCode &&
+      (amountMinor !== undefined || requestedPurchasable);
+    let providerPlanCode: string | null | undefined;
+    if (priceChanged || providerSyncRequired) {
       providerPlanCode = await createPaystackMonthlyPlan({
         name: body.name ? String(body.name) : current.name,
-        amountMinor,
+        amountMinor: effectiveAmountMinor,
         currency,
       });
     }
 
     const plan = await db.$transaction(async (tx) => {
-      if (
-        amountMinor !== undefined &&
-        amountMinor > 0 &&
-        amountMinor !== current.prices[0]?.amountMinor
-      ) {
+      if (priceChanged) {
         await tx.planPrice.updateMany({
           where: { planId: id, isActive: true },
           data: { isActive: false },
@@ -83,14 +91,19 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<Para
             paystackPlanCode: providerPlanCode ?? null,
           },
         });
+      } else if (
+        providerPlanCode &&
+        currentPrice &&
+        !currentPrice.paystackPlanCode
+      ) {
+        await tx.planPrice.update({
+          where: { id: currentPrice.id },
+          data: { paystackPlanCode: providerPlanCode },
+        });
       }
 
-      const requestedPurchasable =
-        body.isPurchasable !== undefined
-          ? Boolean(body.isPurchasable)
-          : current.isPurchasable;
       const activeProviderCode =
-        providerPlanCode ?? current.prices[0]?.paystackPlanCode ?? null;
+        providerPlanCode ?? currentPrice?.paystackPlanCode ?? null;
       if (
         requestedPurchasable &&
         current.tier !== "FREE" &&

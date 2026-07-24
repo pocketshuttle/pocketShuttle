@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 
-import { logSuperUserAction, requirePlatformAdmin } from "@/lib/admin/platform";
+import { assertSameOrigin } from "@/lib/admin/request-security";
+import { logSuperUserAction, requirePlatformPermission } from "@/lib/admin/platform";
 import { ensurePlanCatalog } from "@/lib/billing/accounts";
 import { normalizeEntitlements, PLAN_CODES } from "@/lib/billing/catalog";
 import db from "@/packages/db/client";
 
 export async function GET() {
   try {
-    await requirePlatformAdmin();
+    await requirePlatformPermission("accounts.read");
     const organizations = await db.organization.findMany({
       include: {
         branches: true,
@@ -32,7 +33,8 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requirePlatformAdmin();
+    assertSameOrigin(req);
+    const session = await requirePlatformPermission("enterprise.manage");
     await ensurePlanCatalog();
     const body = await req.json().catch(() => ({}));
     const name = String(body.name || "").trim();

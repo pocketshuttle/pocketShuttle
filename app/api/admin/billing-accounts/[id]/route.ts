@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 
-import { logSuperUserAction, requirePlatformAdmin } from "@/lib/admin/platform";
+import { assertSameOrigin, sanitizeAuditValue } from "@/lib/admin/request-security";
+import { logSuperUserAction, requirePlatformPermission } from "@/lib/admin/platform";
 import {
   FEATURE_KEYS,
   LIMIT_KEYS,
@@ -16,9 +17,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requirePlatformAdmin();
+    assertSameOrigin(req);
+    const session = await requirePlatformPermission("billing.manage");
     const { id } = await params;
     const body = await req.json().catch(() => ({}));
+    const before = await db.billingAccount.findUnique({ where: { id } });
+    if (!before) throw new Error("Billing account not found");
     let overrides: Record<string, boolean | number | null> | undefined;
     if (body.entitlementOverrides !== undefined) {
       if (
@@ -58,23 +62,29 @@ export async function PATCH(
       action: "BILLING_ACCOUNT_UPDATED",
       targetId: `billing-account:${account.id}`,
       metadata: {
-        enforcementEnabled: account.enforcementEnabled,
-        entitlementOverrides: account.entitlementOverrides,
-        rolloutFlags: account.rolloutFlags,
-      },
+        before: sanitizeAuditValue(before),
+        after: sanitizeAuditValue(account),
+      } as Prisma.InputJsonValue,
     });
     return NextResponse.json({ message: "Billing account updated", account });
   } catch (error) {
     return NextResponse.json(
       {
         message:
-          error instanceof Error && error.message !== "UNAUTHORIZED"
+          error instanceof Error &&
+          !["UNAUTHORIZED", "FORBIDDEN"].includes(error.message)
             ? error.message
-            : "Unauthorized",
+            : error instanceof Error && error.message === "FORBIDDEN"
+              ? "Forbidden"
+              : "Unauthorized",
       },
       {
         status:
-          error instanceof Error && error.message !== "UNAUTHORIZED" ? 400 : 401,
+          error instanceof Error && error.message === "FORBIDDEN"
+            ? 403
+            : error instanceof Error && error.message !== "UNAUTHORIZED"
+              ? 400
+              : 401,
       }
     );
   }

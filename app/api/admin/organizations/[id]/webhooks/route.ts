@@ -1,13 +1,14 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 
-import { requirePlatformAdmin } from "@/lib/admin/platform";
+import { assertSameOrigin } from "@/lib/admin/request-security";
+import { requirePlatformPermission } from "@/lib/admin/platform";
 import { encryptSecret } from "@/lib/enterprise/secrets";
 import db from "@/packages/db/client";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requirePlatformAdmin();
+    await requirePlatformPermission("accounts.read");
     const { id } = await params;
     const webhooks = await db.outboundWebhook.findMany({
       where: { organizationId: id },
@@ -22,7 +23,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requirePlatformAdmin();
+    assertSameOrigin(req);
+    await requirePlatformPermission("enterprise.manage");
     const { id } = await params;
     const body = await req.json().catch(() => ({}));
     const url = new URL(String(body.url || ""));

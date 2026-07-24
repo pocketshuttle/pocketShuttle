@@ -35,6 +35,10 @@ HMAC-SHA512 signature are rejected.
 4. Make the plan public only when every advertised feature is ready.
 5. Open checkout only after the active price has a Paystack plan code.
 
+Prices saved before Paystack is configured remain valid local price versions.
+After adding `PAYSTACK_SECRET_KEY`, opening checkout from the super-admin plan
+screen synchronizes an unsynchronized active price with Paystack automatically.
+
 Free Family and Free School are provisioned automatically. Enforcement starts
 in shadow mode for new family and school accounts. Use the super-admin billing
 account endpoint to enable blocking after reviewing the logs:
@@ -57,6 +61,7 @@ Vercel is configured to call:
 - `/api/cron-jobs/subscriptions` hourly
 - `/api/cron-jobs/trip-templates` every 15 minutes
 - `/api/cron-jobs/outbound-webhooks` every 5 minutes
+- `/api/cron-jobs/support-retention` daily
 
 All production cron calls must include `Authorization: Bearer $CRON_SECRET`.
 

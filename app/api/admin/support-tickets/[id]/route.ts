@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { logSuperUserAction, requirePlatformAdmin } from "@/lib/admin/platform";
+import { assertSameOrigin } from "@/lib/admin/request-security";
+import { logSuperUserAction, requirePlatformPermission } from "@/lib/admin/platform";
 import db from "@/packages/db/client";
 
 export async function PATCH(
@@ -8,7 +9,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const admin = await requirePlatformAdmin();
+    assertSameOrigin(request);
+    const admin = await requirePlatformPermission("support.manage");
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
     const status = body?.status === "FIXED" ? "FIXED" : body?.status === "PENDING" ? "PENDING" : null;

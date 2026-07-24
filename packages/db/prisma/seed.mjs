@@ -91,11 +91,11 @@ async function seedPlans() {
   ];
 
   return Promise.all(
-    plans.map((plan) =>
+    plans.map(({ id, ...plan }) =>
       db.plan.upsert({
-        where: { id: plan.id },
+        where: { code: plan.code },
         update: plan,
-        create: plan,
+        create: { id, ...plan },
       })
     )
   );
@@ -264,6 +264,7 @@ async function seedDrivers(schoolId, buses) {
     {
       id: "seed-driver-marcus",
       driverId: "DRV-101",
+      accountType: "SCHOOL_MANAGED",
       full_name: "Marcus Reed",
       email: "driver1@pocketshuttle.test",
       emailVerified: new Date(),
@@ -276,6 +277,7 @@ async function seedDrivers(schoolId, buses) {
     {
       id: "seed-driver-daniel",
       driverId: "DRV-202",
+      accountType: "SCHOOL_MANAGED",
       full_name: "Daniel Okafor",
       email: "driver2@pocketshuttle.test",
       emailVerified: new Date(),
@@ -288,6 +290,7 @@ async function seedDrivers(schoolId, buses) {
     {
       id: "seed-driver-samuel",
       driverId: "DRV-303",
+      accountType: "SCHOOL_MANAGED",
       full_name: "Samuel Briggs",
       email: "driver3@pocketshuttle.test",
       emailVerified: new Date(),
@@ -315,6 +318,7 @@ async function seedParents(schoolId, passwordHash) {
     {
       id: "seed-parent-olivia",
       role: "parent",
+      accountType: "SCHOOL_MANAGED",
       full_name: "Olivia Carter",
       email: "parent1@pocketshuttle.test",
       emailVerified: new Date(),
@@ -329,6 +333,7 @@ async function seedParents(schoolId, passwordHash) {
     {
       id: "seed-parent-david",
       role: "parent",
+      accountType: "SCHOOL_MANAGED",
       full_name: "David Evans",
       email: "parent2@pocketshuttle.test",
       emailVerified: new Date(),
@@ -343,6 +348,7 @@ async function seedParents(schoolId, passwordHash) {
     {
       id: "seed-parent-maya",
       role: "parent",
+      accountType: "SCHOOL_MANAGED",
       full_name: "Maya Bennett",
       email: "parent3@pocketshuttle.test",
       emailVerified: new Date(),
@@ -365,6 +371,190 @@ async function seedParents(schoolId, passwordHash) {
       })
     )
   );
+}
+
+async function seedStandaloneFamilies(passwordHash) {
+  const drivers = [
+    {
+      id: "seed-standalone-driver-ada",
+      driverId: "SDRV-401",
+      role: "driver",
+      accountType: "STANDALONE",
+      full_name: "Ada Nwosu",
+      email: "standalone.driver1@pocketshuttle.test",
+      emailVerified: new Date(),
+      password: passwordHash,
+      phoneNumber: "08040000001",
+      address: "14 Admiralty Way, Lekki",
+      liveAddress: { latitude: 6.4474, longitude: 3.4723 },
+      landmark: "Lekki Phase 1",
+      serviceAreas: ["Lekki", "Ikoyi", "Victoria Island"],
+      carMake: "Toyota",
+      carModel: "Sienna",
+      carColor: "Silver",
+      plateNumber: "LND-401-SD",
+      vehicleCapacity: 7,
+      verificationStatus: "VERIFIED",
+      schoolId: null,
+      busId: null,
+      image: "/images/avatar.jpg",
+    },
+    {
+      id: "seed-standalone-driver-tunde",
+      driverId: "SDRV-402",
+      role: "driver",
+      accountType: "STANDALONE",
+      full_name: "Tunde Bello",
+      email: "standalone.driver2@pocketshuttle.test",
+      emailVerified: new Date(),
+      password: passwordHash,
+      phoneNumber: "08040000002",
+      address: "8 Isaac John Street, Ikeja",
+      liveAddress: { latitude: 6.6018, longitude: 3.3515 },
+      landmark: "GRA Ikeja",
+      serviceAreas: ["Ikeja", "Maryland", "Yaba"],
+      carMake: "Honda",
+      carModel: "Pilot",
+      carColor: "Black",
+      plateNumber: "LSD-402-SD",
+      vehicleCapacity: 6,
+      verificationStatus: "VERIFIED",
+      schoolId: null,
+      busId: null,
+      image: "/images/avatar.jpg",
+    },
+  ];
+
+  const createdDrivers = await Promise.all(
+    drivers.map((driver) =>
+      db.driver.upsert({
+        where: { id: driver.id },
+        update: driver,
+        create: driver,
+      })
+    )
+  );
+
+  await Promise.all(
+    createdDrivers.map((driver, index) =>
+      db.driverShareProfile.upsert({
+        where: { driverId: driver.id },
+        update: {
+          searchableEmail: driver.email,
+          searchablePhone: driver.phoneNumber,
+        },
+        create: {
+          id: `seed-standalone-driver-share-${index + 1}`,
+          driverId: driver.id,
+          shareId: `PKD-DEMO0${index + 1}`,
+          searchableEmail: driver.email,
+          searchablePhone: driver.phoneNumber,
+        },
+      })
+    )
+  );
+
+  const parents = [
+    {
+      id: "seed-standalone-parent-chioma",
+      role: "parent",
+      accountType: "STANDALONE",
+      full_name: "Chioma Okeke",
+      email: "standalone.parent1@pocketshuttle.test",
+      emailVerified: new Date(),
+      password: passwordHash,
+      phoneNumber: "08050000001",
+      address: "21 Fola Osibo Road, Lekki",
+      addressCoords: { latitude: 6.4379, longitude: 3.4697 },
+      schoolId: null,
+      busId: null,
+      image: "/images/avatar.jpg",
+    },
+    {
+      id: "seed-standalone-parent-kunle",
+      role: "parent",
+      accountType: "STANDALONE",
+      full_name: "Kunle Adeyemi",
+      email: "standalone.parent2@pocketshuttle.test",
+      emailVerified: new Date(),
+      password: passwordHash,
+      phoneNumber: "08050000002",
+      address: "5 Oduduwa Crescent, Ikeja",
+      addressCoords: { latitude: 6.5887, longitude: 3.3532 },
+      schoolId: null,
+      busId: null,
+      image: "/images/avatar.jpg",
+    },
+  ];
+
+  const createdParents = await Promise.all(
+    parents.map((parent) =>
+      db.parent.upsert({
+        where: { id: parent.id },
+        update: parent,
+        create: parent,
+      })
+    )
+  );
+
+  const children = [
+    {
+      id: "seed-standalone-child-amara",
+      parentId: createdParents[0].id,
+      fullName: "Amara Okeke",
+      age: 10,
+      grade: "Grade 5",
+      address: parents[0].address,
+      schoolCoords: { latitude: 6.4698, longitude: 3.5852 },
+      pickupNote: "Call the parent when you reach the estate gate.",
+      image: "/images/kid.png",
+    },
+    {
+      id: "seed-standalone-child-chidi",
+      parentId: createdParents[0].id,
+      fullName: "Chidi Okeke",
+      age: 7,
+      grade: "Grade 2",
+      address: parents[0].address,
+      schoolCoords: { latitude: 6.4698, longitude: 3.5852 },
+      pickupNote: "Pickup together with Amara.",
+      image: "/images/kid.png",
+    },
+    {
+      id: "seed-standalone-child-zainab",
+      parentId: createdParents[1].id,
+      fullName: "Zainab Adeyemi",
+      age: 11,
+      grade: "Grade 6",
+      address: parents[1].address,
+      schoolCoords: { latitude: 6.5729, longitude: 3.3664 },
+      pickupNote: "Use the main school entrance.",
+      image: "/images/kid.png",
+    },
+    {
+      id: "seed-standalone-child-femi",
+      parentId: createdParents[1].id,
+      fullName: "Femi Adeyemi",
+      age: 8,
+      grade: "Grade 3",
+      address: parents[1].address,
+      schoolCoords: { latitude: 6.5729, longitude: 3.3664 },
+      pickupNote: "Pickup together with Zainab.",
+      image: "/images/kid.png",
+    },
+  ];
+
+  await Promise.all(
+    children.map((child) =>
+      db.parentChild.upsert({
+        where: { id: child.id },
+        update: child,
+        create: child,
+      })
+    )
+  );
+
+  return { drivers: createdDrivers, parents: createdParents };
 }
 
 async function seedStudents(schoolId, buses, teachers, parents) {
@@ -763,6 +953,8 @@ async function seedSuperUsers(passwordHash) {
       email: "super1@pocketshuttle.test",
       password: passwordHash,
       role: "SUPERADMIN",
+      accessRole: "OWNER",
+      status: "ACTIVE",
     },
     {
       id: "seed-superuser-2",
@@ -770,6 +962,8 @@ async function seedSuperUsers(passwordHash) {
       email: "super2@pocketshuttle.test",
       password: passwordHash,
       role: "SUPERADMIN",
+      accessRole: "ADMIN",
+      status: "ACTIVE",
     },
     {
       id: "seed-superuser-3",
@@ -777,6 +971,8 @@ async function seedSuperUsers(passwordHash) {
       email: "super3@pocketshuttle.test",
       password: passwordHash,
       role: "SUPERADMIN",
+      accessRole: "ADMIN",
+      status: "ACTIVE",
     },
   ];
 
@@ -969,6 +1165,7 @@ async function main() {
   const drivers = await seedDrivers(school.id, buses);
   const parents = await seedParents(school.id, passwordHash);
   const students = await seedStudents(school.id, buses, teachers, parents);
+  const standaloneAccounts = await seedStandaloneFamilies(passwordHash);
 
   await seedAccessInvites(school.id, teachers, parents, passwordHash);
   await seedNotifications(parents);
@@ -983,6 +1180,12 @@ async function main() {
   console.log("Demo admin: admin@pocketshuttle.test / Password123!");
   console.log("Demo teacher: teacher1@pocketshuttle.test / Password123!");
   console.log("Demo parent: parent1@pocketshuttle.test / Password123!");
+  console.log(
+    `Standalone drivers: ${standaloneAccounts.drivers.map((driver) => driver.email).join(", ")} / Password123!`
+  );
+  console.log(
+    `Standalone parents: ${standaloneAccounts.parents.map((parent) => parent.email).join(", ")} / Password123!`
+  );
 }
 
 main()
