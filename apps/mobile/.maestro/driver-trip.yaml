@@ -1,0 +1,15 @@
+appId: com.pocketshuttle.app
+---
+- runFlow:
+    file: login.yaml
+    env:
+      ROLE_LABEL: "Driver"
+      TEST_EMAIL: "${DRIVER_EMAIL}"
+      TEST_PASSWORD: "${DRIVER_PASSWORD}"
+- assertVisible: "Driver operations"
+- tapOn:
+    text: "Start trip and location"
+    optional: true
+- assertVisible:
+    text: "Background location is sharing"
+    optional: true

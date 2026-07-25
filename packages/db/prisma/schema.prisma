@@ -279,6 +279,17 @@ enum PlatformAdminSubjectType {
   TEACHER
 }
 
+enum MobileSubjectRole {
+  PARENT
+  DRIVER
+  TEACHER
+}
+
+enum MobilePlatform {
+  ANDROID
+  IOS
+}
+
 model SuperUser {
   id            String              @id @default(cuid())
   name          String?
@@ -360,6 +371,59 @@ model PlatformAdminWorkspaceSession {
   @@index([superUserId, endedAt, expiresAt])
   @@index([subjectType, subjectId, createdAt])
   @@map("platform_admin_workspace_sessions")
+}
+
+model MobileDevice {
+  id                      String            @id @default(cuid())
+  subjectRole             MobileSubjectRole @map("subject_role")
+  subjectId               String            @map("subject_id")
+  installationId          String            @map("installation_id")
+  platform                MobilePlatform
+  name                    String?
+  appVersion              String?           @map("app_version")
+  oneSignalSubscriptionId String?           @map("onesignal_subscription_id")
+  lastSeenAt              DateTime           @default(now()) @map("last_seen_at")
+  revokedAt               DateTime?          @map("revoked_at")
+  sessions                MobileSession[]
+  createdAt               DateTime           @default(now()) @map("created_at")
+  updatedAt               DateTime           @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([subjectRole, subjectId, installationId])
+  @@index([subjectRole, subjectId, revokedAt])
+  @@index([oneSignalSubscriptionId])
+  @@map("mobile_devices")
+}
+
+model MobileSession {
+  id               String            @id @default(cuid())
+  subjectRole      MobileSubjectRole @map("subject_role")
+  subjectId        String            @map("subject_id")
+  schoolId         String?           @map("school_id")
+  deviceId         String            @map("device_id")
+  refreshTokenHash String            @unique @map("refresh_token_hash")
+  expiresAt        DateTime          @map("expires_at")
+  lastUsedAt       DateTime          @default(now()) @map("last_used_at")
+  revokedAt        DateTime?         @map("revoked_at")
+  rotatedToId      String?           @map("rotated_to_id")
+  device           MobileDevice      @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  createdAt        DateTime          @default(now()) @map("created_at")
+
+  @@index([subjectRole, subjectId, revokedAt, expiresAt])
+  @@index([deviceId, revokedAt])
+  @@map("mobile_sessions")
+}
+
+model MobileEventReceipt {
+  id            String            @id @default(cuid())
+  clientEventId String            @unique @map("client_event_id")
+  subjectRole   MobileSubjectRole @map("subject_role")
+  subjectId     String            @map("subject_id")
+  eventType     String            @map("event_type")
+  result        Json?
+  createdAt     DateTime          @default(now()) @map("created_at")
+
+  @@index([subjectRole, subjectId, createdAt])
+  @@map("mobile_event_receipts")
 }
 
 model User {
