@@ -6,6 +6,10 @@ import {
   requireBillingIdentity,
 } from "@/lib/billing/current-account";
 import db from "@/packages/db/client";
+import {
+  BILLING_ROLLOUT_FLAGS,
+  hasBillingRolloutFlag,
+} from "@/lib/billing/rollout";
 
 export async function GET() {
   try {
@@ -44,6 +48,10 @@ export async function GET() {
         type: account.type,
         billingEmail: account.billingEmail,
         enforcementEnabled: account.enforcementEnabled,
+        paidCheckoutEnabled: hasBillingRolloutFlag(
+          account.rolloutFlags,
+          BILLING_ROLLOUT_FLAGS.PAID_CHECKOUT
+        ),
       },
       current: resolved,
       subscriptions,

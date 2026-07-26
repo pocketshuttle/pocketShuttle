@@ -24,6 +24,9 @@ type Plan = {
 };
 
 type SubscriptionSnapshot = {
+  billingAccount: {
+    paidCheckoutEnabled: boolean;
+  };
   current: {
     planCode: string;
     planName: string;
@@ -192,6 +195,8 @@ export function SubscriptionPanel({ audience }: { audience: "family" | "school" 
         {plans.map((plan) => {
           const current = plan.code === snapshot?.current.planCode;
           const paid = plan.tier !== "FREE";
+          const checkoutAvailable =
+            plan.isPurchasable && snapshot?.billingAccount.paidCheckoutEnabled === true;
           return (
             <article key={plan.code} className="flex flex-col rounded-xl border border-slate-200 bg-white p-5">
               <div className="flex items-start justify-between gap-3">
@@ -220,16 +225,18 @@ export function SubscriptionPanel({ audience }: { audience: "family" | "school" 
               <Button
                 className="mt-auto"
                 variant={current ? "outline" : "default"}
-                disabled={current || !plan.isPurchasable || pendingCode !== null}
+                disabled={current || !checkoutAvailable || pendingCode !== null}
                 onClick={() => checkout(plan.code)}
               >
                 <CreditCard className="mr-2 h-4 w-4" />
                 {current
                   ? "Current plan"
-                  : plan.isPurchasable
+                  : checkoutAvailable
                     ? pendingCode === plan.code
                       ? "Opening checkout…"
                       : "Upgrade"
+                    : plan.isPurchasable
+                      ? "Pilot access only"
                     : plan.checkoutState === "PAYSTACK_SETUP_REQUIRED"
                       ? "Payment setup pending"
                     : paid

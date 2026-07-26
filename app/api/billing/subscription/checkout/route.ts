@@ -6,6 +6,10 @@ import {
   requireBillingIdentity,
 } from "@/lib/billing/current-account";
 import db from "@/packages/db/client";
+import {
+  BILLING_ROLLOUT_FLAGS,
+  hasBillingRolloutFlag,
+} from "@/lib/billing/rollout";
 
 const paidPlanCodes = new Set([
   PLAN_CODES.PRO_FAMILY,
@@ -15,6 +19,20 @@ const paidPlanCodes = new Set([
 export async function POST(req: NextRequest) {
   try {
     const { account } = await requireBillingIdentity();
+    if (
+      !hasBillingRolloutFlag(
+        account.rolloutFlags,
+        BILLING_ROLLOUT_FLAGS.PAID_CHECKOUT
+      )
+    ) {
+      return NextResponse.json(
+        {
+          code: "ROLLOUT_NOT_ENABLED",
+          message: "Paid subscriptions are not enabled for this account yet.",
+        },
+        { status: 403 }
+      );
+    }
     const body = await req.json().catch(() => ({}));
     const planCode = String(body.planCode || "");
 
