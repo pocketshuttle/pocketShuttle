@@ -9,12 +9,15 @@ organization. Known-driver assignment payments remain separate.
 Configure these server-side environment variables:
 
 - `PAYSTACK_SECRET_KEY`: creates Paystack plans, initializes recurring checkout,
-  verifies webhook signatures, and opens hosted subscription management.
+  verifies webhook signatures, and opens hosted subscription management. Test
+  keys may use only TEST references and live keys may use only LIVE references.
 - `CRON_SECRET`: protects subscription expiry, recurring-trip, and outbound
   webhook jobs.
 - `WEBHOOK_ENCRYPTION_KEY`: encrypts enterprise outbound webhook signing
   secrets. If omitted, `AUTH_SECRET` is used.
 - `NEXT_PUBLIC_BASE_URL`: used for the checkout return URL.
+- `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, and
+  `TWILIO_WHATSAPP_FROM`: optional premium-channel delivery configuration.
 
 Configure Paystack to send events to:
 
@@ -26,14 +29,20 @@ The webhook handles both `ps_sub_` platform subscriptions and the existing
 `kd_` known-driver payments. Production requests without a valid Paystack
 HMAC-SHA512 signature are rejected.
 
+Configure Twilio to send signed delivery status callbacks to
+`/api/notifications/twilio/status`. Premium quota is recorded after provider
+acceptance and released if a callback later reports a failed delivery.
+
 ## Publishing paid plans
 
 1. Open **Super Admin → Payment plans**.
 2. Set the monthly price in kobo. Saving a new price creates a versioned
-   Paystack plan and leaves existing subscribers on their old price.
+   Paystack plan in the environment selected by the deployed key and leaves
+   existing subscribers on their old price.
 3. Review the typed entitlement JSON. Unknown keys are rejected.
 4. Make the plan public only when every advertised feature is ready.
-5. Open checkout only after the active price has a Paystack plan code.
+5. Inspect TEST and LIVE synchronization separately. Open checkout only after
+   the active price has a reference for the current environment.
 
 Prices saved before Paystack is configured remain valid local price versions.
 After adding `PAYSTACK_SECRET_KEY`, opening checkout from the super-admin plan
@@ -47,12 +56,45 @@ account endpoint to enable blocking after reviewing the logs:
 PATCH /api/admin/billing-accounts/:id
 {
   "enforcementEnabled": true,
-  "rolloutFlags": { "cohort": "general-availability" }
+  "rolloutFlags": {
+    "paidCheckout": true,
+    "cohort": "family-sandbox-pilot"
+  }
 }
 ```
 
+`paidCheckout` defaults to false and is the authoritative checkout gate. The
+cohort label is audited metadata and does not grant access by itself. Accounts
+outside an approved cohort receive `403 ROLLOUT_NOT_ENABLED`.
+
 Limits block new records only. Downgrades never delete records, and safety
 features do not use entitlement checks.
+
+## Pro workspaces
+
+- Standalone parents manage places, recurring trips, viewer invitations,
+  reports, premium notification consent, and delivery usage at `/parent/pro`.
+- Schools manage assignments, verification, fixed roles, notification
+  policies, analytics, CSV jobs, and entitled exports at `/dashboard/pro`.
+- School Pro remains hidden and non-purchasable until its sandbox school passes
+  every advertised workflow.
+
+## Pilot promotion checklist
+
+Promote a cohort only after:
+
+1. The production callback base URL and `CRON_SECRET` are configured.
+2. The current provider environment shows a synchronized active price.
+3. Checkout, renewal, failed renewal, three-day grace, recovery, cancellation,
+   and free fallback pass in that environment.
+4. Signature failures, duplicate webhooks, cron failures, and delivery failures
+   are visible in production monitoring.
+5. Emergency alerts, active-trip location, pickup/drop-off confirmation,
+   revocation, and critical push alerts pass in every subscription state.
+
+Use cohorts in this order: Family sandbox, Family invited live, School sandbox,
+School invited live, then Family and School general availability. Never copy a
+TEST provider plan code into a LIVE reference.
 
 ## Scheduled jobs
 

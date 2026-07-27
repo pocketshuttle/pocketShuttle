@@ -202,6 +202,9 @@ export function ParentSideMenu({
           <Button asChild variant="outline" className="mt-3 w-full">
             <Link href="/billing">Manage PocketShuttle plan</Link>
           </Button>
+          <Button asChild variant="outline" className="mt-2 w-full">
+            <Link href="/parent/pro">Open Family Pro tools</Link>
+          </Button>
         </section>
 
         <section className="rounded-lg border border-slate-200 bg-white p-4">

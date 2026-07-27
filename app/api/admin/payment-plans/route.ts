@@ -44,6 +44,7 @@ export async function GET() {
         _count: { select: { subscriptions: true } },
         prices: {
           orderBy: { createdAt: "desc" },
+          include: { providerPlans: { orderBy: { environment: "asc" } } },
         },
       },
       orderBy: [{ audience: "asc" }, { tier: "asc" }],
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
     );
     const currency = String(body.currency || "NGN").toUpperCase();
     const entitlements = parseEntitlements(body.entitlements);
-    const paystackPlanCode =
+    const providerPlan =
       amountMinor > 0
         ? await createPaystackMonthlyPlan({
             name: String(body.name || code),
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
           })
         : null;
     const requestedPurchasable = body.isPurchasable === true;
-    if (requestedPurchasable && amountMinor > 0 && !paystackPlanCode) {
+    if (requestedPurchasable && amountMinor > 0 && !providerPlan) {
       throw new Error("Configure Paystack before publishing a paid plan");
     }
 
@@ -109,14 +110,23 @@ export async function POST(req: NextRequest) {
         },
       });
       if (amountMinor > 0) {
-        await tx.planPrice.create({
+        const price = await tx.planPrice.create({
           data: {
             planId: created.id,
             amountMinor,
             currency,
-            paystackPlanCode,
           },
         });
+        if (providerPlan) {
+          await tx.billingProviderPlan.create({
+            data: {
+              planPriceId: price.id,
+              provider: "PAYSTACK",
+              environment: providerPlan.environment,
+              providerPlanCode: providerPlan.planCode,
+            },
+          });
+        }
       }
       return created;
     });

@@ -41,7 +41,14 @@ type SubscriptionSnapshot = {
     status: string;
     createdAt: string;
   }>;
+  usage: Record<string, { current: number; limit: number | null }>;
 };
+
+function usageLabel(value: string) {
+  return value
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/^./, (letter) => letter.toUpperCase());
+}
 
 async function jsonFetch(url: string, init?: RequestInit) {
   const response = await fetch(url, {
@@ -189,6 +196,31 @@ export function SubscriptionPanel({ audience }: { audience: "family" | "school" 
             </Button>
           </div>
         ) : null}
+      </section>
+
+      <section className="grid gap-3 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2 lg:grid-cols-5">
+        {Object.entries(snapshot?.usage || {}).map(([key, value]) => {
+          const percentage =
+            value.limit && value.limit > 0
+              ? Math.min(100, Math.round((value.current / value.limit) * 100))
+              : 0;
+          return (
+            <div key={key} className="rounded-lg bg-slate-50 p-3">
+              <p className="text-xs font-medium text-slate-500">{usageLabel(key)}</p>
+              <p className="mt-1 text-lg font-semibold text-slate-950">
+                {value.current}/{value.limit ?? "Unlimited"}
+              </p>
+              {value.limit !== null ? (
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-[#4a48ff]"
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

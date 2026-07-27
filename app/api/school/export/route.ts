@@ -89,6 +89,74 @@ export async function GET(req: NextRequest) {
         row.startedAt?.toISOString(),
         row.endedAt?.toISOString(),
       ]);
+    } else if (resource === "attendance") {
+      const rows = await db.tripEvent.findMany({
+        where: {
+          trip: { schoolId },
+          eventType: {
+            in: [
+              "participant_present",
+              "participant_absent",
+              "participant_boarded",
+              "participant_dropped",
+            ],
+          },
+          ...(cutoff ? { timestamp: { gte: cutoff } } : {}),
+        },
+        include: { trip: { select: { title: true } } },
+        orderBy: { timestamp: "desc" },
+      });
+      headers = ["event_id", "trip_id", "trip", "event", "actor", "timestamp", "details"];
+      records = rows.map((row) => [
+        row.id,
+        row.tripId,
+        row.trip.title,
+        row.eventType,
+        row.actorId,
+        row.timestamp.toISOString(),
+        JSON.stringify(row.payload || {}),
+      ]);
+    } else if (resource === "reports") {
+      const rows = await db.trip.findMany({
+        where: {
+          schoolId,
+          ...(cutoff ? { createdAt: { gte: cutoff } } : {}),
+        },
+        include: {
+          events: { select: { eventType: true } },
+          _count: { select: { participants: true, locations: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+      const safetyEvents = new Set([
+        "emergency_triggered",
+        "route_deviation",
+        "unusual_stop",
+      ]);
+      headers = [
+        "trip_id",
+        "trip",
+        "type",
+        "status",
+        "safety_state",
+        "participants",
+        "location_updates",
+        "safety_events",
+        "started",
+        "ended",
+      ];
+      records = rows.map((row) => [
+        row.id,
+        row.title,
+        row.tripType,
+        row.status,
+        row.safetyState,
+        row._count.participants,
+        row._count.locations,
+        row.events.filter((event) => safetyEvents.has(event.eventType)).length,
+        row.startedAt?.toISOString(),
+        row.endedAt?.toISOString(),
+      ]);
     } else {
       return NextResponse.json({ message: "Unsupported export resource" }, { status: 400 });
     }

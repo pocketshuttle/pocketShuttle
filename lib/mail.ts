@@ -90,3 +90,34 @@ export const sendPlatformAdminInviteEmail = async ({
     throw new Error(result.error.message || "Unable to deliver admin invitation");
   }
 };
+
+export const sendTripViewerInviteEmail = async ({
+  email,
+  token,
+  inviterName,
+  tripTitle,
+  expiresAt,
+}: {
+  email: string;
+  token: string;
+  inviterName?: string | null;
+  tripTitle: string;
+  expiresAt: Date;
+}) => {
+  const inviteLink = `${platformBaseUrl()}/viewer/invite?token=${encodeURIComponent(token)}`;
+  const result = await resend.emails.send({
+    from: "onboarding@pocketshuttle.com",
+    to: email,
+    subject: "You have been invited to follow a PocketShuttle trip",
+    html: `
+      <div style="font-family:Arial,sans-serif;line-height:1.5;color:#0f172a">
+        <h2>PocketShuttle trip invitation</h2>
+        <p>${inviterName || "A PocketShuttle parent"} invited you to follow <strong>${tripTitle}</strong>.</p>
+        <p>This invitation expires ${expiresAt.toUTCString()}.</p>
+        <p><a href="${inviteLink}" style="display:inline-block;background:#4a48ff;color:#fff;padding:12px 16px;border-radius:8px;text-decoration:none">Accept invitation</a></p>
+        <p>If the button does not work, open this link: ${inviteLink}</p>
+      </div>
+    `,
+  });
+  if (result.error) throw new Error(result.error.message || "Unable to deliver viewer invitation");
+};

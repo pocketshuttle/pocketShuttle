@@ -10,6 +10,7 @@ import {
   BILLING_ROLLOUT_FLAGS,
   hasBillingRolloutFlag,
 } from "@/lib/billing/rollout";
+import { getBillingUsage } from "@/lib/billing/usage";
 
 export async function GET() {
   try {
@@ -41,6 +42,7 @@ export async function GET() {
         take: 25,
       }),
     ]);
+    const usage = await getBillingUsage(account, resolved);
 
     return NextResponse.json({
       billingAccount: {
@@ -54,6 +56,7 @@ export async function GET() {
         ),
       },
       current: resolved,
+      usage,
       subscriptions,
       payments,
     });

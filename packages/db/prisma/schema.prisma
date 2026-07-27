@@ -147,6 +147,47 @@ enum BillingProvider {
   MANUAL
 }
 
+enum BillingProviderEnvironment {
+  TEST
+  LIVE
+}
+
+enum NotificationChannel {
+  PUSH
+  SMS
+  WHATSAPP
+}
+
+enum NotificationDeliveryStatus {
+  PENDING
+  ACCEPTED
+  DELIVERED
+  FAILED
+}
+
+enum ViewerInviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+enum SchoolImportJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  PARTIAL
+  FAILED
+}
+
+enum SchoolImportResource {
+  STUDENTS
+  STAFF
+  VEHICLES
+  ROUTES
+  ASSIGNMENTS
+}
+
 enum PlatformSubscriptionStatus {
   TRIALING
   ACTIVE
@@ -296,8 +337,8 @@ model SuperUser {
   updatedAt     DateTime            @default(now()) @updatedAt
 
   actions           SuperUserAction[]
-  sentAdminInvites  PlatformAdminInvite[]          @relation("PlatformInviteSender")
-  acceptedInvites   PlatformAdminInvite[]          @relation("PlatformInviteAcceptor")
+  sentAdminInvites  PlatformAdminInvite[]           @relation("PlatformInviteSender")
+  acceptedInvites   PlatformAdminInvite[]           @relation("PlatformInviteAcceptor")
   workspaceSessions PlatformAdminWorkspaceSession[]
 
   @@index([status, accessRole])
@@ -363,30 +404,32 @@ model PlatformAdminWorkspaceSession {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-  role          UserRole  @default(ADMIN)
-  password      String?
-  suspendedAt   DateTime? @map("suspended_at")
-  suspendedReason String? @map("suspended_reason")
-  suspendedById String?   @map("suspended_by_id")
+  id              String    @id @default(cuid())
+  name            String?
+  email           String?   @unique
+  emailVerified   DateTime? @map("email_verified")
+  image           String?
+  role            UserRole  @default(ADMIN)
+  password        String?
+  suspendedAt     DateTime? @map("suspended_at")
+  suspendedReason String?   @map("suspended_reason")
+  suspendedById   String?   @map("suspended_by_id")
 
-  Subscription   Subscription[]
-  NewUser        NewUser[]
-  Account        Account[]
-  Teacher        Teacher[]
-  Driver         Driver[]
-  Parent         Parent[]
-  Student        Student[]
-  Route          Route[]
-  Buses          Buses[]
-  Payment        Payment[]
-  SchoolSettings SchoolSettings?
-  AuditLog       AuditLog[]
-  billingAccount BillingAccount?
+  Subscription         Subscription[]
+  NewUser              NewUser[]
+  Account              Account[]
+  Teacher              Teacher[]
+  Driver               Driver[]
+  Parent               Parent[]
+  Student              Student[]
+  Route                Route[]
+  Buses                Buses[]
+  Payment              Payment[]
+  SchoolSettings       SchoolSettings?
+  AuditLog             AuditLog[]
+  billingAccount       BillingAccount?
+  notificationPolicies SchoolNotificationPolicy[]
+  importJobs           SchoolImportJob[]
 
   @@map("users")
 }
@@ -400,8 +443,8 @@ model Plan {
   description   String?
   features      Json?
   entitlements  Json           @default("{}")
-  audience      PlanAudience    @default(SCHOOL)
-  tier          PlanTier        @default(FREE)
+  audience      PlanAudience   @default(SCHOOL)
+  tier          PlanTier       @default(FREE)
   isActive      Boolean        @default(true) @map("is_active")
   isPublic      Boolean        @default(false) @map("is_public")
   isPurchasable Boolean        @default(false) @map("is_purchasable")
@@ -410,71 +453,92 @@ model Plan {
 }
 
 model PlanPrice {
-  id               String          @id @default(cuid())
-  planId           String          @map("plan_id")
-  amountMinor      Int             @map("amount_minor")
-  currency         String          @default("NGN")
-  interval         BillingInterval @default(MONTHLY)
-  paystackPlanCode String?         @unique @map("paystack_plan_code")
-  isActive         Boolean         @default(true) @map("is_active")
-  plan             Plan            @relation(fields: [planId], references: [id], onDelete: Cascade)
-  subscriptions    Subscription[]
-  paymentAttempts  BillingPaymentAttempt[]
-  createdAt        DateTime        @default(now()) @map("created_at")
-  updatedAt        DateTime        @default(now()) @updatedAt @map("updated_at")
+  id              String                  @id @default(cuid())
+  planId          String                  @map("plan_id")
+  amountMinor     Int                     @map("amount_minor")
+  currency        String                  @default("NGN")
+  interval        BillingInterval         @default(MONTHLY)
+  isActive        Boolean                 @default(true) @map("is_active")
+  plan            Plan                    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  subscriptions   Subscription[]
+  paymentAttempts BillingPaymentAttempt[]
+  providerPlans   BillingProviderPlan[]
+  createdAt       DateTime                @default(now()) @map("created_at")
+  updatedAt       DateTime                @default(now()) @updatedAt @map("updated_at")
 
   @@index([planId, isActive])
   @@map("plan_prices")
 }
 
+model BillingProviderPlan {
+  id               String                     @id @default(cuid())
+  planPriceId      String                     @map("plan_price_id")
+  provider         BillingProvider            @default(PAYSTACK)
+  environment      BillingProviderEnvironment
+  providerPlanCode String                     @unique @map("provider_plan_code")
+  isActive         Boolean                    @default(true) @map("is_active")
+  planPrice        PlanPrice                  @relation(fields: [planPriceId], references: [id], onDelete: Cascade)
+  paymentAttempts  BillingPaymentAttempt[]
+  createdAt        DateTime                   @default(now()) @map("created_at")
+  updatedAt        DateTime                   @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([planPriceId, provider, environment])
+  @@index([provider, environment, isActive])
+  @@map("billing_provider_plans")
+}
+
 model BillingAccount {
-  id                       String             @id @default(cuid())
-  type                     BillingAccountType
-  userId                   String?            @unique @map("user_id")
-  parentId                 String?            @unique @map("parent_id")
-  organizationId           String?            @unique @map("organization_id")
-  billingEmail             String?            @map("billing_email")
-  providerCustomerCode     String?            @map("provider_customer_code")
-  entitlementOverrides     Json               @default("{}") @map("entitlement_overrides")
-  enforcementEnabled       Boolean            @default(false) @map("enforcement_enabled")
-  rolloutFlags             Json               @default("{}") @map("rollout_flags")
-  user                     User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent                   Parent?            @relation(fields: [parentId], references: [id], onDelete: Cascade)
-  organization             Organization?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  subscriptions            Subscription[]
-  paymentAttempts          BillingPaymentAttempt[]
-  premiumMessageUsage      PremiumMessageUsage[]
-  tripTemplates            TripTemplate[]
-  customPlaces             CustomPlace[]
-  createdAt                DateTime           @default(now()) @map("created_at")
-  updatedAt                DateTime           @default(now()) @updatedAt @map("updated_at")
+  id                      String                          @id @default(cuid())
+  type                    BillingAccountType
+  userId                  String?                         @unique @map("user_id")
+  parentId                String?                         @unique @map("parent_id")
+  organizationId          String?                         @unique @map("organization_id")
+  billingEmail            String?                         @map("billing_email")
+  providerCustomerCode    String?                         @map("provider_customer_code")
+  entitlementOverrides    Json                            @default("{}") @map("entitlement_overrides")
+  enforcementEnabled      Boolean                         @default(false) @map("enforcement_enabled")
+  rolloutFlags            Json                            @default("{}") @map("rollout_flags")
+  user                    User?                           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent                  Parent?                         @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  organization            Organization?                   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscriptions           Subscription[]
+  paymentAttempts         BillingPaymentAttempt[]
+  premiumMessageUsage     PremiumMessageUsage[]
+  tripTemplates           TripTemplate[]
+  customPlaces            CustomPlace[]
+  notificationPreferences BillingNotificationPreference[]
+  notificationDeliveries  NotificationDelivery[]
+  viewerInvites           TripViewerInvite[]
+  createdAt               DateTime                        @default(now()) @map("created_at")
+  updatedAt               DateTime                        @default(now()) @updatedAt @map("updated_at")
 
   @@index([type])
   @@map("billing_accounts")
 }
 
 model Subscription {
-  id                       String                     @id @default(cuid())
-  billingAccountId         String                     @map("billing_account_id")
+  id                       String                      @id @default(cuid())
+  billingAccountId         String                      @map("billing_account_id")
   userId                   String?
   planId                   String
-  planPriceId              String?                    @map("plan_price_id")
-  startDate                DateTime                   @default(now())
+  planPriceId              String?                     @map("plan_price_id")
+  startDate                DateTime                    @default(now())
   endDate                  DateTime?
-  currentPeriodStart       DateTime?                  @map("current_period_start")
-  currentPeriodEnd         DateTime?                  @map("current_period_end")
-  graceEndsAt              DateTime?                  @map("grace_ends_at")
-  cancelledAt              DateTime?                  @map("cancelled_at")
-  status                   PlatformSubscriptionStatus @default(ACTIVE)
-  subscriptionPlan         SubscriptionPlan           @default(FREE)
-  provider                 BillingProvider            @default(PAYSTACK)
-  providerSubscriptionCode String?                    @unique @map("provider_subscription_code")
-  providerEmailToken       String?                    @map("provider_email_token")
-  providerNextPaymentAt    DateTime?                  @map("provider_next_payment_at")
-  billingAccount           BillingAccount             @relation(fields: [billingAccountId], references: [id], onDelete: Cascade)
-  user                     User?                      @relation(fields: [userId], references: [id], onDelete: SetNull)
-  plan                     Plan                       @relation(fields: [planId], references: [id])
-  planPrice                PlanPrice?                 @relation(fields: [planPriceId], references: [id], onDelete: SetNull)
+  currentPeriodStart       DateTime?                   @map("current_period_start")
+  currentPeriodEnd         DateTime?                   @map("current_period_end")
+  graceEndsAt              DateTime?                   @map("grace_ends_at")
+  cancelledAt              DateTime?                   @map("cancelled_at")
+  status                   PlatformSubscriptionStatus  @default(ACTIVE)
+  subscriptionPlan         SubscriptionPlan            @default(FREE)
+  provider                 BillingProvider             @default(PAYSTACK)
+  providerEnvironment      BillingProviderEnvironment? @map("provider_environment")
+  providerSubscriptionCode String?                     @unique @map("provider_subscription_code")
+  providerEmailToken       String?                     @map("provider_email_token")
+  providerNextPaymentAt    DateTime?                   @map("provider_next_payment_at")
+  billingAccount           BillingAccount              @relation(fields: [billingAccountId], references: [id], onDelete: Cascade)
+  user                     User?                       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  plan                     Plan                        @relation(fields: [planId], references: [id])
+  planPrice                PlanPrice?                  @relation(fields: [planPriceId], references: [id], onDelete: SetNull)
   Payment                  Payment[]
   paymentAttempts          BillingPaymentAttempt[]
 
@@ -483,39 +547,82 @@ model Subscription {
 }
 
 model BillingPaymentAttempt {
-  id                String               @id @default(cuid())
-  billingAccountId  String               @map("billing_account_id")
-  subscriptionId    String?              @map("subscription_id")
-  planPriceId       String?              @map("plan_price_id")
-  provider          BillingProvider      @default(PAYSTACK)
-  providerReference String               @unique @map("provider_reference")
-  amountMinor       Int                  @map("amount_minor")
-  currency          String               @default("NGN")
-  status            BillingPaymentStatus @default(PENDING)
-  authorizationUrl  String?              @map("authorization_url")
-  paidAt            DateTime?            @map("paid_at")
-  failureReason     String?              @map("failure_reason")
-  metadata          Json?
-  billingAccount    BillingAccount       @relation(fields: [billingAccountId], references: [id], onDelete: Cascade)
-  subscription      Subscription?        @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
-  planPrice         PlanPrice?           @relation(fields: [planPriceId], references: [id], onDelete: SetNull)
-  createdAt         DateTime             @default(now()) @map("created_at")
-  updatedAt         DateTime             @default(now()) @updatedAt @map("updated_at")
+  id                  String                     @id @default(cuid())
+  billingAccountId    String                     @map("billing_account_id")
+  subscriptionId      String?                    @map("subscription_id")
+  planPriceId         String?                    @map("plan_price_id")
+  providerPlanId      String?                    @map("provider_plan_id")
+  provider            BillingProvider            @default(PAYSTACK)
+  providerEnvironment BillingProviderEnvironment @default(TEST) @map("provider_environment")
+  providerReference   String                     @unique @map("provider_reference")
+  amountMinor         Int                        @map("amount_minor")
+  currency            String                     @default("NGN")
+  status              BillingPaymentStatus       @default(PENDING)
+  authorizationUrl    String?                    @map("authorization_url")
+  paidAt              DateTime?                  @map("paid_at")
+  failureReason       String?                    @map("failure_reason")
+  metadata            Json?
+  billingAccount      BillingAccount             @relation(fields: [billingAccountId], references: [id], onDelete: Cascade)
+  subscription        Subscription?              @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  planPrice           PlanPrice?                 @relation(fields: [planPriceId], references: [id], onDelete: SetNull)
+  providerPlan        BillingProviderPlan?       @relation(fields: [providerPlanId], references: [id], onDelete: SetNull)
+  createdAt           DateTime                   @default(now()) @map("created_at")
+  updatedAt           DateTime                   @default(now()) @updatedAt @map("updated_at")
 
   @@index([billingAccountId, status])
   @@map("billing_payment_attempts")
 }
 
 model BillingWebhookReceipt {
-  id          String          @id @default(cuid())
-  fingerprint String          @unique
-  provider    BillingProvider @default(PAYSTACK)
-  eventType   String          @map("event_type")
-  payload     Json
-  processedAt DateTime        @default(now()) @map("processed_at")
+  id                  String                     @id @default(cuid())
+  fingerprint         String                     @unique
+  provider            BillingProvider            @default(PAYSTACK)
+  providerEnvironment BillingProviderEnvironment @default(TEST) @map("provider_environment")
+  eventType           String                     @map("event_type")
+  payload             Json
+  processedAt         DateTime                   @default(now()) @map("processed_at")
 
   @@index([eventType, processedAt])
   @@map("billing_webhook_receipts")
+}
+
+model BillingNotificationPreference {
+  id               String              @id @default(cuid())
+  billingAccountId String              @map("billing_account_id")
+  channel          NotificationChannel
+  enabled          Boolean             @default(false)
+  consentedAt      DateTime?           @map("consented_at")
+  destination      String?
+  billingAccount   BillingAccount      @relation(fields: [billingAccountId], references: [id], onDelete: Cascade)
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([billingAccountId, channel])
+  @@map("billing_notification_preferences")
+}
+
+model NotificationDelivery {
+  id                String                     @id @default(cuid())
+  billingAccountId  String                     @map("billing_account_id")
+  tripId            String?                    @map("trip_id")
+  eventType         String?                    @map("event_type")
+  channel           NotificationChannel
+  recipient         String
+  message           String
+  providerMessageId String?                    @unique @map("provider_message_id")
+  status            NotificationDeliveryStatus @default(PENDING)
+  attemptCount      Int                        @default(0) @map("attempt_count")
+  failureReason     String?                    @map("failure_reason")
+  acceptedAt        DateTime?                  @map("accepted_at")
+  deliveredAt       DateTime?                  @map("delivered_at")
+  metadata          Json?
+  billingAccount    BillingAccount             @relation(fields: [billingAccountId], references: [id], onDelete: Cascade)
+  createdAt         DateTime                   @default(now()) @map("created_at")
+  updatedAt         DateTime                   @default(now()) @updatedAt @map("updated_at")
+
+  @@index([billingAccountId, status, createdAt])
+  @@index([tripId, createdAt])
+  @@map("notification_deliveries")
 }
 
 model PremiumMessageUsage {
@@ -565,27 +672,27 @@ model Account {
 }
 
 model Teacher {
-  id            String    @id @default(cuid())
-  teacherId     String?   @map("teacher_id")
-  role          String
-  full_name     String?
-  image         String?
-  email         String?   @unique
-  emailVerified DateTime? @map("email_verified")
-  password      String?
-  phoneNumber   String?
-  address       String
-  schoolId      String?
-  school        User?     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  busId         String?   @unique
-  bus           Buses?    @relation(fields: [busId], references: [id], onDelete: Cascade)
-  NewUser       NewUser[]
-  Student       Student[]
-  Pickup        Pickup[]
-  userId        String?
-  suspendedAt   DateTime? @map("suspended_at")
-  suspendedReason String? @map("suspended_reason")
-  suspendedById String?   @map("suspended_by_id")
+  id              String    @id @default(cuid())
+  teacherId       String?   @map("teacher_id")
+  role            String
+  full_name       String?
+  image           String?
+  email           String?   @unique
+  emailVerified   DateTime? @map("email_verified")
+  password        String?
+  phoneNumber     String?
+  address         String
+  schoolId        String?
+  school          User?     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  busId           String?   @unique
+  bus             Buses?    @relation(fields: [busId], references: [id], onDelete: Cascade)
+  NewUser         NewUser[]
+  Student         Student[]
+  Pickup          Pickup[]
+  userId          String?
+  suspendedAt     DateTime? @map("suspended_at")
+  suspendedReason String?   @map("suspended_reason")
+  suspendedById   String?   @map("suspended_by_id")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -594,45 +701,45 @@ model Teacher {
 }
 
 model Driver {
-  id                         String                     @id @default(cuid())
-  driverId                   String?                    @map("driver_id")
-  role                       String                     @default("driver")
-  accountType                AccountType                @default(SCHOOL_MANAGED)
-  full_name                  String
-  email                      String?                    @unique
-  emailVerified              DateTime?                  @map("email_verified")
-  password                   String?
-  phoneNumber                String?
-  image                      String?
-  address                    String
-  liveAddress                Json?                      @map("live_address")
-  lastActiveAt               DateTime?                  @map("last_active_at")
-  landmark                   String?
-  utilityBillUrl             String?                    @map("utility_bill_url")
-  identityDocumentUrl        String?                    @map("identity_document_url")
-  verificationStatus         DriverVerificationStatus   @default(UNSUBMITTED) @map("verification_status")
-  verificationRejectionReason String?                   @map("verification_rejection_reason")
-  serviceAreas               String[]                   @default([]) @map("service_areas")
-  carMake                    String?                    @map("car_make")
-  carModel                   String?                    @map("car_model")
-  carColor                   String?                    @map("car_color")
-  plateNumber                String?                    @map("plate_number")
-  vehicleCapacity            Int?                       @map("vehicle_capacity")
-  suspendedAt                DateTime?                  @map("suspended_at")
-  suspendedReason            String?                    @map("suspended_reason")
-  suspendedById              String?                    @map("suspended_by_id")
-  schoolId                   String?
-  busId                      String?                    @unique
-  bus                        Buses?                     @relation(fields: [busId], references: [id])
-  school                     User?                      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  ParentChild                ParentChild[]
-  DriverRequest              DriverRequest[]
-  shareProfile               DriverShareProfile?
-  parentConnections          ParentDriverConnection[]
-  childAssignments           ChildDriverAssignment[]
-  driverInvites              DriverInvite[]
-  childDriverEvents          ChildDriverEvent[]
-  supportTickets             SupportTicket[]
+  id                          String                   @id @default(cuid())
+  driverId                    String?                  @map("driver_id")
+  role                        String                   @default("driver")
+  accountType                 AccountType              @default(SCHOOL_MANAGED)
+  full_name                   String
+  email                       String?                  @unique
+  emailVerified               DateTime?                @map("email_verified")
+  password                    String?
+  phoneNumber                 String?
+  image                       String?
+  address                     String
+  liveAddress                 Json?                    @map("live_address")
+  lastActiveAt                DateTime?                @map("last_active_at")
+  landmark                    String?
+  utilityBillUrl              String?                  @map("utility_bill_url")
+  identityDocumentUrl         String?                  @map("identity_document_url")
+  verificationStatus          DriverVerificationStatus @default(UNSUBMITTED) @map("verification_status")
+  verificationRejectionReason String?                  @map("verification_rejection_reason")
+  serviceAreas                String[]                 @default([]) @map("service_areas")
+  carMake                     String?                  @map("car_make")
+  carModel                    String?                  @map("car_model")
+  carColor                    String?                  @map("car_color")
+  plateNumber                 String?                  @map("plate_number")
+  vehicleCapacity             Int?                     @map("vehicle_capacity")
+  suspendedAt                 DateTime?                @map("suspended_at")
+  suspendedReason             String?                  @map("suspended_reason")
+  suspendedById               String?                  @map("suspended_by_id")
+  schoolId                    String?
+  busId                       String?                  @unique
+  bus                         Buses?                   @relation(fields: [busId], references: [id])
+  school                      User?                    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  ParentChild                 ParentChild[]
+  DriverRequest               DriverRequest[]
+  shareProfile                DriverShareProfile?
+  parentConnections           ParentDriverConnection[]
+  childAssignments            ChildDriverAssignment[]
+  driverInvites               DriverInvite[]
+  childDriverEvents           ChildDriverEvent[]
+  supportTickets              SupportTicket[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -642,36 +749,36 @@ model Driver {
 }
 
 model Parent {
-  id            String               @id @default(cuid())
-  role          String
-  accountType   AccountType          @default(SCHOOL_MANAGED)
-  full_name     String?
-  image         String?
-  email         String?              @unique
-  emailVerified DateTime?            @map("email_verified")
-  password      String?
-  phoneNumber   String?
-  address       String?
-  addressCoords Json?
-  suspendedAt   DateTime?              @map("suspended_at")
-  suspendedReason String?              @map("suspended_reason")
-  suspendedById String?                @map("suspended_by_id")
-  schoolId      String?
-  school        User?                @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  busId         String?
-  NewUser       NewUser[]
-  Student       Student[]
-  ParentChild   ParentChild[]
-  DriverRequest DriverRequest[]
-  driverConnections ParentDriverConnection[]
+  id                     String                   @id @default(cuid())
+  role                   String
+  accountType            AccountType              @default(SCHOOL_MANAGED)
+  full_name              String?
+  image                  String?
+  email                  String?                  @unique
+  emailVerified          DateTime?                @map("email_verified")
+  password               String?
+  phoneNumber            String?
+  address                String?
+  addressCoords          Json?
+  suspendedAt            DateTime?                @map("suspended_at")
+  suspendedReason        String?                  @map("suspended_reason")
+  suspendedById          String?                  @map("suspended_by_id")
+  schoolId               String?
+  school                 User?                    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  busId                  String?
+  NewUser                NewUser[]
+  Student                Student[]
+  ParentChild            ParentChild[]
+  DriverRequest          DriverRequest[]
+  driverConnections      ParentDriverConnection[]
   childDriverAssignments ChildDriverAssignment[]
-  driverInvites DriverInvite[]
-  childDriverEvents ChildDriverEvent[]
-  knownDriverPayments KnownDriverPayment[]
-  notifications ParentNotification[]
-  Pickup        Pickup[]
-  supportTickets SupportTicket[]
-  billingAccount BillingAccount?
+  driverInvites          DriverInvite[]
+  childDriverEvents      ChildDriverEvent[]
+  knownDriverPayments    KnownDriverPayment[]
+  notifications          ParentNotification[]
+  Pickup                 Pickup[]
+  supportTickets         SupportTicket[]
+  billingAccount         BillingAccount?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -681,19 +788,19 @@ model Parent {
 }
 
 model ParentChild {
-  id             String          @id @default(cuid())
-  parentId       String          @map("parent_id")
-  fullName       String          @map("full_name")
-  age            Int?
-  grade          String?
-  address        String?
-  schoolCoords   Json?           @map("school_coords")
-  pickupNote     String?         @map("pickup_note")
-  image          String?
-  activeDriverId String?         @map("active_driver_id")
-  parent         Parent          @relation(fields: [parentId], references: [id], onDelete: Cascade)
-  activeDriver   Driver?         @relation(fields: [activeDriverId], references: [id])
-  DriverRequest  DriverRequest[]
+  id                String                  @id @default(cuid())
+  parentId          String                  @map("parent_id")
+  fullName          String                  @map("full_name")
+  age               Int?
+  grade             String?
+  address           String?
+  schoolCoords      Json?                   @map("school_coords")
+  pickupNote        String?                 @map("pickup_note")
+  image             String?
+  activeDriverId    String?                 @map("active_driver_id")
+  parent            Parent                  @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  activeDriver      Driver?                 @relation(fields: [activeDriverId], references: [id])
+  DriverRequest     DriverRequest[]
   driverAssignments ChildDriverAssignment[]
   childDriverEvents ChildDriverEvent[]
 
@@ -706,19 +813,19 @@ model ParentChild {
 }
 
 model DriverRequest {
-  id          String              @id @default(cuid())
-  parentId    String              @map("parent_id")
-  childId     String              @map("child_id")
-  driverId    String              @map("driver_id")
-  status      DriverRequestStatus @default(PENDING)
-  routeArea   String?             @map("route_area")
-  note        String?
-  parent      Parent              @relation(fields: [parentId], references: [id], onDelete: Cascade)
-  child       ParentChild         @relation(fields: [childId], references: [id], onDelete: Cascade)
-  driver      Driver              @relation(fields: [driverId], references: [id], onDelete: Cascade)
-  respondedAt DateTime?           @map("responded_at")
-  pickedUpAt  DateTime?           @map("picked_up_at")
-  droppedOffAt DateTime?          @map("dropped_off_at")
+  id           String              @id @default(cuid())
+  parentId     String              @map("parent_id")
+  childId      String              @map("child_id")
+  driverId     String              @map("driver_id")
+  status       DriverRequestStatus @default(PENDING)
+  routeArea    String?             @map("route_area")
+  note         String?
+  parent       Parent              @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  child        ParentChild         @relation(fields: [childId], references: [id], onDelete: Cascade)
+  driver       Driver              @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  respondedAt  DateTime?           @map("responded_at")
+  pickedUpAt   DateTime?           @map("picked_up_at")
+  droppedOffAt DateTime?           @map("dropped_off_at")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -730,12 +837,12 @@ model DriverRequest {
 }
 
 model DriverShareProfile {
-  id              String   @id @default(cuid())
-  driverId        String   @unique @map("driver_id")
-  shareId         String   @unique @map("share_id")
-  searchableEmail String?  @map("searchable_email")
-  searchablePhone String?  @map("searchable_phone")
-  driver          Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  id              String  @id @default(cuid())
+  driverId        String  @unique @map("driver_id")
+  shareId         String  @unique @map("share_id")
+  searchableEmail String? @map("searchable_email")
+  searchablePhone String? @map("searchable_phone")
+  driver          Driver  @relation(fields: [driverId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
@@ -802,17 +909,17 @@ model ChildDriverAssignment {
 }
 
 model DriverInvite {
-  id              String             @id @default(cuid())
-  parentId        String             @map("parent_id")
-  driverId        String?            @map("driver_id")
-  email           String?
-  phoneNumber     String?            @map("phone_number")
-  tokenHash       String             @unique @map("token_hash")
-  status          DriverInviteStatus @default(SENT)
-  expiresAt       DateTime           @map("expires_at")
-  acceptedAt      DateTime?          @map("accepted_at")
-  parent          Parent             @relation(fields: [parentId], references: [id], onDelete: Cascade)
-  driver          Driver?            @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  id          String             @id @default(cuid())
+  parentId    String             @map("parent_id")
+  driverId    String?            @map("driver_id")
+  email       String?
+  phoneNumber String?            @map("phone_number")
+  tokenHash   String             @unique @map("token_hash")
+  status      DriverInviteStatus @default(SENT)
+  expiresAt   DateTime           @map("expires_at")
+  acceptedAt  DateTime?          @map("accepted_at")
+  parent      Parent             @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  driver      Driver?            @relation(fields: [driverId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
@@ -824,21 +931,21 @@ model DriverInvite {
 }
 
 model ChildDriverEvent {
-  id           String               @id @default(cuid())
-  assignmentId String               @map("assignment_id")
-  parentId     String               @map("parent_id")
-  driverId     String               @map("driver_id")
-  childId      String               @map("child_id")
-  eventType    ChildDriverEventType @map("event_type")
-  actorId      String?              @map("actor_id")
-  actorType    String?              @map("actor_type")
+  id           String                @id @default(cuid())
+  assignmentId String                @map("assignment_id")
+  parentId     String                @map("parent_id")
+  driverId     String                @map("driver_id")
+  childId      String                @map("child_id")
+  eventType    ChildDriverEventType  @map("event_type")
+  actorId      String?               @map("actor_id")
+  actorType    String?               @map("actor_type")
   latitude     Float?
   longitude    Float?
   payload      Json?
   assignment   ChildDriverAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  parent       Parent               @relation(fields: [parentId], references: [id], onDelete: Cascade)
-  driver       Driver               @relation(fields: [driverId], references: [id], onDelete: Cascade)
-  child        ParentChild          @relation(fields: [childId], references: [id], onDelete: Cascade)
+  parent       Parent                @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  driver       Driver                @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  child        ParentChild           @relation(fields: [childId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -872,21 +979,21 @@ model KnownDriverPayment {
 }
 
 model SupportTicket {
-  id                  String              @id @default(cuid())
-  requesterRole       String              @default("driver") @map("requester_role")
-  driverId            String?             @map("driver_id")
-  parentId            String?             @map("parent_id")
-  requesterName       String              @map("requester_name")
-  requesterIdentifier String              @map("requester_identifier")
+  id                  String                @id @default(cuid())
+  requesterRole       String                @default("driver") @map("requester_role")
+  driverId            String?               @map("driver_id")
+  parentId            String?               @map("parent_id")
+  requesterName       String                @map("requester_name")
+  requesterIdentifier String                @map("requester_identifier")
   message             String
-  status              SupportTicketStatus @default(PENDING)
+  status              SupportTicketStatus   @default(PENDING)
   priority            SupportTicketPriority @default(NORMAL)
   responseDueAt       DateTime?             @map("response_due_at")
   firstRespondedAt    DateTime?             @map("first_responded_at")
   fixedAt             DateTime?             @map("fixed_at")
-  deletedAt           DateTime?           @map("deleted_at")
-  driver              Driver?             @relation(fields: [driverId], references: [id], onDelete: SetNull)
-  parent              Parent?             @relation(fields: [parentId], references: [id], onDelete: SetNull)
+  deletedAt           DateTime?             @map("deleted_at")
+  driver              Driver?               @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  parent              Parent?               @relation(fields: [parentId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
@@ -987,10 +1094,11 @@ model Trip {
   busId       String?     @map("legacy_bus_id")
   metadata    Json?
 
-  participants TripParticipant[]
-  viewers      TripViewer[]
-  events       TripEvent[]
-  locations    TripLocation[]
+  participants   TripParticipant[]
+  viewers        TripViewer[]
+  viewerInvites  TripViewerInvite[]
+  events         TripEvent[]
+  locations      TripLocation[]
   geofenceStates TripGeofenceState[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -1024,18 +1132,18 @@ model TripTemplate {
 }
 
 model CustomPlace {
-  id               String         @id @default(cuid())
-  billingAccountId String         @map("billing_account_id")
+  id               String              @id @default(cuid())
+  billingAccountId String              @map("billing_account_id")
   name             String
   latitude         Float
   longitude        Float
-  radiusMeters     Int            @default(250) @map("radius_meters")
-  placeType        String         @default("custom") @map("place_type")
-  isActive         Boolean        @default(true) @map("is_active")
-  billingAccount   BillingAccount @relation(fields: [billingAccountId], references: [id], onDelete: Cascade)
+  radiusMeters     Int                 @default(250) @map("radius_meters")
+  placeType        String              @default("custom") @map("place_type")
+  isActive         Boolean             @default(true) @map("is_active")
+  billingAccount   BillingAccount      @relation(fields: [billingAccountId], references: [id], onDelete: Cascade)
   tripStates       TripGeofenceState[]
-  createdAt        DateTime       @default(now()) @map("created_at")
-  updatedAt        DateTime       @default(now()) @updatedAt @map("updated_at")
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @default(now()) @updatedAt @map("updated_at")
 
   @@index([billingAccountId, isActive])
   @@map("custom_places")
@@ -1057,17 +1165,17 @@ model TripGeofenceState {
 }
 
 model Organization {
-  id             String                 @id @default(cuid())
+  id             String                @id @default(cuid())
   name           String
-  slug           String                 @unique
+  slug           String                @unique
   billingAccount BillingAccount?
   branches       OrganizationBranch[]
   members        OrganizationMember[]
   apiKeys        OrganizationApiKey[]
   webhooks       OutboundWebhook[]
   branding       OrganizationBranding?
-  createdAt      DateTime               @default(now()) @map("created_at")
-  updatedAt      DateTime               @default(now()) @updatedAt @map("updated_at")
+  createdAt      DateTime              @default(now()) @map("created_at")
+  updatedAt      DateTime              @default(now()) @updatedAt @map("updated_at")
 
   @@map("organizations")
 }
@@ -1146,7 +1254,7 @@ model OutboundWebhookDelivery {
   status         String          @default("PENDING")
   attemptCount   Int             @default(0) @map("attempt_count")
   nextAttemptAt  DateTime?       @map("next_attempt_at")
-  deliveredAt   DateTime?       @map("delivered_at")
+  deliveredAt    DateTime?       @map("delivered_at")
   responseStatus Int?            @map("response_status")
   lastError      String?         @map("last_error")
   webhook        OutboundWebhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
@@ -1227,6 +1335,70 @@ model TripViewer {
   @@unique([tripId, viewerType, viewerId])
   @@index([viewerType, viewerId])
   @@map("trip_viewers")
+}
+
+model TripViewerInvite {
+  id                 String             @id @default(cuid())
+  billingAccountId   String             @map("billing_account_id")
+  tripId             String             @map("trip_id")
+  invitedBy          String             @map("invited_by")
+  name               String
+  email              String?
+  phoneNumber        String?            @map("phone_number")
+  tokenHash          String             @unique @map("token_hash")
+  status             ViewerInviteStatus @default(PENDING)
+  emergencyContact   Boolean            @default(false) @map("emergency_contact")
+  expiresAt          DateTime           @map("expires_at")
+  acceptedAt         DateTime?          @map("accepted_at")
+  revokedAt          DateTime?          @map("revoked_at")
+  acceptedViewerId   String?            @map("accepted_viewer_id")
+  acceptedViewerType String?            @map("accepted_viewer_type")
+  deliveryStatus     String             @default("PENDING") @map("delivery_status")
+  deliveryError      String?            @map("delivery_error")
+  billingAccount     BillingAccount     @relation(fields: [billingAccountId], references: [id], onDelete: Cascade)
+  trip               Trip               @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @default(now()) @updatedAt @map("updated_at")
+
+  @@index([billingAccountId, status])
+  @@index([tripId, status])
+  @@map("trip_viewer_invites")
+}
+
+model SchoolNotificationPolicy {
+  id        String              @id @default(cuid())
+  schoolId  String              @map("school_id")
+  eventType String              @map("event_type")
+  channel   NotificationChannel
+  enabled   Boolean             @default(true)
+  settings  Json                @default("{}")
+  school    User                @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt DateTime            @default(now()) @map("created_at")
+  updatedAt DateTime            @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([schoolId, eventType, channel])
+  @@index([schoolId, enabled])
+  @@map("school_notification_policies")
+}
+
+model SchoolImportJob {
+  id              String                @id @default(cuid())
+  schoolId        String                @map("school_id")
+  requestedBy     String                @map("requested_by")
+  resource        SchoolImportResource
+  status          SchoolImportJobStatus @default(PENDING)
+  clientRequestId String                @map("client_request_id")
+  totalRows       Int                   @default(0) @map("total_rows")
+  succeededRows   Int                   @default(0) @map("succeeded_rows")
+  failedRows      Int                   @default(0) @map("failed_rows")
+  errors          Json                  @default("[]")
+  school          User                  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([schoolId, clientRequestId])
+  @@index([schoolId, resource, createdAt])
+  @@map("school_import_jobs")
 }
 
 model TripEvent {

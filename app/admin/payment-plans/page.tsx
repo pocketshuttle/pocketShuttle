@@ -11,7 +11,10 @@ const AdminPaymentPlansPage = async () => {
   const plans = await db.plan.findMany({
     include: {
       _count: { select: { subscriptions: true } },
-      prices: { orderBy: { createdAt: "desc" } },
+      prices: {
+        orderBy: { createdAt: "desc" },
+        include: { providerPlans: { orderBy: { environment: "asc" } } },
+      },
     },
     orderBy: [{ audience: "asc" }, { tier: "asc" }],
   });
