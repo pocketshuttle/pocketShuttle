@@ -27,5 +27,8 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      - name: Test cron scheduling
+        run: npm run test:cron
+
       - name: Build
         run: npm run build

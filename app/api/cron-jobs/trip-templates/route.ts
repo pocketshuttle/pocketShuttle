@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { isCronRequestAuthorized } from "@/lib/cron/request-auth";
 import db from "@/packages/db/client";
 
-function authorized(req: NextRequest) {
-  if (!process.env.CRON_SECRET) return process.env.NODE_ENV !== "production";
-  return req.headers.get("authorization") === `Bearer ${process.env.CRON_SECRET}`;
-}
-
 export async function GET(req: NextRequest) {
-  if (!authorized(req)) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  if (!(await isCronRequestAuthorized(req))) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
   const now = new Date();
   const templates = await db.tripTemplate.findMany({
     where: { isActive: true, nextRunAt: { lte: now } },

@@ -12,7 +12,9 @@ Configure these server-side environment variables:
   verifies webhook signatures, and opens hosted subscription management. Test
   keys may use only TEST references and live keys may use only LIVE references.
 - `CRON_SECRET`: protects subscription expiry, recurring-trip, and outbound
-  webhook jobs.
+  webhook jobs when an operator invokes them manually.
+- `QSTASH_CURRENT_SIGNING_KEY` and `QSTASH_NEXT_SIGNING_KEY`: verify that
+  scheduled calls came from QStash.
 - `WEBHOOK_ENCRYPTION_KEY`: encrypts enterprise outbound webhook signing
   secrets. If omitted, `AUTH_SECRET` is used.
 - `NEXT_PUBLIC_BASE_URL`: used for the checkout return URL.
@@ -98,14 +100,19 @@ TEST provider plan code into a LIVE reference.
 
 ## Scheduled jobs
 
-Vercel is configured to call:
+QStash is configured to call:
 
 - `/api/cron-jobs/subscriptions` hourly
 - `/api/cron-jobs/trip-templates` every 15 minutes
 - `/api/cron-jobs/outbound-webhooks` every 5 minutes
 - `/api/cron-jobs/support-retention` daily
+- `/api/cron-jobs/reset-student` daily
+- `/api/cron-jobs/reset-status` daily
 
-All production cron calls must include `Authorization: Bearer $CRON_SECRET`.
+QStash calls must have a valid `Upstash-Signature`. Operators can still invoke
+a job with `Authorization: Bearer $CRON_SECRET`. See
+[`docs/qstash-scheduling.md`](./qstash-scheduling.md) for provisioning,
+verification, credential rotation, and rollback.
 
 ## Verification
 

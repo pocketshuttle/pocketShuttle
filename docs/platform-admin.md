@@ -13,8 +13,10 @@ teacher, billing, safety, support, and enterprise operations.
 - `RESEND_API_KEY`: sends platform-admin invitations. A failed delivery leaves
   the invitation pending and retryable. Development responses expose the
   one-time invitation URL; production responses never do.
-- `CRON_SECRET`: protects the support-retention job and the existing scheduled
-  jobs.
+- `CRON_SECRET`: protects manual recovery calls to support retention and the
+  other scheduled jobs.
+- `QSTASH_CURRENT_SIGNING_KEY` and `QSTASH_NEXT_SIGNING_KEY`: authenticate
+  scheduled QStash deliveries.
 
 ## Roles
 
@@ -56,9 +58,12 @@ audit trail.
 
 ## Scheduled retention
 
-Vercel calls `/api/cron-jobs/support-retention` daily. It deletes support
+QStash calls `/api/cron-jobs/support-retention` daily. It deletes support
 tickets older than 21 days and replaces the former destructive page-render
-cleanup. Production requests require `Authorization: Bearer $CRON_SECRET`.
+cleanup. Scheduled calls require a valid QStash signature; operators can use
+`Authorization: Bearer $CRON_SECRET` for manual recovery. See
+[`docs/qstash-scheduling.md`](./qstash-scheduling.md) for the operations
+runbook.
 
 ## Verification
 
