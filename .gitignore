@@ -31,7 +31,9 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
+.env
+.env.*
+!.env.example
 
 # Expo / native mobile build state and secrets
 apps/mobile/.expo/
