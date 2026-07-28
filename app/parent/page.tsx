@@ -189,6 +189,10 @@ const TeacherView = async () => {
                                     typeof subscription.entitlements.max_children === "number"
                                         ? subscription.entitlements.max_children
                                         : null,
+                                maxConnectedDrivers:
+                                    typeof subscription.entitlements.max_connected_drivers === "number"
+                                        ? subscription.entitlements.max_connected_drivers
+                                        : null,
                             }}
                         />
                     </div>

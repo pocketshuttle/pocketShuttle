@@ -76,6 +76,14 @@ export const getEntitlements = cache(async (session: ApiSession): Promise<Resolv
   };
 });
 
+export function getFamilyEntitlements(parentId: string) {
+  return getEntitlements({
+    id: parentId,
+    role: "parent",
+    schoolId: null,
+  });
+}
+
 export function hasFeature(resolved: ResolvedEntitlements, feature: FeatureKey) {
   return resolved.entitlements[feature] === true;
 }
