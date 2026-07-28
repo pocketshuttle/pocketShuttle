@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { requirePlatformAdmin } from "@/lib/admin/platform";
+import { requirePlatformPermission } from "@/lib/admin/platform";
 import db from "@/packages/db/client";
 
 export async function GET() {
   try {
-    await requirePlatformAdmin();
+    await requirePlatformPermission("accounts.read");
     const schools = await db.user.findMany({
       select: {
         id: true,

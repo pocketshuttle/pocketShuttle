@@ -2,12 +2,19 @@
 import { SettingsPage } from "@/components/dashboard/settings/settings-page";
 import { getUserSession } from "@/lib/session";
 import db from "@/packages/db/client";
+import { getEntitlements, historyCutoff } from "@/lib/billing/entitlements";
 
 export const dynamic = "force-dynamic";
 
 const page = async () => {
   const session = await getUserSession();
   const schoolId = String(session?.schoolId ?? session?.id ?? "");
+  const resolved = await getEntitlements({
+    id: String(session.id),
+    role: String(session.role),
+    schoolId,
+  });
+  const auditCutoff = historyCutoff(resolved);
 
   const [school, settings, subscription, auditLogs] = await Promise.all([
     db.user.findUnique({
@@ -44,6 +51,7 @@ const page = async () => {
       where: {
         userId: schoolId,
         action: "MODIFY_SETTINGS",
+        ...(auditCutoff ? { timestamp: { gte: auditCutoff } } : {}),
       },
       orderBy: { timestamp: "desc" },
       take: 5,
@@ -69,13 +77,10 @@ const page = async () => {
         notifyDistance: settings?.notifyDistance ?? 500,
       }}
       subscription={{
-        plan:
-          subscription?.plan?.name ??
-          subscription?.subscriptionPlan?.toString() ??
-          "FREE",
-        status: subscription?.status ?? "ACTIVE",
-        endDate: subscription?.endDate
-          ? subscription.endDate.toLocaleDateString()
+        plan: resolved.planName,
+        status: resolved.status,
+        endDate: resolved.currentPeriodEnd
+          ? resolved.currentPeriodEnd.toLocaleDateString()
           : null,
       }}
       auditLogs={auditLogs.map((log) => ({

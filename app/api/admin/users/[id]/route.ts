@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 
-import { parseUserKey, requirePlatformAdmin } from "@/lib/admin/platform";
+import { parseUserKey, requirePlatformPermission } from "@/lib/admin/platform";
+import { sanitizeAuditValue } from "@/lib/admin/request-security";
 import db from "@/packages/db/client";
 
 type Params = { id: string };
 
 export async function GET(_req: Request, { params }: { params: Promise<Params> }) {
   try {
-    await requirePlatformAdmin();
+    await requirePlatformPermission("accounts.read");
     const { id } = await params;
     const parsed = parseUserKey(decodeURIComponent(id));
     if (!parsed) {
@@ -27,7 +28,7 @@ export async function GET(_req: Request, { params }: { params: Promise<Params> }
           Buses: { select: { id: true, bus_number: true, bus_product_name: true, color: true } },
         },
       });
-      return NextResponse.json({ type: parsed.type, user });
+      return NextResponse.json({ type: parsed.type, user: sanitizeAuditValue(user) });
     }
 
     if (parsed.type === "parent") {
@@ -62,7 +63,7 @@ export async function GET(_req: Request, { params }: { params: Promise<Params> }
           knownDriverPayments: true,
         },
       });
-      return NextResponse.json({ type: parsed.type, user });
+      return NextResponse.json({ type: parsed.type, user: sanitizeAuditValue(user) });
     }
 
     if (parsed.type === "driver") {
@@ -98,7 +99,7 @@ export async function GET(_req: Request, { params }: { params: Promise<Params> }
           childDriverEvents: { orderBy: { createdAt: "desc" }, take: 25 },
         },
       });
-      return NextResponse.json({ type: parsed.type, user });
+      return NextResponse.json({ type: parsed.type, user: sanitizeAuditValue(user) });
     }
 
     if (parsed.type === "teacher") {
@@ -110,12 +111,24 @@ export async function GET(_req: Request, { params }: { params: Promise<Params> }
           Student: true,
         },
       });
-      return NextResponse.json({ type: parsed.type, user });
+      return NextResponse.json({ type: parsed.type, user: sanitizeAuditValue(user) });
     }
 
     const user = await db.superUser.findUnique({
       where: { id: parsed.id },
-      include: { actions: { orderBy: { createdAt: "desc" }, take: 25 } },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        accessRole: true,
+        status: true,
+        lastLoginAt: true,
+        disabledAt: true,
+        createdAt: true,
+        updatedAt: true,
+        actions: { orderBy: { createdAt: "desc" }, take: 25 },
+      },
     });
     return NextResponse.json({ type: parsed.type, user });
   } catch {

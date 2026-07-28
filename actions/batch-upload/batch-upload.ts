@@ -2,6 +2,12 @@
 // export const  runtime = "edge";
 
 import db from "@/packages/db/client";
+import { getApiSession, canManageSchool } from "@/lib/api-auth";
+import {
+  assertWithinLimit,
+  getEntitlements,
+  requireFeature,
+} from "@/lib/billing/entitlements";
 
 type ImportResult = {
   success: boolean;
@@ -56,6 +62,11 @@ export async function importStudents(
   }
 
   try {
+    const session = await getApiSession();
+    if (!canManageSchool(session) || session.schoolId !== schoolId) {
+      return { success: false, errors: ["Unauthorized school import"] };
+    }
+
     const buffer = Buffer.from(await file.arrayBuffer());
     const fileName = file.name.toLowerCase();
     let results: any[] = [];
@@ -101,6 +112,18 @@ export async function importStudents(
         address,
       };
     });
+
+    const [resolved, currentStudentCount] = await Promise.all([
+      getEntitlements(session),
+      db.student.count({ where: { schoolId } }),
+    ]);
+    requireFeature(resolved, "csv_import");
+    assertWithinLimit(
+      resolved,
+      "max_students",
+      currentStudentCount,
+      students.length
+    );
 
     await db.student.createMany({
       data: students,

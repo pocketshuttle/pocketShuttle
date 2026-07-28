@@ -4,6 +4,7 @@ import { randomUUID } from "crypto";
 import { getApiSession } from "@/lib/api-auth";
 import { getSupportTicketPriority } from "@/lib/support-tickets";
 import db from "@/packages/db/client";
+import { getEntitlements, hasFeature } from "@/lib/billing/entitlements";
 
 type SupportTicketApiRow = {
   id: string;
@@ -15,6 +16,8 @@ type SupportTicketApiRow = {
   message: string;
   status: "PENDING" | "FIXED";
   priority: "HIGH" | "NORMAL";
+  responseDueAt: Date | null;
+  firstRespondedAt: Date | null;
   fixedAt: Date | null;
   deletedAt: Date | null;
   createdAt: Date;
@@ -48,6 +51,8 @@ export async function GET(request: Request) {
             "message",
             "status",
             "priority",
+            "response_due_at" AS "responseDueAt",
+            "first_responded_at" AS "firstRespondedAt",
             "fixed_at" AS "fixedAt",
             "deleted_at" AS "deletedAt",
             "created_at" AS "createdAt",
@@ -71,6 +76,8 @@ export async function GET(request: Request) {
             "message",
             "status",
             "priority",
+            "response_due_at" AS "responseDueAt",
+            "first_responded_at" AS "firstRespondedAt",
             "fixed_at" AS "fixedAt",
             "deleted_at" AS "deletedAt",
             "created_at" AS "createdAt",
@@ -138,6 +145,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Account not found." }, { status: 404 });
     }
 
+    const priorityCandidate = getSupportTicketPriority(message);
+    const priority =
+      isParentSession &&
+      hasFeature(await getEntitlements(session), "priority_support")
+        ? priorityCandidate
+        : "NORMAL";
+    const responseDueAt = new Date(
+      Date.now() + (priority === "HIGH" ? 4 : 24) * 60 * 60 * 1000
+    );
+
     const ticketRows = await db.$queryRaw<SupportTicketApiRow[]>`
       INSERT INTO "support_tickets" (
         "id",
@@ -147,7 +164,8 @@ export async function POST(request: Request) {
         "requester_name",
         "requester_identifier",
         "message",
-        "priority"
+        "priority",
+        "response_due_at"
       )
       VALUES (
         ${randomUUID()},
@@ -157,7 +175,8 @@ export async function POST(request: Request) {
         ${"full_name" in account ? account.full_name || session.name || session.role : account.name || session.name || "School"},
         ${account.id},
         ${message},
-        ${getSupportTicketPriority(message)}::"SupportTicketPriority"
+        ${priority}::"SupportTicketPriority",
+        ${responseDueAt}
       )
       RETURNING
         "id",
@@ -169,6 +188,8 @@ export async function POST(request: Request) {
         "message",
         "status",
         "priority",
+        "response_due_at" AS "responseDueAt",
+        "first_responded_at" AS "firstRespondedAt",
         "fixed_at" AS "fixedAt",
         "deleted_at" AS "deletedAt",
         "created_at" AS "createdAt",

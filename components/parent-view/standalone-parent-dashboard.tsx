@@ -20,6 +20,12 @@ type Props = {
   childrenData: Child[];
   connectionsData: Connection[];
   invitesData: Invite[];
+  subscription: {
+    planCode: string;
+    planName: string;
+    enforcementEnabled: boolean;
+    maxChildren: number | null;
+  };
 };
 
 export function StandaloneParentDashboard({
@@ -28,6 +34,7 @@ export function StandaloneParentDashboard({
   childrenData,
   connectionsData,
   invitesData,
+  subscription,
 }: Props) {
   const [children, setChildren] = useState(childrenData);
   const [connections, setConnections] = useState(connectionsData);
@@ -48,6 +55,11 @@ export function StandaloneParentDashboard({
   const [requestAgainTarget, setRequestAgainTarget] = useState<DriverSummary | null>(null);
   const [assignmentConfirmTarget, setAssignmentConfirmTarget] = useState<Connection | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const childLimitReached =
+    subscription.enforcementEnabled &&
+    subscription.maxChildren !== null &&
+    children.length >= subscription.maxChildren;
 
   const approvedConnections = connections.filter((connection) => connection.status === "PARENT_APPROVED");
   const pendingConnections = connections.filter((connection) => connection.status !== "PARENT_APPROVED");
@@ -86,6 +98,13 @@ export function StandaloneParentDashboard({
     const openAddDriver = () => setAddDriverOpen(true);
     const openMenu = () => setSideMenuOpen(true);
     const openAddKid = () => {
+      if (childLimitReached) {
+        toast({
+          description: `${subscription.planName} includes ${subscription.maxChildren} child${subscription.maxChildren === 1 ? "" : "ren"}. Upgrade your plan to add another child.`,
+          variant: "destructive",
+        });
+        return;
+      }
       setEditingChildId(null);
       setChildForm({ fullName: "", age: "", grade: "", address: "" });
       setAddKidOpen(true);
@@ -100,7 +119,7 @@ export function StandaloneParentDashboard({
       window.removeEventListener("standalone-parent:open-menu", openMenu);
       window.removeEventListener("standalone-parent:add-kid", openAddKid);
     };
-  }, []);
+  }, [childLimitReached, subscription.maxChildren, subscription.planName]);
 
   const refreshConnections = async () => {
     const data = await jsonFetch("/api/parent-driver-connections");
@@ -396,6 +415,13 @@ export function StandaloneParentDashboard({
         parentId={parentId}
         parentName={parentName}
         billingSummary={billingSummary}
+        subscription={{
+          planCode: subscription.planCode,
+          planName: subscription.planName,
+          childCount: children.length,
+          maxChildren: subscription.maxChildren,
+          enforcementEnabled: subscription.enforcementEnabled,
+        }}
         pendingConnections={pendingConnections}
         approvedConnections={approvedConnections}
         invites={invites}

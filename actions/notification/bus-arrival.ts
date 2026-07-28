@@ -4,6 +4,7 @@ import twilio from "twilio";
 
 const accountSid = process.env.NEXT_PUBLIC_TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
+const whatsappFrom = process.env.TWILIO_WHATSAPP_FROM;
 type SMSType = {
   student_name: string;
   teacher?: string;
@@ -30,17 +31,16 @@ export const sendSmsForBusArrival = async ({
       };
     }
 
+    if (!accountSid || !authToken || !whatsappFrom) {
+      throw new Error("WhatsApp delivery is not configured");
+    }
     const messages = await client.messages.create({
-      from: "whatsapp:+14155238886",
+      from: whatsappFrom.startsWith("whatsapp:") ? whatsappFrom : `whatsapp:${whatsappFrom}`,
       to: `whatsapp:${phoneNumber}`,
       body: `Hello ${capitalizeName(parent_name)},\n ${capitalizeName(student_name)} bus is on its way for pick up and would arrive in ${eta}\n in  bus: ${bus_name}`,
     });
-    return { message: "Mesasge sent", status: 200 };
+    return { message: "Message accepted", status: 200, providerMessageId: messages.sid };
   } catch (error) {
-    return {
-      message: "Error updating status",
-      error: error instanceof Error ? error.message : "Unknown error",
-      status: 500,
-    };
+    throw error instanceof Error ? error : new Error("WhatsApp delivery failed");
   }
 };

@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { parseUserKey, requirePlatformAdmin, setSuspension } from "@/lib/admin/platform";
+import { assertSameOrigin } from "@/lib/admin/request-security";
+import { parseUserKey, requirePlatformPermission, setSuspension } from "@/lib/admin/platform";
 
 type Params = { id: string };
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<Params> }) {
   try {
-    const session = await requirePlatformAdmin();
+    assertSameOrigin(req);
+    const session = await requirePlatformPermission("accounts.suspend");
     const { id } = await params;
     const parsed = parseUserKey(decodeURIComponent(id));
     if (!parsed) {

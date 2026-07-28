@@ -167,6 +167,25 @@ export async function shareTripTemporarily({
     return { status: 401, message: "Unauthorized" };
   }
 
+  const { getEntitlements, assertWithinLimit, requireFeature } = await import(
+    "@/lib/billing/entitlements"
+  );
+  const role = getRole(user?.role);
+  const resolved = await getEntitlements({
+    id: String(user?.id),
+    role,
+    schoolId:
+      typeof user?.schoolId === "string" ? user.schoolId : null,
+  });
+  const viewerCount = await db.tripViewer.count({
+    where: {
+      tripId,
+      expiresAt: { gt: new Date() },
+    },
+  });
+  requireFeature(resolved, "multiple_viewers");
+  assertWithinLimit(resolved, "max_viewers", viewerCount);
+
   const expiresAt = new Date(Date.now() + Math.max(5, minutes) * 60 * 1000);
 
   await db.tripViewer.upsert({

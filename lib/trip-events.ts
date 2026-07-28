@@ -198,6 +198,27 @@ export async function recordTripEvent({
     });
   }
 
+  const trip = await db.trip.findUnique({
+    where: { id: tripId },
+    select: { schoolId: true },
+  });
+  if (trip?.schoolId) {
+    const { enqueueSchoolWebhookEvent } = await import("@/lib/enterprise/webhooks");
+    await enqueueSchoolWebhookEvent({
+      schoolId: trip.schoolId,
+      eventId: event.id,
+      eventType,
+      payload: {
+        tripId,
+        eventType,
+        actorId: actorId ?? null,
+        actorType: actorType ?? null,
+        payload: payload ?? null,
+        timestamp: event.timestamp.toISOString(),
+      },
+    });
+  }
+
   return event;
 }
 
@@ -209,7 +230,7 @@ export async function recordTripLocation({
   speed,
   heading,
 }: RecordTripLocationInput) {
-  return db.tripLocation.create({
+  const location = await db.tripLocation.create({
     data: {
       tripId,
       lat,
@@ -219,6 +240,14 @@ export async function recordTripLocation({
       heading: heading ?? null,
     },
   });
+  const { evaluateTripLocationAutomation } = await import("@/lib/trip-automation");
+  await evaluateTripLocationAutomation({
+    tripId,
+    lat,
+    lng,
+    speed: speed ?? null,
+  });
+  return location;
 }
 
 export async function ensureTrip({

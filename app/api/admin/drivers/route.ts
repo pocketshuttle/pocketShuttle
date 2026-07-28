@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { requirePlatformAdmin } from "@/lib/admin/platform";
+import { requirePlatformPermission } from "@/lib/admin/platform";
 import db from "@/packages/db/client";
 
 export async function GET() {
   try {
-    await requirePlatformAdmin();
+    await requirePlatformPermission("accounts.read");
     const drivers = await db.driver.findMany({
       include: {
         school: { select: { id: true, name: true, email: true } },

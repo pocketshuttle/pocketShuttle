@@ -36,6 +36,12 @@ export type SessionPayload = {
   image?: string | null;
   email?: string | null;
   schoolId?: string | null;
+  platformActorId?: string | null;
+  platformActorName?: string | null;
+  platformAccessRole?: string | null;
+  workspaceSessionId?: string | null;
+  workspaceExpiresAt?: string | null;
+  workspaceReason?: string | null;
 };
 
 export async function setSessionCookie(payload: SessionPayload) {

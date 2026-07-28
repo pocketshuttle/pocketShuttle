@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import db from "@/packages/db/client";
+import { requirePlatformPermission } from "@/lib/admin/platform";
 
 function ReportBlock({ title, rows }: { title: string; rows: Array<{ label: string; value: string | number }> }) {
   return (
@@ -19,6 +20,7 @@ function ReportBlock({ title, rows }: { title: string; rows: Array<{ label: stri
 }
 
 const AdminReportsPage = async () => {
+  await requirePlatformPermission("reports.read");
   const [parentsByAccountType, driversByVerification, requestsByStatus, paymentsByStatus, plans] = await Promise.all([
     db.parent.groupBy({ by: ["accountType"], _count: { _all: true } }),
     db.driver.groupBy({ by: ["verificationStatus"], _count: { _all: true } }),

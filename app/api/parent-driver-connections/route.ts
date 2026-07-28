@@ -5,6 +5,11 @@ import { getApiSession } from "@/lib/api-auth";
 import { markDriverActive } from "@/lib/driver-activity";
 import { sendKnownDriverRealtimeEvent } from "@/lib/known-driver-network";
 import db from "@/packages/db/client";
+import {
+  assertWithinLimit,
+  getEntitlements,
+} from "@/lib/billing/entitlements";
+import { upgradeRequiredResponse } from "@/lib/billing/responses";
 
 export async function GET() {
   const session = await getApiSession();
@@ -99,6 +104,36 @@ export async function POST(req: NextRequest) {
 
   if (!parent || !driver) {
     return NextResponse.json({ message: "Parent or driver not found" }, { status: 404 });
+  }
+
+  if (session.role === "parent") {
+    try {
+      const [resolved, existing, connectionCount] = await Promise.all([
+        getEntitlements(session),
+        db.parentDriverConnection.findUnique({
+          where: { parentId_driverId: { parentId, driverId } },
+          select: { status: true },
+        }),
+        db.parentDriverConnection.count({
+          where: {
+            parentId,
+            status: { notIn: ["DECLINED", "REVOKED"] },
+          },
+        }),
+      ]);
+      const consumesSlot =
+        !existing || ["DECLINED", "REVOKED"].includes(existing.status);
+      assertWithinLimit(
+        resolved,
+        "max_connected_drivers",
+        connectionCount,
+        consumesSlot ? 1 : 0
+      );
+    } catch (error) {
+      const response = upgradeRequiredResponse(error);
+      if (response) return response;
+      throw error;
+    }
   }
 
   const status = session.role === "driver" ? "DRIVER_REQUESTED" : "INVITED";

@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
 
 import { AdminLoginForm } from "@/components/admin/admin-login-form";
-import { getOptionalSession } from "@/lib/optional-session";
+import { getApiSession } from "@/lib/api-auth";
 
 const AdminLoginPage = async () => {
-  const user = await getOptionalSession();
+  const user = await getApiSession();
   if (user?.role === "superadmin") {
     redirect("/admin");
   }

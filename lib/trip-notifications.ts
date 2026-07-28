@@ -2,10 +2,15 @@ import "server-only";
 
 import { Knock } from "@knocklabs/node";
 
-import { sendSmsForBusArrival } from "@/actions/notification/bus-arrival";
 import { sendPushNotification } from "@/onesignal/send-push";
 import db from "@/packages/db/client";
 import { TripEventType } from "@prisma/client";
+import { getTripOwnerEntitlements } from "@/lib/billing/trip-entitlements";
+import {
+  assertPremiumMessageAvailable,
+  consumePremiumMessage,
+} from "@/lib/billing/premium-messages";
+import { sendPremiumChannel } from "@/lib/billing/premium-delivery";
 
 type TripEventNotificationInput = {
   tripId: string;
@@ -42,6 +47,10 @@ function getTripEventMessage(eventType: TripEventType, payload?: Record<string, 
       return `Emergency alert resolved for ${busName}.`;
     case "trip_ended":
       return `${busName} has arrived safely.`;
+    case "eta_updated":
+      return payload?.nearby === true
+        ? `${busName} is nearby. ETA: ${String(payload?.etaMinutes ?? "a few")} minutes.`
+        : null;
     default:
       return null;
   }
@@ -82,18 +91,40 @@ export async function dispatchTripNotifications({
     return [];
   }
 
-  const viewers = await db.tripViewer.findMany({
-    where: {
-      tripId,
-      permissions: { has: "receive_alerts" },
-      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-    },
-  });
+  const [viewers, trip] = await Promise.all([
+    db.tripViewer.findMany({
+      where: {
+        tripId,
+        permissions: { has: "receive_alerts" },
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+    }),
+    db.trip.findUnique({ where: { id: tripId }, select: { schoolId: true } }),
+  ]);
+
+  const criticalEvents = new Set<TripEventType>([
+    "emergency_triggered",
+    "emergency_resolved",
+    "route_deviation",
+    "unusual_stop",
+  ]);
+  const pushPolicy = trip?.schoolId
+    ? await db.schoolNotificationPolicy.findUnique({
+        where: {
+          schoolId_eventType_channel: {
+            schoolId: trip.schoolId,
+            eventType,
+            channel: "PUSH",
+          },
+        },
+      })
+    : null;
+  const pushAllowed = criticalEvents.has(eventType) || pushPolicy?.enabled !== false;
 
   const attempts: Array<{ channel: string; viewerId?: string; status: "sent" | "failed"; error?: string }> = [];
 
   await Promise.all(
-    viewers.map(async (viewer) => {
+    (pushAllowed ? viewers : []).map(async (viewer) => {
       try {
         await sendPushNotification(message, viewer.viewerId);
         attempts.push({ channel: "push", viewerId: viewer.viewerId, status: "sent" });
@@ -108,27 +139,85 @@ export async function dispatchTripNotifications({
     })
   );
 
-  if (eventType === "trip_started") {
-    const phoneNumber = getString(payload, "parentPhone");
-    if (phoneNumber) {
+  const resolved = await getTripOwnerEntitlements(tripId);
+  const premiumPreferences = resolved
+    ? await db.billingNotificationPreference.findMany({
+        where: {
+          billingAccountId: resolved.billingAccountId,
+          channel: { in: ["SMS", "WHATSAPP"] },
+          enabled: true,
+          destination: { not: null },
+        },
+      })
+    : [];
+  const schoolPremiumPolicies = trip?.schoolId
+    ? await db.schoolNotificationPolicy.findMany({
+        where: {
+          schoolId: trip.schoolId,
+          eventType,
+          channel: { in: ["SMS", "WHATSAPP"] },
+        },
+      })
+    : [];
+
+  await Promise.all(
+    premiumPreferences.map(async (preference) => {
+      const channel = preference.channel as "SMS" | "WHATSAPP";
+      const channelKey: "sms" | "whatsapp" = channel === "SMS" ? "sms" : "whatsapp";
+      const policy = schoolPremiumPolicies.find((item) => item.channel === channel);
+      if (policy?.enabled === false || !preference.destination || !resolved) return;
+      let deliveryId: string | null = null;
+      let providerAccepted = false;
       try {
-        await sendSmsForBusArrival({
-          student_name: getString(payload, "studentName") ?? "",
-          parent_name: getString(payload, "parentName") ?? "",
-          bus_name: getString(payload, "busName") ?? "Vehicle",
-          phoneNumber,
-          eta: getString(payload, "eta") ?? "unknown",
+        await assertPremiumMessageAvailable(resolved, channelKey);
+        const delivery = await db.notificationDelivery.create({
+          data: {
+            billingAccountId: resolved.billingAccountId,
+            tripId,
+            eventType,
+            channel,
+            recipient: preference.destination,
+            message,
+            attemptCount: 1,
+          },
         });
-        attempts.push({ channel: "sms", status: "sent" });
+        deliveryId = delivery.id;
+        const result = await sendPremiumChannel({
+          channel,
+          destination: preference.destination,
+          message,
+        });
+        providerAccepted = true;
+        await db.notificationDelivery.update({
+          where: { id: delivery.id },
+          data: {
+            status: "ACCEPTED",
+            acceptedAt: new Date(),
+            providerMessageId: result.providerMessageId,
+          },
+        });
+        await consumePremiumMessage(resolved, channelKey);
+        attempts.push({ channel: channel.toLowerCase(), status: "sent" });
       } catch (error) {
+        if (deliveryId && !providerAccepted) {
+          await db.notificationDelivery
+            .update({
+              where: { id: deliveryId },
+              data: {
+                status: "FAILED",
+                failureReason: error instanceof Error ? error.message : "Unknown error",
+              },
+            })
+            .catch(() => undefined);
+        }
         attempts.push({
-          channel: "sms",
-          status: "failed",
+          channel: channel.toLowerCase(),
+          status: providerAccepted ? "sent" : "failed",
           error: error instanceof Error ? error.message : "Unknown error",
         });
       }
-    }
-  }
+    })
+  );
 
   if (eventType === "participant_boarded") {
     try {

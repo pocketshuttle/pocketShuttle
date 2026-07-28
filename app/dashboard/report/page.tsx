@@ -2,6 +2,7 @@ import { NetworkError } from '@/components/errorsandsuccess/error/error';
 import { MainPickUpPage } from '@/components/pick-logs/main-page'
 import { getUserSession } from '@/lib/session';
 import db from '@/packages/db/client';
+import { getEntitlements, historyCutoff } from '@/lib/billing/entitlements';
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,12 @@ const ReportPage = async () => {
     }
 
     try {
+        const resolved = await getEntitlements({
+            id: String(user.id),
+            role: String(user.role),
+            schoolId: typeof user.schoolId === "string" ? user.schoolId : schoolId,
+        });
+        const cutoff = historyCutoff(resolved);
         const [teacherData, totals, trackingTrips] = await Promise.all([
             db.teacher.findMany({
                 where: { schoolId },
@@ -45,6 +52,7 @@ const ReportPage = async () => {
                 db.pickup.count({
                     where: {
                         Student: { schoolId },
+                        ...(cutoff ? { pickUpTime: { gte: cutoff } } : {}),
                     },
                 }),
                 db.teacher.count({ where: { schoolId } }),
@@ -53,9 +61,7 @@ const ReportPage = async () => {
             db.trip.findMany({
                 where: {
                     schoolId,
-                    createdAt: {
-                        gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-                    },
+                    ...(cutoff ? { createdAt: { gte: cutoff } } : {}),
                 },
                 include: {
                     locations: {

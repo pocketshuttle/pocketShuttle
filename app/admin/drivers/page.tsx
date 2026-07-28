@@ -1,8 +1,10 @@
 export const dynamic = "force-dynamic";
 
 import db from "@/packages/db/client";
+import { requirePlatformPermission } from "@/lib/admin/platform";
 
 const AdminDriversPage = async () => {
+  await requirePlatformPermission("accounts.read");
   const drivers = await db.driver.findMany({
     include: {
       school: { select: { name: true, email: true } },
