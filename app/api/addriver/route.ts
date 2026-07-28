@@ -3,9 +3,16 @@ import { NextRequest, NextResponse } from "next/server";
 import db from "@/packages/db/client";
 import { DriverSchema } from "@/schemas";
 import { canManageSchool, getApiSession } from "@/lib/api-auth";
+import {
+  assertWithinLimit,
+  getEntitlements,
+} from "@/lib/billing/entitlements";
+import { upgradeRequiredResponse } from "@/lib/billing/responses";
+import { assertSameOrigin } from "@/lib/admin/request-security";
 
 export const POST = async (req: NextRequest) => {
   try {
+    assertSameOrigin(req);
     const session = await getApiSession();
     const schoolId = session?.schoolId;
     if (!canManageSchool(session) || !schoolId) {
@@ -14,6 +21,13 @@ export const POST = async (req: NextRequest) => {
         { status: 401 }
       );
     }
+
+    const [resolved, teacherCount, driverCount] = await Promise.all([
+      getEntitlements(session),
+      db.teacher.count({ where: { schoolId } }),
+      db.driver.count({ where: { schoolId } }),
+    ]);
+    assertWithinLimit(resolved, "max_staff", teacherCount + driverCount);
 
     const data = await req.json();
 
@@ -83,6 +97,8 @@ export const POST = async (req: NextRequest) => {
       { status: 200 }
     );
   } catch (error) {
+    const entitlementResponse = upgradeRequiredResponse(error);
+    if (entitlementResponse) return entitlementResponse;
     console.error("Error adding driver:", error);
     return NextResponse.json(
       {

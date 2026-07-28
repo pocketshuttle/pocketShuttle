@@ -20,6 +20,12 @@ type Props = {
   childrenData: Child[];
   connectionsData: Connection[];
   invitesData: Invite[];
+  subscription: {
+    planCode: string;
+    planName: string;
+    enforcementEnabled: boolean;
+    maxChildren: number | null;
+  };
 };
 
 export function StandaloneParentDashboard({
@@ -28,6 +34,7 @@ export function StandaloneParentDashboard({
   childrenData,
   connectionsData,
   invitesData,
+  subscription,
 }: Props) {
   const [children, setChildren] = useState(childrenData);
   const [connections, setConnections] = useState(connectionsData);
@@ -48,6 +55,11 @@ export function StandaloneParentDashboard({
   const [requestAgainTarget, setRequestAgainTarget] = useState<DriverSummary | null>(null);
   const [assignmentConfirmTarget, setAssignmentConfirmTarget] = useState<Connection | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const childLimitReached =
+    subscription.enforcementEnabled &&
+    subscription.maxChildren !== null &&
+    children.length >= subscription.maxChildren;
 
   const approvedConnections = connections.filter((connection) => connection.status === "PARENT_APPROVED");
   const pendingConnections = connections.filter((connection) => connection.status !== "PARENT_APPROVED");
@@ -86,6 +98,13 @@ export function StandaloneParentDashboard({
     const openAddDriver = () => setAddDriverOpen(true);
     const openMenu = () => setSideMenuOpen(true);
     const openAddKid = () => {
+      if (childLimitReached) {
+        toast({
+          description: `${subscription.planName} includes ${subscription.maxChildren} child${subscription.maxChildren === 1 ? "" : "ren"}. Upgrade your plan to add another child.`,
+          variant: "destructive",
+        });
+        return;
+      }
       setEditingChildId(null);
       setChildForm({ fullName: "", age: "", grade: "", address: "" });
       setAddKidOpen(true);
@@ -100,12 +119,38 @@ export function StandaloneParentDashboard({
       window.removeEventListener("standalone-parent:open-menu", openMenu);
       window.removeEventListener("standalone-parent:add-kid", openAddKid);
     };
-  }, []);
+  }, [childLimitReached, subscription.maxChildren, subscription.planName]);
 
   const refreshConnections = async () => {
     const data = await jsonFetch("/api/parent-driver-connections");
     setConnections(data.connections || []);
   };
+
+  useEffect(() => {
+    if (!locationAssignment) return;
+
+    const refreshedAssignment = connections
+      .flatMap((connection) =>
+        connection.assignments.map((assignment) => ({
+          ...assignment,
+          driver: connection.driver,
+        }))
+      )
+      .find((assignment) => assignment.id === locationAssignment.id);
+
+    const currentLocation = locationAssignment.driver.liveAddress;
+    const nextLocation = refreshedAssignment?.driver.liveAddress;
+    const locationChanged =
+      currentLocation?.latitude !== nextLocation?.latitude ||
+      currentLocation?.longitude !== nextLocation?.longitude;
+    const statusChanged =
+      locationAssignment.lastStatus !== refreshedAssignment?.lastStatus ||
+      String(locationAssignment.lastStatusAt || "") !== String(refreshedAssignment?.lastStatusAt || "");
+
+    if (refreshedAssignment && (locationChanged || statusChanged)) {
+      setLocationAssignment(refreshedAssignment);
+    }
+  }, [connections, locationAssignment]);
 
   useEffect(() => {
     if (!parentId) return;
@@ -120,6 +165,7 @@ export function StandaloneParentDashboard({
 
     channel?.bind("child-driver-event", refresh);
     channel?.bind("connection-updated", refresh);
+    channel?.bind("driver-location-updated", refresh);
 
     const pollId = window.setInterval(refresh, 15000);
 
@@ -127,6 +173,7 @@ export function StandaloneParentDashboard({
       window.clearInterval(pollId);
       channel?.unbind("child-driver-event", refresh);
       channel?.unbind("connection-updated", refresh);
+      channel?.unbind("driver-location-updated", refresh);
       if (channel) pusherClient.unsubscribe(channelName);
     };
   }, [parentId]);
@@ -368,6 +415,13 @@ export function StandaloneParentDashboard({
         parentId={parentId}
         parentName={parentName}
         billingSummary={billingSummary}
+        subscription={{
+          planCode: subscription.planCode,
+          planName: subscription.planName,
+          childCount: children.length,
+          maxChildren: subscription.maxChildren,
+          enforcementEnabled: subscription.enforcementEnabled,
+        }}
         pendingConnections={pendingConnections}
         approvedConnections={approvedConnections}
         invites={invites}
@@ -758,7 +812,7 @@ export function StandaloneParentDashboard({
                         </>
                       ) : (
                         <>
-                          <p className="text-xs text-slate-500">{child.address || child.grade || "No school address"}</p>
+                          <p className="max-w-full truncate text-xs text-slate-500">{child.address || child.grade || "No school address"}</p>
                           <p className="text-xs font-semibold text-slate-700">No driver assigned</p>
                         </>
                       )}

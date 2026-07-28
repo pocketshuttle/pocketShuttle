@@ -3,8 +3,10 @@ export const dynamic = "force-dynamic";
 import { VerificationQueue } from "@/components/admin/admin-controls";
 import db from "@/packages/db/client";
 import { Prisma } from "@prisma/client";
+import { requirePlatformPermission } from "@/lib/admin/platform";
 
 const AdminVerificationPage = async () => {
+  await requirePlatformPermission("verification.manage");
   const drivers = await db.driver.findMany({
     where: { accountType: "STANDALONE", schoolId: null },
     include: {

@@ -4,6 +4,11 @@ import db from "@/packages/db/client";
 import { getApiSession, isParent } from "@/lib/api-auth";
 import { geocodeAddress } from "@/lib/google-geocoding";
 import { ParentChildSchema } from "@/schemas";
+import {
+  assertWithinLimit,
+  getEntitlements,
+} from "@/lib/billing/entitlements";
+import { upgradeRequiredResponse } from "@/lib/billing/responses";
 
 async function getStandaloneParent(parentId: string) {
   return db.parent.findFirst({
@@ -78,6 +83,18 @@ export async function POST(req: NextRequest) {
   const parent = await getStandaloneParent(session.id);
   if (!parent) {
     return NextResponse.json({ message: "Standalone parent not found" }, { status: 404 });
+  }
+
+  try {
+    const [resolved, childCount] = await Promise.all([
+      getEntitlements(session),
+      db.parentChild.count({ where: { parentId: parent.id } }),
+    ]);
+    assertWithinLimit(resolved, "max_children", childCount);
+  } catch (error) {
+    const response = upgradeRequiredResponse(error);
+    if (response) return response;
+    throw error;
   }
 
   const body = await req.json();

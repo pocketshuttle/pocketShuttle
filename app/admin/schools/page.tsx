@@ -1,8 +1,10 @@
 export const dynamic = "force-dynamic";
 
 import db from "@/packages/db/client";
+import { requirePlatformPermission } from "@/lib/admin/platform";
 
 const AdminSchoolsPage = async () => {
+  await requirePlatformPermission("accounts.read");
   const schools = await db.user.findMany({
     include: {
       Subscription: { include: { plan: true }, orderBy: { startDate: "desc" }, take: 1 },

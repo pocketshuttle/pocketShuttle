@@ -1,0 +1,290 @@
+"use client";
+
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
+import { ArrowLeft, Check, CreditCard, ExternalLink, LockKeyhole } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
+
+type Plan = {
+  code: string;
+  name: string;
+  tier: string;
+  description?: string | null;
+  features?: unknown;
+  isPurchasable: boolean;
+  checkoutState: "INCLUDED" | "READY" | "PAYSTACK_SETUP_REQUIRED" | "CLOSED";
+  price: {
+    amountMinor: number;
+    currency: string;
+    interval: string;
+  } | null;
+};
+
+type SubscriptionSnapshot = {
+  billingAccount: {
+    paidCheckoutEnabled: boolean;
+  };
+  current: {
+    planCode: string;
+    planName: string;
+    status: string;
+    currentPeriodEnd?: string | null;
+    entitlements: Record<string, boolean | number | null>;
+  };
+  payments: Array<{
+    id: string;
+    amountMinor: number;
+    currency: string;
+    status: string;
+    createdAt: string;
+  }>;
+  usage: Record<string, { current: number; limit: number | null }>;
+};
+
+function usageLabel(value: string) {
+  return value
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/^./, (letter) => letter.toUpperCase());
+}
+
+async function jsonFetch(url: string, init?: RequestInit) {
+  const response = await fetch(url, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init?.headers || {}),
+    },
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data?.message || "Billing request failed");
+  return data;
+}
+
+function featureLabels(value: unknown) {
+  return Array.isArray(value) ? value.map(String) : [];
+}
+
+export function SubscriptionPanel({ audience }: { audience: "family" | "school" }) {
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [snapshot, setSnapshot] = useState<SubscriptionSnapshot | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [pendingCode, setPendingCode] = useState<string | null>(null);
+  const backHref = audience === "family" ? "/parent" : "/dashboard";
+  const backLabel = audience === "family" ? "Back to family dashboard" : "Back to dashboard";
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [planData, subscriptionData] = await Promise.all([
+        jsonFetch(`/api/billing/plans?audience=${audience}`),
+        jsonFetch("/api/billing/subscription"),
+      ]);
+      setPlans(planData.plans || []);
+      setSnapshot(subscriptionData);
+    } catch (error) {
+      toast({
+        description: error instanceof Error ? error.message : "Unable to load billing",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [audience]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const checkout = async (planCode: string) => {
+    setPendingCode(planCode);
+    try {
+      const data = await jsonFetch("/api/billing/subscription/checkout", {
+        method: "POST",
+        body: JSON.stringify({ planCode }),
+      });
+      window.location.assign(data.authorizationUrl);
+    } catch (error) {
+      toast({
+        description: error instanceof Error ? error.message : "Unable to start checkout",
+        variant: "destructive",
+      });
+      setPendingCode(null);
+    }
+  };
+
+  const manage = async () => {
+    setPendingCode("manage");
+    try {
+      const data = await jsonFetch("/api/billing/subscription/manage", {
+        method: "POST",
+      });
+      window.location.assign(data.url);
+    } catch (error) {
+      toast({
+        description: error instanceof Error ? error.message : "Unable to manage subscription",
+        variant: "destructive",
+      });
+      setPendingCode(null);
+    }
+  };
+
+  const cancel = async () => {
+    setPendingCode("cancel");
+    try {
+      const data = await jsonFetch("/api/billing/subscription/cancel", {
+        method: "POST",
+      });
+      toast({ description: data.message });
+      await load();
+    } catch (error) {
+      toast({
+        description: error instanceof Error ? error.message : "Unable to cancel subscription",
+        variant: "destructive",
+      });
+    } finally {
+      setPendingCode(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="mx-auto grid w-full max-w-6xl gap-4">
+        <Button asChild variant="ghost" className="w-fit gap-2 px-2 text-slate-600">
+          <Link href={backHref}>
+            <ArrowLeft className="h-4 w-4" />
+            {backLabel}
+          </Link>
+        </Button>
+        <div className="rounded-lg border bg-white p-6">Loading subscription…</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto grid w-full max-w-6xl gap-6">
+      <Button asChild variant="ghost" className="w-fit gap-2 px-2 text-slate-600">
+        <Link href={backHref}>
+          <ArrowLeft className="h-4 w-4" />
+          {backLabel}
+        </Link>
+      </Button>
+
+      <section className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-sm text-slate-500">Current subscription</p>
+          <div className="mt-1 flex items-center gap-2">
+            <h1 className="text-2xl font-semibold">{snapshot?.current.planName || "Free"}</h1>
+            <Badge variant="outline">{snapshot?.current.status || "ACTIVE"}</Badge>
+          </div>
+          {snapshot?.current.currentPeriodEnd ? (
+            <p className="mt-1 text-sm text-slate-500">
+              Current period ends {new Date(snapshot.current.currentPeriodEnd).toLocaleDateString()}
+            </p>
+          ) : null}
+        </div>
+        {snapshot?.current.planCode.includes("PRO") ? (
+          <div className="flex gap-2">
+            <Button variant="outline" disabled={pendingCode !== null} onClick={manage}>
+              <ExternalLink className="mr-2 h-4 w-4" />
+              Manage payment method
+            </Button>
+            <Button variant="outline" disabled={pendingCode !== null} onClick={cancel}>
+              Cancel renewal
+            </Button>
+          </div>
+        ) : null}
+      </section>
+
+      <section className="grid gap-3 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2 lg:grid-cols-5">
+        {Object.entries(snapshot?.usage || {}).map(([key, value]) => {
+          const percentage =
+            value.limit && value.limit > 0
+              ? Math.min(100, Math.round((value.current / value.limit) * 100))
+              : 0;
+          return (
+            <div key={key} className="rounded-lg bg-slate-50 p-3">
+              <p className="text-xs font-medium text-slate-500">{usageLabel(key)}</p>
+              <p className="mt-1 text-lg font-semibold text-slate-950">
+                {value.current}/{value.limit ?? "Unlimited"}
+              </p>
+              {value.limit !== null ? (
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-[#4a48ff]"
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {plans.map((plan) => {
+          const current = plan.code === snapshot?.current.planCode;
+          const paid = plan.tier !== "FREE";
+          const checkoutAvailable =
+            plan.isPurchasable && snapshot?.billingAccount.paidCheckoutEnabled === true;
+          return (
+            <article key={plan.code} className="flex flex-col rounded-xl border border-slate-200 bg-white p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold">{plan.name}</h2>
+                  <p className="mt-1 text-sm text-slate-500">{plan.description}</p>
+                </div>
+                {current ? <Badge>Current</Badge> : paid ? <LockKeyhole className="h-5 w-5 text-slate-400" /> : null}
+              </div>
+              <p className="mt-5 text-2xl font-semibold">
+                {plan.price
+                  ? `${plan.price.currency} ${(plan.price.amountMinor / 100).toLocaleString()}`
+                  : paid
+                    ? "Price pending"
+                    : "Free"}
+                {plan.price ? <span className="text-sm font-normal text-slate-500"> / month</span> : null}
+              </p>
+              <ul className="my-5 grid gap-2 text-sm">
+                {featureLabels(plan.features).map((feature) => (
+                  <li key={feature} className="flex gap-2">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Button
+                className="mt-auto"
+                variant={current ? "outline" : "default"}
+                disabled={current || !checkoutAvailable || pendingCode !== null}
+                onClick={() => checkout(plan.code)}
+              >
+                <CreditCard className="mr-2 h-4 w-4" />
+                {current
+                  ? "Current plan"
+                  : checkoutAvailable
+                    ? pendingCode === plan.code
+                      ? "Opening checkout…"
+                      : "Upgrade"
+                    : plan.isPurchasable
+                      ? "Pilot access only"
+                    : plan.checkoutState === "PAYSTACK_SETUP_REQUIRED"
+                      ? "Payment setup pending"
+                    : paid
+                      ? "Coming soon"
+                      : "Included"}
+              </Button>
+            </article>
+          );
+        })}
+      </section>
+
+      <section className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
+        Emergency controls, active-trip basic location, pickup/drop-off confirmation,
+        account security, privacy controls, revocation, and critical push alerts remain
+        available on every plan.
+      </section>
+    </div>
+  );
+}

@@ -8,6 +8,7 @@ import React, { Suspense } from 'react'
 import NewParentPage from '@/components/parent-view/new-parent-view'
 import { StandaloneParentDashboard } from '@/components/parent-view/standalone-parent-dashboard'
 import db from '@/packages/db/client'
+import { getEntitlements } from '@/lib/billing/entitlements'
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -88,7 +89,7 @@ const TeacherView = async () => {
         }
 
         if (parent.accountType === "STANDALONE" && parent.schoolId === null) {
-            const [children, connections, invites] = await Promise.all([
+            const [children, connections, invites, subscription] = await Promise.all([
                 db.parentChild.findMany({
                     where: { parentId: parent.id },
                     orderBy: { createdAt: "desc" },
@@ -128,6 +129,12 @@ const TeacherView = async () => {
                     where: { parentId: parent.id },
                     orderBy: { createdAt: "desc" },
                     take: 20,
+                }),
+                getEntitlements({
+                    id: parent.id,
+                    role: "parent",
+                    schoolId: null,
+                    email: null,
                 }),
             ]);
             const schoolCoordRows = await db.$queryRaw<Array<{ id: string; address: string | null; schoolCoords: unknown }>>`
@@ -174,6 +181,15 @@ const TeacherView = async () => {
                             childrenData={childrenWithSchoolCoords as any}
                             connectionsData={connectionsWithDriverActivity as any}
                             invitesData={invites as any}
+                            subscription={{
+                                planCode: subscription.planCode,
+                                planName: subscription.planName,
+                                enforcementEnabled: subscription.enforcementEnabled,
+                                maxChildren:
+                                    typeof subscription.entitlements.max_children === "number"
+                                        ? subscription.entitlements.max_children
+                                        : null,
+                            }}
                         />
                     </div>
                 </Suspense>

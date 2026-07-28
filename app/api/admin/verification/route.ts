@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { logSuperUserAction, requirePlatformAdmin } from "@/lib/admin/platform";
+import { assertSameOrigin } from "@/lib/admin/request-security";
+import { logSuperUserAction, requirePlatformPermission } from "@/lib/admin/platform";
 import db from "@/packages/db/client";
 
 export async function GET() {
   try {
-    await requirePlatformAdmin();
+    await requirePlatformPermission("verification.manage");
     const drivers = await db.driver.findMany({
       where: { accountType: "STANDALONE", schoolId: null },
       orderBy: [{ verificationStatus: "asc" }, { updatedAt: "desc" }],
@@ -19,7 +20,8 @@ export async function GET() {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const session = await requirePlatformAdmin();
+    assertSameOrigin(req);
+    const session = await requirePlatformPermission("verification.manage");
     const body = await req.json();
     const driverId = String(body.driverId || "");
     const action = String(body.action || "").toLowerCase();

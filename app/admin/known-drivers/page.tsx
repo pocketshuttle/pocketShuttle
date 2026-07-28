@@ -1,8 +1,10 @@
 export const dynamic = "force-dynamic";
 
 import db from "@/packages/db/client";
+import { requirePlatformPermission } from "@/lib/admin/platform";
 
 const AdminKnownDriversPage = async () => {
+  await requirePlatformPermission("operations.read");
   const [connections, assignments, invites, payments, events] = await Promise.all([
     db.parentDriverConnection.findMany({
       include: {

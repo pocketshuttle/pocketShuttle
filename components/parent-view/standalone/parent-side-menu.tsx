@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AlertTriangle, Check, CheckCircle2, Clock3, Copy, LifeBuoy, PlusCircle, Send, Ticket, X } from "lucide-react";
 
 import Logout from "@/components/dashboard/sidebar/logout";
@@ -19,11 +20,20 @@ type BillingSummary = {
   nextTrialEnd?: Date | null;
 };
 
+type SubscriptionUsage = {
+  planCode: string;
+  planName: string;
+  childCount: number;
+  maxChildren: number | null;
+  enforcementEnabled: boolean;
+};
+
 type ParentSideMenuProps = {
   open: boolean;
   parentId: string;
   parentName?: string | null;
   billingSummary: BillingSummary;
+  subscription: SubscriptionUsage;
   pendingConnections: Connection[];
   approvedConnections: Connection[];
   invites: Invite[];
@@ -49,6 +59,7 @@ export function ParentSideMenu({
   parentId,
   parentName,
   billingSummary,
+  subscription,
   pendingConnections,
   approvedConnections,
   invites,
@@ -150,7 +161,27 @@ export function ParentSideMenu({
 
       <div className="grid gap-5 p-4">
         <section className="rounded-lg border border-slate-200 bg-white p-4">
-          <h2 className="mb-3 text-base font-semibold">Payment plan</h2>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-base font-semibold">Payment plan</h2>
+            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+              {subscription.planName}
+            </span>
+          </div>
+          <div className="mb-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+            <div className="flex items-center justify-between gap-3 text-sm">
+              <span className="text-slate-600">Children</span>
+              <span className="font-semibold text-slate-950">
+                {subscription.childCount}/{subscription.maxChildren ?? "Unlimited"}
+              </span>
+            </div>
+            {subscription.enforcementEnabled &&
+            subscription.maxChildren !== null &&
+            subscription.childCount >= subscription.maxChildren ? (
+              <p className="mt-2 text-xs font-medium text-amber-700">
+                Your current children remain available. Upgrade before adding another child.
+              </p>
+            ) : null}
+          </div>
           <div className="grid grid-cols-3 gap-2 text-center text-sm">
             <div className="rounded-md bg-slate-50 p-3">
               <p className="text-lg font-semibold">{billingSummary.freeTrial}</p>
@@ -168,6 +199,12 @@ export function ParentSideMenu({
           <p className="mt-3 text-xs text-slate-500">
             Next trial ending: {billingSummary.nextTrialEnd ? formatDate(billingSummary.nextTrialEnd) : "N/A"}
           </p>
+          <Button asChild variant="outline" className="mt-3 w-full">
+            <Link href="/billing">Manage PocketShuttle plan</Link>
+          </Button>
+          <Button asChild variant="outline" className="mt-2 w-full">
+            <Link href="/parent/pro">Open Family Pro tools</Link>
+          </Button>
         </section>
 
         <section className="rounded-lg border border-slate-200 bg-white p-4">

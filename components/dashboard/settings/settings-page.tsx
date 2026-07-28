@@ -336,7 +336,7 @@ export function SettingsPage({
                     </p>
                   ) : null}
                   <Button asChild variant="outline" className="mt-4">
-                    <Link href="/dashboard/revenue">Open revenue</Link>
+                    <Link href="/dashboard/billing">Manage subscription</Link>
                   </Button>
                 </div>
 

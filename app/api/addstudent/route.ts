@@ -4,9 +4,16 @@ import { revalidateTag } from "next/cache";
 import db from "@/packages/db/client";
 import { StudentSchema } from "@/schemas";
 import { canManageSchool, getApiSession } from "@/lib/api-auth";
+import {
+  assertWithinLimit,
+  getEntitlements,
+} from "@/lib/billing/entitlements";
+import { upgradeRequiredResponse } from "@/lib/billing/responses";
+import { assertSameOrigin } from "@/lib/admin/request-security";
 
 export const POST = async (req: NextRequest) => {
   try {
+    assertSameOrigin(req);
     const session = await getApiSession();
     const schoolId = session?.schoolId;
     if (!canManageSchool(session) || !schoolId) {
@@ -17,6 +24,12 @@ export const POST = async (req: NextRequest) => {
         { status: 403 }
       );
     }
+
+    const [resolved, studentCount] = await Promise.all([
+      getEntitlements(session),
+      db.student.count({ where: { schoolId } }),
+    ]);
+    assertWithinLimit(resolved, "max_students", studentCount);
 
     const data = await req.json();
     const validatedData = StudentSchema.safeParse(data);
@@ -128,6 +141,8 @@ export const POST = async (req: NextRequest) => {
       { status: 200 }
     );
   } catch (error) {
+    const entitlementResponse = upgradeRequiredResponse(error);
+    if (entitlementResponse) return entitlementResponse;
     console.error("Error adding Student:", error);
     return NextResponse.json(
       {

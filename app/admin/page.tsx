@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 
 import { getPlatformOverview } from "@/lib/admin/platform";
+import { requirePlatformPermission } from "@/lib/admin/platform";
 import db from "@/packages/db/client";
 
 function StatCard({ label, value }: { label: string; value: number }) {
@@ -15,6 +16,7 @@ function StatCard({ label, value }: { label: string; value: number }) {
 }
 
 const AdminOverviewPage = async () => {
+  await requirePlatformPermission("overview.read");
   const [overview, recentActions, pendingDrivers] = await Promise.all([
     getPlatformOverview(),
     db.superUserAction.findMany({
@@ -45,6 +47,11 @@ const AdminOverviewPage = async () => {
         <StatCard label="Students" value={overview.students} />
         <StatCard label="Pending verifications" value={overview.pendingVerifications} />
         <StatCard label="Active driver requests" value={overview.activeRequests} />
+        <StatCard label="Active subscriptions" value={overview.activeSubscriptions} />
+        <StatCard label="Active trips" value={overview.activeTrips} />
+        <StatCard label="Safety alerts" value={overview.safetyAlerts} />
+        <StatCard label="Billing accounts" value={overview.billingAccounts} />
+        <StatCard label="Organizations" value={overview.organizations} />
         <StatCard label="Suspended accounts" value={overview.suspendedAccounts} />
         <StatCard label="Known driver connections" value={overview.knownDriverConnections} />
         <StatCard label="Pending known drivers" value={overview.pendingKnownDriverConnections} />

@@ -26,6 +26,7 @@ export function DriverLocationMap({ assignment }: { assignment: AssignmentWithDr
   }
 
   const center = { lat: location.latitude, lng: location.longitude };
+  const locationKey = `${location.latitude}:${location.longitude}`;
   const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID?.trim();
 
   return (
@@ -33,6 +34,7 @@ export function DriverLocationMap({ assignment }: { assignment: AssignmentWithDr
       <div className="h-72">
         <APIProvider apiKey={apiKey}>
           <Map
+            key={locationKey}
             defaultCenter={center}
             defaultZoom={14}
             {...(mapId ? { mapId } : {})}

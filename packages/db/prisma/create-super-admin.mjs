@@ -6,6 +6,10 @@ const db = new PrismaClient();
 const email = process.env.SUPER_ADMIN_EMAIL;
 const password = process.env.SUPER_ADMIN_PASSWORD;
 const name = process.env.SUPER_ADMIN_NAME || "Super Admin";
+const requestedAccessRole = String(
+  process.env.SUPER_ADMIN_ACCESS_ROLE || ""
+).toUpperCase();
+const allowedRoles = new Set(["OWNER", "ADMIN", "SUPPORT", "BILLING", "READ_ONLY"]);
 
 if (!email || !password) {
   console.error("SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD are required.");
@@ -22,11 +26,25 @@ const existing = await db.superUser.findUnique({
 });
 
 const hashedPassword = await bcrypt.hash(password, 10);
+const ownerCount = await db.superUser.count({
+  where: { accessRole: "OWNER", status: "ACTIVE" },
+});
+const accessRole = allowedRoles.has(requestedAccessRole)
+  ? requestedAccessRole
+  : ownerCount === 0
+    ? "OWNER"
+    : "ADMIN";
 
 if (existing) {
   await db.superUser.update({
     where: { id: existing.id },
-    data: { name, password: hashedPassword, role: "SUPERADMIN" },
+    data: {
+      name,
+      password: hashedPassword,
+      role: "SUPERADMIN",
+      status: "ACTIVE",
+      ...(ownerCount === 0 ? { accessRole: "OWNER" } : {}),
+    },
   });
   console.log(`Updated super admin: ${email}`);
 } else {
@@ -36,6 +54,8 @@ if (existing) {
       email: email.toLowerCase(),
       password: hashedPassword,
       role: "SUPERADMIN",
+      accessRole,
+      status: "ACTIVE",
     },
   });
   console.log(`Created super admin: ${email}`);

@@ -191,7 +191,9 @@ const Location = ({ parentAddress, teacherData }: AddressProps) => {
                                     style={{ width: '30px', height: '30px' }}
                                 />
                                 <Popup closeButton={true} closeOnClick={false} longitude={coords2[0]} latitude={coords2[1]}>
-                                    {parentAddress}
+                                    <span className="block max-w-[220px] break-words text-sm leading-snug">
+                                        {parentAddress}
+                                    </span>
                                 </Popup>
                             </Marker>
                         )}

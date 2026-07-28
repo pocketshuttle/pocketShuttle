@@ -1,13 +1,14 @@
 import cloudinary from "cloudinary";
 import { NextRequest, NextResponse } from "next/server";
 
-import { canManagePlatform, getApiSession } from "@/lib/api-auth";
+import { requirePlatformPermission } from "@/lib/admin/platform";
 
 const PRIVATE_REF_PREFIX = "cloudinary:authenticated:";
 
 export async function GET(req: NextRequest) {
-  const session = await getApiSession();
-  if (!canManagePlatform(session)) {
+  try {
+    await requirePlatformPermission("verification.manage");
+  } catch {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 

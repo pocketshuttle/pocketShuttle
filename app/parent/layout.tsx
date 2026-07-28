@@ -1,6 +1,7 @@
 import ParentNavbar from "@/components/parent-view/navbar"
 import { getUserSession } from "@/lib/session"
 import db from "@/packages/db/client"
+import { ManagedWorkspaceSlot } from "@/components/admin/managed-workspace-slot"
 
 async function getParentNavContext(userId?: string) {
     if (!userId) return null
@@ -24,6 +25,7 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
 
     return (
         <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-gray-100 text-black">
+            <ManagedWorkspaceSlot session={user} />
             <div className="w-full max-w-full overflow-x-hidden">
                 <ParentNavbar data={user} showAddKid={showAddKid} showAddDriver={showAddDriver} />
             </div>
