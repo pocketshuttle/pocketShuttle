@@ -50,9 +50,11 @@ Prices saved before Paystack is configured remain valid local price versions.
 After adding `PAYSTACK_SECRET_KEY`, opening checkout from the super-admin plan
 screen synchronizes an unsynchronized active price with Paystack automatically.
 
-Free Family and Free School are provisioned automatically. Enforcement starts
-in shadow mode for new family and school accounts. Use the super-admin billing
-account endpoint to enable blocking after reviewing the logs:
+Free Family and Free School are provisioned automatically. Family accounts
+enforce their current plan limits immediately; School accounts continue to
+start in shadow mode. Use the super-admin billing account endpoint to change
+enforcement for an individual account when an audited support exception is
+required:
 
 ```text
 PATCH /api/admin/billing-accounts/:id
@@ -69,8 +71,10 @@ PATCH /api/admin/billing-accounts/:id
 cohort label is audited metadata and does not grant access by itself. Accounts
 outside an approved cohort receive `403 ROLLOUT_NOT_ENABLED`.
 
-Limits block new records only. Downgrades never delete records, and safety
-features do not use entitlement checks.
+Limits block new records and reactivated relationships only. Existing records
+remain available after enforcement or a downgrade, and safety features do not
+use entitlement checks. Pending and approved family driver connections consume
+driver slots; a registration email by itself does not.
 
 ## Pro workspaces
 

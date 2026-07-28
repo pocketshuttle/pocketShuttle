@@ -9,6 +9,7 @@ import {
   getEntitlements,
 } from "@/lib/billing/entitlements";
 import { upgradeRequiredResponse } from "@/lib/billing/responses";
+import { withSerializableTransaction } from "@/lib/prisma-transactions";
 
 async function getStandaloneParent(parentId: string) {
   return db.parent.findFirst({
@@ -85,18 +86,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Standalone parent not found" }, { status: 404 });
   }
 
-  try {
-    const [resolved, childCount] = await Promise.all([
-      getEntitlements(session),
-      db.parentChild.count({ where: { parentId: parent.id } }),
-    ]);
-    assertWithinLimit(resolved, "max_children", childCount);
-  } catch (error) {
-    const response = upgradeRequiredResponse(error);
-    if (response) return response;
-    throw error;
-  }
-
   const body = await req.json();
   const parsed = ParentChildSchema.safeParse(body);
   if (!parsed.success) {
@@ -104,6 +93,18 @@ export async function POST(req: NextRequest) {
       { message: "Validation failed", errors: parsed.error.flatten().fieldErrors },
       { status: 400 }
     );
+  }
+
+  const resolved = await getEntitlements(session);
+  try {
+    const childCount = await db.parentChild.count({
+      where: { parentId: parent.id },
+    });
+    assertWithinLimit(resolved, "max_children", childCount);
+  } catch (error) {
+    const response = upgradeRequiredResponse(error);
+    if (response) return response;
+    throw error;
   }
 
   let schoolCoords;
@@ -116,22 +117,30 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const child = await db.parentChild.create({
-    data: {
-      parentId: parent.id,
-      fullName: parsed.data.fullName,
-      age: parsed.data.age,
-      grade: parsed.data.grade,
-      address: parsed.data.address,
-      image: parsed.data.image,
-    },
-  });
-
-  await db.$executeRaw`
-    UPDATE "parent_children"
-    SET "school_coords" = ${JSON.stringify(schoolCoords)}::jsonb
-    WHERE "id" = ${child.id}
-  `;
+  let child;
+  try {
+    child = await withSerializableTransaction(async (tx) => {
+      const childCount = await tx.parentChild.count({
+        where: { parentId: parent.id },
+      });
+      assertWithinLimit(resolved, "max_children", childCount);
+      return tx.parentChild.create({
+        data: {
+          parentId: parent.id,
+          fullName: parsed.data.fullName,
+          age: parsed.data.age,
+          grade: parsed.data.grade,
+          address: parsed.data.address,
+          schoolCoords,
+          image: parsed.data.image,
+        },
+      });
+    });
+  } catch (error) {
+    const response = upgradeRequiredResponse(error);
+    if (response) return response;
+    throw error;
+  }
 
   return NextResponse.json({ message: "Child added", child: { ...child, schoolCoords } }, { status: 201 });
 }

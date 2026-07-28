@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 const db = new PrismaClient();
 
 const SCHOOL_ID = "seed-school-pocketshuttle";
-const PASSWORD = "Password123!";
+const PASSWORD = "np";
 
 function daysFromNow(days) {
   const date = new Date();

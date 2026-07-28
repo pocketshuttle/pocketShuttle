@@ -6,10 +6,11 @@ import { markDriverActive } from "@/lib/driver-activity";
 import { sendKnownDriverRealtimeEvent } from "@/lib/known-driver-network";
 import db from "@/packages/db/client";
 import {
-  assertWithinLimit,
-  getEntitlements,
+  getFamilyEntitlements,
 } from "@/lib/billing/entitlements";
+import { assertDriverConnectionMutationAllowed } from "@/lib/billing/family-limits";
 import { upgradeRequiredResponse } from "@/lib/billing/responses";
+import { withSerializableTransaction } from "@/lib/prisma-transactions";
 
 export async function GET() {
   const session = await getApiSession();
@@ -106,53 +107,39 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Parent or driver not found" }, { status: 404 });
   }
 
-  if (session.role === "parent") {
-    try {
-      const [resolved, existing, connectionCount] = await Promise.all([
-        getEntitlements(session),
-        db.parentDriverConnection.findUnique({
-          where: { parentId_driverId: { parentId, driverId } },
-          select: { status: true },
-        }),
-        db.parentDriverConnection.count({
-          where: {
-            parentId,
-            status: { notIn: ["DECLINED", "REVOKED"] },
-          },
-        }),
-      ]);
-      const consumesSlot =
-        !existing || ["DECLINED", "REVOKED"].includes(existing.status);
-      assertWithinLimit(
-        resolved,
-        "max_connected_drivers",
-        connectionCount,
-        consumesSlot ? 1 : 0
-      );
-    } catch (error) {
-      const response = upgradeRequiredResponse(error);
-      if (response) return response;
-      throw error;
-    }
-  }
-
   const status = session.role === "driver" ? "DRIVER_REQUESTED" : "INVITED";
-  const connection = await db.parentDriverConnection.upsert({
-    where: { parentId_driverId: { parentId, driverId } },
-    create: {
-      parentId,
-      driverId,
-      status,
-      requestedBy: session.role,
-      note: typeof body.note === "string" ? body.note : null,
-    },
-    update: {
-      status,
-      requestedBy: session.role,
-      revokedAt: null,
-      note: typeof body.note === "string" ? body.note : undefined,
-    },
-  });
+  const resolved = await getFamilyEntitlements(parentId);
+  let connection;
+  try {
+    connection = await withSerializableTransaction(async (tx) => {
+      await assertDriverConnectionMutationAllowed(
+        tx,
+        resolved,
+        parentId,
+        driverId
+      );
+      return tx.parentDriverConnection.upsert({
+        where: { parentId_driverId: { parentId, driverId } },
+        create: {
+          parentId,
+          driverId,
+          status,
+          requestedBy: session.role,
+          note: typeof body.note === "string" ? body.note : null,
+        },
+        update: {
+          status,
+          requestedBy: session.role,
+          revokedAt: null,
+          note: typeof body.note === "string" ? body.note : undefined,
+        },
+      });
+    });
+  } catch (error) {
+    const response = upgradeRequiredResponse(error);
+    if (response) return response;
+    throw error;
+  }
 
   await sendKnownDriverRealtimeEvent({ parentId, driverId, event: "connection-updated" });
   if (session.role === "driver") {

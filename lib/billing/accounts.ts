@@ -9,6 +9,7 @@ import {
   PlanCode,
   defaultFreePlanCode,
 } from "@/lib/billing/catalog";
+import { defaultBillingEnforcement } from "@/lib/billing/policy";
 
 export async function ensurePlanCatalog() {
   await Promise.all(
@@ -88,6 +89,7 @@ export async function ensureSchoolBillingAccount(userId: string) {
       type: "SCHOOL",
       userId,
       billingEmail: user.email,
+      enforcementEnabled: defaultBillingEnforcement("SCHOOL"),
     },
     update: {
       billingEmail: user.email,
@@ -115,6 +117,7 @@ export async function ensureFamilyBillingAccount(parentId: string) {
       type: "FAMILY",
       parentId,
       billingEmail: parent.email,
+      enforcementEnabled: defaultBillingEnforcement("FAMILY"),
     },
     update: {
       billingEmail: parent.email,
