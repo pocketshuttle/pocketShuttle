@@ -25,6 +25,8 @@ type SubscriptionUsage = {
   planName: string;
   childCount: number;
   maxChildren: number | null;
+  driverCount: number;
+  maxConnectedDrivers: number | null;
   enforcementEnabled: boolean;
 };
 
@@ -179,6 +181,19 @@ export function ParentSideMenu({
             subscription.childCount >= subscription.maxChildren ? (
               <p className="mt-2 text-xs font-medium text-amber-700">
                 Your current children remain available. Upgrade before adding another child.
+              </p>
+            ) : null}
+            <div className="mt-2 flex items-center justify-between gap-3 border-t border-slate-200 pt-2 text-sm">
+              <span className="text-slate-600">Connected drivers</span>
+              <span className="font-semibold text-slate-950">
+                {subscription.driverCount}/{subscription.maxConnectedDrivers ?? "Unlimited"}
+              </span>
+            </div>
+            {subscription.enforcementEnabled &&
+            subscription.maxConnectedDrivers !== null &&
+            subscription.driverCount >= subscription.maxConnectedDrivers ? (
+              <p className="mt-2 text-xs font-medium text-amber-700">
+                Your current drivers remain available. Upgrade before adding another driver.
               </p>
             ) : null}
           </div>

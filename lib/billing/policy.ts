@@ -1,5 +1,25 @@
 import { EntitlementValue } from "@/lib/billing/catalog";
 
+export const DRIVER_SLOT_STATUSES = [
+  "INVITED",
+  "DRIVER_REQUESTED",
+  "PARENT_APPROVED",
+] as const;
+
+export function connectionConsumesDriverSlot(status?: string | null) {
+  return !!status && (DRIVER_SLOT_STATUSES as readonly string[]).includes(status);
+}
+
+export function driverSlotIncrement(existingStatus?: string | null) {
+  return connectionConsumesDriverSlot(existingStatus) ? 0 : 1;
+}
+
+export function defaultBillingEnforcement(
+  accountType: "FAMILY" | "SCHOOL" | "ORGANIZATION"
+) {
+  return accountType !== "SCHOOL";
+}
+
 export function isUsableSubscription(
   status: string,
   currentPeriodEnd: Date | null,

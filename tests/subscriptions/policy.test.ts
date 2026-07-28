@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  connectionConsumesDriverSlot,
+  defaultBillingEnforcement,
+  driverSlotIncrement,
   historyCutoffForHours,
   isUsableSubscription,
   limitAllows,
@@ -16,6 +19,23 @@ test("resource limits allow the boundary and block the first excess record", () 
   assert.equal(limitAllows(5, 4, 2), false);
   assert.equal(limitAllows(null, 1_000_000), true);
   assert.equal(limitAllows(undefined, 0), false);
+});
+
+test("family enforcement defaults on without changing the school rollout", () => {
+  assert.equal(defaultBillingEnforcement("FAMILY"), true);
+  assert.equal(defaultBillingEnforcement("ORGANIZATION"), true);
+  assert.equal(defaultBillingEnforcement("SCHOOL"), false);
+});
+
+test("pending and approved driver connections consume a plan slot", () => {
+  for (const status of ["INVITED", "DRIVER_REQUESTED", "PARENT_APPROVED"]) {
+    assert.equal(connectionConsumesDriverSlot(status), true);
+    assert.equal(driverSlotIncrement(status), 0);
+  }
+  for (const status of ["DECLINED", "REVOKED", null]) {
+    assert.equal(connectionConsumesDriverSlot(status), false);
+    assert.equal(driverSlotIncrement(status), 1);
+  }
 });
 
 test("subscription lifecycle honors active periods and past-due grace", () => {

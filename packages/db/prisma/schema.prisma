@@ -496,7 +496,7 @@ model BillingAccount {
   billingEmail            String?                         @map("billing_email")
   providerCustomerCode    String?                         @map("provider_customer_code")
   entitlementOverrides    Json                            @default("{}") @map("entitlement_overrides")
-  enforcementEnabled      Boolean                         @default(false) @map("enforcement_enabled")
+  enforcementEnabled      Boolean                         @default(true) @map("enforcement_enabled")
   rolloutFlags            Json                            @default("{}") @map("rollout_flags")
   user                    User?                           @relation(fields: [userId], references: [id], onDelete: Cascade)
   parent                  Parent?                         @relation(fields: [parentId], references: [id], onDelete: Cascade)
