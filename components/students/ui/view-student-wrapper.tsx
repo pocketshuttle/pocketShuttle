@@ -25,7 +25,7 @@ export const ViewStudent = ({ data }) => {
                     <SelectLabel >Kids</SelectLabel>
                     {
                         data.map((student: StudentProps) => (
-                            <SelectItem value="apple">
+                            <SelectItem key={student.id} value="apple">
                                 <Link href="#">
                                     <div className="flex gap-2 items-center   justify-between ">
                                         <Image src={student.image} width={40} height={50} alt="avatar" className="rounded-md" />

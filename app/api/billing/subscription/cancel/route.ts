@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   try {
     assertSameOrigin(req);
     const { account } = await requireBillingIdentity();
-    assertRateLimit(`billing-cancel:${account.id}`, {
+    await assertRateLimit(`billing-cancel:${account.id}`, {
       limit: 5,
       windowMs: 15 * 60 * 1000,
     });

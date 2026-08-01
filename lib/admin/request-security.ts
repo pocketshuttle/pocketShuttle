@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-const windows = new Map<string, { count: number; resetAt: number }>();
+export { assertRateLimit } from "@/lib/rate-limit";
 
 export function normalizeAdminEmail(value: unknown) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
@@ -44,22 +44,6 @@ export function assertSameOrigin(request: Request) {
   if (new URL(origin).origin !== expected) {
     throw new Error("INVALID_ORIGIN");
   }
-}
-
-export function assertRateLimit(
-  key: string,
-  options: { limit: number; windowMs: number }
-) {
-  const now = Date.now();
-  const current = windows.get(key);
-  if (!current || current.resetAt <= now) {
-    windows.set(key, { count: 1, resetAt: now + options.windowMs });
-    return;
-  }
-  if (current.count >= options.limit) {
-    throw new Error("RATE_LIMITED");
-  }
-  current.count += 1;
 }
 
 export function sanitizeAuditValue(value: unknown): unknown {
