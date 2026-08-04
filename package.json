@@ -124,7 +124,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/leaflet": "^1.9.12",
     "@types/mapbox__mapbox-sdk": "^0.15.1",
-    "@types/node": "^20",
+    "@types/node": "^20.19.43",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/react-lottie": "^1.2.10",
