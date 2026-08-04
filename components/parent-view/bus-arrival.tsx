@@ -3,7 +3,6 @@ import Pusher from 'pusher-js';
 import { useEffect, useMemo, useState } from "react";
 import Location from '../maps/Map/new-map';
 import { io } from 'socket.io-client';
-import { useTeacherLocation } from '@/hooks/useTeacher-location';
 import NewLocation from '../maps/Map/new-mapp';
 import avatar from "@/public/images/avatar.jpg";
 import { TeacherProps } from '@/types';

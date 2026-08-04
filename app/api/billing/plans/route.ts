@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { ensurePlanCatalog } from "@/lib/billing/accounts";
+import { paystackEnvironmentFromSecret } from "@/lib/billing/provider-environment";
 import db from "@/packages/db/client";
 
 export async function GET(req: NextRequest) {
@@ -27,6 +28,7 @@ export async function GET(req: NextRequest) {
         where: { isActive: true },
         orderBy: { createdAt: "desc" },
         take: 1,
+        include: { providerPlans: { where: { isActive: true } } },
       },
     },
     orderBy: [{ tier: "asc" }, { name: "asc" }],
@@ -35,9 +37,13 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     plans: plans.map((plan) => {
       const price = plan.prices[0];
+      const environment = paystackEnvironmentFromSecret();
+      const providerPlan = price?.providerPlans.find(
+        (item) => item.provider === "PAYSTACK" && item.environment === environment
+      );
       const checkoutReady = Boolean(
         plan.isPurchasable &&
-          price?.paystackPlanCode &&
+          providerPlan?.providerPlanCode &&
           process.env.PAYSTACK_SECRET_KEY
       );
 
@@ -55,7 +61,7 @@ export async function GET(req: NextRequest) {
             ? "INCLUDED"
             : checkoutReady
               ? "READY"
-              : !price?.paystackPlanCode || !process.env.PAYSTACK_SECRET_KEY
+              : !providerPlan?.providerPlanCode || !process.env.PAYSTACK_SECRET_KEY
                 ? "PAYSTACK_SETUP_REQUIRED"
                 : "CLOSED",
         price: price

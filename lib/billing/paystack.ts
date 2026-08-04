@@ -1,11 +1,14 @@
 import "server-only";
 
+import { paystackEnvironmentFromSecret } from "@/lib/billing/provider-environment";
+
 export async function createPaystackMonthlyPlan(input: {
   name: string;
   amountMinor: number;
   currency: string;
 }) {
-  if (!process.env.PAYSTACK_SECRET_KEY) return null;
+  const environment = paystackEnvironmentFromSecret();
+  if (!process.env.PAYSTACK_SECRET_KEY || !environment) return null;
 
   const response = await fetch("https://api.paystack.co/plan", {
     method: "POST",
@@ -26,5 +29,8 @@ export async function createPaystackMonthlyPlan(input: {
   if (!response.ok || !payload?.data?.plan_code) {
     throw new Error(payload?.message || "Unable to create Paystack plan");
   }
-  return String(payload.data.plan_code);
+  return {
+    planCode: String(payload.data.plan_code),
+    environment,
+  };
 }

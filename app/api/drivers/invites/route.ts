@@ -5,10 +5,11 @@ import { createInviteToken, normalizeLookup, normalizePhone } from "@/lib/known-
 import { sendDriverInviteEmail } from "@/lib/mail";
 import db from "@/packages/db/client";
 import {
-  assertWithinLimit,
-  getEntitlements,
+  getFamilyEntitlements,
 } from "@/lib/billing/entitlements";
+import { assertDriverConnectionMutationAllowed } from "@/lib/billing/family-limits";
 import { upgradeRequiredResponse } from "@/lib/billing/responses";
+import { withSerializableTransaction } from "@/lib/prisma-transactions";
 
 export async function POST(req: NextRequest) {
   const session = await getApiSession();
@@ -33,23 +34,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Standalone parent not found" }, { status: 404 });
   }
 
-  try {
-    const [resolved, connectionCount] = await Promise.all([
-      getEntitlements(session),
-      db.parentDriverConnection.count({
-        where: {
-          parentId: parent.id,
-          status: { notIn: ["DECLINED", "REVOKED"] },
-        },
-      }),
-    ]);
-    assertWithinLimit(resolved, "max_connected_drivers", connectionCount);
-  } catch (error) {
-    const response = upgradeRequiredResponse(error);
-    if (response) return response;
-    throw error;
-  }
-
   const existingDriver = await db.driver.findFirst({
     where: {
       accountType: "STANDALONE",
@@ -66,37 +50,64 @@ export async function POST(req: NextRequest) {
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 14);
 
-  const invite = await db.driverInvite.create({
-    data: {
-      parentId: parent.id,
-      driverId: existingDriver?.id || null,
-      email: email || null,
-      phoneNumber: phoneNumber || null,
-      tokenHash,
-      expiresAt,
-    },
-  });
-
-  if (existingDriver) {
-    await db.parentDriverConnection.upsert({
-      where: {
-        parentId_driverId: {
+  let invite;
+  try {
+    if (!existingDriver) {
+      invite = await db.driverInvite.create({
+        data: {
           parentId: parent.id,
-          driverId: existingDriver.id,
+          driverId: null,
+          email: email || null,
+          phoneNumber: phoneNumber || null,
+          tokenHash,
+          expiresAt,
         },
-      },
-      create: {
-        parentId: parent.id,
-        driverId: existingDriver.id,
-        status: "INVITED",
-        requestedBy: "parent",
-      },
-      update: {
-        status: "INVITED",
-        requestedBy: "parent",
-        revokedAt: null,
-      },
-    });
+      });
+    } else {
+      const resolved = await getFamilyEntitlements(parent.id);
+      invite = await withSerializableTransaction(async (tx) => {
+        await assertDriverConnectionMutationAllowed(
+          tx,
+          resolved,
+          parent.id,
+          existingDriver.id
+        );
+        const savedInvite = await tx.driverInvite.create({
+          data: {
+            parentId: parent.id,
+            driverId: existingDriver.id,
+            email: email || null,
+            phoneNumber: phoneNumber || null,
+            tokenHash,
+            expiresAt,
+          },
+        });
+        await tx.parentDriverConnection.upsert({
+          where: {
+            parentId_driverId: {
+              parentId: parent.id,
+              driverId: existingDriver.id,
+            },
+          },
+          create: {
+            parentId: parent.id,
+            driverId: existingDriver.id,
+            status: "INVITED",
+            requestedBy: "parent",
+          },
+          update: {
+            status: "INVITED",
+            requestedBy: "parent",
+            revokedAt: null,
+          },
+        });
+        return savedInvite;
+      });
+    }
+  } catch (error) {
+    const response = upgradeRequiredResponse(error);
+    if (response) return response;
+    throw error;
   }
 
   if (email) {

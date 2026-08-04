@@ -15,7 +15,7 @@ export const GeneralFAQ: React.FC = () => {
                         General FAQs
                     </h1>
                     <p className='text-[0.7rem]'>
-                        Everything you need to know about our products and how it works, can't find an answer, chat with our team at support@pocketshuttle.app
+                        Everything you need to know about our products and how it works, can&apos;t find an answer, chat with our team at support@pocketshuttle.app
                     </p>
                 </div>
 
@@ -23,7 +23,7 @@ export const GeneralFAQ: React.FC = () => {
                     <AccordionItem value="item-1">
                         <AccordionTrigger>Is there a free trial available?</AccordionTrigger>
                         <AccordionContent className="text-[0.7rem] text-gray-500">
-                            Yes, we are currently offering a free version until the end of the year. It's an incredibly powerful application that allows you to keep track of all your students, teachers, and buses, all in one app.
+                            Yes, we are currently offering a free version until the end of the year. It&apos;s an incredibly powerful application that allows you to keep track of all your students, teachers, and buses, all in one app.
                         </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="item-2">

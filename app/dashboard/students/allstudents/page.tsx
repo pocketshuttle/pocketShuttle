@@ -98,7 +98,7 @@ const AllStudents = async ({ searchParams }: { searchParams: Promise<{ [key: str
 
                 <div className=" flex gap-4 flex-wrap">
                     {students.map((student) => (
-                        <StudentCard data={student} busData={bus} />
+                        <StudentCard key={student.id} data={student} busData={bus} />
                     ))}
                     <Pagination count={count} pageCount={10} />
                 </div>

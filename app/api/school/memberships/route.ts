@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { assertSameOrigin } from "@/lib/admin/request-security";
 import { canManageSchool, getApiSession } from "@/lib/api-auth";
 import { getEntitlements, requireFeature } from "@/lib/billing/entitlements";
 import { upgradeRequiredResponse } from "@/lib/billing/responses";
@@ -26,6 +27,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  assertSameOrigin(req);
   const session = await getApiSession();
   const schoolId = session?.schoolId;
   if (!canManageSchool(session) || !schoolId) {

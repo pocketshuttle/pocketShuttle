@@ -9,9 +9,11 @@ import {
   getEntitlements,
 } from "@/lib/billing/entitlements";
 import { upgradeRequiredResponse } from "@/lib/billing/responses";
+import { assertSameOrigin } from "@/lib/admin/request-security";
 
 export const POST = async (req: NextRequest) => {
   try {
+    assertSameOrigin(req);
     const session = await getApiSession();
     const schoolId = session?.schoolId;
     if (!canManageSchool(session) || !schoolId) {

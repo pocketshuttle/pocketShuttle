@@ -19,7 +19,7 @@ export const AdminLogin = async (values: z.infer<typeof LoginSchema>) => {
   const { email, password } = validatedFields.data;
   const normalizedEmail = normalizeAdminEmail(email);
   try {
-    assertRateLimit(`admin-login:${normalizedEmail}`, {
+    await assertRateLimit(`admin-login:${normalizedEmail}`, {
       limit: 8,
       windowMs: 15 * 60 * 1000,
     });

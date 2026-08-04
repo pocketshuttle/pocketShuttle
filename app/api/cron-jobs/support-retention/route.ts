@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { isCronRequestAuthorized } from "@/lib/cron/request-auth";
 import db from "@/packages/db/client";
 
-function authorized(request: NextRequest) {
-  if (!process.env.CRON_SECRET) return process.env.NODE_ENV !== "production";
-  return request.headers.get("authorization") === `Bearer ${process.env.CRON_SECRET}`;
-}
-
 export async function GET(request: NextRequest) {
-  if (!authorized(request)) {
+  if (!(await isCronRequestAuthorized(request))) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
   const deleted = await db.$executeRaw`

@@ -15,6 +15,16 @@ app.get("/", (req, res) => {
   res.json({ message: "Backend live!", time: new Date().toISOString() });
 });
 
+app.get("/health", async (req, res) => {
+  try {
+    await db.$queryRaw`SELECT 1`;
+    res.json({ status: "ok", time: new Date().toISOString() });
+  } catch (error) {
+    console.error("Health check failed:", error);
+    res.status(503).json({ status: "unavailable", time: new Date().toISOString() });
+  }
+});
+
 app.use(
   cors({
     origin: [
@@ -156,3 +166,28 @@ const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
   console.log(`Socket.IO server running on port ${PORT}`);
 });
+
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled promise rejection:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught exception:", error);
+});
+
+function shutdown(signal) {
+  console.log(`${signal} received, shutting down gracefully...`);
+  io.close();
+  server.close(async () => {
+    await db.$disconnect();
+    console.log("Server closed.");
+    process.exit(0);
+  });
+  setTimeout(() => {
+    console.error("Forced shutdown after timeout.");
+    process.exit(1);
+  }, 10000).unref();
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

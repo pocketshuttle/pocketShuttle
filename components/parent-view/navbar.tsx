@@ -1,4 +1,4 @@
-"use client" // Indicates the component is client-side only in Next.js
+"use client"
 import { useEffect, useMemo, useState } from "react"; // Hooks for managing component state and side effects
 import {
     Avatar,
@@ -19,6 +19,10 @@ type NavbarProps = {
 const ParentNavbar = ({ data, showAddKid = false, showAddDriver = false }: NavbarProps) => {
     const [greeting, setGreeting] = useState("Good day");
     const [supportOpen, setSupportOpen] = useState(false);
+    const [limits, setLimits] = useState({
+        childLimitReached: false,
+        driverLimitReached: false,
+    });
 
     useEffect(() => {
         const hour = new Date().getHours();
@@ -29,6 +33,33 @@ const ParentNavbar = ({ data, showAddKid = false, showAddDriver = false }: Navba
         } else {
             setGreeting("Good night");
         }
+    }, []);
+
+    useEffect(() => {
+        const updateLimits = (event: Event) => {
+            const detail = (event as CustomEvent<{
+                childLimitReached?: boolean;
+                driverLimitReached?: boolean;
+            }>).detail;
+            setLimits({
+                childLimitReached: detail?.childLimitReached === true,
+                driverLimitReached: detail?.driverLimitReached === true,
+            });
+        };
+        const stored = window.sessionStorage.getItem("standalone-parent-limits");
+        if (stored) {
+            try {
+                const detail = JSON.parse(stored);
+                setLimits({
+                    childLimitReached: detail?.childLimitReached === true,
+                    driverLimitReached: detail?.driverLimitReached === true,
+                });
+            } catch {
+                window.sessionStorage.removeItem("standalone-parent-limits");
+            }
+        }
+        window.addEventListener("standalone-parent:limits-updated", updateLimits);
+        return () => window.removeEventListener("standalone-parent:limits-updated", updateLimits);
     }, []);
 
     const firstName = useMemo(() => {
@@ -70,10 +101,11 @@ const ParentNavbar = ({ data, showAddKid = false, showAddDriver = false }: Navba
                 {showAddKid && (
                     <button
                         type="button"
+                        disabled={limits.childLimitReached}
                         onClick={() => window.dispatchEvent(new CustomEvent("standalone-parent:add-kid"))}
-                    className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#4a48ff] text-white transition hover:bg-[#5b5aff] focus:outline-none focus:ring-2 focus:ring-[#4a48ff]/30 active:scale-95"
+                    className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#4a48ff] text-white transition hover:bg-[#5b5aff] focus:outline-none focus:ring-2 focus:ring-[#4a48ff]/30 active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
                         aria-label="Add kid"
-                        title="Add kid"
+                        title={limits.childLimitReached ? "Upgrade your plan to add another child" : "Add kid"}
                     >
                         <Plus className="h-5 w-5" aria-hidden="true" />
                     </button>
@@ -81,10 +113,11 @@ const ParentNavbar = ({ data, showAddKid = false, showAddDriver = false }: Navba
                 {showAddDriver && (
                     <button
                         type="button"
+                        disabled={limits.driverLimitReached}
                         onClick={() => window.dispatchEvent(new CustomEvent("standalone-parent:add-driver"))}
-                        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-slate-950 text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950/20 active:scale-95"
+                        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-slate-950 text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
                         aria-label="Add driver"
-                        title="Add driver"
+                        title={limits.driverLimitReached ? "Upgrade your plan to add another driver" : "Add driver"}
                     >
                         <CarFront className="h-5 w-5" aria-hidden="true" />
                     </button>

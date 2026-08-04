@@ -6,6 +6,12 @@ import {
   requireBillingIdentity,
 } from "@/lib/billing/current-account";
 import db from "@/packages/db/client";
+import {
+  BILLING_ROLLOUT_FLAGS,
+  hasBillingRolloutFlag,
+} from "@/lib/billing/rollout";
+import { assertRateLimit, assertSameOrigin } from "@/lib/admin/request-security";
+import { paystackEnvironmentFromSecret } from "@/lib/billing/provider-environment";
 
 const paidPlanCodes = new Set([
   PLAN_CODES.PRO_FAMILY,
@@ -14,7 +20,26 @@ const paidPlanCodes = new Set([
 
 export async function POST(req: NextRequest) {
   try {
+    assertSameOrigin(req);
     const { account } = await requireBillingIdentity();
+    await assertRateLimit(`billing-checkout:${account.id}`, {
+      limit: 5,
+      windowMs: 15 * 60 * 1000,
+    });
+    if (
+      !hasBillingRolloutFlag(
+        account.rolloutFlags,
+        BILLING_ROLLOUT_FLAGS.PAID_CHECKOUT
+      )
+    ) {
+      return NextResponse.json(
+        {
+          code: "ROLLOUT_NOT_ENABLED",
+          message: "Paid subscriptions are not enabled for this account yet.",
+        },
+        { status: 403 }
+      );
+    }
     const body = await req.json().catch(() => ({}));
     const planCode = String(body.planCode || "");
 
@@ -36,12 +61,17 @@ export async function POST(req: NextRequest) {
           where: { isActive: true },
           orderBy: { createdAt: "desc" },
           take: 1,
+          include: { providerPlans: { where: { isActive: true } } },
         },
       },
     });
     const price = plan?.prices[0];
+    const environment = paystackEnvironmentFromSecret();
+    const providerPlan = price?.providerPlans.find(
+      (item) => item.provider === "PAYSTACK" && item.environment === environment
+    );
 
-    if (!plan || !price?.paystackPlanCode) {
+    if (!plan || !price || !providerPlan) {
       return NextResponse.json(
         { message: "This plan is not available for checkout yet" },
         { status: 409 }
@@ -87,7 +117,7 @@ export async function POST(req: NextRequest) {
         email: account.billingEmail,
         amount: price.amountMinor,
         currency: price.currency,
-        plan: price.paystackPlanCode,
+        plan: providerPlan.providerPlanCode,
         reference,
         ...(callbackBase
           ? { callback_url: `${callbackBase.replace(/\/$/, "")}/billing/return` }
@@ -97,6 +127,7 @@ export async function POST(req: NextRequest) {
           billingAccountId: account.id,
           planCode: plan.code,
           planPriceId: price.id,
+          providerEnvironment: environment,
         },
       }),
     });
@@ -112,6 +143,8 @@ export async function POST(req: NextRequest) {
       data: {
         billingAccountId: account.id,
         planPriceId: price.id,
+        providerPlanId: providerPlan.id,
+        providerEnvironment: providerPlan.environment,
         providerReference: reference,
         amountMinor: price.amountMinor,
         currency: price.currency,

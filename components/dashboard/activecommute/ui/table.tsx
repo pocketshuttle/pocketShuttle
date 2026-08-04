@@ -25,7 +25,7 @@ export const ActiveCommuteTable = () => {
                 <tbody>
                     <tr className="cursor-pointer bg-white text-black shadow-[0_8px_22px_rgba(15,23,42,0.06)] transition-colors hover:bg-white dark:bg-white/5 dark:text-white dark:shadow-none dark:hover:bg-white/10">
                         <th scope="row" className="whitespace-nowrap rounded-l-2xl px-6 py-5 font-medium">
-                            Apple MacBook Pro 17"
+                            Apple MacBook Pro 17&quot;
                         </th>
                         <td className="px-6 py-5 text-black/75 dark:text-white/70">
                             Silver

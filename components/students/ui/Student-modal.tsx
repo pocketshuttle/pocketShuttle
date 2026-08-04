@@ -102,7 +102,7 @@ export const StudentModal = ({ isOpenModal, setIsOpenModal }: StudentModalProps)
         setSelectParent(value);
         form.setValue("parentId", value);
     };
-    const handleSuggestionChange = (d: {}) => {
+    const handleSuggestionChange = (d: unknown) => {
         // setAddressValue(d)
         // const selectedValue = d.features?.[0]?.place_name || "";
         console.log(d)

@@ -9,6 +9,7 @@ import {
   normalizeEntitlements,
 } from "@/lib/billing/catalog";
 import { createPaystackMonthlyPlan } from "@/lib/billing/paystack";
+import { paystackEnvironmentFromSecret } from "@/lib/billing/provider-environment";
 import db from "@/packages/db/client";
 
 type Params = { id: string };
@@ -44,6 +45,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<Para
           where: { isActive: true },
           orderBy: { createdAt: "desc" },
           take: 1,
+          include: { providerPlans: true },
         },
       },
     });
@@ -59,6 +61,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<Para
         ? Boolean(body.isPurchasable)
         : current.isPurchasable;
     const currentPrice = current.prices[0];
+    const configuredEnvironment = paystackEnvironmentFromSecret();
+    const currentProviderPlan = currentPrice?.providerPlans.find(
+      (providerPlan) =>
+        providerPlan.provider === "PAYSTACK" &&
+        providerPlan.environment === configuredEnvironment &&
+        providerPlan.isActive
+    );
     const effectiveAmountMinor = amountMinor ?? currentPrice?.amountMinor ?? 0;
     const priceChanged =
       amountMinor !== undefined &&
@@ -66,11 +75,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<Para
       amountMinor !== currentPrice?.amountMinor;
     const providerSyncRequired =
       effectiveAmountMinor > 0 &&
-      !currentPrice?.paystackPlanCode &&
+      Boolean(configuredEnvironment) &&
+      !currentProviderPlan &&
       (amountMinor !== undefined || requestedPurchasable);
-    let providerPlanCode: string | null | undefined;
+    let providerPlan: Awaited<ReturnType<typeof createPaystackMonthlyPlan>> = null;
     if (priceChanged || providerSyncRequired) {
-      providerPlanCode = await createPaystackMonthlyPlan({
+      providerPlan = await createPaystackMonthlyPlan({
         name: body.name ? String(body.name) : current.name,
         amountMinor: effectiveAmountMinor,
         currency,
@@ -83,31 +93,47 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<Para
           where: { planId: id, isActive: true },
           data: { isActive: false },
         });
-        await tx.planPrice.create({
+        const price = await tx.planPrice.create({
           data: {
             planId: id,
             amountMinor,
             currency,
-            paystackPlanCode: providerPlanCode ?? null,
           },
         });
-      } else if (
-        providerPlanCode &&
-        currentPrice &&
-        !currentPrice.paystackPlanCode
-      ) {
-        await tx.planPrice.update({
-          where: { id: currentPrice.id },
-          data: { paystackPlanCode: providerPlanCode },
+        if (providerPlan) {
+          await tx.billingProviderPlan.create({
+            data: {
+              planPriceId: price.id,
+              provider: "PAYSTACK",
+              environment: providerPlan.environment,
+              providerPlanCode: providerPlan.planCode,
+            },
+          });
+        }
+      } else if (providerPlan && currentPrice && !currentProviderPlan) {
+        await tx.billingProviderPlan.create({
+          data: {
+            planPriceId: currentPrice.id,
+            provider: "PAYSTACK",
+            environment: providerPlan.environment,
+            providerPlanCode: providerPlan.planCode,
+          },
         });
       }
 
-      const activeProviderCode =
-        providerPlanCode ?? currentPrice?.paystackPlanCode ?? null;
+      const activeProviderAvailable = priceChanged
+        ? Boolean(providerPlan)
+        : Boolean(
+            providerPlan ||
+              currentPrice?.providerPlans.some(
+                (item) =>
+                  item.isActive && item.environment === configuredEnvironment
+              )
+          );
       if (
         requestedPurchasable &&
         current.tier !== "FREE" &&
-        !activeProviderCode
+        !activeProviderAvailable
       ) {
         throw new Error("Configure Paystack and a price before publishing checkout");
       }
@@ -137,7 +163,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<Para
             : {}),
         },
         include: {
-          prices: { orderBy: { createdAt: "desc" } },
+          prices: {
+            orderBy: { createdAt: "desc" },
+            include: { providerPlans: { orderBy: { environment: "asc" } } },
+          },
           _count: { select: { subscriptions: true } },
         },
       });

@@ -4,7 +4,7 @@ export type { StudentAttendance } from ".prisma/client";
 export type { StudentStatus } from ".prisma/client";
 export type { StudentPresence } from ".prisma/client";
 
-const PRISMA_SCHEMA_VERSION = "20260725100000_mobile_app_foundation";
+const PRISMA_SCHEMA_VERSION = "20260728120000_enforce_family_plan_limits";
 
 const globalForPrisma = global as unknown as {
   prisma?: PrismaClient;

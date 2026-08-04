@@ -71,6 +71,11 @@ const Sidebar = ({ data }: any) => {
                     link: "/dashboard/billing",
                     icon: analytics,
                 },
+                {
+                    title: "School Pro",
+                    link: "/dashboard/pro",
+                    icon: analytics,
+                },
 
                 {
                     title: "Reports",

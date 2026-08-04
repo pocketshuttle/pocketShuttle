@@ -395,6 +395,7 @@ export function PaymentPlansManager({ plans }: { plans: any[] }) {
             <tr>
               <th className="px-4 py-3">Plan</th>
               <th className="px-4 py-3">Monthly price</th>
+              <th className="px-4 py-3">Paystack sync</th>
               <th className="px-4 py-3">Entitlements</th>
               <th className="px-4 py-3">Subscriptions</th>
               <th className="px-4 py-3">Visibility</th>
@@ -423,6 +424,33 @@ export function PaymentPlansManager({ plans }: { plans: any[] }) {
                     </Button>
                   </div>
                   <p className="mt-1 text-xs text-slate-500">NGN {(Number(priceDrafts[plan.id] || 0) / 100).toLocaleString()}</p>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="space-y-1">
+                    {["TEST", "LIVE"].map((environment) => {
+                      const activePrice = plan.prices?.find((price: any) => price.isActive);
+                      const providerPlan = activePrice?.providerPlans?.find(
+                        (reference: any) =>
+                          reference.provider === "PAYSTACK" &&
+                          reference.environment === environment &&
+                          reference.isActive
+                      );
+                      return (
+                        <div key={environment} className="flex items-center gap-2 text-xs">
+                          <span className="w-9 font-semibold">{environment}</span>
+                          <StatusBadge value={providerPlan ? "SYNCED" : "NOT SYNCED"} />
+                          {providerPlan && (
+                            <span className="font-mono text-[10px] text-slate-500">
+                              {providerPlan.providerPlanCode}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-2 max-w-56 text-[11px] text-slate-500">
+                    Saving the price syncs only the environment selected by the deployed Paystack key.
+                  </p>
                 </td>
                 <td className="px-4 py-3">
                   <textarea

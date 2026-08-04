@@ -1,8 +1,7 @@
 "use server";
 // EDIT ROUTES_MANIFEST, SO PASS IN DETAILS TO CHECK
-import Buses from "@/(models)/Bus";
+import db from "@/packages/db/client";
 import { getUserSession } from "@/lib/session";
-import { connectToDB } from "@/utils/connect-to-db";
 
 export const addRoute = async (busId: string, routeId: string) => {
   try {
@@ -14,13 +13,10 @@ export const addRoute = async (busId: string, routeId: string) => {
       };
     }
 
-    await Buses.findByIdAndUpdate(
-      busId,
-      {
-        route: routeId,
-      },
-      { new: true, useFindAndModify: false }
-    );
+    await db.buses.update({
+      where: { id: busId },
+      data: { routeId },
+    });
 
     return { message: "Route added successfully" };
   } catch (error) {

@@ -4,6 +4,8 @@ import { Prisma } from "@prisma/client";
 
 import { planCodeToLegacyTier } from "@/lib/billing/accounts";
 import { PlanCode } from "@/lib/billing/catalog";
+import { paystackEnvironmentFromSecret } from "@/lib/billing/provider-environment";
+import { notifyBillingOwner } from "@/lib/billing/owner-notifications";
 import db from "@/packages/db/client";
 
 function addMonth(date: Date) {
@@ -101,6 +103,7 @@ async function processPlatformCharge(payload: any) {
     planPriceId: attempt.planPrice.id,
     subscriptionPlan: planCodeToLegacyTier(attempt.planPrice.plan.code as PlanCode),
     provider: "PAYSTACK" as const,
+    providerEnvironment: attempt.providerEnvironment,
     status: "ACTIVE" as const,
     currentPeriodStart: now,
     currentPeriodEnd: nextPaymentAt,
@@ -146,15 +149,17 @@ async function processSubscriptionCreated(payload: any) {
   const customerCode = data?.customer?.customer_code;
   if (!code || !paystackPlanCode) return true;
 
-  const price = await db.planPrice.findUnique({
-    where: { paystackPlanCode },
+  const providerPlan = await db.billingProviderPlan.findUnique({
+    where: { providerPlanCode: paystackPlanCode },
+    include: { planPrice: true },
   });
   const account = customerCode
     ? await db.billingAccount.findFirst({
         where: { providerCustomerCode: customerCode },
       })
     : null;
-  if (!price || !account) return true;
+  if (!providerPlan || !account) return true;
+  const price = providerPlan.planPrice;
 
   const currentPeriodEnd = asDate(data?.next_payment_date);
   const subscription = await db.subscription.findFirst({
@@ -171,6 +176,7 @@ async function processSubscriptionCreated(payload: any) {
     where: { id: subscription.id },
     data: {
       providerSubscriptionCode: code,
+      providerEnvironment: providerPlan.environment,
       providerEmailToken: data?.email_token ?? null,
       providerNextPaymentAt: currentPeriodEnd,
       ...(currentPeriodEnd
@@ -207,6 +213,12 @@ async function processSubscriptionLifecycle(payload: any) {
       where: { id: subscription.id },
       data: { status: "PAST_DUE", graceEndsAt },
     });
+    await notifyBillingOwner({
+      billingAccountId: subscription.billingAccountId,
+      eventType: "subscription_payment_failed",
+      message:
+        "Your PocketShuttle renewal failed. Pro access will remain available for three days while you update payment details.",
+    });
     return true;
   }
 
@@ -230,6 +242,11 @@ async function processSubscriptionLifecycle(payload: any) {
         providerNextPaymentAt: nextPaymentAt,
       },
     });
+    await notifyBillingOwner({
+      billingAccountId: subscription.billingAccountId,
+      eventType: "subscription_payment_recovered",
+      message: "Your PocketShuttle subscription payment was received and Pro access is active.",
+    });
     return true;
   }
 
@@ -249,6 +266,7 @@ async function processSubscriptionLifecycle(payload: any) {
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
   const secret = process.env.PAYSTACK_SECRET_KEY;
+  const environment = paystackEnvironmentFromSecret(secret);
 
   if (!secret && process.env.NODE_ENV === "production") {
     return NextResponse.json(
@@ -280,6 +298,7 @@ export async function POST(req: NextRequest) {
       data: {
         fingerprint,
         eventType: String(payload?.event || "unknown"),
+        providerEnvironment: environment ?? "TEST",
         payload: payload as Prisma.InputJsonValue,
       },
     });

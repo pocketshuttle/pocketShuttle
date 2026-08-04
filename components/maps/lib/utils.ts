@@ -204,34 +204,6 @@ export const googleFetchCoordinates = async (
 };
 
 /**
- * Send the user's location to the server via an API POST request.
- *
- * @param latitude - The latitude to send
- * @param longitude - The longitude to send
- * @returns A promise that resolves when the location is successfully sent, or logs an error on failure
- */
-export const sendLocationToServer = async (
-  latitude: number,
-  longitude: number
-) => {
-  try {
-    const response = await fetch("/api/bustracking", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ latitude, longitude }), 
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to send location to the server"); 
-    }
-  } catch (error) {
-    console.error("Error sending location to server:", error); 
-  }
-};
-
-/**
  * Send the teacher's location, along with teacher details, to the server via an API POST request.
  *
  * @param latitude - The latitude of the teacher's location

@@ -1,14 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import {
   billingErrorResponse,
   requireBillingIdentity,
 } from "@/lib/billing/current-account";
 import db from "@/packages/db/client";
+import { assertRateLimit, assertSameOrigin } from "@/lib/admin/request-security";
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   try {
+    assertSameOrigin(req);
     const { account } = await requireBillingIdentity();
+    await assertRateLimit(`billing-manage:${account.id}`, {
+      limit: 10,
+      windowMs: 15 * 60 * 1000,
+    });
     const subscription = await db.subscription.findFirst({
       where: {
         billingAccountId: account.id,

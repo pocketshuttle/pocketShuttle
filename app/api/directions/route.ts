@@ -1,6 +1,24 @@
 import { NextResponse } from "next/server";
 
+import { getApiSession } from "@/lib/api-auth";
+import { assertRateLimit } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
+
 export async function GET(request: Request) {
+  const session = await getApiSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    await assertRateLimit(`directions:${session.id}`, {
+      limit: 30,
+      windowMs: 60 * 1000,
+    });
+  } catch {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const { searchParams } = new URL(request.url);
   const origin = searchParams.get("origin");
   const destination = searchParams.get("destination");
@@ -30,7 +48,7 @@ export async function GET(request: Request) {
     const data = await res.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error fetching directions:", error);
+    logger.error({ err: error }, "Error fetching directions");
     return NextResponse.json(
       { error: "Failed to fetch directions" },
       { status: 500 }

@@ -13,6 +13,7 @@ import { StatusBadge } from "@/components/parent-view/standalone/status-badge";
 import type { AssignmentWithDriver, Child, Connection, DriverSummary, Invite } from "@/components/parent-view/standalone/types";
 import { childPlaceLabel, formatDate, formatRelativeActivity, inputClass, jsonFetch, schoolKey } from "@/components/parent-view/standalone/utils";
 import { pusherClient } from "@/pusher/client";
+import { connectionConsumesDriverSlot } from "@/lib/billing/policy";
 
 type Props = {
   parentId: string;
@@ -20,6 +21,13 @@ type Props = {
   childrenData: Child[];
   connectionsData: Connection[];
   invitesData: Invite[];
+  subscription: {
+    planCode: string;
+    planName: string;
+    enforcementEnabled: boolean;
+    maxChildren: number | null;
+    maxConnectedDrivers: number | null;
+  };
 };
 
 export function StandaloneParentDashboard({
@@ -28,6 +36,7 @@ export function StandaloneParentDashboard({
   childrenData,
   connectionsData,
   invitesData,
+  subscription,
 }: Props) {
   const [children, setChildren] = useState(childrenData);
   const [connections, setConnections] = useState(connectionsData);
@@ -48,6 +57,19 @@ export function StandaloneParentDashboard({
   const [requestAgainTarget, setRequestAgainTarget] = useState<DriverSummary | null>(null);
   const [assignmentConfirmTarget, setAssignmentConfirmTarget] = useState<Connection | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const childLimitReached =
+    subscription.enforcementEnabled &&
+    subscription.maxChildren !== null &&
+    children.length >= subscription.maxChildren;
+
+  const driverCount = connections.filter((connection) =>
+    connectionConsumesDriverSlot(connection.status)
+  ).length;
+  const driverLimitReached =
+    subscription.enforcementEnabled &&
+    subscription.maxConnectedDrivers !== null &&
+    driverCount >= subscription.maxConnectedDrivers;
 
   const approvedConnections = connections.filter((connection) => connection.status === "PARENT_APPROVED");
   const pendingConnections = connections.filter((connection) => connection.status !== "PARENT_APPROVED");
@@ -83,9 +105,25 @@ export function StandaloneParentDashboard({
   }, [activeAssignments]);
 
   useEffect(() => {
-    const openAddDriver = () => setAddDriverOpen(true);
+    const openAddDriver = () => {
+      if (driverLimitReached) {
+        toast({
+          description: `${subscription.planName} includes ${subscription.maxConnectedDrivers} connected driver${subscription.maxConnectedDrivers === 1 ? "" : "s"}. Upgrade your plan to add another driver.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      setAddDriverOpen(true);
+    };
     const openMenu = () => setSideMenuOpen(true);
     const openAddKid = () => {
+      if (childLimitReached) {
+        toast({
+          description: `${subscription.planName} includes ${subscription.maxChildren} child${subscription.maxChildren === 1 ? "" : "ren"}. Upgrade your plan to add another child.`,
+          variant: "destructive",
+        });
+        return;
+      }
       setEditingChildId(null);
       setChildForm({ fullName: "", age: "", grade: "", address: "" });
       setAddKidOpen(true);
@@ -100,7 +138,29 @@ export function StandaloneParentDashboard({
       window.removeEventListener("standalone-parent:open-menu", openMenu);
       window.removeEventListener("standalone-parent:add-kid", openAddKid);
     };
-  }, []);
+  }, [
+    childLimitReached,
+    driverLimitReached,
+    subscription.maxChildren,
+    subscription.maxConnectedDrivers,
+    subscription.planName,
+  ]);
+
+  useEffect(() => {
+    const detail = {
+      childLimitReached,
+      driverLimitReached,
+    };
+    window.sessionStorage.setItem(
+      "standalone-parent-limits",
+      JSON.stringify(detail)
+    );
+    window.dispatchEvent(
+      new CustomEvent("standalone-parent:limits-updated", {
+        detail,
+      })
+    );
+  }, [childLimitReached, driverLimitReached]);
 
   const refreshConnections = async () => {
     const data = await jsonFetch("/api/parent-driver-connections");
@@ -396,6 +456,15 @@ export function StandaloneParentDashboard({
         parentId={parentId}
         parentName={parentName}
         billingSummary={billingSummary}
+        subscription={{
+          planCode: subscription.planCode,
+          planName: subscription.planName,
+          childCount: children.length,
+          maxChildren: subscription.maxChildren,
+          driverCount,
+          maxConnectedDrivers: subscription.maxConnectedDrivers,
+          enforcementEnabled: subscription.enforcementEnabled,
+        }}
         pendingConnections={pendingConnections}
         approvedConnections={approvedConnections}
         invites={invites}

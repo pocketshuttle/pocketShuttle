@@ -2,10 +2,11 @@
 
 import { NextApiRequest, NextApiResponse } from "next";
 
+import { platformBaseUrl } from "@/lib/admin/request-security";
+
 let clients: NextApiResponse[] = []; // Store active connections
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log("hello");
   // Allow only GET requests
   if (req.method !== "GET") {
     res.status(405).json({ message: "Method Not Allowed" });
@@ -16,7 +17,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache, no-transform");
   res.setHeader("Connection", "keep-alive");
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Origin", platformBaseUrl());
 
   res.flushHeaders();
 

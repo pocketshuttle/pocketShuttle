@@ -6,6 +6,11 @@ import {
   requireBillingIdentity,
 } from "@/lib/billing/current-account";
 import db from "@/packages/db/client";
+import {
+  BILLING_ROLLOUT_FLAGS,
+  hasBillingRolloutFlag,
+} from "@/lib/billing/rollout";
+import { getBillingUsage } from "@/lib/billing/usage";
 
 export async function GET() {
   try {
@@ -37,6 +42,7 @@ export async function GET() {
         take: 25,
       }),
     ]);
+    const usage = await getBillingUsage(account, resolved);
 
     return NextResponse.json({
       billingAccount: {
@@ -44,8 +50,13 @@ export async function GET() {
         type: account.type,
         billingEmail: account.billingEmail,
         enforcementEnabled: account.enforcementEnabled,
+        paidCheckoutEnabled: hasBillingRolloutFlag(
+          account.rolloutFlags,
+          BILLING_ROLLOUT_FLAGS.PAID_CHECKOUT
+        ),
       },
       current: resolved,
+      usage,
       subscriptions,
       payments,
     });

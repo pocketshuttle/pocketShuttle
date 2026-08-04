@@ -1,6 +1,4 @@
-import ResetPasswordToken from "@/(models)/ResetPassword";
 import  db  from "@/packages/db/client";
-import { connectToDB } from "@/utils/connect-to-db";
 
 export const getResetPasswordTokenByEmail = async (email: string) => {
   try {
