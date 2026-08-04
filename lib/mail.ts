@@ -4,14 +4,31 @@ import PocketshuttleLoginCodeEmail from "../components/emails/confirm-email";
 import React from "react";
 import { platformBaseUrl } from "@/lib/admin/request-security";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resendClient: Resend | null = null;
+
+// Constructed lazily, on first send, instead of at module load. Resend's
+// constructor throws immediately if RESEND_API_KEY is missing, and this
+// module gets imported (directly or transitively) by routes that run during
+// Next's build-time page-data collection — an eager `new Resend(...)` here
+// would crash the entire production build whenever the key isn't present in
+// the build environment, not just email sending at runtime.
+function getResendClient() {
+  if (!resendClient) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY is not configured");
+    }
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendClient;
+}
+
 const domain = "https://app.pocketshuttle.com/";
 // const domain = "http://localhost:3000/";
 
 export const sendVerificationEmail = async (email: string, token: string) => {
   const confirmLink = `${domain}new-verification?token=${token}`;
 
-  await resend.emails.send({
+  await getResendClient().emails.send({
     from: "onboarding@pocketshuttle.com",
     to: email,
     subject: "Thank you for joining PocketShuttle, please confirm your email",
@@ -24,7 +41,7 @@ export const sendVerificationEmail = async (email: string, token: string) => {
 export const sendResetPasswordEmail = async (email: string, token: string) => {
   const passwordLink = `${domain}reset-password?token=${token}`;
 
-  await resend.emails.send({
+  await getResendClient().emails.send({
     from: "onboarding@pocketshuttle.com",
     to: email,
     subject: "Pocketshuttle reset your password",
@@ -45,7 +62,7 @@ export const sendDriverInviteEmail = async ({
 }) => {
   const inviteLink = `${domain}register?role=driver&invite=${encodeURIComponent(token)}`;
 
-  await resend.emails.send({
+  await getResendClient().emails.send({
     from: "onboarding@pocketshuttle.com",
     to: email,
     subject: "You have been invited to join PocketShuttle as a driver",
@@ -72,7 +89,7 @@ export const sendPlatformAdminInviteEmail = async ({
   role: string;
 }) => {
   const inviteLink = `${platformBaseUrl()}/admin/invite?token=${encodeURIComponent(token)}`;
-  const result = await resend.emails.send({
+  const result = await getResendClient().emails.send({
     from: "onboarding@pocketshuttle.com",
     to: email,
     subject: "You have been invited to PocketShuttle Platform Admin",
@@ -105,7 +122,7 @@ export const sendTripViewerInviteEmail = async ({
   expiresAt: Date;
 }) => {
   const inviteLink = `${platformBaseUrl()}/viewer/invite?token=${encodeURIComponent(token)}`;
-  const result = await resend.emails.send({
+  const result = await getResendClient().emails.send({
     from: "onboarding@pocketshuttle.com",
     to: email,
     subject: "You have been invited to follow a PocketShuttle trip",
