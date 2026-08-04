@@ -6,6 +6,7 @@ import { BadgeCheck, Car, Check, Clock3, CreditCard, MapPin, Phone, Save, Shield
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { AddDriverModal } from "@/components/parent-view/standalone/add-driver-modal";
 import { DriverLocationMap } from "@/components/parent-view/standalone/driver-location-map";
 import { ParentSideMenu } from "@/components/parent-view/standalone/parent-side-menu";
@@ -164,7 +165,9 @@ export function StandaloneParentDashboard({
 
   const refreshConnections = async () => {
     const data = await jsonFetch("/api/parent-driver-connections");
-    setConnections(data.connections || []);
+    const nextConnections = data.connections || [];
+    setConnections(nextConnections);
+    return nextConnections as Connection[];
   };
 
   useEffect(() => {
@@ -201,12 +204,36 @@ export function StandaloneParentDashboard({
         console.error("Unable to refresh known-driver connections", error);
       });
     };
+    const notifyLocationShared = (data?: { driverId?: string }) => {
+      refreshConnections()
+        .then((nextConnections) => {
+          const assignment = nextConnections
+            .flatMap((connection) =>
+              connection.assignments.map((item) => ({ ...item, driver: connection.driver }))
+            )
+            .find((item) => item.status === "ACTIVE" && item.driver.id === data?.driverId);
+          if (!assignment) return;
+
+          toast({
+            title: "Location shared",
+            description: `${assignment.driver.full_name} shared their live location for ${assignment.child.fullName}.`,
+            action: (
+              <ToastAction altText="View on map" onClick={() => setLocationAssignment(assignment)}>
+                View on map
+              </ToastAction>
+            ),
+          });
+        })
+        .catch((error) => {
+          console.error("Unable to refresh known-driver connections", error);
+        });
+    };
     const channelName = `private-known-driver-parent-${parentId}`;
     const channel = process.env.NEXT_PUBLIC_PUSHER_KEY ? pusherClient.subscribe(channelName) : null;
 
     channel?.bind("child-driver-event", refresh);
     channel?.bind("connection-updated", refresh);
-    channel?.bind("driver-location-updated", refresh);
+    channel?.bind("driver-location-updated", notifyLocationShared);
 
     const pollId = window.setInterval(refresh, 15000);
 
@@ -214,7 +241,7 @@ export function StandaloneParentDashboard({
       window.clearInterval(pollId);
       channel?.unbind("child-driver-event", refresh);
       channel?.unbind("connection-updated", refresh);
-      channel?.unbind("driver-location-updated", refresh);
+      channel?.unbind("driver-location-updated", notifyLocationShared);
       if (channel) pusherClient.unsubscribe(channelName);
     };
   }, [parentId]);
@@ -637,13 +664,10 @@ export function StandaloneParentDashboard({
             <div>
               <p className="text-xs font-medium uppercase text-slate-500">Known driver network</p>
               <h1 className="mt-1 text-xl font-semibold">Welcome{parentName ? `, ${parentName}` : ""}</h1>
-              <p className="mt-1 max-w-2xl text-sm text-slate-500">
-                Track your kids with approved drivers. Add drivers from the top bar when you need to connect someone new.
-              </p>
             </div>
-            <div className="hidden h-28 overflow-hidden rounded-md bg-slate-100 sm:block">
+            <div className="h-44 overflow-hidden rounded-md bg-slate-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/family.jpg" alt="" className="h-full w-full object-cover" />
+              <img src="/images/family-icon.svg" alt="" className="h-full w-full object-cover" />
             </div>
           </div>
         </header>

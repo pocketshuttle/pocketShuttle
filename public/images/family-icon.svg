@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 160" role="img" aria-labelledby="familyIconTitle">
+  <title id="familyIconTitle">Illustration of a family walking together</title>
+
+  <defs>
+    <linearGradient id="skyBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#eef4ff" />
+      <stop offset="100%" stop-color="#e0f2fe" />
+    </linearGradient>
+  </defs>
+
+  <rect width="400" height="160" fill="url(#skyBg)" />
+
+  <!-- soft decorative shapes, matching the auth hero style -->
+  <circle cx="40" cy="30" r="4" fill="#20dca8" opacity="0.5" />
+  <circle cx="365" cy="24" r="3" fill="#ffcf32" opacity="0.6" />
+  <circle cx="340" cy="50" r="5" fill="#1d146d" opacity="0.12" />
+  <circle cx="60" cy="70" r="6" fill="#1d146d" opacity="0.08" />
+  <path d="M20 116c60-14 300-14 360 0" stroke="#1d146d" stroke-opacity="0.12" stroke-width="3" fill="none" stroke-linecap="round" />
+
+  <!-- ground line -->
+  <line x1="0" y1="132" x2="400" y2="132" stroke="#c7d2e6" stroke-width="2" />
+
+  <!-- Parent (left) -->
+  <g transform="translate(120,40)">
+    <circle cx="0" cy="0" r="15" fill="#1d146d" />
+    <path d="M-20 84c0-24 9-42 20-42s20 18 20 42" fill="#1d146d" />
+    <rect x="-16" y="18" width="10" height="34" rx="5" fill="#1d146d" transform="rotate(8 -16 18)" />
+  </g>
+
+  <!-- Child (middle) -->
+  <g transform="translate(200,64)">
+    <circle cx="0" cy="0" r="12" fill="#ffcf32" />
+    <path d="M-16 60c0-18 7-32 16-32s16 14 16 32" fill="#ffcf32" />
+  </g>
+
+  <!-- Parent (right) -->
+  <g transform="translate(280,40)">
+    <circle cx="0" cy="0" r="15" fill="#20dca8" />
+    <path d="M-20 84c0-24 9-42 20-42s20 18 20 42" fill="#20dca8" />
+    <rect x="6" y="18" width="10" height="34" rx="5" fill="#20dca8" transform="rotate(-8 6 18)" />
+  </g>
+
+  <!-- joined hands -->
+  <path d="M136 96c14 10 34 10 48 0" stroke="#071126" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.85" />
+  <path d="M216 100c14 10 34 10 48 0" stroke="#071126" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.85" />
+</svg>
