@@ -1,5 +1,4 @@
 import Navbar from "@/components/teachers-view/navbar"
-// import Navbar from "@/components/teachers-view/navbar-socket"
 import { getUserSession } from "@/lib/session"
 import { ManagedWorkspaceSlot } from "@/components/admin/managed-workspace-slot"
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {

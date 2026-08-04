@@ -174,9 +174,5 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: ["/((?!trpc|.*\\..*|_next).*)", "/", "/api/:path*"],
-  unstable_allowDynamic: [
-    "mongoose/dist/browser.umd.js",
-    "./(models)/Parent.ts",
-    "/node_modules/function-bind/**",
-  ],
+  unstable_allowDynamic: ["/node_modules/function-bind/**"],
 };

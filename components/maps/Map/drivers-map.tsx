@@ -7,9 +7,6 @@ import mapboxgl from 'mapbox-gl';
 import { getSchoolLocation } from '../lib/utils';
 import Pusher from 'pusher-js';
 import GoogleMapView from './google-map';
-import { useTeacherLocation } from '@/hooks/useTeacher-location';
-import { useSchoolTeacherLocations } from '@/hooks/useTeacherAblyLocation';
-import { ChannelProvider, useChannel } from 'ably/react';
 import { useSchoolTeachersLocations } from '@/hooks/useTeachersSocketLocation';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX!;
@@ -32,7 +29,6 @@ export const DriversLocation = ({ userId }: SchoolsTeacherInterface) => {
     const [schoolLocation, setschoolLocation] = useState({ latitude: 0, longitude: 0 });
     const [isMapLoaded, setIsMapLoaded] = useState(false);
 
-    // const teachers = useSchoolTeacherLocations()
     const teachersLocation = useSchoolTeachersLocations(userId)
 
     useEffect(() => {
@@ -66,9 +62,5 @@ export const DriversLocation = ({ userId }: SchoolsTeacherInterface) => {
 
 
 export default function TeachersLocation({ userId }: SchoolsTeacherInterface) {
-    return (
-        <ChannelProvider channelName="live-school-channel">
-            <DriversLocation userId={userId} />
-        </ChannelProvider>
-    );
+    return <DriversLocation userId={userId} />;
 }

@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
-    assertRateLimit(`admin-invite:${session.id}`, {
+    await assertRateLimit(`admin-invite:${session.id}`, {
       limit: 20,
       windowMs: 60 * 60 * 1000,
     });

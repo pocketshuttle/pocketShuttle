@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    assertRateLimit(`admin-invite-accept:${hashAdminInviteToken(token)}`, {
+    await assertRateLimit(`admin-invite-accept:${hashAdminInviteToken(token)}`, {
       limit: 8,
       windowMs: 15 * 60 * 1000,
     });

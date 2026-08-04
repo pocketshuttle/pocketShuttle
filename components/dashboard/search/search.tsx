@@ -15,12 +15,12 @@ export const Search = ({ placeholder, classname }: SearchProps) => {
 
     const handleSearch = useDebouncedCallback((e: ChangeEvent<HTMLInputElement>) => {
         const params = new URLSearchParams(searchParams)
-        //@ts-ignore
-        params.set("page", 1)
+        params.set("page", "1")
 
         if (e.target.value) {
-            e.target.value.length > 2 &&
+            if (e.target.value.length > 2) {
                 params.set("q", e.target.value)
+            }
         } else {
             params.delete("q")
         }

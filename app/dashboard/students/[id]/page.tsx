@@ -113,7 +113,7 @@ const SingleStudent = () => {
 
         // form.setnpm i @geoapify/leaflet-address-search-pluginValue("address", d)
     }
-    const handleSuggestionChange = (d: {}) => {
+    const handleSuggestionChange = (d: unknown) => {
         // setAddressValue(d)
         // const selectedValue = d.features?.[0]?.place_name || "";
         console.log(d)

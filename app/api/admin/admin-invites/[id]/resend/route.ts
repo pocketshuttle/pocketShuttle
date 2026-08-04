@@ -33,7 +33,7 @@ export async function POST(
     ) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
-    assertRateLimit(`admin-invite-resend:${session.id}`, {
+    await assertRateLimit(`admin-invite-resend:${session.id}`, {
       limit: 20,
       windowMs: 60 * 60 * 1000,
     });

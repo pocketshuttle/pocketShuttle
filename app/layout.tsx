@@ -4,7 +4,6 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster"
 import Provider from "@/components/Provider";
 import QueryProvider from "@/components/webnotifications/query-provider";
-import AblyProviderRoot from "@/ably/ably-provider";
 import OneSignalClient from "@/onesignal/onesignal-client";
 import Script from "next/script";
 
@@ -58,16 +57,14 @@ export default function RootLayout({
       </head>
       <body>
         <Provider>
-          < AblyProviderRoot>
-            <OneSignalClient>
-              < QueryProvider>
-                <main>
-                  {children}
-                </main>
-              </QueryProvider>
-              <Toaster />
-            </OneSignalClient>
-          </AblyProviderRoot>
+          <OneSignalClient>
+            < QueryProvider>
+              <main>
+                {children}
+              </main>
+            </QueryProvider>
+            <Toaster />
+          </OneSignalClient>
         </Provider>
       </body>
 

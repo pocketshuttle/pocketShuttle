@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   try {
     assertSameOrigin(req);
     const { account } = await requireBillingIdentity();
-    assertRateLimit(`billing-checkout:${account.id}`, {
+    await assertRateLimit(`billing-checkout:${account.id}`, {
       limit: 5,
       windowMs: 15 * 60 * 1000,
     });

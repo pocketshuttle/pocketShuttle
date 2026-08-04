@@ -66,7 +66,7 @@ const ParentViewData = ({ userId }: { userId: string }) => {
             {/* <StudentNotificationBar /> */}
             {
                 studentPresense?.map((studentBus) => (
-                    <TeacherDetailsForParentPage bus={studentBus?.bus} userId={userId} />
+                    <TeacherDetailsForParentPage key={studentBus.id} bus={studentBus?.bus} userId={userId} />
                 ))
             }
             <h3 className="px-2 pb-4 pt-2 text-center text-xl font-semibold text-black">All kids</h3>

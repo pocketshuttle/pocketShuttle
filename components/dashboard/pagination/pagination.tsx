@@ -23,29 +23,26 @@ export const Pagination = ({ count, pageCount }: CountProps) => {
 
     //this function returns 0, meaning the back button is disabled for the first page
     //the second page returns 1, so the button is enabled
-    //@ts-ignore
 
-    const hasPrev = ITEM_PER_PAGE * (parseInt(page) - 1) > 0
-
-    //@ts-ignore
-    const hasNext = ITEM_PER_PAGE * (parseInt(page) - 1) + ITEM_PER_PAGE < count;
+    const hasPrev = ITEM_PER_PAGE * (Number(page) - 1) > 0
+    const hasNext = ITEM_PER_PAGE * (Number(page) - 1) + ITEM_PER_PAGE < (count ?? 0);
 
     const handlePagination = (type: string) => {
-        //@ts-ignore
-
-        type === "prev" ? params.set("page", parseInt(page) - 1) : params.set("page", parseInt(page) + 1)
+        if (type === "prev") {
+            params.set("page", (Number(page) - 1).toString())
+        } else {
+            params.set("page", (Number(page) + 1).toString())
+        }
         replace(`${pathname}?${params}`)
     }
 
     return (
         <div className="flex justify-between  items-center w-full">
             <span className="text-md text-[var(--textSoft)]">
-                {/* @ts-ignore */}
 
-                Page {parseInt(page)} {Math.round(count / ITEM_PER_PAGE) < 1 ? "" :
+                Page {Number(page)} {Math.round((count ?? 0) / ITEM_PER_PAGE) < 1 ? "" :
                     <>
-                        {/* @ts-ignore */}
-                        of {Math.round(count / ITEM_PER_PAGE)}
+                        of {Math.round((count ?? 0) / ITEM_PER_PAGE)}
                     </>
 
                 }
