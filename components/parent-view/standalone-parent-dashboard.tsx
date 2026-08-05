@@ -837,7 +837,13 @@ export function StandaloneParentDashboard({
                 </div>
               );
             })}
-            {!approvedConnections.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">Approve a driver from the side menu before assigning kids.</p>}
+            {!approvedConnections.length && (
+              <div className="flex items-center gap-3 rounded-md bg-slate-50 p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/driver-icon.svg" alt="" className="h-12 w-12 shrink-0" />
+                <p className="text-sm text-slate-500">Approve a driver from the side menu before assigning kids.</p>
+              </div>
+            )}
           </div>
         </section>
 
@@ -926,9 +932,11 @@ export function StandaloneParentDashboard({
               );
             })}
             {!children.length && (
-              <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">
-                Added kids will appear here.
-              </p>
+              <div className="flex items-center gap-3 rounded-md bg-slate-50 p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/child-icon.svg" alt="" className="h-12 w-12 shrink-0" />
+                <p className="text-sm text-slate-500">Added kids will appear here.</p>
+              </div>
             )}
           </div>
         </section>

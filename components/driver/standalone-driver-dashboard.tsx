@@ -167,6 +167,8 @@ function getCurrentGpsPosition() {
 
 export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
   const [connections, setConnections] = useState(connectionsData);
+  const [reviewTarget, setReviewTarget] = useState<Connection | null>(null);
+  const [reviewStep, setReviewStep] = useState<"details" | "confirm">("details");
   const [verification, setVerification] = useState({
     image: driver.image || "",
     phoneNumber: driver.phoneNumber || "",
@@ -488,10 +490,35 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
           )
         );
         toast({ description: data.message });
+        setReviewTarget(null);
+        setReviewStep("details");
       } catch (error) {
         toast({ description: error instanceof Error ? error.message : "Unable to accept parent request", variant: "destructive" });
       }
     });
+  };
+
+  const declineConnection = (connectionId: string) => {
+    startTransition(async () => {
+      try {
+        const data = await jsonFetch(`/api/parent-driver-connections/${connectionId}/decline`, { method: "PATCH" });
+        setConnections((current) =>
+          current.map((connection) =>
+            connection.id === connectionId ? { ...connection, ...data.connection } : connection
+          )
+        );
+        toast({ description: data.message });
+        setReviewTarget(null);
+        setReviewStep("details");
+      } catch (error) {
+        toast({ description: error instanceof Error ? error.message : "Unable to decline parent request", variant: "destructive" });
+      }
+    });
+  };
+
+  const openRequestReview = (connection: Connection) => {
+    setReviewTarget(connection);
+    setReviewStep("details");
   };
 
   return (
@@ -920,14 +947,25 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge status={connection.status} />
                   {connection.status === "INVITED" && connection.requestedBy === "parent" && (
-                    <Button size="sm" disabled={isPending} onClick={() => approveConnection(connection.id)} className="gap-2">
-                      <Check className="h-4 w-4" /> Accept
-                    </Button>
+                    <>
+                      <Button size="sm" variant="outline" disabled={isPending} onClick={() => declineConnection(connection.id)} className="gap-2 border-rose-200 text-rose-700 hover:bg-rose-50">
+                        <X className="h-4 w-4" /> Decline
+                      </Button>
+                      <Button size="sm" disabled={isPending} onClick={() => openRequestReview(connection)} className="gap-2">
+                        <Check className="h-4 w-4" /> Review request
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
             ))}
-            {!pendingConnections.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">No pending parent relationships.</p>}
+            {!pendingConnections.length && (
+              <div className="flex items-center gap-3 rounded-md bg-slate-50 p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/family-icon.svg" alt="" className="h-12 w-12 shrink-0" />
+                <p className="text-sm text-slate-500">No pending parent relationships.</p>
+              </div>
+            )}
           </div>
         </section>
 
@@ -985,6 +1023,125 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
           </div>
         </section>
       </div>
+
+      {reviewTarget && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-4">
+          <div className="w-full max-w-md rounded-t-xl bg-white p-4 shadow-2xl sm:rounded-xl">
+            {reviewStep === "details" ? (
+              <>
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-medium uppercase text-slate-500">New request</p>
+                    <h2 className="mt-1 text-lg font-semibold">Parent details</h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReviewTarget(null);
+                      setReviewStep("details");
+                    }}
+                    className="rounded-md p-2 hover:bg-slate-100"
+                    aria-label="Close request review"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3 rounded-md border border-slate-200 p-3">
+                  <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-slate-100">
+                    {reviewTarget.parent.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={reviewTarget.parent.image} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <UserRound className="h-7 w-7 text-slate-500" aria-hidden="true" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold">{reviewTarget.parent.full_name || "Parent"}</p>
+                    <p className="text-xs text-slate-500">Wants to connect with you</p>
+                  </div>
+                  {reviewTarget.parent.phoneNumber && (
+                    <Button size="sm" variant="outline" asChild className="shrink-0 gap-2">
+                      <a href={`tel:${reviewTarget.parent.phoneNumber}`}>
+                        <Phone className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  )}
+                </div>
+
+                <div className="mt-3 flex items-start gap-3 rounded-md bg-indigo-50/50 p-3 text-sm text-slate-600">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-indigo-700" aria-hidden="true" />
+                  <p>Once accepted, this parent can assign their children to you and see your live location while sharing is on.</p>
+                </div>
+
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isPending}
+                    onClick={() => declineConnection(reviewTarget.id)}
+                    className="gap-2 border-rose-200 text-rose-700 hover:bg-rose-50"
+                  >
+                    <X className="h-4 w-4" /> Decline
+                  </Button>
+                  <Button type="button" disabled={isPending} onClick={() => setReviewStep("confirm")} className="gap-2">
+                    <Check className="h-4 w-4" /> Continue to accept
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-medium uppercase text-slate-500">Confirm</p>
+                    <h2 className="mt-1 text-lg font-semibold">Accept this request?</h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReviewTarget(null);
+                      setReviewStep("details");
+                    }}
+                    className="rounded-md p-2 hover:bg-slate-100"
+                    aria-label="Close request review"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="divide-y divide-slate-100 rounded-md border border-slate-200">
+                  <div className="flex items-center justify-between gap-3 p-3">
+                    <span className="text-sm text-slate-500">Parent</span>
+                    <span className="text-sm font-medium">{reviewTarget.parent.full_name || "Parent"}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 p-3">
+                    <span className="text-sm text-slate-500">Contact</span>
+                    <span className="text-sm font-medium">{reviewTarget.parent.phoneNumber || "No phone"}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 p-3">
+                    <span className="text-sm text-slate-500">Status</span>
+                    <span className="text-sm font-medium">Awaiting your response</span>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex items-start gap-3 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" aria-hidden="true" />
+                  <p>You can revoke this relationship later from Pending families if anything changes.</p>
+                </div>
+
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  <Button type="button" variant="outline" disabled={isPending} onClick={() => setReviewStep("details")}>
+                    Go back
+                  </Button>
+                  <Button type="button" disabled={isPending} onClick={() => approveConnection(reviewTarget.id)} className="gap-2">
+                    <Check className="h-4 w-4" /> Accept request
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
