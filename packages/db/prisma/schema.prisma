@@ -717,6 +717,9 @@ model Driver {
   landmark                    String?
   utilityBillUrl              String?                  @map("utility_bill_url")
   identityDocumentUrl         String?                  @map("identity_document_url")
+  drivingLicenseUrl           String?                  @map("driving_license_url")
+  vehicleRegistrationUrl      String?                  @map("vehicle_registration_url")
+  vehicleInsuranceUrl         String?                  @map("vehicle_insurance_url")
   verificationStatus          DriverVerificationStatus @default(UNSUBMITTED) @map("verification_status")
   verificationRejectionReason String?                  @map("verification_rejection_reason")
   serviceAreas                String[]                 @default([]) @map("service_areas")

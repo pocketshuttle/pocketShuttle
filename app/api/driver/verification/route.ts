@@ -43,22 +43,17 @@ export async function PATCH(req: NextRequest) {
       liveAddress: parsed.data.liveAddress,
       landmark: parsed.data.landmark,
       utilityBillUrl: parsed.data.utilityBillUrl,
+      identityDocumentUrl: parsed.data.identityDocumentUrl,
+      drivingLicenseUrl: parsed.data.drivingLicenseUrl,
+      vehicleRegistrationUrl: parsed.data.vehicleRegistrationUrl,
+      vehicleInsuranceUrl: parsed.data.vehicleInsuranceUrl,
       verificationStatus: "PENDING_REVIEW",
       verificationRejectionReason: null,
     },
   });
 
-  await db.$executeRaw`
-    UPDATE "Driver"
-    SET "identity_document_url" = ${parsed.data.identityDocumentUrl}
-    WHERE "id" = ${driver.id}
-  `;
-
   return NextResponse.json({
     message: "Verification submitted for review",
-    driver: {
-      ...updated,
-      identityDocumentUrl: parsed.data.identityDocumentUrl,
-    },
+    driver: updated,
   });
 }

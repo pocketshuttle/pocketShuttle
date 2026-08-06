@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Check, CheckCircle2, Clock3, Copy, LifeBuoy, PlusCircle, Send, Ticket, X } from "lucide-react";
+import { AlertTriangle, Check, CheckCircle2, Clock3, Copy, LifeBuoy, Loader2, PlusCircle, Send, Ticket, X } from "lucide-react";
 
 import Logout from "@/components/dashboard/sidebar/logout";
 import { Button } from "@/components/ui/button";
@@ -307,7 +307,11 @@ export function ParentSideMenu({
               </div>
             )}
 
-            {supportLoading && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">Loading tickets...</p>}
+            {supportLoading && (
+              <div className="flex items-center justify-center gap-2 rounded-md bg-slate-50 p-3 text-sm text-slate-500">
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Loading tickets...
+              </div>
+            )}
 
             {(supportMode === "track" || supportMode === "history") && supportTickets.length > 0 ? (
               <div className="grid gap-2">
@@ -373,7 +377,11 @@ export function ParentSideMenu({
                   className="min-h-28 resize-none border-slate-200 bg-white text-slate-900 shadow-none"
                 />
                 <Button type="button" disabled={supportSubmitting || supportMessage.trim().length < 5} onClick={submitSupportTicket} className="gap-2">
-                  <Send className="h-4 w-4" aria-hidden="true" />
+                  {supportSubmitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Send className="h-4 w-4" aria-hidden="true" />
+                  )}
                   {supportSubmitting ? "Sending..." : "Send"}
                 </Button>
               </div>

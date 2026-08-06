@@ -29,6 +29,11 @@ const DriverPage = async () => {
       liveAddress: true,
       landmark: true,
       utilityBillUrl: true,
+      identityDocumentUrl: true,
+      drivingLicenseUrl: true,
+      vehicleRegistrationUrl: true,
+      vehicleInsuranceUrl: true,
+      lastActiveAt: true,
       verificationStatus: true,
       verificationRejectionReason: true,
       serviceAreas: true,
@@ -47,18 +52,8 @@ const DriverPage = async () => {
 
   await markDriverActive(driver.id);
 
-  const driverMetaRows = await db.$queryRaw<{ identityDocumentUrl: string | null; lastActiveAt: Date | null }[]>`
-    SELECT
-      "identity_document_url" AS "identityDocumentUrl",
-      "last_active_at" AS "lastActiveAt"
-    FROM "Driver"
-    WHERE "id" = ${driver.id}
-    LIMIT 1
-  `;
   const driverData = {
     ...driver,
-    identityDocumentUrl: driverMetaRows[0]?.identityDocumentUrl || null,
-    lastActiveAt: driverMetaRows[0]?.lastActiveAt || null,
     shareProfile:
       driver.shareProfile ||
       (await ensureDriverShareProfile({

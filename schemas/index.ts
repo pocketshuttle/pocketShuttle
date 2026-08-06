@@ -358,4 +358,13 @@ export const DriverVerificationSchema = z.object({
   identityDocumentUrl: z.string().min(1, {
     message: "Passport page or NIN card is required!",
   }),
+  drivingLicenseUrl: z.string().min(1, {
+    message: "Driving license is required!",
+  }),
+  vehicleRegistrationUrl: z.string().min(1, {
+    message: "Vehicle registration document is required!",
+  }),
+  vehicleInsuranceUrl: z.string().min(1, {
+    message: "Vehicle insurance document is required!",
+  }),
 });

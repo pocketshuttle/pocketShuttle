@@ -492,6 +492,7 @@ export const RegisterForm = ({
                             )}
                             {driverStep < 3 ? (
                                 <Button
+                                    key="continue"
                                     type="button"
                                     disabled={isPending}
                                     onClick={goToNextDriverStep}
@@ -501,6 +502,7 @@ export const RegisterForm = ({
                                 </Button>
                             ) : (
                                 <Button
+                                    key="submit"
                                     disabled={isPending}
                                     size="lg"
                                     className="h-14 flex-1 rounded-lg bg-blue-700 text-base font-semibold text-white shadow-none hover:bg-blue-800"

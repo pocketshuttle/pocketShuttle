@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { BadgeCheck, Car, Check, Clock3, CreditCard, MapPin, Phone, Save, ShieldCheck, Trash2, UserRound, UsersRound, X } from "lucide-react";
+import { BadgeCheck, Car, Check, Clock3, CreditCard, Loader2, MapPin, Phone, Save, ShieldCheck, Trash2, UserRound, UsersRound, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,7 +73,9 @@ export function StandaloneParentDashboard({
     driverCount >= subscription.maxConnectedDrivers;
 
   const approvedConnections = connections.filter((connection) => connection.status === "PARENT_APPROVED");
-  const pendingConnections = connections.filter((connection) => connection.status !== "PARENT_APPROVED");
+  const pendingConnections = connections.filter(
+    (connection) => connection.status === "INVITED" || connection.status === "DRIVER_REQUESTED"
+  );
   const activeAssignments = connections.flatMap((connection) =>
     connection.assignments
       .filter((assignment) => assignment.status === "ACTIVE")
@@ -519,9 +521,16 @@ export function StandaloneParentDashboard({
 
       {addKidOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-4">
-          <div className="w-full max-w-xl rounded-t-xl bg-white p-4 shadow-2xl sm:rounded-xl">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold">{editingChildId ? "Edit school address" : "Add kid"}</h2>
+          <div className="w-full max-w-xl rounded-t-xl bg-white p-5 shadow-2xl sm:rounded-xl">
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold">{editingChildId ? "Edit school address" : "Add kid"}</h2>
+                <p className="mt-0.5 text-sm text-slate-500">
+                  {editingChildId
+                    ? "Update where this child should be picked up and dropped off."
+                    : "Add your child's details so a driver can be assigned to them."}
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => {
@@ -529,19 +538,36 @@ export function StandaloneParentDashboard({
                   setEditingChildId(null);
                   setChildForm({ fullName: "", age: "", grade: "", address: "" });
                 }}
-                className="rounded-md p-2 hover:bg-slate-100"
+                className="shrink-0 rounded-md p-2 hover:bg-slate-100"
                 aria-label="Close add kid"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Input className={inputClass} value={childForm.fullName} onChange={(event) => setChildForm((current) => ({ ...current, fullName: event.target.value }))} placeholder="Child name" />
-              <Input className={inputClass} value={childForm.age} onChange={(event) => setChildForm((current) => ({ ...current, age: event.target.value }))} placeholder="Age" type="number" />
-              <Input className={inputClass} value={childForm.grade} onChange={(event) => setChildForm((current) => ({ ...current, grade: event.target.value }))} placeholder="Grade" />
-              <Input className={inputClass} value={childForm.address} onChange={(event) => setChildForm((current) => ({ ...current, address: event.target.value }))} placeholder="School address" />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <p className="mb-1.5 text-sm font-medium text-slate-700">Child name</p>
+                <Input className={inputClass} value={childForm.fullName} onChange={(event) => setChildForm((current) => ({ ...current, fullName: event.target.value }))} placeholder="e.g. Amara" />
+              </div>
+              <div>
+                <p className="mb-1.5 text-sm font-medium text-slate-700">Age</p>
+                <Input className={inputClass} value={childForm.age} onChange={(event) => setChildForm((current) => ({ ...current, age: event.target.value }))} placeholder="e.g. 8" type="number" />
+              </div>
+              <div>
+                <p className="mb-1.5 text-sm font-medium text-slate-700">Grade</p>
+                <Input className={inputClass} value={childForm.grade} onChange={(event) => setChildForm((current) => ({ ...current, grade: event.target.value }))} placeholder="e.g. Grade 3" />
+              </div>
+              <div className="sm:col-span-2">
+                <p className="mb-1.5 text-sm font-medium text-slate-700">School address</p>
+                <Input className={inputClass} value={childForm.address} onChange={(event) => setChildForm((current) => ({ ...current, address: event.target.value }))} placeholder="Where should the driver drop them off?" />
+              </div>
             </div>
-            <Button className="mt-4" disabled={isPending || !childForm.fullName.trim() || !childForm.address.trim()} onClick={addChild}>
+            <Button
+              className="mt-5 h-12 w-full gap-2 text-base font-semibold"
+              disabled={isPending || !childForm.fullName.trim() || !childForm.address.trim()}
+              onClick={addChild}
+            >
+              {isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
               {editingChildId ? "Save school address" : "Add kid"}
             </Button>
           </div>

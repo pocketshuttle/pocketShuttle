@@ -1,14 +1,15 @@
 "use client";
 
-import { ChangeEvent, useEffect, useRef, useState, useTransition } from "react";
-import { BadgeCheck, Calendar, Car, Check, CheckCircle2, ChevronRight, CircleSlash, Clock3, Copy, Crosshair, FileBadge, ImagePlus, LifeBuoy, LockKeyhole, MapPin, Navigation, Phone, PlusCircle, Radio, Send, ShieldCheck, Ticket, Upload, UserRound, UsersRound, X } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { BadgeCheck, Calendar, Car, Check, CheckCircle2, ChevronRight, CircleSlash, Clock3, Copy, Crosshair, LifeBuoy, Loader2, LockKeyhole, MapPin, Navigation, Phone, PlusCircle, Radio, Send, ShieldCheck, Ticket, UserRound, UsersRound, X } from "lucide-react";
 
 import Logout from "@/components/dashboard/sidebar/logout";
 import NotificationFeed from "@/components/knock/notitification-feed";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
+import { pusherClient } from "@/pusher/client";
 
 type Assignment = {
   id: string;
@@ -77,9 +78,6 @@ type Props = {
   driver: Driver;
   connectionsData: Connection[];
 };
-
-const inputClass =
-  "h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-none";
 
 async function jsonFetch(url: string, init?: RequestInit) {
   const response = await fetch(url, {
@@ -171,15 +169,8 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
   const [reviewStep, setReviewStep] = useState<"details" | "confirm">("details");
   const [verification, setVerification] = useState({
     image: driver.image || "",
-    phoneNumber: driver.phoneNumber || "",
-    address: driver.address || "",
     liveAddress: driver.liveAddress || null,
-    landmark: driver.landmark || "",
-    utilityBillUrl: driver.utilityBillUrl || "",
-    identityDocumentUrl: driver.identityDocumentUrl || "",
   });
-  const [verificationStatus, setVerificationStatus] = useState(driver.verificationStatus);
-  const [uploadingField, setUploadingField] = useState<"image" | "utilityBillUrl" | "identityDocumentUrl" | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [liveSharingOn, setLiveSharingOn] = useState(false);
   const [lastSharedAt, setLastSharedAt] = useState<string | null>(null);
@@ -194,12 +185,13 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
   const continuousShareInFlightRef = useRef(false);
   const [isPending, startTransition] = useTransition();
 
-  const verified = verificationStatus === "VERIFIED";
-  const verificationLocked = verified;
+  const verified = driver.verificationStatus === "VERIFIED";
   const shareId = driver.shareProfile?.shareId || "Generating";
   const vehicleName = [driver.carColor, driver.carMake, driver.carModel].filter(Boolean).join(" ");
   const approvedConnections = connections.filter((connection) => connection.status === "PARENT_APPROVED");
-  const pendingConnections = connections.filter((connection) => connection.status !== "PARENT_APPROVED");
+  const pendingConnections = connections.filter(
+    (connection) => connection.status === "INVITED" || connection.status === "DRIVER_REQUESTED"
+  );
   const assignments = approvedConnections.flatMap((connection) =>
     connection.assignments.map((assignment) => ({ ...assignment, parent: connection.parent }))
   );
@@ -390,65 +382,49 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
     }
   }, [settingsOpen, supportLoaded, supportLoading]);
 
-  const submitVerification = () => {
-    startTransition(async () => {
-      try {
-        const data = await jsonFetch("/api/driver/verification", {
-          method: "PATCH",
-          body: JSON.stringify(verification),
-        });
-        setVerificationStatus(data.driver.verificationStatus);
-        toast({ description: data.message });
-      } catch (error) {
-        toast({
-          description: error instanceof Error ? error.message : "Unable to submit verification",
-          variant: "destructive",
-        });
+  const refreshConnections = async () => {
+    const data = await jsonFetch("/api/parent-driver-connections");
+    const nextConnections: Connection[] = data.connections || [];
+    setConnections((current) => {
+      const previousPendingIds = new Set(
+        current.filter((connection) => connection.status !== "PARENT_APPROVED").map((connection) => connection.id)
+      );
+      const newRequest = nextConnections.find(
+        (connection) =>
+          connection.status === "INVITED" &&
+          connection.requestedBy === "parent" &&
+          !previousPendingIds.has(connection.id)
+      );
+      if (newRequest) {
+        toast({ description: `${newRequest.parent.full_name || "A parent"} wants to connect with you.` });
       }
+      return nextConnections;
     });
   };
 
-  const uploadVerificationFile = async (
-    event: ChangeEvent<HTMLInputElement>,
-    field: "image" | "utilityBillUrl" | "identityDocumentUrl"
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  useEffect(() => {
+    if (!driver.id) return;
 
-    setUploadingField(field);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append(
-        "purpose",
-        field === "image"
-          ? "driver-avatar"
-          : field === "utilityBillUrl"
-            ? "driver-utility-bill"
-            : "driver-identity-document"
-      );
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
+    const channelName = `private-known-driver-driver-${driver.id}`;
+    const channel = process.env.NEXT_PUBLIC_PUSHER_KEY ? pusherClient.subscribe(channelName) : null;
+    const refresh = () => {
+      refreshConnections().catch((error) => {
+        console.error("Unable to refresh known-driver connections", error);
       });
-      const data = await response.json().catch(() => ({}));
+    };
 
-      if (!response.ok) {
-        throw new Error(data?.message || "Unable to upload file");
-      }
+    channel?.bind("connection-updated", refresh);
+    channel?.bind("child-driver-event", refresh);
 
-      setVerification((current) => ({ ...current, [field]: data.url }));
-      toast({ description: "File uploaded." });
-    } catch (error) {
-      toast({
-        description: error instanceof Error ? error.message : "Unable to upload file",
-        variant: "destructive",
-      });
-    } finally {
-      setUploadingField(null);
-    }
-  };
+    const pollId = window.setInterval(refresh, 15000);
+
+    return () => {
+      window.clearInterval(pollId);
+      channel?.unbind("connection-updated", refresh);
+      channel?.unbind("child-driver-event", refresh);
+      if (channel) pusherClient.unsubscribe(channelName);
+    };
+  }, [driver.id]);
 
   const markChildStatus = (assignmentId: string, action: "on_the_way" | "picked_up" | "dropped_off") => {
     startTransition(async () => {
@@ -548,7 +524,12 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{driver.full_name}</p>
-              <p className="text-xs text-slate-500">{verificationStatus.replace("_", " ")}</p>
+              <Link
+                href="/driver/verify"
+                className={`text-xs font-medium ${verified ? "text-emerald-700 hover:text-emerald-800" : "text-blue-700 hover:text-blue-900"}`}
+              >
+                {verified ? "Verify" : "Verify your account"}
+              </Link>
             </div>
           </div>
           <button type="button" onClick={() => setSettingsOpen(false)} className="rounded-md p-2 text-slate-500 hover:bg-slate-100" aria-label="Close settings">
@@ -567,54 +548,6 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
                   <Copy className="h-4 w-4" /> Copy
                 </Button>
               </div>
-            </div>
-          </section>
-
-          <section className="rounded-lg border border-slate-200 bg-white p-4">
-            <h2 className="mb-4 text-base font-semibold">Verification</h2>
-            <div className="grid gap-3">
-              <div className="flex items-center gap-3 rounded-md border border-slate-200 p-3">
-                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-slate-100">
-                  {verification.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={verification.image} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <UserRound className="h-8 w-8 text-slate-500" aria-hidden="true" />
-                  )}
-                </div>
-                <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50">
-                  <ImagePlus className="h-4 w-4" aria-hidden="true" />
-                  {uploadingField === "image" ? "Uploading..." : "Upload image"}
-                  <input type="file" accept="image/*" className="sr-only" disabled={verificationLocked || !!uploadingField || isPending} onChange={(event) => uploadVerificationFile(event, "image")} />
-                </label>
-              </div>
-              <Input className={inputClass} placeholder="Phone number" value={verification.phoneNumber} disabled={verificationLocked} onChange={(event) => setVerification((current) => ({ ...current, phoneNumber: event.target.value }))} />
-              <Input className={inputClass} placeholder="Address" value={verification.address} disabled={verificationLocked} onChange={(event) => setVerification((current) => ({ ...current, address: event.target.value }))} />
-              <Input className={inputClass} placeholder="Landmark" value={verification.landmark} disabled={verificationLocked} onChange={(event) => setVerification((current) => ({ ...current, landmark: event.target.value }))} />
-              <div className="grid gap-2 rounded-md border border-slate-200 p-3">
-                <p className="truncate text-xs text-slate-500">{verification.utilityBillUrl || "No utility bill uploaded"}</p>
-                <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50">
-                  <Upload className="h-4 w-4" aria-hidden="true" />
-                  {uploadingField === "utilityBillUrl" ? "Uploading..." : "Upload utility bill"}
-                  <input type="file" accept="image/*" className="sr-only" disabled={verificationLocked || !!uploadingField || isPending} onChange={(event) => uploadVerificationFile(event, "utilityBillUrl")} />
-                </label>
-              </div>
-              <div className="grid gap-2 rounded-md border border-slate-200 p-3">
-                <p className="truncate text-xs text-slate-500">{verification.identityDocumentUrl || "No passport page or NIN card uploaded"}</p>
-                <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50">
-                  <FileBadge className="h-4 w-4" aria-hidden="true" />
-                  {uploadingField === "identityDocumentUrl" ? "Uploading..." : "Upload passport/NIN"}
-                  <input type="file" accept="image/*" className="sr-only" disabled={verificationLocked || !!uploadingField || isPending} onChange={(event) => uploadVerificationFile(event, "identityDocumentUrl")} />
-                </label>
-              </div>
-              <Button type="button" variant="outline" disabled={verificationLocked} onClick={() => captureLocation(false)} className="gap-2">
-                <Crosshair className="h-4 w-4" aria-hidden="true" /> Share GPS
-              </Button>
-              {verificationLocked ? (
-                <p className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-700">Your account is verified. Verification details are locked.</p>
-              ) : (
-                <Button disabled={isPending} onClick={submitVerification}>Submit for review</Button>
-              )}
             </div>
           </section>
 
@@ -643,6 +576,7 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
               <h2 className="text-base font-semibold">Contact support</h2>
             </div>
             <div className="grid gap-3">
+
               {supportLoaded && (
                 <div className="grid grid-cols-3 gap-2">
                   <Button
@@ -675,7 +609,11 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
                 </div>
               )}
 
-              {supportLoading && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">Loading tickets...</p>}
+              {supportLoading && (
+                <div className="flex items-center justify-center gap-2 rounded-md bg-slate-50 p-3 text-sm text-slate-500">
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Loading tickets...
+                </div>
+              )}
 
               {(supportMode === "track" || supportMode === "history") && supportTickets.length > 0 ? (
                 <div className="grid gap-2">
@@ -740,13 +678,18 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
                     onClick={submitSupportTicket}
                     className="gap-2"
                   >
-                    <Send className="h-4 w-4" aria-hidden="true" />
+                    {supportSubmitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <Send className="h-4 w-4" aria-hidden="true" />
+                    )}
                     {supportSubmitting ? "Sending..." : "Send"}
                   </Button>
                 </div>
               )}
             </div>
           </section>
+
         </div>
 
         <div className="mt-auto border-t border-slate-200 bg-white p-4">
@@ -796,6 +739,19 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
       </nav>
 
       <div className="mx-auto grid w-full max-w-7xl gap-5 px-4 py-6">
+
+        {!verified && (
+          <Link
+            href="/driver/verify"
+            className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900 hover:bg-amber-100"
+          >
+            <span className="flex items-center gap-3">
+              <ShieldCheck className="h-5 w-5 shrink-0 text-amber-700" aria-hidden="true" />
+              <span className="text-sm font-medium">Verify your account so parents can trust and connect with you</span>
+            </span>
+            <ChevronRight className="h-5 w-5 shrink-0 text-amber-700" aria-hidden="true" />
+          </Link>
+        )}
         <section className="grid grid-cols-3 gap-2 sm:gap-4">
           <div className="grid justify-items-center rounded-lg border border-slate-200 bg-white px-2 py-3 text-center sm:p-4">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-emerald-50 text-emerald-700 sm:h-10 sm:w-10">
@@ -972,6 +928,7 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
         <section className="rounded-lg border border-slate-200 bg-white p-4">
           <h2 className="mb-4 text-base font-semibold">Assigned kids</h2>
           <div className="grid gap-3">
+
             {assignments.map((assignment) => (
               <div key={assignment.id} className="rounded-md border border-slate-200 p-3">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -1019,9 +976,11 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
                 </div>
               </div>
             ))}
+
             {!assignments.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">No children assigned yet. Child details appear only after parent approval.</p>}
           </div>
         </section>
+
       </div>
 
       {reviewTarget && (
@@ -1029,6 +988,10 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
           <div className="w-full max-w-md rounded-t-xl bg-white p-4 shadow-2xl sm:rounded-xl">
             {reviewStep === "details" ? (
               <>
+                <div className="-mx-4 -mt-4 mb-4 overflow-hidden rounded-t-xl bg-[#e0f2fe] sm:mx-0 sm:mt-0 sm:rounded-lg">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/images/new-request-icon.svg" alt="" className="h-32 w-full object-contain" />
+                </div>
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-medium uppercase text-slate-500">New request</p>
@@ -1074,13 +1037,13 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
                   <p>Once accepted, this parent can assign their children to you and see your live location while sharing is on.</p>
                 </div>
 
-                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                <div className="mt-4 flex md:flex-col gap-2 sm:flex-row sm:justify-between w-full ">
                   <Button
                     type="button"
                     variant="outline"
                     disabled={isPending}
                     onClick={() => declineConnection(reviewTarget.id)}
-                    className="gap-2 border-rose-200 text-rose-700 hover:bg-rose-50"
+                    className="gap-2 border-rose-200 text-rose-700 hover:bg-rose-50 w-full"
                   >
                     <X className="h-4 w-4" /> Decline
                   </Button>

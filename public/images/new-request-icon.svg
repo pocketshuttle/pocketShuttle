@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 160" role="img" aria-labelledby="newRequestIconTitle">
+  <title id="newRequestIconTitle">Illustration of a new connection request</title>
+
+  <defs>
+    <linearGradient id="requestBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#eef4ff" />
+      <stop offset="100%" stop-color="#e0f2fe" />
+    </linearGradient>
+  </defs>
+
+  <rect width="400" height="160" fill="url(#requestBg)" />
+
+  <!-- decorative dots -->
+  <circle cx="30" cy="26" r="4" fill="#20dca8" opacity="0.5" />
+  <circle cx="372" cy="30" r="3" fill="#ffcf32" opacity="0.6" />
+  <circle cx="24" cy="134" r="5" fill="#1d146d" opacity="0.1" />
+  <circle cx="378" cy="130" r="6" fill="#1d146d" opacity="0.08" />
+
+  <!-- person silhouette (the parent making the request) -->
+  <circle cx="110" cy="62" r="24" fill="#1d146d" />
+  <path d="M62 150c0-38 21-64 48-64s48 26 48 64" fill="#1d146d" />
+
+  <!-- connection waves, arcing toward the bell -->
+  <path d="M195 70c22-16 45-16 67 0" stroke="#20dca8" stroke-width="5" fill="none" stroke-linecap="round" />
+  <path d="M200 90c26-19 55-19 81 0" stroke="#20dca8" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.55" />
+
+  <!-- notification bell -->
+  <g transform="translate(305,72)">
+    <path d="M0 -32c15 0 26 13 26 28v14l10 14H-36l10-14v-14c0-15 11-28 26-28z" fill="#ffcf32" />
+    <path d="M-11 32a11 11 0 0 0 22 0z" fill="#ffcf32" />
+    <circle cx="22" cy="-30" r="9" fill="#ef4444" stroke="#eef4ff" stroke-width="2" />
+  </g>
+</svg>
