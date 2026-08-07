@@ -37,6 +37,15 @@ export const NewPasswordSchema = z.object({
   role: z.string().optional(),
 });
 
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1, {
+    message: "Current password is required",
+  }),
+  newPassword: z.string().min(6, {
+    message: "New password must be at least 6 characters",
+  }),
+});
+
 export const RegisterSchema = z
   .object({
     accountRole: z.enum(["school", "parent", "driver"]).default("school"),

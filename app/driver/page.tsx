@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { StandaloneDriverDashboard } from "@/components/driver/standalone-driver-dashboard";
 import { markDriverActive } from "@/lib/driver-activity";
@@ -97,7 +98,11 @@ const DriverPage = async () => {
     assignments: connection.status === "PARENT_APPROVED" ? connection.assignments : [],
   }));
 
-  return <StandaloneDriverDashboard driver={driverData as any} connectionsData={connectionsData as any} />;
+  return (
+    <Suspense>
+      <StandaloneDriverDashboard driver={driverData as any} connectionsData={connectionsData as any} />
+    </Suspense>
+  );
 };
 
 export default DriverPage;

@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { BadgeCheck, Calendar, Car, Check, CheckCircle2, ChevronRight, CircleSlash, Clock3, Copy, Crosshair, LifeBuoy, Loader2, LockKeyhole, MapPin, Navigation, Phone, PlusCircle, Radio, Send, ShieldCheck, Ticket, UserRound, UsersRound, X } from "lucide-react";
+import { BadgeCheck, Calendar, Car, Check, CheckCircle2, ChevronRight, CircleSlash, Clock3, Copy, Crosshair, LifeBuoy, Loader2, LockKeyhole, MapPin, Navigation, Phone, PlusCircle, Radio, Send, Settings, ShieldCheck, Ticket, UserRound, UsersRound, X } from "lucide-react";
 
-import Logout from "@/components/dashboard/sidebar/logout";
 import NotificationFeed from "@/components/knock/notitification-feed";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -184,6 +184,16 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
   const lastContinuousShareRef = useRef(0);
   const continuousShareInFlightRef = useRef(false);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("openMenu")) {
+      setSettingsOpen(true);
+      router.replace("/driver");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const verified = driver.verificationStatus === "VERIFIED";
   const shareId = driver.shareProfile?.shareId || "Generating";
@@ -690,10 +700,15 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
             </div>
           </section>
 
-        </div>
-
-        <div className="mt-auto border-t border-slate-200 bg-white p-4">
-          <Logout />
+          <section className="overflow-hidden rounded-lg border border-slate-200 bg-white p-1">
+            <Link href="/driver/settings" className="flex items-center gap-3 rounded-md p-3 hover:bg-slate-50">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-700">
+                <Settings className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <span className="flex-1 text-sm font-semibold text-slate-950">Settings</span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+            </Link>
+          </section>
         </div>
       </aside>
 

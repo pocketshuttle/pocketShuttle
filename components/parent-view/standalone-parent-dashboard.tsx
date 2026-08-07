@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BadgeCheck, Car, Check, Clock3, CreditCard, Loader2, MapPin, Phone, Save, ShieldCheck, Trash2, UserRound, UsersRound, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,16 @@ export function StandaloneParentDashboard({
   const [requestAgainTarget, setRequestAgainTarget] = useState<DriverSummary | null>(null);
   const [assignmentConfirmTarget, setAssignmentConfirmTarget] = useState<Connection | null>(null);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("openMenu")) {
+      setSideMenuOpen(true);
+      router.replace("/parent");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const childLimitReached =
     subscription.enforcementEnabled &&
