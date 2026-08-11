@@ -76,7 +76,7 @@ export const getUserSession = cache(async () => {
     }
     session.platformAccessRole = admin.accessRole;
   } else if (await isAccountSuspended(role, String(session.id))) {
-    redirect("/login");
+    redirect("/api/auth/force-logout?reason=suspended");
   }
 
   return session;
