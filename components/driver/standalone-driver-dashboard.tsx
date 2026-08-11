@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { BadgeCheck, Calendar, Car, Check, CheckCircle2, ChevronRight, CircleSlash, Clock3, Copy, Crosshair, LifeBuoy, Loader2, LockKeyhole, MapPin, Navigation, Phone, PlusCircle, Radio, Send, Settings, ShieldCheck, Ticket, UserRound, UsersRound, X } from "lucide-react";
 
-import NotificationFeed from "@/components/knock/notitification-feed";
+import { KnownDriverNotificationBell } from "@/components/known-driver-network/notification-bell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
@@ -30,6 +30,21 @@ type Assignment = {
   events?: Array<{ id: string; eventType: string; createdAt: string | Date }>;
 };
 
+type CustomPlace = {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  radiusMeters: number;
+};
+
+type TripTemplate = {
+  id: string;
+  title: string;
+  schedule: { frequency?: string } | null;
+  nextRunAt?: string | Date | null;
+};
+
 type Connection = {
   id: string;
   status: string;
@@ -41,6 +56,8 @@ type Connection = {
     image?: string | null;
   };
   assignments: Assignment[];
+  customPlaces?: CustomPlace[];
+  tripTemplates?: TripTemplate[];
 };
 
 type Driver = {
@@ -321,6 +338,13 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
       { enableHighAccuracy: true }
     );
   };
+
+  useEffect(() => {
+    const handleShareLocationRequest = () => captureLocation(false);
+    window.addEventListener("standalone-driver:share-location", handleShareLocationRequest);
+    return () => window.removeEventListener("standalone-driver:share-location", handleShareLocationRequest);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const stopLiveSharing = () => {
     if (watchIdRef.current !== null) {
@@ -732,9 +756,7 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
             </span>
           </button>
           <div className="ml-auto flex shrink-0 items-center gap-2">
-            <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full [&_button]:h-10 [&_button]:w-10 [&_button]:rounded-full">
-              <NotificationFeed />
-            </span>
+            <KnownDriverNotificationBell role="driver" id={driver.id} />
             <button
               type="button"
               disabled={isPending}
@@ -993,6 +1015,60 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
             ))}
 
             {!assignments.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">No children assigned yet. Child details appear only after parent approval.</p>}
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-slate-200 bg-white p-4">
+          <h2 className="mb-4 text-base font-semibold">Saved places &amp; recurring trips</h2>
+          <div className="grid gap-3">
+            {approvedConnections.map((connection) => {
+              const customPlaces = connection.customPlaces ?? [];
+              const tripTemplates = connection.tripTemplates ?? [];
+              const hasData = customPlaces.length > 0 || tripTemplates.length > 0;
+              if (!hasData) return null;
+              return (
+                <div key={connection.id} className="rounded-md border border-slate-200 p-3">
+                  <p className="text-sm font-semibold">{connection.parent.full_name || "Parent"}</p>
+                  {customPlaces.length > 0 && (
+                    <div className="mt-2 grid gap-1.5">
+                      {customPlaces.map((place) => (
+                        <div key={place.id} className="flex items-center justify-between gap-2 text-xs text-slate-500">
+                          <span className="flex min-w-0 items-center gap-1.5">
+                            <MapPin className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{place.name}</span>
+                          </span>
+                          <a
+                            href={`https://www.google.com/maps?q=${place.latitude},${place.longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="shrink-0 font-medium text-blue-600 hover:underline"
+                          >
+                            View on map
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {tripTemplates.length > 0 && (
+                    <div className="mt-2 grid gap-1.5">
+                      {tripTemplates.map((template) => (
+                        <p key={template.id} className="flex items-center gap-1.5 text-xs text-slate-500">
+                          <Calendar className="h-3.5 w-3.5 shrink-0" />
+                          {template.title} · {template.schedule?.frequency || "Scheduled"}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {!approvedConnections.some(
+              (connection) => (connection.customPlaces ?? []).length > 0 || (connection.tripTemplates ?? []).length > 0
+            ) && (
+              <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">
+                No saved places or recurring trips from your connected parents yet.
+              </p>
+            )}
           </div>
         </section>
 

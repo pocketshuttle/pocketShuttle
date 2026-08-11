@@ -129,15 +129,25 @@ export function StandaloneParentDashboard({
       setChildForm({ fullName: "", age: "", grade: "", address: "" });
       setAddKidOpen(true);
     };
+    const openViewLocation = (event: Event) => {
+      const assignmentId = (event as CustomEvent<{ assignmentId?: string }>).detail?.assignmentId;
+      if (!assignmentId) return;
+      const assignment = connections
+        .flatMap((connection) => connection.assignments.map((item) => ({ ...item, driver: connection.driver })))
+        .find((item) => item.id === assignmentId);
+      if (assignment) setLocationAssignment(assignment);
+    };
 
     window.addEventListener("standalone-parent:add-driver", openAddDriver);
     window.addEventListener("standalone-parent:open-menu", openMenu);
     window.addEventListener("standalone-parent:add-kid", openAddKid);
+    window.addEventListener("standalone-parent:view-location", openViewLocation);
 
     return () => {
       window.removeEventListener("standalone-parent:add-driver", openAddDriver);
       window.removeEventListener("standalone-parent:open-menu", openMenu);
       window.removeEventListener("standalone-parent:add-kid", openAddKid);
+      window.removeEventListener("standalone-parent:view-location", openViewLocation);
     };
   }, [
     childLimitReached,
@@ -145,6 +155,7 @@ export function StandaloneParentDashboard({
     subscription.maxChildren,
     subscription.maxConnectedDrivers,
     subscription.planName,
+    connections,
   ]);
 
   useEffect(() => {

@@ -73,6 +73,12 @@ const DriverPage = async () => {
           full_name: true,
           phoneNumber: true,
           image: true,
+          billingAccount: {
+            select: {
+              customPlaces: { where: { isActive: true }, orderBy: { name: "asc" } },
+              tripTemplates: { where: { isActive: true }, orderBy: { createdAt: "desc" } },
+            },
+          },
         },
       },
       assignments: {
@@ -93,10 +99,17 @@ const DriverPage = async () => {
     orderBy: { updatedAt: "desc" },
   });
 
-  const connectionsData = connections.map((connection) => ({
-    ...connection,
-    assignments: connection.status === "PARENT_APPROVED" ? connection.assignments : [],
-  }));
+  const connectionsData = connections.map((connection) => {
+    const approved = connection.status === "PARENT_APPROVED";
+    const { billingAccount, ...parent } = connection.parent;
+    return {
+      ...connection,
+      parent,
+      assignments: approved ? connection.assignments : [],
+      customPlaces: approved ? billingAccount?.customPlaces ?? [] : [],
+      tripTemplates: approved ? billingAccount?.tripTemplates ?? [] : [],
+    };
+  });
 
   return (
     <Suspense>

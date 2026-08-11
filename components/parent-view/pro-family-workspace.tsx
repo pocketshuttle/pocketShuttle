@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, Bell, CalendarClock, Download, MapPinned, ShieldCheck, Users } from "lucide-react";
+import { ArrowLeft, Bell, CalendarClock, Download, Loader2, MapPinned, ShieldCheck, Users } from "lucide-react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,14 +79,32 @@ function Locked({ children }: { children: React.ReactNode }) {
   );
 }
 
+type RecurringTripSuggestion = {
+  id: string;
+  destinationLabel: string | null;
+  occurrenceCount: number;
+};
+
 export function ProFamilyWorkspace() {
   const [data, setData] = useState<Workspace | null>(null);
   const [loading, setLoading] = useState(true);
-  const [place, setPlace] = useState({ name: "", latitude: "", longitude: "", radiusMeters: "250" });
+  const [place, setPlace] = useState({ name: "", address: "", radiusMeters: "250" });
+  const [creatingPlace, setCreatingPlace] = useState(false);
   const [template, setTemplate] = useState({ title: "", frequency: "WEEKLY", nextRunAt: "" });
   const [inviteTripId, setInviteTripId] = useState("");
   const [invite, setInvite] = useState({ name: "", email: "", phoneNumber: "", emergencyContact: false });
   const [phone, setPhone] = useState("");
+  const [suggestions, setSuggestions] = useState<RecurringTripSuggestion[]>([]);
+  const [respondingId, setRespondingId] = useState<string | null>(null);
+
+  const loadSuggestions = useCallback(async () => {
+    try {
+      const result = await request("/api/parent/recurring-trip-suggestions");
+      setSuggestions(result.suggestions || []);
+    } catch (error) {
+      toast({ description: error instanceof Error ? error.message : "Unable to load trip suggestions", variant: "destructive" });
+    }
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -99,18 +118,39 @@ export function ProFamilyWorkspace() {
   }, []);
 
   useEffect(() => void load(), [load]);
+  useEffect(() => void loadSuggestions(), [loadSuggestions]);
+
+  const respondToSuggestion = async (id: string, action: "accept" | "dismiss") => {
+    setRespondingId(id);
+    try {
+      await request(`/api/parent/recurring-trip-suggestions/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ action }),
+      });
+      await loadSuggestions();
+      if (action === "accept") await load();
+      toast({ description: action === "accept" ? "Recurring trip created." : "Suggestion dismissed." });
+    } catch (error) {
+      toast({ description: error instanceof Error ? error.message : "Unable to update suggestion", variant: "destructive" });
+    } finally {
+      setRespondingId(null);
+    }
+  };
 
   const createPlace = async () => {
+    setCreatingPlace(true);
     try {
       await request("/api/custom-places", {
         method: "POST",
-        body: JSON.stringify({ ...place, latitude: Number(place.latitude), longitude: Number(place.longitude), radiusMeters: Number(place.radiusMeters) }),
+        body: JSON.stringify({ name: place.name, address: place.address, radiusMeters: Number(place.radiusMeters) }),
       });
-      setPlace({ name: "", latitude: "", longitude: "", radiusMeters: "250" });
+      setPlace({ name: "", address: "", radiusMeters: "250" });
       await load();
       toast({ description: "Custom place created." });
     } catch (error) {
       toast({ description: error instanceof Error ? error.message : "Unable to create place", variant: "destructive" });
+    } finally {
+      setCreatingPlace(false);
     }
   };
 
@@ -160,7 +200,16 @@ export function ProFamilyWorkspace() {
     }
   };
 
-  if (loading || !data) return <main className="min-h-screen bg-slate-50 p-6">Loading Pro Family…</main>;
+  if (loading || !data) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-slate-50 p-6">
+        <div className="flex flex-col items-center gap-2">
+          <DotLottieReact src="/images/parentload.json" loop autoplay style={{ width: 240, height: 240 }} />
+          <p className="text-sm font-medium text-slate-500">Loading Pro Family…</p>
+        </div>
+      </main>
+    );
+  }
   const entitled = (key: string) => data.plan.entitlements[key] === true;
 
   return (
@@ -177,16 +226,61 @@ export function ProFamilyWorkspace() {
           </div>
         </header>
 
+        {suggestions.length > 0 && (
+          <section className="rounded-2xl border bg-white p-5">
+            <h2 className="flex items-center gap-2 text-lg font-semibold"><CalendarClock className="h-5 w-5" />Recurring trip suggestions</h2>
+            {!entitled("recurring_trips") ? (
+              <div className="mt-3"><Locked>Turning a suggestion into a recurring trip requires Pro Family.</Locked></div>
+            ) : (
+              <div className="mt-4 grid gap-3">
+                {suggestions.map((suggestion) => (
+                  <div key={suggestion.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                    <p className="text-sm">
+                      We noticed <strong>{suggestion.occurrenceCount}</strong> trips to{" "}
+                      <strong>{suggestion.destinationLabel || "the same spot"}</strong> in the last 60 days. Turn this into a recurring trip?
+                    </p>
+                    <div className="mt-3 flex gap-2">
+                      <Button
+                        size="sm"
+                        disabled={respondingId === suggestion.id}
+                        onClick={() => respondToSuggestion(suggestion.id, "accept")}
+                        className="gap-2"
+                      >
+                        {respondingId === suggestion.id && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+                        Accept
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={respondingId === suggestion.id}
+                        onClick={() => respondToSuggestion(suggestion.id, "dismiss")}
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
         <section className="grid gap-5 lg:grid-cols-2">
           <article className="rounded-2xl border bg-white p-5">
             <h2 className="flex items-center gap-2 text-lg font-semibold"><MapPinned className="h-5 w-5" />Custom places and geofences</h2>
             {!entitled("geofences") ? <Locked>Creating geofences requires Pro Family.</Locked> : (
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                <Input placeholder="Place name" value={place.name} onChange={(event) => setPlace((current) => ({ ...current, name: event.target.value }))} />
+                <Input className="sm:col-span-2" placeholder="Place name, e.g. Grandma's house" value={place.name} onChange={(event) => setPlace((current) => ({ ...current, name: event.target.value }))} />
+                <Input className="sm:col-span-2" placeholder="Address" value={place.address} onChange={(event) => setPlace((current) => ({ ...current, address: event.target.value }))} />
                 <Input placeholder="Radius in metres" type="number" value={place.radiusMeters} onChange={(event) => setPlace((current) => ({ ...current, radiusMeters: event.target.value }))} />
-                <Input placeholder="Latitude" value={place.latitude} onChange={(event) => setPlace((current) => ({ ...current, latitude: event.target.value }))} />
-                <Input placeholder="Longitude" value={place.longitude} onChange={(event) => setPlace((current) => ({ ...current, longitude: event.target.value }))} />
-                <Button className="sm:col-span-2" onClick={createPlace}>Add place</Button>
+                <Button
+                  className="gap-2"
+                  disabled={creatingPlace || !place.name.trim() || !place.address.trim()}
+                  onClick={createPlace}
+                >
+                  {creatingPlace && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+                  Add place
+                </Button>
               </div>
             )}
             <div className="mt-4 grid gap-2">{data.places.map((item) => <div key={item.id} className="flex items-center justify-between rounded-lg bg-slate-50 p-3"><span><strong>{item.name}</strong><span className="ml-2 text-xs text-slate-500">{item.radiusMeters}m</span></span>{item.isActive && <Button size="sm" variant="outline" onClick={async () => { await request(`/api/custom-places/${item.id}`, { method: "DELETE" }); await load(); }}>Disable</Button>}</div>)}</div>

@@ -6,6 +6,7 @@ import {
   requireBillingIdentity,
 } from "@/lib/billing/current-account";
 import { upgradeRequiredResponse } from "@/lib/billing/responses";
+import { geocodeAddress } from "@/lib/google-geocoding";
 import db from "@/packages/db/client";
 
 export async function GET() {
@@ -28,9 +29,25 @@ export async function POST(req: NextRequest) {
     requireFeature(resolved, "geofences");
     const body = await req.json().catch(() => ({}));
     const name = String(body.name || "").trim();
-    const latitude = Number(body.latitude);
-    const longitude = Number(body.longitude);
+    const address = String(body.address || "").trim();
     const radiusMeters = Math.round(Number(body.radiusMeters || 250));
+
+    let latitude = Number(body.latitude);
+    let longitude = Number(body.longitude);
+
+    if ((!Number.isFinite(latitude) || !Number.isFinite(longitude)) && address) {
+      try {
+        const geocoded = await geocodeAddress(address);
+        latitude = geocoded.latitude;
+        longitude = geocoded.longitude;
+      } catch (error) {
+        return NextResponse.json(
+          { message: error instanceof Error ? error.message : "We could not locate this address. Please enter a more specific address." },
+          { status: 400 }
+        );
+      }
+    }
+
     if (
       !name ||
       !Number.isFinite(latitude) ||
