@@ -1,14 +1,15 @@
 "use client";
 
-import { ChangeEvent, useEffect, useRef, useState, useTransition } from "react";
-import { BadgeCheck, Calendar, Car, Check, CheckCircle2, ChevronRight, CircleSlash, Clock3, Copy, Crosshair, FileBadge, ImagePlus, LifeBuoy, LockKeyhole, MapPin, Navigation, Phone, PlusCircle, Radio, Send, ShieldCheck, Ticket, Upload, UserRound, UsersRound, X } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { BadgeCheck, Calendar, Car, Check, CheckCircle2, ChevronRight, CircleSlash, Clock3, Copy, Crosshair, LifeBuoy, Loader2, LockKeyhole, MapPin, Navigation, Phone, PlusCircle, Radio, Send, Settings, ShieldCheck, Ticket, UserRound, UsersRound, X } from "lucide-react";
 
-import Logout from "@/components/dashboard/sidebar/logout";
-import NotificationFeed from "@/components/knock/notitification-feed";
+import { KnownDriverNotificationBell } from "@/components/known-driver-network/notification-bell";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
+import { pusherClient } from "@/pusher/client";
 
 type Assignment = {
   id: string;
@@ -29,6 +30,21 @@ type Assignment = {
   events?: Array<{ id: string; eventType: string; createdAt: string | Date }>;
 };
 
+type CustomPlace = {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  radiusMeters: number;
+};
+
+type TripTemplate = {
+  id: string;
+  title: string;
+  schedule: { frequency?: string } | null;
+  nextRunAt?: string | Date | null;
+};
+
 type Connection = {
   id: string;
   status: string;
@@ -40,6 +56,8 @@ type Connection = {
     image?: string | null;
   };
   assignments: Assignment[];
+  customPlaces?: CustomPlace[];
+  tripTemplates?: TripTemplate[];
 };
 
 type Driver = {
@@ -77,9 +95,6 @@ type Props = {
   driver: Driver;
   connectionsData: Connection[];
 };
-
-const inputClass =
-  "h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-none";
 
 async function jsonFetch(url: string, init?: RequestInit) {
   const response = await fetch(url, {
@@ -167,17 +182,12 @@ function getCurrentGpsPosition() {
 
 export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
   const [connections, setConnections] = useState(connectionsData);
+  const [reviewTarget, setReviewTarget] = useState<Connection | null>(null);
+  const [reviewStep, setReviewStep] = useState<"details" | "confirm">("details");
   const [verification, setVerification] = useState({
     image: driver.image || "",
-    phoneNumber: driver.phoneNumber || "",
-    address: driver.address || "",
     liveAddress: driver.liveAddress || null,
-    landmark: driver.landmark || "",
-    utilityBillUrl: driver.utilityBillUrl || "",
-    identityDocumentUrl: driver.identityDocumentUrl || "",
   });
-  const [verificationStatus, setVerificationStatus] = useState(driver.verificationStatus);
-  const [uploadingField, setUploadingField] = useState<"image" | "utilityBillUrl" | "identityDocumentUrl" | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [liveSharingOn, setLiveSharingOn] = useState(false);
   const [lastSharedAt, setLastSharedAt] = useState<string | null>(null);
@@ -191,13 +201,24 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
   const lastContinuousShareRef = useRef(0);
   const continuousShareInFlightRef = useRef(false);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const verified = verificationStatus === "VERIFIED";
-  const verificationLocked = verified;
+  useEffect(() => {
+    if (searchParams.get("openMenu")) {
+      setSettingsOpen(true);
+      router.replace("/driver");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const verified = driver.verificationStatus === "VERIFIED";
   const shareId = driver.shareProfile?.shareId || "Generating";
   const vehicleName = [driver.carColor, driver.carMake, driver.carModel].filter(Boolean).join(" ");
   const approvedConnections = connections.filter((connection) => connection.status === "PARENT_APPROVED");
-  const pendingConnections = connections.filter((connection) => connection.status !== "PARENT_APPROVED");
+  const pendingConnections = connections.filter(
+    (connection) => connection.status === "INVITED" || connection.status === "DRIVER_REQUESTED"
+  );
   const assignments = approvedConnections.flatMap((connection) =>
     connection.assignments.map((assignment) => ({ ...assignment, parent: connection.parent }))
   );
@@ -318,6 +339,13 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
     );
   };
 
+  useEffect(() => {
+    const handleShareLocationRequest = () => captureLocation(false);
+    window.addEventListener("standalone-driver:share-location", handleShareLocationRequest);
+    return () => window.removeEventListener("standalone-driver:share-location", handleShareLocationRequest);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const stopLiveSharing = () => {
     if (watchIdRef.current !== null) {
       navigator.geolocation.clearWatch(watchIdRef.current);
@@ -388,65 +416,49 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
     }
   }, [settingsOpen, supportLoaded, supportLoading]);
 
-  const submitVerification = () => {
-    startTransition(async () => {
-      try {
-        const data = await jsonFetch("/api/driver/verification", {
-          method: "PATCH",
-          body: JSON.stringify(verification),
-        });
-        setVerificationStatus(data.driver.verificationStatus);
-        toast({ description: data.message });
-      } catch (error) {
-        toast({
-          description: error instanceof Error ? error.message : "Unable to submit verification",
-          variant: "destructive",
-        });
+  const refreshConnections = async () => {
+    const data = await jsonFetch("/api/parent-driver-connections");
+    const nextConnections: Connection[] = data.connections || [];
+    setConnections((current) => {
+      const previousPendingIds = new Set(
+        current.filter((connection) => connection.status !== "PARENT_APPROVED").map((connection) => connection.id)
+      );
+      const newRequest = nextConnections.find(
+        (connection) =>
+          connection.status === "INVITED" &&
+          connection.requestedBy === "parent" &&
+          !previousPendingIds.has(connection.id)
+      );
+      if (newRequest) {
+        toast({ description: `${newRequest.parent.full_name || "A parent"} wants to connect with you.` });
       }
+      return nextConnections;
     });
   };
 
-  const uploadVerificationFile = async (
-    event: ChangeEvent<HTMLInputElement>,
-    field: "image" | "utilityBillUrl" | "identityDocumentUrl"
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  useEffect(() => {
+    if (!driver.id) return;
 
-    setUploadingField(field);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append(
-        "purpose",
-        field === "image"
-          ? "driver-avatar"
-          : field === "utilityBillUrl"
-            ? "driver-utility-bill"
-            : "driver-identity-document"
-      );
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
+    const channelName = `private-known-driver-driver-${driver.id}`;
+    const channel = process.env.NEXT_PUBLIC_PUSHER_KEY ? pusherClient.subscribe(channelName) : null;
+    const refresh = () => {
+      refreshConnections().catch((error) => {
+        console.error("Unable to refresh known-driver connections", error);
       });
-      const data = await response.json().catch(() => ({}));
+    };
 
-      if (!response.ok) {
-        throw new Error(data?.message || "Unable to upload file");
-      }
+    channel?.bind("connection-updated", refresh);
+    channel?.bind("child-driver-event", refresh);
 
-      setVerification((current) => ({ ...current, [field]: data.url }));
-      toast({ description: "File uploaded." });
-    } catch (error) {
-      toast({
-        description: error instanceof Error ? error.message : "Unable to upload file",
-        variant: "destructive",
-      });
-    } finally {
-      setUploadingField(null);
-    }
-  };
+    const pollId = window.setInterval(refresh, 15000);
+
+    return () => {
+      window.clearInterval(pollId);
+      channel?.unbind("connection-updated", refresh);
+      channel?.unbind("child-driver-event", refresh);
+      if (channel) pusherClient.unsubscribe(channelName);
+    };
+  }, [driver.id]);
 
   const markChildStatus = (assignmentId: string, action: "on_the_way" | "picked_up" | "dropped_off") => {
     startTransition(async () => {
@@ -488,10 +500,35 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
           )
         );
         toast({ description: data.message });
+        setReviewTarget(null);
+        setReviewStep("details");
       } catch (error) {
         toast({ description: error instanceof Error ? error.message : "Unable to accept parent request", variant: "destructive" });
       }
     });
+  };
+
+  const declineConnection = (connectionId: string) => {
+    startTransition(async () => {
+      try {
+        const data = await jsonFetch(`/api/parent-driver-connections/${connectionId}/decline`, { method: "PATCH" });
+        setConnections((current) =>
+          current.map((connection) =>
+            connection.id === connectionId ? { ...connection, ...data.connection } : connection
+          )
+        );
+        toast({ description: data.message });
+        setReviewTarget(null);
+        setReviewStep("details");
+      } catch (error) {
+        toast({ description: error instanceof Error ? error.message : "Unable to decline parent request", variant: "destructive" });
+      }
+    });
+  };
+
+  const openRequestReview = (connection: Connection) => {
+    setReviewTarget(connection);
+    setReviewStep("details");
   };
 
   return (
@@ -521,7 +558,12 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{driver.full_name}</p>
-              <p className="text-xs text-slate-500">{verificationStatus.replace("_", " ")}</p>
+              <Link
+                href="/driver/verify"
+                className={`text-xs font-medium ${verified ? "text-emerald-700 hover:text-emerald-800" : "text-blue-700 hover:text-blue-900"}`}
+              >
+                {verified ? "Verify" : "Verify your account"}
+              </Link>
             </div>
           </div>
           <button type="button" onClick={() => setSettingsOpen(false)} className="rounded-md p-2 text-slate-500 hover:bg-slate-100" aria-label="Close settings">
@@ -540,54 +582,6 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
                   <Copy className="h-4 w-4" /> Copy
                 </Button>
               </div>
-            </div>
-          </section>
-
-          <section className="rounded-lg border border-slate-200 bg-white p-4">
-            <h2 className="mb-4 text-base font-semibold">Verification</h2>
-            <div className="grid gap-3">
-              <div className="flex items-center gap-3 rounded-md border border-slate-200 p-3">
-                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-slate-100">
-                  {verification.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={verification.image} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <UserRound className="h-8 w-8 text-slate-500" aria-hidden="true" />
-                  )}
-                </div>
-                <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50">
-                  <ImagePlus className="h-4 w-4" aria-hidden="true" />
-                  {uploadingField === "image" ? "Uploading..." : "Upload image"}
-                  <input type="file" accept="image/*" className="sr-only" disabled={verificationLocked || !!uploadingField || isPending} onChange={(event) => uploadVerificationFile(event, "image")} />
-                </label>
-              </div>
-              <Input className={inputClass} placeholder="Phone number" value={verification.phoneNumber} disabled={verificationLocked} onChange={(event) => setVerification((current) => ({ ...current, phoneNumber: event.target.value }))} />
-              <Input className={inputClass} placeholder="Address" value={verification.address} disabled={verificationLocked} onChange={(event) => setVerification((current) => ({ ...current, address: event.target.value }))} />
-              <Input className={inputClass} placeholder="Landmark" value={verification.landmark} disabled={verificationLocked} onChange={(event) => setVerification((current) => ({ ...current, landmark: event.target.value }))} />
-              <div className="grid gap-2 rounded-md border border-slate-200 p-3">
-                <p className="truncate text-xs text-slate-500">{verification.utilityBillUrl || "No utility bill uploaded"}</p>
-                <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50">
-                  <Upload className="h-4 w-4" aria-hidden="true" />
-                  {uploadingField === "utilityBillUrl" ? "Uploading..." : "Upload utility bill"}
-                  <input type="file" accept="image/*" className="sr-only" disabled={verificationLocked || !!uploadingField || isPending} onChange={(event) => uploadVerificationFile(event, "utilityBillUrl")} />
-                </label>
-              </div>
-              <div className="grid gap-2 rounded-md border border-slate-200 p-3">
-                <p className="truncate text-xs text-slate-500">{verification.identityDocumentUrl || "No passport page or NIN card uploaded"}</p>
-                <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50">
-                  <FileBadge className="h-4 w-4" aria-hidden="true" />
-                  {uploadingField === "identityDocumentUrl" ? "Uploading..." : "Upload passport/NIN"}
-                  <input type="file" accept="image/*" className="sr-only" disabled={verificationLocked || !!uploadingField || isPending} onChange={(event) => uploadVerificationFile(event, "identityDocumentUrl")} />
-                </label>
-              </div>
-              <Button type="button" variant="outline" disabled={verificationLocked} onClick={() => captureLocation(false)} className="gap-2">
-                <Crosshair className="h-4 w-4" aria-hidden="true" /> Share GPS
-              </Button>
-              {verificationLocked ? (
-                <p className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-700">Your account is verified. Verification details are locked.</p>
-              ) : (
-                <Button disabled={isPending} onClick={submitVerification}>Submit for review</Button>
-              )}
             </div>
           </section>
 
@@ -616,6 +610,7 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
               <h2 className="text-base font-semibold">Contact support</h2>
             </div>
             <div className="grid gap-3">
+
               {supportLoaded && (
                 <div className="grid grid-cols-3 gap-2">
                   <Button
@@ -648,7 +643,11 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
                 </div>
               )}
 
-              {supportLoading && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">Loading tickets...</p>}
+              {supportLoading && (
+                <div className="flex items-center justify-center gap-2 rounded-md bg-slate-50 p-3 text-sm text-slate-500">
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Loading tickets...
+                </div>
+              )}
 
               {(supportMode === "track" || supportMode === "history") && supportTickets.length > 0 ? (
                 <div className="grid gap-2">
@@ -713,17 +712,27 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
                     onClick={submitSupportTicket}
                     className="gap-2"
                   >
-                    <Send className="h-4 w-4" aria-hidden="true" />
+                    {supportSubmitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <Send className="h-4 w-4" aria-hidden="true" />
+                    )}
                     {supportSubmitting ? "Sending..." : "Send"}
                   </Button>
                 </div>
               )}
             </div>
           </section>
-        </div>
 
-        <div className="mt-auto border-t border-slate-200 bg-white p-4">
-          <Logout />
+          <section className="overflow-hidden rounded-lg border border-slate-200 bg-white p-1">
+            <Link href="/driver/settings" className="flex items-center gap-3 rounded-md p-3 hover:bg-slate-50">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-700">
+                <Settings className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <span className="flex-1 text-sm font-semibold text-slate-950">Settings</span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+            </Link>
+          </section>
         </div>
       </aside>
 
@@ -747,9 +756,7 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
             </span>
           </button>
           <div className="ml-auto flex shrink-0 items-center gap-2">
-            <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full [&_button]:h-10 [&_button]:w-10 [&_button]:rounded-full">
-              <NotificationFeed />
-            </span>
+            <KnownDriverNotificationBell role="driver" id={driver.id} />
             <button
               type="button"
               disabled={isPending}
@@ -769,6 +776,19 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
       </nav>
 
       <div className="mx-auto grid w-full max-w-7xl gap-5 px-4 py-6">
+
+        {!verified && (
+          <Link
+            href="/driver/verify"
+            className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900 hover:bg-amber-100"
+          >
+            <span className="flex items-center gap-3">
+              <ShieldCheck className="h-5 w-5 shrink-0 text-amber-700" aria-hidden="true" />
+              <span className="text-sm font-medium">Verify your account so parents can trust and connect with you</span>
+            </span>
+            <ChevronRight className="h-5 w-5 shrink-0 text-amber-700" aria-hidden="true" />
+          </Link>
+        )}
         <section className="grid grid-cols-3 gap-2 sm:gap-4">
           <div className="grid justify-items-center rounded-lg border border-slate-200 bg-white px-2 py-3 text-center sm:p-4">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-emerald-50 text-emerald-700 sm:h-10 sm:w-10">
@@ -920,20 +940,32 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge status={connection.status} />
                   {connection.status === "INVITED" && connection.requestedBy === "parent" && (
-                    <Button size="sm" disabled={isPending} onClick={() => approveConnection(connection.id)} className="gap-2">
-                      <Check className="h-4 w-4" /> Accept
-                    </Button>
+                    <>
+                      <Button size="sm" variant="outline" disabled={isPending} onClick={() => declineConnection(connection.id)} className="gap-2 border-rose-200 text-rose-700 hover:bg-rose-50">
+                        <X className="h-4 w-4" /> Decline
+                      </Button>
+                      <Button size="sm" disabled={isPending} onClick={() => openRequestReview(connection)} className="gap-2">
+                        <Check className="h-4 w-4" /> Review request
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
             ))}
-            {!pendingConnections.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">No pending parent relationships.</p>}
+            {!pendingConnections.length && (
+              <div className="flex items-center gap-3 rounded-md bg-slate-50 p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/family-icon.svg" alt="" className="h-12 w-12 shrink-0" />
+                <p className="text-sm text-slate-500">No pending parent relationships.</p>
+              </div>
+            )}
           </div>
         </section>
 
         <section className="rounded-lg border border-slate-200 bg-white p-4">
           <h2 className="mb-4 text-base font-semibold">Assigned kids</h2>
           <div className="grid gap-3">
+
             {assignments.map((assignment) => (
               <div key={assignment.id} className="rounded-md border border-slate-200 p-3">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -981,10 +1013,189 @@ export function StandaloneDriverDashboard({ driver, connectionsData }: Props) {
                 </div>
               </div>
             ))}
+
             {!assignments.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">No children assigned yet. Child details appear only after parent approval.</p>}
           </div>
         </section>
+
+        <section className="rounded-lg border border-slate-200 bg-white p-4">
+          <h2 className="mb-4 text-base font-semibold">Saved places &amp; recurring trips</h2>
+          <div className="grid gap-3">
+            {approvedConnections.map((connection) => {
+              const customPlaces = connection.customPlaces ?? [];
+              const tripTemplates = connection.tripTemplates ?? [];
+              const hasData = customPlaces.length > 0 || tripTemplates.length > 0;
+              if (!hasData) return null;
+              return (
+                <div key={connection.id} className="rounded-md border border-slate-200 p-3">
+                  <p className="text-sm font-semibold">{connection.parent.full_name || "Parent"}</p>
+                  {customPlaces.length > 0 && (
+                    <div className="mt-2 grid gap-1.5">
+                      {customPlaces.map((place) => (
+                        <div key={place.id} className="flex items-center justify-between gap-2 text-xs text-slate-500">
+                          <span className="flex min-w-0 items-center gap-1.5">
+                            <MapPin className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{place.name}</span>
+                          </span>
+                          <a
+                            href={`https://www.google.com/maps?q=${place.latitude},${place.longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="shrink-0 font-medium text-blue-600 hover:underline"
+                          >
+                            View on map
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {tripTemplates.length > 0 && (
+                    <div className="mt-2 grid gap-1.5">
+                      {tripTemplates.map((template) => (
+                        <p key={template.id} className="flex items-center gap-1.5 text-xs text-slate-500">
+                          <Calendar className="h-3.5 w-3.5 shrink-0" />
+                          {template.title} · {template.schedule?.frequency || "Scheduled"}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {!approvedConnections.some(
+              (connection) => (connection.customPlaces ?? []).length > 0 || (connection.tripTemplates ?? []).length > 0
+            ) && (
+              <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">
+                No saved places or recurring trips from your connected parents yet.
+              </p>
+            )}
+          </div>
+        </section>
+
       </div>
+
+      {reviewTarget && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-4">
+          <div className="w-full max-w-md rounded-t-xl bg-white p-4 shadow-2xl sm:rounded-xl">
+            {reviewStep === "details" ? (
+              <>
+                <div className="-mx-4 -mt-4 mb-4 overflow-hidden rounded-t-xl bg-[#e0f2fe] sm:mx-0 sm:mt-0 sm:rounded-lg">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/images/new-request-icon.svg" alt="" className="h-32 w-full object-contain" />
+                </div>
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-medium uppercase text-slate-500">New request</p>
+                    <h2 className="mt-1 text-lg font-semibold">Parent details</h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReviewTarget(null);
+                      setReviewStep("details");
+                    }}
+                    className="rounded-md p-2 hover:bg-slate-100"
+                    aria-label="Close request review"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3 rounded-md border border-slate-200 p-3">
+                  <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-slate-100">
+                    {reviewTarget.parent.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={reviewTarget.parent.image} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <UserRound className="h-7 w-7 text-slate-500" aria-hidden="true" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold">{reviewTarget.parent.full_name || "Parent"}</p>
+                    <p className="text-xs text-slate-500">Wants to connect with you</p>
+                  </div>
+                  {reviewTarget.parent.phoneNumber && (
+                    <Button size="sm" variant="outline" asChild className="shrink-0 gap-2">
+                      <a href={`tel:${reviewTarget.parent.phoneNumber}`}>
+                        <Phone className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  )}
+                </div>
+
+                <div className="mt-3 flex items-start gap-3 rounded-md bg-indigo-50/50 p-3 text-sm text-slate-600">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-indigo-700" aria-hidden="true" />
+                  <p>Once accepted, this parent can assign their children to you and see your live location while sharing is on.</p>
+                </div>
+
+                <div className="mt-4 flex md:flex-col gap-2 sm:flex-row sm:justify-between w-full ">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isPending}
+                    onClick={() => declineConnection(reviewTarget.id)}
+                    className="gap-2 border-rose-200 text-rose-700 hover:bg-rose-50 w-full"
+                  >
+                    <X className="h-4 w-4" /> Decline
+                  </Button>
+                  <Button type="button" disabled={isPending} onClick={() => setReviewStep("confirm")} className="gap-2">
+                    <Check className="h-4 w-4" /> Continue to accept
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-medium uppercase text-slate-500">Confirm</p>
+                    <h2 className="mt-1 text-lg font-semibold">Accept this request?</h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReviewTarget(null);
+                      setReviewStep("details");
+                    }}
+                    className="rounded-md p-2 hover:bg-slate-100"
+                    aria-label="Close request review"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="divide-y divide-slate-100 rounded-md border border-slate-200">
+                  <div className="flex items-center justify-between gap-3 p-3">
+                    <span className="text-sm text-slate-500">Parent</span>
+                    <span className="text-sm font-medium">{reviewTarget.parent.full_name || "Parent"}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 p-3">
+                    <span className="text-sm text-slate-500">Contact</span>
+                    <span className="text-sm font-medium">{reviewTarget.parent.phoneNumber || "No phone"}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 p-3">
+                    <span className="text-sm text-slate-500">Status</span>
+                    <span className="text-sm font-medium">Awaiting your response</span>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex items-start gap-3 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" aria-hidden="true" />
+                  <p>You can revoke this relationship later from Pending families if anything changes.</p>
+                </div>
+
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  <Button type="button" variant="outline" disabled={isPending} onClick={() => setReviewStep("details")}>
+                    Go back
+                  </Button>
+                  <Button type="button" disabled={isPending} onClick={() => approveConnection(reviewTarget.id)} className="gap-2">
+                    <Check className="h-4 w-4" /> Accept request
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }

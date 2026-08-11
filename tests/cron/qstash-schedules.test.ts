@@ -10,7 +10,7 @@ import {
 } from "../../scripts/qstash-schedules";
 
 describe("QStash schedule definitions", () => {
-  it("defines the six UTC schedules with safe retry policies", () => {
+  it("defines the seven UTC schedules with safe retry policies", () => {
     assert.deepEqual(
       QSTASH_SCHEDULES.map(({ name, cron, retries }) => ({
         name,
@@ -22,6 +22,7 @@ describe("QStash schedule definitions", () => {
         { name: "reset-status", cron: "0 9 * * *", retries: 3 },
         { name: "subscriptions", cron: "15 * * * *", retries: 0 },
         { name: "trip-templates", cron: "*/15 * * * *", retries: 0 },
+        { name: "recurring-trip-suggestions", cron: "0 6 * * *", retries: 0 },
         { name: "outbound-webhooks", cron: "*/5 * * * *", retries: 0 },
         { name: "support-retention", cron: "20 3 * * *", retries: 3 },
       ]

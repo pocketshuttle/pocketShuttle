@@ -37,6 +37,15 @@ export const NewPasswordSchema = z.object({
   role: z.string().optional(),
 });
 
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1, {
+    message: "Current password is required",
+  }),
+  newPassword: z.string().min(6, {
+    message: "New password must be at least 6 characters",
+  }),
+});
+
 export const RegisterSchema = z
   .object({
     accountRole: z.enum(["school", "parent", "driver"]).default("school"),
@@ -357,5 +366,14 @@ export const DriverVerificationSchema = z.object({
   }),
   identityDocumentUrl: z.string().min(1, {
     message: "Passport page or NIN card is required!",
+  }),
+  drivingLicenseUrl: z.string().min(1, {
+    message: "Driving license is required!",
+  }),
+  vehicleRegistrationUrl: z.string().min(1, {
+    message: "Vehicle registration document is required!",
+  }),
+  vehicleInsuranceUrl: z.string().min(1, {
+    message: "Vehicle insurance document is required!",
   }),
 });

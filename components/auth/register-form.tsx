@@ -11,7 +11,18 @@ import { FormError } from "@/components/errorsandsuccess/form-error"
 import { FormSuccess } from "@/components/errorsandsuccess/form-success"
 import { useState, useTransition } from "react"
 import { register } from "@/actions/register"
-import { Car, Eye, EyeOff, GraduationCap, Users } from "lucide-react"
+import { Car, Check, Eye, EyeOff, GraduationCap, Users } from "lucide-react"
+
+const driverSteps = [
+    { step: 1, label: "Profile" },
+    { step: 2, label: "Vehicle" },
+    { step: 3, label: "Review" },
+] as const;
+
+const driverStepFields: Record<1 | 2, (keyof z.infer<typeof RegisterSchema>)[]> = {
+    1: ["full_name", "email", "phoneNumber", "address", "password"],
+    2: ["serviceAreas", "carMake", "carModel", "carColor", "plateNumber", "vehicleCapacity"],
+};
 
 const roleOptions = [
     {
@@ -44,6 +55,7 @@ export const RegisterForm = ({
     const [showPassword, setShowPassword] = useState(false)
     const [selectedRole, setSelectedRole] = useState<"school" | "parent" | "driver">(initialRole || "school")
     const [isRoleStep, setIsRoleStep] = useState(!initialRole && !inviteToken)
+    const [driverStep, setDriverStep] = useState<1 | 2 | 3>(1)
 
     {/**
             Initialize the form with react-hook-form, integrating Zod for validation
@@ -84,6 +96,13 @@ export const RegisterForm = ({
         setSelectedRole(value)
         form.setValue("accountRole", value)
         setIsRoleStep(false)
+        setDriverStep(1)
+    }
+
+    const goToNextDriverStep = async () => {
+        const fields = driverStepFields[driverStep as 1 | 2]
+        const valid = await form.trigger(fields)
+        if (valid) setDriverStep((current) => (current === 1 ? 2 : 3))
     }
 
     const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
@@ -166,74 +185,105 @@ export const RegisterForm = ({
                         />
                     )}
 
-                    <div className="space-y-5 ">
-                        {isSchool ? (
-                            <FormField
-                                control={form.control}
-                                name="schoolname"
-                                render={({ field }) => (
-                                    <FormItem className="space-y-2.5">
-                                        <FormLabel className="text-sm font-medium text-slate-700">Name of Your School</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                {...field}
-                                                placeholder="school name"
-                                                type="text"
-                                                disabled={isPending}
-                                                className="h-14 rounded-lg border-slate-200 bg-slate-50 px-4 text-slate-950 shadow-none placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-200"
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        ) : (
-                            <FormField
-                                control={form.control}
-                                name="full_name"
-                                render={({ field }) => (
-                                    <FormItem className="space-y-2.5">
-                                        <FormLabel className="text-sm font-medium text-slate-700">Full Name</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                {...field}
-                                                placeholder="full name"
-                                                type="text"
-                                                disabled={isPending}
-                                                className="h-14 rounded-lg border-slate-200 bg-slate-50 px-4 text-slate-950 shadow-none placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-200"
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        )}
-                    </div>
-                    <div className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="email"
-                            render={({ field }) => (
-                                <FormItem className="space-y-2.5">
-                                    <FormLabel className="text-sm font-medium text-slate-700">Email Address</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            placeholder="iwinosa@gmail.com"
-                                            type="email"
-                                            disabled={isPending}
-                                            className="h-14 rounded-lg border-slate-200 bg-slate-50 px-4 text-slate-950 shadow-none placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-200"
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
+                    {isDriver && (
+                        <div className="flex items-center justify-between">
+                            {driverSteps.map((item, index) => (
+                                <div key={item.step} className="flex flex-1 items-center">
+                                    <div className="flex flex-col items-center gap-1.5">
+                                        <div
+                                            className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-semibold ${driverStep > item.step
+                                                ? "border-blue-700 bg-blue-700 text-white"
+                                                : driverStep === item.step
+                                                    ? "border-blue-700 text-blue-700"
+                                                    : "border-slate-200 text-slate-400"
+                                                }`}
+                                        >
+                                            {driverStep > item.step ? <Check className="h-4 w-4" aria-hidden="true" /> : item.step}
+                                        </div>
+                                        <span className={`text-xs font-medium ${driverStep >= item.step ? "text-slate-950" : "text-slate-400"}`}>
+                                            {item.label}
+                                        </span>
+                                    </div>
+                                    {index < driverSteps.length - 1 && (
+                                        <div className={`mx-2 h-0.5 flex-1 ${driverStep > item.step ? "bg-blue-700" : "bg-slate-200"}`} />
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
-                                </FormItem>
+                    {(!isDriver || driverStep === 1) && (
+                        <div className="space-y-5 ">
+                            {isSchool ? (
+                                <FormField
+                                    control={form.control}
+                                    name="schoolname"
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-2.5">
+                                            <FormLabel className="text-sm font-medium text-slate-700">Name of Your School</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    placeholder="school name"
+                                                    type="text"
+                                                    disabled={isPending}
+                                                    className="h-14 rounded-lg border-slate-200 bg-slate-50 px-4 text-slate-950 shadow-none placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-200"
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            ) : (
+                                <FormField
+                                    control={form.control}
+                                    name="full_name"
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-2.5">
+                                            <FormLabel className="text-sm font-medium text-slate-700">Full Name</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    placeholder="full name"
+                                                    type="text"
+                                                    disabled={isPending}
+                                                    className="h-14 rounded-lg border-slate-200 bg-slate-50 px-4 text-slate-950 shadow-none placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-200"
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                             )}
-                        >
+                        </div>
+                    )}
+                    {(!isDriver || driverStep === 1) && (
+                        <div className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem className="space-y-2.5">
+                                        <FormLabel className="text-sm font-medium text-slate-700">Email Address</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                {...field}
+                                                placeholder="iwinosa@gmail.com"
+                                                type="email"
+                                                disabled={isPending}
+                                                className="h-14 rounded-lg border-slate-200 bg-slate-50 px-4 text-slate-950 shadow-none placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-200"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
 
-                        </FormField>
-                    </div>
-                    {!isSchool && (
+                                    </FormItem>
+                                )}
+                            >
+
+                            </FormField>
+                        </div>
+                    )}
+                    {!isSchool && (!isDriver || driverStep === 1) && (
                         <div className="grid gap-4 sm:grid-cols-2">
                             <FormField
                                 control={form.control}
@@ -275,7 +325,7 @@ export const RegisterForm = ({
                             />
                         </div>
                     )}
-                    {isDriver && (
+                    {isDriver && driverStep === 2 && (
                         <>
                             <FormField
                                 control={form.control}
@@ -350,53 +400,123 @@ export const RegisterForm = ({
                             </div>
                         </>
                     )}
-                    <div className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="password"
-                            render={({ field }) => (
-                                <FormItem className="space-y-2.5">
-                                    <FormLabel className="text-sm font-medium text-slate-700">Password</FormLabel>
-                                    <FormControl>
-                                        <div className="relative">
-                                            <Input
-                                                {...field}
-                                                placeholder="******"
-                                                type={showPassword ? "text" : "password"}
-                                                disabled={isPending}
-                                                className="h-14 rounded-lg border-slate-200 bg-slate-50 px-4 pr-12 text-slate-950 shadow-none placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-200"
-
-                                            />
-                                            <button
-                                                type="button"
-                                                disabled={isPending}
-                                                aria-label={showPassword ? "Hide password" : "Show password"}
-                                                onClick={() => setShowPassword((current) => !current)}
-                                                className="absolute right-4 top-1/2 inline-flex -translate-y-1/2 items-center justify-center text-slate-500 transition-colors hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
-                                            >
-                                                {showPassword ? (
-                                                    <EyeOff className="h-5 w-5" aria-hidden="true" />
-                                                ) : (
-                                                    <Eye className="h-5 w-5" aria-hidden="true" />
-                                                )}
-                                            </button>
+                    {isDriver && driverStep === 3 && (
+                        <div className="space-y-4">
+                            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                                <p className="mb-3 text-sm font-medium text-slate-700">Review your details</p>
+                                <dl className="space-y-2 text-sm">
+                                    {[
+                                        ["Full name", form.watch("full_name")],
+                                        ["Email", form.watch("email")],
+                                        ["Phone", form.watch("phoneNumber")],
+                                        ["Address", form.watch("address")],
+                                        ["Service areas", form.watch("serviceAreas")],
+                                        ["Vehicle", [form.watch("carColor"), form.watch("carMake"), form.watch("carModel")].filter(Boolean).join(" ")],
+                                        ["Plate number", form.watch("plateNumber")],
+                                        ["Vehicle capacity", form.watch("vehicleCapacity")],
+                                    ].map(([label, value]) => (
+                                        <div key={label as string} className="flex items-center justify-between gap-3">
+                                            <dt className="text-slate-500">{label}</dt>
+                                            <dd className="truncate font-medium text-slate-950">{(value as string) || "—"}</dd>
                                         </div>
-                                    </FormControl>
-                                    <FormMessage />
+                                    ))}
+                                </dl>
+                            </div>
+                            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                                After creating your account, you&apos;ll upload a utility bill and identity document (passport or NIN) from your driver dashboard to get verified.
+                            </div>
+                        </div>
+                    )}
+                    {(!isDriver || driverStep === 1) && (
+                        <div className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="password"
+                                render={({ field }) => (
+                                    <FormItem className="space-y-2.5">
+                                        <FormLabel className="text-sm font-medium text-slate-700">Password</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <Input
+                                                    {...field}
+                                                    placeholder="******"
+                                                    type={showPassword ? "text" : "password"}
+                                                    disabled={isPending}
+                                                    className="h-14 rounded-lg border-slate-200 bg-slate-50 px-4 pr-12 text-slate-950 shadow-none placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-200"
 
-                                    {/* <Image src={eye} alt="eye" /> */}
-                                </FormItem>
+                                                />
+                                                <button
+                                                    type="button"
+                                                    disabled={isPending}
+                                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                                    onClick={() => setShowPassword((current) => !current)}
+                                                    className="absolute right-4 top-1/2 inline-flex -translate-y-1/2 items-center justify-center text-slate-500 transition-colors hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
+                                                >
+                                                    {showPassword ? (
+                                                        <EyeOff className="h-5 w-5" aria-hidden="true" />
+                                                    ) : (
+                                                        <Eye className="h-5 w-5" aria-hidden="true" />
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+
+                                        {/* <Image src={eye} alt="eye" /> */}
+                                    </FormItem>
+                                )}
+                            >
+
+                            </FormField>
+                        </div>
+                    )}
+                    {(!isDriver || driverStep === 3) && (
+                        <>
+                            <FormError message={isError} />
+                            <FormSuccess message={isSuccess} />
+                        </>
+                    )}
+
+                    {isDriver ? (
+                        <div className="flex gap-3">
+                            {driverStep > 1 && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    disabled={isPending}
+                                    onClick={() => setDriverStep((current) => (current === 3 ? 2 : 1))}
+                                    className="h-14 flex-1 rounded-lg text-base font-semibold shadow-none"
+                                >
+                                    Back
+                                </Button>
                             )}
-                        >
-
-                        </FormField>
-                    </div>
-                    <FormError message={isError} />
-                    <FormSuccess message={isSuccess} />
-
-                    <Button
-                        disabled={isPending}
-                        size="lg" className="h-14 w-full rounded-lg bg-blue-700 text-base font-semibold text-white shadow-none hover:bg-blue-800" type="submit">Join Us</Button>
+                            {driverStep < 3 ? (
+                                <Button
+                                    key="continue"
+                                    type="button"
+                                    disabled={isPending}
+                                    onClick={goToNextDriverStep}
+                                    className="h-14 flex-1 rounded-lg bg-blue-700 text-base font-semibold text-white shadow-none hover:bg-blue-800"
+                                >
+                                    Continue
+                                </Button>
+                            ) : (
+                                <Button
+                                    key="submit"
+                                    disabled={isPending}
+                                    size="lg"
+                                    className="h-14 flex-1 rounded-lg bg-blue-700 text-base font-semibold text-white shadow-none hover:bg-blue-800"
+                                    type="submit"
+                                >
+                                    Create account
+                                </Button>
+                            )}
+                        </div>
+                    ) : (
+                        <Button
+                            disabled={isPending}
+                            size="lg" className="h-14 w-full rounded-lg bg-blue-700 text-base font-semibold text-white shadow-none hover:bg-blue-800" type="submit">Join Us</Button>
+                    )}
                 </form>
             </Form>
             )}

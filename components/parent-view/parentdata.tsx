@@ -158,7 +158,9 @@ const ParentViewData = ({ userId }: { userId: string }) => {
                     );
 
                 }) : (
-                    <div className="mx-auto max-w-lg rounded-lg border border-black/10 bg-white p-5 text-center text-sm text-black/55">
+                    <div className="mx-auto flex max-w-lg flex-col items-center gap-3 rounded-lg border border-black/10 bg-white p-5 text-center text-sm text-black/55">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/images/child-icon.svg" alt="" className="h-14 w-14" />
                         No kids linked to this parent yet.
                     </div>
                 )}

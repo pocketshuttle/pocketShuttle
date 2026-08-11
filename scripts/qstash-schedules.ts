@@ -35,6 +35,12 @@ export const QSTASH_SCHEDULES: readonly QStashScheduleDefinition[] = [
     retries: 0,
   },
   {
+    name: "recurring-trip-suggestions",
+    path: "/api/cron-jobs/recurring-trip-suggestions",
+    cron: "0 6 * * *",
+    retries: 0,
+  },
+  {
     name: "outbound-webhooks",
     path: "/api/cron-jobs/outbound-webhooks",
     cron: "*/5 * * * *",

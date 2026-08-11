@@ -91,7 +91,13 @@ export function AddDriverModal({
                   </div>
                 </div>
               ))}
-              {!searchResults.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">Search for a driver you already know.</p>}
+              {!searchResults.length && (
+                <div className="flex items-center gap-3 rounded-md bg-slate-50 p-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/images/driver-icon.svg" alt="" className="h-12 w-12 shrink-0" />
+                  <p className="text-sm text-slate-500">Search for a driver you already know.</p>
+                </div>
+              )}
             </div>
           </section>
 

@@ -6,6 +6,7 @@ import { CreditCard, Save, Settings2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
+import { BILLING_ROLLOUT_FLAGS, hasBillingRolloutFlag } from "@/lib/billing/rollout";
 
 type BillingAccountRow = {
   id: string;
@@ -13,6 +14,7 @@ type BillingAccountRow = {
   billingEmail?: string | null;
   enforcementEnabled: boolean;
   entitlementOverrides: unknown;
+  rolloutFlags: unknown;
   usage: Record<string, number>;
   user?: { name?: string | null; email?: string | null } | null;
   parent?: { full_name?: string | null; email?: string | null } | null;
@@ -187,6 +189,23 @@ export function BillingAccountManager({
                   }
                 >
                   Enforcement {account.enforcementEnabled ? "on" : "shadow"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={isPending}
+                  onClick={() => {
+                    const currentFlags =
+                      account.rolloutFlags && typeof account.rolloutFlags === "object" && !Array.isArray(account.rolloutFlags)
+                        ? (account.rolloutFlags as Record<string, unknown>)
+                        : {};
+                    const enabled = hasBillingRolloutFlag(account.rolloutFlags, BILLING_ROLLOUT_FLAGS.PAID_CHECKOUT);
+                    updateAccount(account, {
+                      rolloutFlags: { ...currentFlags, [BILLING_ROLLOUT_FLAGS.PAID_CHECKOUT]: !enabled },
+                    });
+                  }}
+                >
+                  Paid checkout: {hasBillingRolloutFlag(account.rolloutFlags, BILLING_ROLLOUT_FLAGS.PAID_CHECKOUT) ? "enabled" : "pilot only"}
                 </Button>
                 <Button size="sm" variant="outline" disabled={isPending} onClick={() => subscriptionAction(account, "ASSIGN_PLAN")}>
                   Assign plan

@@ -40,6 +40,26 @@ export function normalizeRole(role: unknown) {
   return typeof role === "string" ? role.toLowerCase() : "";
 }
 
+async function isAccountSuspended(role: string, id: string): Promise<boolean> {
+  if (role === "parent") {
+    const row = await db.parent.findUnique({ where: { id }, select: { suspendedAt: true } });
+    return !!row?.suspendedAt;
+  }
+  if (role === "driver") {
+    const row = await db.driver.findUnique({ where: { id }, select: { suspendedAt: true } });
+    return !!row?.suspendedAt;
+  }
+  if (role === "teacher") {
+    const row = await db.teacher.findUnique({ where: { id }, select: { suspendedAt: true } });
+    return !!row?.suspendedAt;
+  }
+  if (role === "admin" || role === "school") {
+    const row = await db.user.findUnique({ where: { id }, select: { suspendedAt: true } });
+    return !!row?.suspendedAt;
+  }
+  return false;
+}
+
 export async function getApiSession(): Promise<ApiSession | null> {
   const requestHeaders = await headers();
   const authorization = requestHeaders.get("authorization") || "";
@@ -162,6 +182,8 @@ export async function getApiSession(): Promise<ApiSession | null> {
         });
       }
     }
+  } else if (await isAccountSuspended(role, id)) {
+    return null;
   }
 
   return {
