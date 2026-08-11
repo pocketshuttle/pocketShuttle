@@ -80,6 +80,13 @@ export const LoginForm = () => {
         }
     }, []);
 
+    useEffect(() => {
+        if (searchParams.get("reason") === "suspended") {
+            setIsError("This account has been suspended. Please contact support.");
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const onSubmit = (values: z.infer<typeof LoginSchema>) => {
         setIsError("")
         setIsSuccess("")
@@ -118,6 +125,11 @@ export const LoginForm = () => {
             description="Don't have an account?"
             backButtonHref="/register"
         >
+            {isError && (
+                <div className="mb-4">
+                    <FormError message={isError} />
+                </div>
+            )}
             {isRoleStep ? (
                 <div className={`space-y-5 text-slate-950`}>
                     {rememberedRole && (
@@ -253,7 +265,6 @@ export const LoginForm = () => {
 
                         </FormField>
                     </div>
-                    <FormError message={isError} />
                     <FormSuccess message={isSuccess} />
                     <Button
                         disabled={isPending}
