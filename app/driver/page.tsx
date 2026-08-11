@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { StandaloneDriverDashboard } from "@/components/driver/standalone-driver-dashboard";
 import { markDriverActive } from "@/lib/driver-activity";
@@ -29,6 +30,11 @@ const DriverPage = async () => {
       liveAddress: true,
       landmark: true,
       utilityBillUrl: true,
+      identityDocumentUrl: true,
+      drivingLicenseUrl: true,
+      vehicleRegistrationUrl: true,
+      vehicleInsuranceUrl: true,
+      lastActiveAt: true,
       verificationStatus: true,
       verificationRejectionReason: true,
       serviceAreas: true,
@@ -47,18 +53,8 @@ const DriverPage = async () => {
 
   await markDriverActive(driver.id);
 
-  const driverMetaRows = await db.$queryRaw<{ identityDocumentUrl: string | null; lastActiveAt: Date | null }[]>`
-    SELECT
-      "identity_document_url" AS "identityDocumentUrl",
-      "last_active_at" AS "lastActiveAt"
-    FROM "Driver"
-    WHERE "id" = ${driver.id}
-    LIMIT 1
-  `;
   const driverData = {
     ...driver,
-    identityDocumentUrl: driverMetaRows[0]?.identityDocumentUrl || null,
-    lastActiveAt: driverMetaRows[0]?.lastActiveAt || null,
     shareProfile:
       driver.shareProfile ||
       (await ensureDriverShareProfile({
@@ -77,6 +73,12 @@ const DriverPage = async () => {
           full_name: true,
           phoneNumber: true,
           image: true,
+          billingAccount: {
+            select: {
+              customPlaces: { where: { isActive: true }, orderBy: { name: "asc" } },
+              tripTemplates: { where: { isActive: true }, orderBy: { createdAt: "desc" } },
+            },
+          },
         },
       },
       assignments: {
@@ -97,12 +99,23 @@ const DriverPage = async () => {
     orderBy: { updatedAt: "desc" },
   });
 
-  const connectionsData = connections.map((connection) => ({
-    ...connection,
-    assignments: connection.status === "PARENT_APPROVED" ? connection.assignments : [],
-  }));
+  const connectionsData = connections.map((connection) => {
+    const approved = connection.status === "PARENT_APPROVED";
+    const { billingAccount, ...parent } = connection.parent;
+    return {
+      ...connection,
+      parent,
+      assignments: approved ? connection.assignments : [],
+      customPlaces: approved ? billingAccount?.customPlaces ?? [] : [],
+      tripTemplates: approved ? billingAccount?.tripTemplates ?? [] : [],
+    };
+  });
 
-  return <StandaloneDriverDashboard driver={driverData as any} connectionsData={connectionsData as any} />;
+  return (
+    <Suspense>
+      <StandaloneDriverDashboard driver={driverData as any} connectionsData={connectionsData as any} />
+    </Suspense>
+  );
 };
 
 export default DriverPage;

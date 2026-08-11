@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { BadgeCheck, Car, Check, Clock3, CreditCard, MapPin, Phone, Save, ShieldCheck, Trash2, UserRound, UsersRound, X } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { BadgeCheck, Car, Check, Clock3, CreditCard, Loader2, MapPin, Phone, Save, ShieldCheck, Trash2, UserRound, UsersRound, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { AddDriverModal } from "@/components/parent-view/standalone/add-driver-modal";
 import { DriverLocationMap } from "@/components/parent-view/standalone/driver-location-map";
 import { ParentSideMenu } from "@/components/parent-view/standalone/parent-side-menu";
@@ -57,6 +59,16 @@ export function StandaloneParentDashboard({
   const [requestAgainTarget, setRequestAgainTarget] = useState<DriverSummary | null>(null);
   const [assignmentConfirmTarget, setAssignmentConfirmTarget] = useState<Connection | null>(null);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("openMenu")) {
+      setSideMenuOpen(true);
+      router.replace("/parent");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const childLimitReached =
     subscription.enforcementEnabled &&
@@ -72,7 +84,9 @@ export function StandaloneParentDashboard({
     driverCount >= subscription.maxConnectedDrivers;
 
   const approvedConnections = connections.filter((connection) => connection.status === "PARENT_APPROVED");
-  const pendingConnections = connections.filter((connection) => connection.status !== "PARENT_APPROVED");
+  const pendingConnections = connections.filter(
+    (connection) => connection.status === "INVITED" || connection.status === "DRIVER_REQUESTED"
+  );
   const activeAssignments = connections.flatMap((connection) =>
     connection.assignments
       .filter((assignment) => assignment.status === "ACTIVE")
@@ -90,19 +104,6 @@ export function StandaloneParentDashboard({
   }, [children]);
 
   const isSharedSchoolAddressOn = (key: string) => sharedSchoolAddressByKey[key] ?? true;
-
-  const billingSummary = useMemo(() => {
-    const freeTrial = activeAssignments.filter((assignment) => assignment.billingStatus === "FREE_TRIAL").length;
-    const active = activeAssignments.filter((assignment) => assignment.billingStatus === "ACTIVE").length;
-    const pastDue = activeAssignments.filter((assignment) => assignment.billingStatus === "PAST_DUE").length;
-    const nextTrialEnd = activeAssignments
-      .map((assignment) => assignment.trialEndsAt)
-      .filter(Boolean)
-      .map((value) => new Date(value as string | Date))
-      .sort((a, b) => a.getTime() - b.getTime())[0];
-
-    return { freeTrial, active, pastDue, nextTrialEnd };
-  }, [activeAssignments]);
 
   useEffect(() => {
     const openAddDriver = () => {
@@ -128,15 +129,25 @@ export function StandaloneParentDashboard({
       setChildForm({ fullName: "", age: "", grade: "", address: "" });
       setAddKidOpen(true);
     };
+    const openViewLocation = (event: Event) => {
+      const assignmentId = (event as CustomEvent<{ assignmentId?: string }>).detail?.assignmentId;
+      if (!assignmentId) return;
+      const assignment = connections
+        .flatMap((connection) => connection.assignments.map((item) => ({ ...item, driver: connection.driver })))
+        .find((item) => item.id === assignmentId);
+      if (assignment) setLocationAssignment(assignment);
+    };
 
     window.addEventListener("standalone-parent:add-driver", openAddDriver);
     window.addEventListener("standalone-parent:open-menu", openMenu);
     window.addEventListener("standalone-parent:add-kid", openAddKid);
+    window.addEventListener("standalone-parent:view-location", openViewLocation);
 
     return () => {
       window.removeEventListener("standalone-parent:add-driver", openAddDriver);
       window.removeEventListener("standalone-parent:open-menu", openMenu);
       window.removeEventListener("standalone-parent:add-kid", openAddKid);
+      window.removeEventListener("standalone-parent:view-location", openViewLocation);
     };
   }, [
     childLimitReached,
@@ -144,6 +155,7 @@ export function StandaloneParentDashboard({
     subscription.maxChildren,
     subscription.maxConnectedDrivers,
     subscription.planName,
+    connections,
   ]);
 
   useEffect(() => {
@@ -164,7 +176,9 @@ export function StandaloneParentDashboard({
 
   const refreshConnections = async () => {
     const data = await jsonFetch("/api/parent-driver-connections");
-    setConnections(data.connections || []);
+    const nextConnections = data.connections || [];
+    setConnections(nextConnections);
+    return nextConnections as Connection[];
   };
 
   useEffect(() => {
@@ -201,12 +215,36 @@ export function StandaloneParentDashboard({
         console.error("Unable to refresh known-driver connections", error);
       });
     };
+    const notifyLocationShared = (data?: { driverId?: string }) => {
+      refreshConnections()
+        .then((nextConnections) => {
+          const assignment = nextConnections
+            .flatMap((connection) =>
+              connection.assignments.map((item) => ({ ...item, driver: connection.driver }))
+            )
+            .find((item) => item.status === "ACTIVE" && item.driver.id === data?.driverId);
+          if (!assignment) return;
+
+          toast({
+            title: "Location shared",
+            description: `${assignment.driver.full_name} shared their live location for ${assignment.child.fullName}.`,
+            action: (
+              <ToastAction altText="View on map" onClick={() => setLocationAssignment(assignment)}>
+                View on map
+              </ToastAction>
+            ),
+          });
+        })
+        .catch((error) => {
+          console.error("Unable to refresh known-driver connections", error);
+        });
+    };
     const channelName = `private-known-driver-parent-${parentId}`;
     const channel = process.env.NEXT_PUBLIC_PUSHER_KEY ? pusherClient.subscribe(channelName) : null;
 
     channel?.bind("child-driver-event", refresh);
     channel?.bind("connection-updated", refresh);
-    channel?.bind("driver-location-updated", refresh);
+    channel?.bind("driver-location-updated", notifyLocationShared);
 
     const pollId = window.setInterval(refresh, 15000);
 
@@ -214,7 +252,7 @@ export function StandaloneParentDashboard({
       window.clearInterval(pollId);
       channel?.unbind("child-driver-event", refresh);
       channel?.unbind("connection-updated", refresh);
-      channel?.unbind("driver-location-updated", refresh);
+      channel?.unbind("driver-location-updated", notifyLocationShared);
       if (channel) pusherClient.unsubscribe(channelName);
     };
   }, [parentId]);
@@ -455,7 +493,6 @@ export function StandaloneParentDashboard({
         open={sideMenuOpen}
         parentId={parentId}
         parentName={parentName}
-        billingSummary={billingSummary}
         subscription={{
           planCode: subscription.planCode,
           planName: subscription.planName,
@@ -492,9 +529,16 @@ export function StandaloneParentDashboard({
 
       {addKidOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 sm:items-center sm:p-4">
-          <div className="w-full max-w-xl rounded-t-xl bg-white p-4 shadow-2xl sm:rounded-xl">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold">{editingChildId ? "Edit school address" : "Add kid"}</h2>
+          <div className="w-full max-w-xl rounded-t-xl bg-white p-5 shadow-2xl sm:rounded-xl">
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold">{editingChildId ? "Edit school address" : "Add kid"}</h2>
+                <p className="mt-0.5 text-sm text-slate-500">
+                  {editingChildId
+                    ? "Update where this child should be picked up and dropped off."
+                    : "Add your child's details so a driver can be assigned to them."}
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => {
@@ -502,19 +546,36 @@ export function StandaloneParentDashboard({
                   setEditingChildId(null);
                   setChildForm({ fullName: "", age: "", grade: "", address: "" });
                 }}
-                className="rounded-md p-2 hover:bg-slate-100"
+                className="shrink-0 rounded-md p-2 hover:bg-slate-100"
                 aria-label="Close add kid"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Input className={inputClass} value={childForm.fullName} onChange={(event) => setChildForm((current) => ({ ...current, fullName: event.target.value }))} placeholder="Child name" />
-              <Input className={inputClass} value={childForm.age} onChange={(event) => setChildForm((current) => ({ ...current, age: event.target.value }))} placeholder="Age" type="number" />
-              <Input className={inputClass} value={childForm.grade} onChange={(event) => setChildForm((current) => ({ ...current, grade: event.target.value }))} placeholder="Grade" />
-              <Input className={inputClass} value={childForm.address} onChange={(event) => setChildForm((current) => ({ ...current, address: event.target.value }))} placeholder="School address" />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <p className="mb-1.5 text-sm font-medium text-slate-700">Child name</p>
+                <Input className={inputClass} value={childForm.fullName} onChange={(event) => setChildForm((current) => ({ ...current, fullName: event.target.value }))} placeholder="e.g. Amara" />
+              </div>
+              <div>
+                <p className="mb-1.5 text-sm font-medium text-slate-700">Age</p>
+                <Input className={inputClass} value={childForm.age} onChange={(event) => setChildForm((current) => ({ ...current, age: event.target.value }))} placeholder="e.g. 8" type="number" />
+              </div>
+              <div>
+                <p className="mb-1.5 text-sm font-medium text-slate-700">Grade</p>
+                <Input className={inputClass} value={childForm.grade} onChange={(event) => setChildForm((current) => ({ ...current, grade: event.target.value }))} placeholder="e.g. Grade 3" />
+              </div>
+              <div className="sm:col-span-2">
+                <p className="mb-1.5 text-sm font-medium text-slate-700">School address</p>
+                <Input className={inputClass} value={childForm.address} onChange={(event) => setChildForm((current) => ({ ...current, address: event.target.value }))} placeholder="Where should the driver drop them off?" />
+              </div>
             </div>
-            <Button className="mt-4" disabled={isPending || !childForm.fullName.trim() || !childForm.address.trim()} onClick={addChild}>
+            <Button
+              className="mt-5 h-12 w-full gap-2 text-base font-semibold"
+              disabled={isPending || !childForm.fullName.trim() || !childForm.address.trim()}
+              onClick={addChild}
+            >
+              {isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
               {editingChildId ? "Save school address" : "Add kid"}
             </Button>
           </div>
@@ -637,13 +698,10 @@ export function StandaloneParentDashboard({
             <div>
               <p className="text-xs font-medium uppercase text-slate-500">Known driver network</p>
               <h1 className="mt-1 text-xl font-semibold">Welcome{parentName ? `, ${parentName}` : ""}</h1>
-              <p className="mt-1 max-w-2xl text-sm text-slate-500">
-                Track your kids with approved drivers. Add drivers from the top bar when you need to connect someone new.
-              </p>
             </div>
-            <div className="hidden h-28 overflow-hidden rounded-md bg-slate-100 sm:block">
+            <div className="h-44 overflow-hidden rounded-md bg-slate-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/family.jpg" alt="" className="h-full w-full object-cover" />
+              <img src="/images/family-icon.svg" alt="" className="h-full w-full object-cover" />
             </div>
           </div>
         </header>
@@ -813,7 +871,13 @@ export function StandaloneParentDashboard({
                 </div>
               );
             })}
-            {!approvedConnections.length && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">Approve a driver from the side menu before assigning kids.</p>}
+            {!approvedConnections.length && (
+              <div className="flex items-center gap-3 rounded-md bg-slate-50 p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/driver-icon.svg" alt="" className="h-12 w-12 shrink-0" />
+                <p className="text-sm text-slate-500">Approve a driver from the side menu before assigning kids.</p>
+              </div>
+            )}
           </div>
         </section>
 
@@ -902,9 +966,11 @@ export function StandaloneParentDashboard({
               );
             })}
             {!children.length && (
-              <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">
-                Added kids will appear here.
-              </p>
+              <div className="flex items-center gap-3 rounded-md bg-slate-50 p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/child-icon.svg" alt="" className="h-12 w-12 shrink-0" />
+                <p className="text-sm text-slate-500">Added kids will appear here.</p>
+              </div>
             )}
           </div>
         </section>

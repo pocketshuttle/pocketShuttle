@@ -6,6 +6,26 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import db from "@/packages/db/client";
 
+async function isAccountSuspended(role: string, id: string): Promise<boolean> {
+  if (role === "parent") {
+    const row = await db.parent.findUnique({ where: { id }, select: { suspendedAt: true } });
+    return !!row?.suspendedAt;
+  }
+  if (role === "driver") {
+    const row = await db.driver.findUnique({ where: { id }, select: { suspendedAt: true } });
+    return !!row?.suspendedAt;
+  }
+  if (role === "teacher") {
+    const row = await db.teacher.findUnique({ where: { id }, select: { suspendedAt: true } });
+    return !!row?.suspendedAt;
+  }
+  if (role === "admin" || role === "school") {
+    const row = await db.user.findUnique({ where: { id }, select: { suspendedAt: true } });
+    return !!row?.suspendedAt;
+  }
+  return false;
+}
+
 export const getUserSession = cache(async () => {
   const cookie = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
 
@@ -55,6 +75,8 @@ export const getUserSession = cache(async () => {
       redirect("/admin/login");
     }
     session.platformAccessRole = admin.accessRole;
+  } else if (await isAccountSuspended(role, String(session.id))) {
+    redirect("/login");
   }
 
   return session;

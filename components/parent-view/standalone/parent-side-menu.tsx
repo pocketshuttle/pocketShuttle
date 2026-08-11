@@ -2,23 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Check, CheckCircle2, Clock3, Copy, LifeBuoy, PlusCircle, Send, Ticket, X } from "lucide-react";
+import { AlertTriangle, Check, CheckCircle2, ChevronRight, Clock3, Copy, LayoutDashboard, LifeBuoy, Loader2, PlusCircle, Send, Settings, Ticket, X } from "lucide-react";
 
-import Logout from "@/components/dashboard/sidebar/logout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
+import { PLAN_CODES } from "@/lib/billing/catalog";
 
 import { StatusBadge } from "./status-badge";
 import type { Connection, Invite } from "./types";
 import { formatDate, jsonFetch } from "./utils";
-
-type BillingSummary = {
-  freeTrial: number;
-  active: number;
-  pastDue: number;
-  nextTrialEnd?: Date | null;
-};
 
 type SubscriptionUsage = {
   planCode: string;
@@ -34,7 +27,6 @@ type ParentSideMenuProps = {
   open: boolean;
   parentId: string;
   parentName?: string | null;
-  billingSummary: BillingSummary;
   subscription: SubscriptionUsage;
   pendingConnections: Connection[];
   approvedConnections: Connection[];
@@ -60,7 +52,6 @@ export function ParentSideMenu({
   open,
   parentId,
   parentName,
-  billingSummary,
   subscription,
   pendingConnections,
   approvedConnections,
@@ -134,6 +125,8 @@ export function ParentSideMenu({
     }
   }, [open, supportLoaded, supportLoading]);
 
+  const isFreePlan = subscription.planCode === PLAN_CODES.FREE_FAMILY;
+
   return (
     <aside
       className={`fixed inset-y-0 left-0 z-50 flex w-[min(92vw,420px)] flex-col overflow-y-auto border-r border-slate-200 bg-white shadow-2xl transition-transform duration-300 ${
@@ -147,8 +140,10 @@ export function ParentSideMenu({
             <img src="/images/parent.jpg" alt="" className="h-full w-full object-cover" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs uppercase text-slate-500">Parent dashboard</p>
             <p className="truncate text-base font-semibold">{parentName || "Parent"}</p>
+            <span className="mt-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+              {subscription.planName}
+            </span>
           </div>
         </div>
         <button
@@ -162,65 +157,17 @@ export function ParentSideMenu({
       </div>
 
       <div className="grid gap-5 p-4">
-        <section className="rounded-lg border border-slate-200 bg-white p-4">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="text-base font-semibold">Payment plan</h2>
-            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
-              {subscription.planName}
-            </span>
-          </div>
-          <div className="mb-3 rounded-md border border-slate-200 bg-slate-50 p-3">
-            <div className="flex items-center justify-between gap-3 text-sm">
-              <span className="text-slate-600">Children</span>
-              <span className="font-semibold text-slate-950">
-                {subscription.childCount}/{subscription.maxChildren ?? "Unlimited"}
+        {!isFreePlan && (
+          <section className="overflow-hidden rounded-lg border border-slate-200 bg-white p-1">
+            <Link href="/parent/pro" className="flex items-center gap-3 rounded-md p-3 hover:bg-slate-50">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-700">
+                <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
               </span>
-            </div>
-            {subscription.enforcementEnabled &&
-            subscription.maxChildren !== null &&
-            subscription.childCount >= subscription.maxChildren ? (
-              <p className="mt-2 text-xs font-medium text-amber-700">
-                Your current children remain available. Upgrade before adding another child.
-              </p>
-            ) : null}
-            <div className="mt-2 flex items-center justify-between gap-3 border-t border-slate-200 pt-2 text-sm">
-              <span className="text-slate-600">Connected drivers</span>
-              <span className="font-semibold text-slate-950">
-                {subscription.driverCount}/{subscription.maxConnectedDrivers ?? "Unlimited"}
-              </span>
-            </div>
-            {subscription.enforcementEnabled &&
-            subscription.maxConnectedDrivers !== null &&
-            subscription.driverCount >= subscription.maxConnectedDrivers ? (
-              <p className="mt-2 text-xs font-medium text-amber-700">
-                Your current drivers remain available. Upgrade before adding another driver.
-              </p>
-            ) : null}
-          </div>
-          <div className="grid grid-cols-3 gap-2 text-center text-sm">
-            <div className="rounded-md bg-slate-50 p-3">
-              <p className="text-lg font-semibold">{billingSummary.freeTrial}</p>
-              <p className="text-xs text-slate-500">Trials</p>
-            </div>
-            <div className="rounded-md bg-slate-50 p-3">
-              <p className="text-lg font-semibold">{billingSummary.active}</p>
-              <p className="text-xs text-slate-500">Active</p>
-            </div>
-            <div className="rounded-md bg-slate-50 p-3">
-              <p className="text-lg font-semibold">{billingSummary.pastDue}</p>
-              <p className="text-xs text-slate-500">Past due</p>
-            </div>
-          </div>
-          <p className="mt-3 text-xs text-slate-500">
-            Next trial ending: {billingSummary.nextTrialEnd ? formatDate(billingSummary.nextTrialEnd) : "N/A"}
-          </p>
-          <Button asChild variant="outline" className="mt-3 w-full">
-            <Link href="/billing">Manage PocketShuttle plan</Link>
-          </Button>
-          <Button asChild variant="outline" className="mt-2 w-full">
-            <Link href="/parent/pro">Open Family Pro tools</Link>
-          </Button>
-        </section>
+              <span className="flex-1 text-sm font-semibold text-slate-950">Open Family Pro tools</span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+            </Link>
+          </section>
+        )}
 
         <section className="rounded-lg border border-slate-200 bg-white p-4">
           <h2 className="mb-3 text-base font-semibold">Pending drivers</h2>
@@ -307,7 +254,11 @@ export function ParentSideMenu({
               </div>
             )}
 
-            {supportLoading && <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">Loading tickets...</p>}
+            {supportLoading && (
+              <div className="flex items-center justify-center gap-2 rounded-md bg-slate-50 p-3 text-sm text-slate-500">
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Loading tickets...
+              </div>
+            )}
 
             {(supportMode === "track" || supportMode === "history") && supportTickets.length > 0 ? (
               <div className="grid gap-2">
@@ -373,7 +324,11 @@ export function ParentSideMenu({
                   className="min-h-28 resize-none border-slate-200 bg-white text-slate-900 shadow-none"
                 />
                 <Button type="button" disabled={supportSubmitting || supportMessage.trim().length < 5} onClick={submitSupportTicket} className="gap-2">
-                  <Send className="h-4 w-4" aria-hidden="true" />
+                  {supportSubmitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Send className="h-4 w-4" aria-hidden="true" />
+                  )}
                   {supportSubmitting ? "Sending..." : "Send"}
                 </Button>
               </div>
@@ -381,8 +336,14 @@ export function ParentSideMenu({
           </div>
         </section>
 
-        <section className="rounded-lg border border-slate-200 bg-white p-4">
-          <Logout />
+        <section className="overflow-hidden rounded-lg border border-slate-200 bg-white p-1">
+          <Link href="/parent/settings" className="flex items-center gap-3 rounded-md p-3 hover:bg-slate-50">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-700">
+              <Settings className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <span className="flex-1 text-sm font-semibold text-slate-950">Settings</span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+          </Link>
         </section>
       </div>
     </aside>

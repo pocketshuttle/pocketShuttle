@@ -5,6 +5,7 @@ import {
     AvatarImage,
 } from "@/components/ui/avatar"; // UI components for Avatar display
 import NotificationFeed from "@/components/knock/notitification-feed"; // Notification feed component
+import { KnownDriverNotificationBell } from "@/components/known-driver-network/notification-bell";
 import { CarFront, LifeBuoy, Plus } from "lucide-react";
 import { SupportTicketDialog } from "@/components/support/support-ticket-dialog";
 
@@ -122,9 +123,13 @@ const ParentNavbar = ({ data, showAddKid = false, showAddDriver = false }: Navba
                         <CarFront className="h-5 w-5" aria-hidden="true" />
                     </button>
                 )}
-                <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-md [&_button]:grid [&_button]:h-10 [&_button]:w-10 [&_button]:place-items-center [&_button]:rounded-md [&_button]:p-0 [&_svg]:h-5 [&_svg]:w-5">
-                    <NotificationFeed />
-                </span>
+                {showAddKid ? (
+                    <KnownDriverNotificationBell role="parent" id={String(data?.id || "")} />
+                ) : (
+                    <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-md [&_button]:grid [&_button]:h-10 [&_button]:w-10 [&_button]:place-items-center [&_button]:rounded-md [&_button]:p-0 [&_svg]:h-5 [&_svg]:w-5">
+                        <NotificationFeed />
+                    </span>
+                )}
                 <button
                     type="button"
                     onClick={() => setSupportOpen(true)}

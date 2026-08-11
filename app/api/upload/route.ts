@@ -21,11 +21,17 @@ const DRIVER_UPLOAD_PURPOSES = new Set([
   "driver-avatar",
   "driver-utility-bill",
   "driver-identity-document",
+  "driver-driving-license",
+  "driver-vehicle-registration",
+  "driver-vehicle-insurance",
 ]);
 const PARENT_UPLOAD_PURPOSES = new Set(["parent-child-image"]);
 const PRIVATE_DRIVER_UPLOAD_PURPOSES = new Set([
   "driver-utility-bill",
   "driver-identity-document",
+  "driver-driving-license",
+  "driver-vehicle-registration",
+  "driver-vehicle-insurance",
 ]);
 
 function hasValidImageSignature(buffer: Buffer, mimeType: string) {

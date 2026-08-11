@@ -506,6 +506,7 @@ model BillingAccount {
   premiumMessageUsage     PremiumMessageUsage[]
   tripTemplates           TripTemplate[]
   customPlaces            CustomPlace[]
+  recurringTripSuggestions RecurringTripSuggestion[]
   notificationPreferences BillingNotificationPreference[]
   notificationDeliveries  NotificationDelivery[]
   viewerInvites           TripViewerInvite[]
@@ -717,6 +718,9 @@ model Driver {
   landmark                    String?
   utilityBillUrl              String?                  @map("utility_bill_url")
   identityDocumentUrl         String?                  @map("identity_document_url")
+  drivingLicenseUrl           String?                  @map("driving_license_url")
+  vehicleRegistrationUrl      String?                  @map("vehicle_registration_url")
+  vehicleInsuranceUrl         String?                  @map("vehicle_insurance_url")
   verificationStatus          DriverVerificationStatus @default(UNSUBMITTED) @map("verification_status")
   verificationRejectionReason String?                  @map("verification_rejection_reason")
   serviceAreas                String[]                 @default([]) @map("service_areas")
@@ -1147,6 +1151,32 @@ model CustomPlace {
 
   @@index([billingAccountId, isActive])
   @@map("custom_places")
+}
+
+enum RecurringTripSuggestionStatus {
+  PENDING
+  ACCEPTED
+  DISMISSED
+}
+
+model RecurringTripSuggestion {
+  id                String                         @id @default(cuid())
+  billingAccountId  String                         @map("billing_account_id")
+  destinationLat    Float                          @map("destination_lat")
+  destinationLng    Float                          @map("destination_lng")
+  destinationLabel  String?                        @map("destination_label")
+  occurrenceCount   Int                            @map("occurrence_count")
+  lastTripId        String?                        @map("last_trip_id")
+  status            RecurringTripSuggestionStatus  @default(PENDING)
+  notifiedAt        DateTime?                      @map("notified_at")
+  respondedAt       DateTime?                      @map("responded_at")
+  createdTemplateId String?                        @map("created_template_id")
+  billingAccount    BillingAccount                 @relation(fields: [billingAccountId], references: [id], onDelete: Cascade)
+  createdAt         DateTime                       @default(now()) @map("created_at")
+  updatedAt         DateTime                       @default(now()) @updatedAt @map("updated_at")
+
+  @@index([billingAccountId, status])
+  @@map("recurring_trip_suggestions")
 }
 
 model TripGeofenceState {

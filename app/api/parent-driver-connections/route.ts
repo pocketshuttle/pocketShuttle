@@ -21,7 +21,20 @@ export async function GET() {
   const connections = await db.parentDriverConnection.findMany({
     where: session.role === "parent" ? { parentId: session.id } : { driverId: session.id },
     include: {
-      parent: { select: { id: true, full_name: true, phoneNumber: true, image: true } },
+      parent: {
+        select: {
+          id: true,
+          full_name: true,
+          phoneNumber: true,
+          image: true,
+          billingAccount: {
+            select: {
+              customPlaces: { where: { isActive: true }, orderBy: { name: "asc" } },
+              tripTemplates: { where: { isActive: true }, orderBy: { createdAt: "desc" } },
+            },
+          },
+        },
+      },
       driver: {
         select: {
           id: true,
@@ -63,17 +76,24 @@ export async function GET() {
     : [];
   const driverActivityById = new Map(driverActivityRows.map((row) => [row.id, row.lastActiveAt]));
 
-  const response = connections.map((connection) => ({
-    ...connection,
-    driver: {
-      ...connection.driver,
-      lastActiveAt: driverActivityById.get(connection.driver.id) ?? null,
-    },
-    assignments:
-      session.role === "driver" && connection.status !== "PARENT_APPROVED"
-        ? []
-        : connection.assignments,
-  }));
+  const response = connections.map((connection) => {
+    const driverApproved = session.role === "driver" && connection.status === "PARENT_APPROVED";
+    const { billingAccount, ...parent } = connection.parent;
+    return {
+      ...connection,
+      parent,
+      driver: {
+        ...connection.driver,
+        lastActiveAt: driverActivityById.get(connection.driver.id) ?? null,
+      },
+      assignments:
+        session.role === "driver" && connection.status !== "PARENT_APPROVED"
+          ? []
+          : connection.assignments,
+      customPlaces: driverApproved ? billingAccount?.customPlaces ?? [] : [],
+      tripTemplates: driverApproved ? billingAccount?.tripTemplates ?? [] : [],
+    };
+  });
 
   return NextResponse.json({ connections: response });
 }

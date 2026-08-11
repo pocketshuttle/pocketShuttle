@@ -7,9 +7,9 @@ import { getTripOwnerEntitlements } from "@/lib/billing/trip-entitlements";
 import { dispatchTripNotifications } from "@/lib/trip-notifications";
 import db from "@/packages/db/client";
 
-type Point = { lat: number; lng: number };
+export type Point = { lat: number; lng: number };
 
-function distanceMeters(left: Point, right: Point) {
+export function distanceMeters(left: Point, right: Point) {
   const radius = 6371e3;
   const phi1 = (left.lat * Math.PI) / 180;
   const phi2 = (right.lat * Math.PI) / 180;
@@ -33,7 +33,7 @@ function routePoints(metadata: Prisma.JsonValue | null): Point[] {
   });
 }
 
-function jsonPoint(value: Prisma.JsonValue | null): Point | null {
+export function jsonPoint(value: Prisma.JsonValue | null): Point | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const record = value as Record<string, unknown>;
   const lat =
