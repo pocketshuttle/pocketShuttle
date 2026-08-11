@@ -105,19 +105,6 @@ export function StandaloneParentDashboard({
 
   const isSharedSchoolAddressOn = (key: string) => sharedSchoolAddressByKey[key] ?? true;
 
-  const billingSummary = useMemo(() => {
-    const freeTrial = activeAssignments.filter((assignment) => assignment.billingStatus === "FREE_TRIAL").length;
-    const active = activeAssignments.filter((assignment) => assignment.billingStatus === "ACTIVE").length;
-    const pastDue = activeAssignments.filter((assignment) => assignment.billingStatus === "PAST_DUE").length;
-    const nextTrialEnd = activeAssignments
-      .map((assignment) => assignment.trialEndsAt)
-      .filter(Boolean)
-      .map((value) => new Date(value as string | Date))
-      .sort((a, b) => a.getTime() - b.getTime())[0];
-
-    return { freeTrial, active, pastDue, nextTrialEnd };
-  }, [activeAssignments]);
-
   useEffect(() => {
     const openAddDriver = () => {
       if (driverLimitReached) {
@@ -495,7 +482,6 @@ export function StandaloneParentDashboard({
         open={sideMenuOpen}
         parentId={parentId}
         parentName={parentName}
-        billingSummary={billingSummary}
         subscription={{
           planCode: subscription.planCode,
           planName: subscription.planName,
