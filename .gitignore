@@ -35,6 +35,15 @@ yarn-error.log*
 .env.*
 !.env.example
 
+# Expo / native mobile build state and secrets
+apps/mobile/.expo/
+apps/mobile/android/
+apps/mobile/ios/
+apps/mobile/google-services.json
+apps/mobile/credentials.json
+apps/mobile/*.jks
+apps/mobile/*.keystore
+
 # vercel
 .vercel
 

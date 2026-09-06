@@ -5,6 +5,7 @@ import { getApiSession, isDriver } from "@/lib/api-auth";
 import { markDriverActive } from "@/lib/driver-activity";
 import { distanceMeters, isCoordinates, type Coordinates } from "@/lib/google-geocoding";
 import { recordChildDriverEvent } from "@/lib/known-driver-network";
+import { runDeduplicatedMobileEvent } from "@/lib/mobile/deduplication";
 import db from "@/packages/db/client";
 
 type Params = { id: string };
@@ -121,35 +122,49 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<Para
     }
   }
 
-  const event = await recordChildDriverEvent({
-    assignmentId: assignment.id,
-    eventType,
-    actorId: session.id,
-    actorType: "driver",
-    latitude: driverCoords?.latitude,
-    longitude: driverCoords?.longitude,
-    payload: {
-      action,
-      note: typeof body.note === "string" ? body.note : null,
-      dropoffVerification,
-    },
-  });
-  await markDriverActive(session.id);
-
-  const updatedAssignment = await db.childDriverAssignment.findUnique({
-    where: { id: assignment.id },
-    include: {
-      child: { select: { id: true, fullName: true, age: true, grade: true, address: true, image: true } },
-      events: {
-        where: {
-          eventType: { in: ["ON_THE_WAY_TO_SCHOOL", "PICKED_UP", "DROPPED_OFF"] },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 20,
+  const updateStatus = async () => {
+    const event = await recordChildDriverEvent({
+      assignmentId: assignment.id,
+      eventType,
+      actorId: session.id,
+      actorType: "driver",
+      latitude: driverCoords?.latitude,
+      longitude: driverCoords?.longitude,
+      payload: {
+        action,
+        note: typeof body.note === "string" ? body.note : null,
+        dropoffVerification,
       },
-      payments: { orderBy: { createdAt: "desc" }, take: 1 },
-    },
-  });
+    });
+    await markDriverActive(session.id);
 
-  return NextResponse.json({ message: "Child status updated", event, assignment: updatedAssignment });
+    const updatedAssignment = await db.childDriverAssignment.findUnique({
+      where: { id: assignment.id },
+      include: {
+        child: { select: { id: true, fullName: true, age: true, grade: true, address: true, image: true } },
+        events: {
+          where: {
+            eventType: { in: ["ON_THE_WAY_TO_SCHOOL", "PICKED_UP", "DROPPED_OFF"] },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 20,
+        },
+        payments: { orderBy: { createdAt: "desc" }, take: 1 },
+      },
+    });
+    return { message: "Child status updated", event, assignment: updatedAssignment };
+  };
+  const result = session.mobileSession
+    ? await runDeduplicatedMobileEvent({
+        actor: { id: session.id, role: "driver" },
+        clientEventId: body.clientEventId,
+        eventType: `child_status:${eventType}`,
+        action: updateStatus,
+      })
+    : { value: await updateStatus(), duplicate: false };
+
+  return NextResponse.json({
+    ...result.value,
+    duplicate: result.duplicate,
+  });
 }

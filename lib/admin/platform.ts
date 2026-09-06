@@ -100,6 +100,16 @@ export async function setSuspension({
   } else {
     throw new Error("Super admins cannot be suspended from this dashboard");
   }
+  if (suspend && ["parent", "driver", "teacher"].includes(type)) {
+    await db.mobileSession.updateMany({
+      where: {
+        subjectRole: type.toUpperCase() as "PARENT" | "DRIVER" | "TEACHER",
+        subjectId: id,
+        revokedAt: null,
+      },
+      data: { revokedAt: new Date() },
+    });
+  }
 
   await logSuperUserAction({
     superUserId: actorId,

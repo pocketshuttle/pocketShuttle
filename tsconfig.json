@@ -37,5 +37,5 @@
     "dropoff-backend/lib/db.js",
     "dropoff-backend/server.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "apps/mobile"]
 }

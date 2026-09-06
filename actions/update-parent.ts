@@ -69,6 +69,16 @@ export const updateParent = async (parentId: string | undefined, data: any) => {
       where: { id: parentId },
       data: updateData,
     });
+    if (values.password) {
+      await db.mobileSession.updateMany({
+        where: {
+          subjectRole: "PARENT",
+          subjectId: parentId,
+          revokedAt: null,
+        },
+        data: { revokedAt: new Date() },
+      });
+    }
 
     return { message: "Parent updated successfully", status: 200 };
   } catch (error) {

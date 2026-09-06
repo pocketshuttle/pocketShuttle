@@ -170,6 +170,16 @@ export const PATCH = async (
       where: { id },
       data: updateData,
     });
+    if (data.password) {
+      await db.mobileSession.updateMany({
+        where: {
+          subjectRole: "TEACHER",
+          subjectId: id,
+          revokedAt: null,
+        },
+        data: { revokedAt: new Date() },
+      });
+    }
 
     return Response.json(
       { message: "Teacher Added Successfully" },
