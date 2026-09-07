@@ -1,0 +1,22 @@
+appId: com.pocketshuttle.app
+---
+# env: PARENT_EMAIL, PARENT_PASSWORD, DRIVER_SHARE_ID
+- runFlow:
+    file: login.yaml
+    env:
+      ROLE_LABEL: "Parent"
+      TEST_EMAIL: "${PARENT_EMAIL}"
+      TEST_PASSWORD: "${PARENT_PASSWORD}"
+- tapOn: "Drivers"
+- assertVisible: "Drivers"
+- tapOn: "Find or invite a driver"
+- assertVisible: "Find a driver"
+- tapOn: "e.g. PKD-AB12CD"
+- inputText: "${DRIVER_SHARE_ID}"
+- hideKeyboard
+- assertVisible:
+    text: "Request driver|Request again"
+    timeout: 15000
+- tapOn:
+    text: "Request driver|Request again"
+- assertVisible: "Pending"

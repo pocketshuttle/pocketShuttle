@@ -1,10 +1,10 @@
 import { RoleGuard } from "../../src/components/role-guard";
-import { RoleTabs } from "../../src/components/role-tabs";
+import { TeacherTabs } from "../../src/components/teacher-tabs";
 
 export default function TeacherLayout() {
   return (
     <RoleGuard role="teacher">
-      <RoleTabs />
+      <TeacherTabs />
     </RoleGuard>
   );
 }

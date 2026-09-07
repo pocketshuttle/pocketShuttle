@@ -6,6 +6,6 @@ import { LoadingState } from "../src/components/ui";
 export default function Index() {
   const { actor, loading } = useAuth();
   if (loading) return <LoadingState />;
-  if (!actor) return <Redirect href="/login" />;
+  if (!actor) return <Redirect href="/welcome" />;
   return <Redirect href={`/${actor.role}`} />;
 }

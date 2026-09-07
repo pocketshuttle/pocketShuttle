@@ -28,12 +28,13 @@ async function ensurePusher() {
   return true;
 }
 
-export async function subscribeToTrip(
-  tripId: string,
-  onEvent: (event: { name: string; data: unknown }) => void
+export type RealtimeEvent = { name: string; data: unknown };
+
+async function subscribeToChannel(
+  channelName: string,
+  onEvent: (event: RealtimeEvent) => void
 ) {
   if (!(await ensurePusher())) return () => undefined;
-  const channelName = `private-trip-${tripId}`;
   await pusher.subscribe({
     channelName,
     onEvent: (event: PusherEvent) => {
@@ -49,4 +50,20 @@ export async function subscribeToTrip(
   return () => {
     void pusher.unsubscribe({ channelName });
   };
+}
+
+export function subscribeToTrip(
+  tripId: string,
+  onEvent: (event: RealtimeEvent) => void
+) {
+  return subscribeToChannel(`private-trip-${tripId}`, onEvent);
+}
+
+/** Known-driver network channel: connection, assignment, child status and driver location events. */
+export function subscribeToKnownDriverChannel(
+  role: "parent" | "driver",
+  id: string,
+  onEvent: (event: RealtimeEvent) => void
+) {
+  return subscribeToChannel(`private-known-driver-${role}-${id}`, onEvent);
 }

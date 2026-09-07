@@ -45,12 +45,22 @@ export async function enqueueMobileEvent(
   return next;
 }
 
+const STALE_DROPOFF_MS = 10 * 60 * 1000;
+
+function isStaleDropoff(event: QueuedMobileEvent) {
+  return (
+    event.body.action === "dropped_off" &&
+    Date.now() - new Date(event.createdAt).getTime() > STALE_DROPOFF_MS
+  );
+}
+
 export async function flushMobileEventQueue() {
   const queue = (await readQueue()).sort((left, right) =>
     left.createdAt.localeCompare(right.createdAt)
   );
   const remaining: QueuedMobileEvent[] = [];
   for (const event of queue) {
+    if (isStaleDropoff(event)) continue;
     try {
       await apiRequest(event.path, {
         method: event.method,
@@ -73,12 +83,37 @@ export async function flushMobileEventQueue() {
   return { sent: queue.length - remaining.length, remaining: remaining.length };
 }
 
-export async function sendOrQueueMobileEvent(
-  event: Omit<QueuedMobileEvent, "id" | "createdAt"> & { id?: string }
-) {
+function isRetryableError(error: unknown) {
+  return !(error instanceof ApiError) || error.status >= 500 || error.status === 429;
+}
+
+export async function sendOrQueueMobileEvent<T = unknown>(
+  event: Omit<QueuedMobileEvent, "id" | "createdAt"> & { id?: string },
+  options: { queueOnlyWhenOffline?: boolean } = {}
+): Promise<{
+  queued: QueuedMobileEvent | null;
+  sent: number;
+  remaining: number;
+  value: T | null;
+}> {
+  if (options.queueOnlyWhenOffline) {
+    const id = event.id || Crypto.randomUUID();
+    try {
+      const value = await apiRequest<T>(event.path, {
+        method: event.method,
+        body: JSON.stringify({ ...event.body, clientEventId: id }),
+      });
+      return { queued: null, sent: 1, remaining: (await readQueue()).length, value };
+    } catch (error) {
+      // Validation errors (4xx) must reach the caller; only network/5xx/429 get queued.
+      if (!isRetryableError(error)) throw error;
+      const queued = await enqueueMobileEvent({ ...event, id });
+      return { queued, sent: 0, remaining: (await readQueue()).length, value: null };
+    }
+  }
   const queued = await enqueueMobileEvent(event);
   const result = await flushMobileEventQueue();
-  return { queued, ...result };
+  return { queued, ...result, value: null };
 }
 
 export async function queuedMobileEventCount() {

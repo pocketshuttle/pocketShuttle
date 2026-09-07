@@ -1,0 +1,20 @@
+appId: com.pocketshuttle.app
+---
+# env: PARENT_EMAIL, PARENT_PASSWORD, CHILD_NAME, SCHOOL_ADDRESS
+- runFlow:
+    file: login.yaml
+    env:
+      ROLE_LABEL: "Parent"
+      TEST_EMAIL: "${PARENT_EMAIL}"
+      TEST_PASSWORD: "${PARENT_PASSWORD}"
+- tapOn: "Kids"
+- assertVisible: "Kids"
+- tapOn: "Add a child"
+- assertVisible: "Add a child"
+- tapOn: "Child's full name"
+- inputText: "${CHILD_NAME}"
+- tapOn: "Street, area, city"
+- inputText: "${SCHOOL_ADDRESS}"
+- hideKeyboard
+- tapOn: "Add child"
+- assertVisible: "${CHILD_NAME}"

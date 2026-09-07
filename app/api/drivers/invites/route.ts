@@ -11,6 +11,30 @@ import { assertDriverConnectionMutationAllowed } from "@/lib/billing/family-limi
 import { upgradeRequiredResponse } from "@/lib/billing/responses";
 import { withSerializableTransaction } from "@/lib/prisma-transactions";
 
+export async function GET() {
+  const session = await getApiSession();
+  if (!isParent(session)) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const invites = await db.driverInvite.findMany({
+    where: { parentId: session.id },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+    select: {
+      id: true,
+      driverId: true,
+      email: true,
+      phoneNumber: true,
+      status: true,
+      expiresAt: true,
+      createdAt: true,
+    },
+  });
+
+  return NextResponse.json({ invites });
+}
+
 export async function POST(req: NextRequest) {
   const session = await getApiSession();
   if (!isParent(session)) {

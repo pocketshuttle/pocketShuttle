@@ -93,3 +93,75 @@ export async function stopDriverTracking() {
 export async function activeTrackingTripId() {
   return Storage.getItem(ACTIVE_TRIP_KEY);
 }
+
+// --- Known-driver network sharing (outside trips), mirrors the web driver dashboard ---
+
+const FOREGROUND_SHARE_THROTTLE_MS = 15_000;
+let foregroundSubscription: Location.LocationSubscription | null = null;
+let lastForegroundShareAt = 0;
+
+async function requireForegroundPermission() {
+  const permission = await Location.requestForegroundPermissionsAsync();
+  if (permission.status !== "granted") {
+    throw new Error("Location permission is required to share your location.");
+  }
+}
+
+async function postDriverLocation(
+  coords: Location.LocationObjectCoords,
+  continuous: boolean
+) {
+  return sendOrQueueMobileEvent(
+    {
+      id: Crypto.randomUUID(),
+      path: "/api/drivers/location",
+      method: "POST",
+      body: {
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        accuracy: coords.accuracy,
+        continuous,
+      },
+    },
+    { queueOnlyWhenOffline: true }
+  );
+}
+
+/** One-shot "Share location now". Returns the coordinates that were sent. */
+export async function shareLocationOnce() {
+  await requireForegroundPermission();
+  const position = await Location.getCurrentPositionAsync({
+    accuracy: Location.Accuracy.High,
+  });
+  await postDriverLocation(position.coords, false);
+  return position.coords;
+}
+
+export function isForegroundSharing() {
+  return foregroundSubscription !== null;
+}
+
+/** Continuous sharing while the app is open (15 s throttle). No-op while a trip's background task is running. */
+export async function startForegroundSharing() {
+  if (foregroundSubscription) return;
+  if (await Location.hasStartedLocationUpdatesAsync(DRIVER_LOCATION_TASK)) return;
+  await requireForegroundPermission();
+  foregroundSubscription = await Location.watchPositionAsync(
+    {
+      accuracy: Location.Accuracy.High,
+      timeInterval: 10_000,
+      distanceInterval: 20,
+    },
+    (position) => {
+      const now = Date.now();
+      if (now - lastForegroundShareAt < FOREGROUND_SHARE_THROTTLE_MS) return;
+      lastForegroundShareAt = now;
+      void postDriverLocation(position.coords, true).catch(() => undefined);
+    }
+  );
+}
+
+export function stopForegroundSharing() {
+  foregroundSubscription?.remove();
+  foregroundSubscription = null;
+}

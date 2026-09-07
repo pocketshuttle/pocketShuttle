@@ -1,20 +1,19 @@
-import * as Linking from "expo-linking";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { useEffect, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { API_URL, ApiError } from "../src/api/client";
+import { ApiError } from "../src/api/client";
 import { useAuth } from "../src/auth/context";
-import { AppButton, Card, Header, Screen, textStyles } from "../src/components/ui";
-import { colors } from "../src/theme";
+import {
+  AuthButton,
+  AuthField,
+  AuthScreen,
+  AuthSegment,
+  authColors,
+  authStyles,
+} from "../src/components/auth-form";
+import { getJson, removeKey, setJson } from "../src/services/kv";
 import type { MobileRole } from "../src/types";
 
 const roles: Array<{ value: MobileRole; label: string }> = [
@@ -23,140 +22,115 @@ const roles: Array<{ value: MobileRole; label: string }> = [
   { value: "teacher", label: "Teacher" },
 ];
 
+const REMEMBER_KEY = "pocketshuttle.mobile.remembered-login";
+
 export default function LoginScreen() {
   const router = useRouter();
   const { signIn } = useAuth();
   const [role, setRole] = useState<MobileRole>("parent");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    void getJson<{ email: string; role: MobileRole } | null>(REMEMBER_KEY, null).then((saved) => {
+      if (saved?.email) {
+        setEmail(saved.email);
+        setRole(saved.role ?? "parent");
+        setRemember(true);
+      }
+    });
+  }, []);
 
   const submit = async () => {
     setPending(true);
     setError("");
     try {
-      await signIn({ email, password, role });
+      await signIn({ email: email.trim(), password, role });
+      if (remember) await setJson(REMEMBER_KEY, { email: email.trim(), role });
+      else await removeKey(REMEMBER_KEY);
       router.replace(`/${role}`);
     } catch (nextError) {
-      setError(
-        nextError instanceof ApiError
-          ? nextError.message
-          : "Unable to sign in. Check your connection."
-      );
+      setError(nextError instanceof ApiError ? nextError.message : "Unable to sign in. Check your connection.");
     } finally {
       setPending(false);
     }
   };
 
+  const canSubmit = !pending && email.includes("@") && password.length > 0;
+
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <Screen>
-        <View style={styles.brand}>
-          <Text style={styles.logo}>PS</Text>
-        </View>
-        <Header
-          eyebrow="PocketShuttle"
-          title="Travel safely together"
-          subtitle="Sign in as a parent, driver, or teacher."
-        />
-        <Card>
-          <View style={styles.roles}>
-            {roles.map((item) => (
-              <Pressable
-                key={item.value}
-                onPress={() => setRole(item.value)}
-                style={[
-                  styles.role,
-                  role === item.value && styles.roleSelected,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.roleText,
-                    role === item.value && styles.roleTextSelected,
-                  ]}
-                >
-                  {item.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          <TextInput
-            autoCapitalize="none"
-            autoComplete="email"
-            keyboardType="email-address"
-            placeholder="Email address"
-            placeholderTextColor={colors.muted}
-            value={email}
-            onChangeText={setEmail}
-            style={styles.input}
-          />
-          <TextInput
-            autoCapitalize="none"
-            autoComplete="current-password"
-            secureTextEntry
-            placeholder="Password"
-            placeholderTextColor={colors.muted}
-            value={password}
-            onChangeText={setPassword}
-            style={styles.input}
-          />
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-          <AppButton
-            label={pending ? "Signing in…" : "Sign in"}
-            disabled={pending || !email.includes("@") || !password}
-            onPress={() => void submit()}
-          />
-          <Pressable onPress={() => void Linking.openURL(`${API_URL}/reset`)}>
-            <Text style={[textStyles.body, styles.reset]}>
-              Forgot your password?
+    <AuthScreen
+      title="Sign In"
+      subtitle="Log in to follow your child's journeys and manage your trusted drivers. New to PocketShuttle? Create an account below."
+      footer={
+        <>
+          <Text style={authStyles.footer}>
+            Haven't any account?{" "}
+            <Text style={authStyles.link} onPress={() => router.push("/register")}>
+              Sign Up
             </Text>
-          </Pressable>
-        </Card>
-        <Text style={textStyles.muted}>
-          Emergency visibility and critical alerts remain available on every
-          PocketShuttle plan.
-        </Text>
-      </Screen>
-    </KeyboardAvoidingView>
+          </Text>
+          <Text style={authStyles.fine}>
+            Emergency visibility and critical alerts remain available on every PocketShuttle plan.
+          </Text>
+        </>
+      }
+    >
+      <AuthSegment<MobileRole> options={roles} value={role} onChange={(value) => setRole(value)} />
+      <AuthField
+        label="Email"
+        placeholder="Email here"
+        autoCapitalize="none"
+        autoComplete="email"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <AuthField
+        label="Password"
+        placeholder="Enter password"
+        autoComplete="current-password"
+        secure
+        value={password}
+        onChangeText={setPassword}
+      />
+      <View style={authStyles.row}>
+        <Pressable
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: remember }}
+          onPress={() => setRemember((value) => !value)}
+          style={styles.rememberRow}
+        >
+          <View style={[styles.checkbox, remember && styles.checkboxOn]}>
+            {remember ? <Ionicons name="checkmark" size={14} color="#FFFFFF" /> : null}
+          </View>
+          <Text style={styles.rememberText}>Remember me</Text>
+        </Pressable>
+        <Pressable onPress={() => router.push({ pathname: "/forgot-password", params: { role, email } })}>
+          <Text style={authStyles.linkDanger}>Forgot password?</Text>
+        </Pressable>
+      </View>
+      {error ? <Text style={authStyles.error}>{error}</Text> : null}
+      <AuthButton label={pending ? "Signing in…" : "Log In"} disabled={!canSubmit} onPress={() => void submit()} />
+    </AuthScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  brand: {
-    width: 58,
-    height: 58,
+  rememberRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: authColors.muted,
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 18,
-    backgroundColor: colors.primary,
-    marginTop: 28,
   },
-  logo: { color: "#FFFFFF", fontSize: 20, fontWeight: "900" },
-  roles: { flexDirection: "row", gap: 8 },
-  role: {
-    flex: 1,
-    alignItems: "center",
-    borderRadius: 10,
-    backgroundColor: colors.background,
-    paddingVertical: 10,
-  },
-  roleSelected: { backgroundColor: colors.primary },
-  roleText: { color: colors.muted, fontWeight: "700" },
-  roleTextSelected: { color: "#FFFFFF" },
-  input: {
-    minHeight: 50,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    color: colors.ink,
-    paddingHorizontal: 14,
-    fontSize: 16,
-  },
-  error: { color: colors.danger, fontSize: 13, lineHeight: 18 },
-  reset: { color: colors.primary, textAlign: "center", fontWeight: "700" },
+  checkboxOn: { backgroundColor: authColors.primary, borderColor: authColors.primary },
+  rememberText: { color: authColors.ink, fontSize: 13 },
 });

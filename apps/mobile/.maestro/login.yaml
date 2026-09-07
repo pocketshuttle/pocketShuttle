@@ -2,11 +2,15 @@ appId: com.pocketshuttle.app
 ---
 - launchApp:
     clearState: true
-- assertVisible: "Travel safely together"
+- tapOn:
+    text: "Get Started"
+    optional: true
+- assertVisible: "Sign In"
 - tapOn: "${ROLE_LABEL}"
-- tapOn: "Email address"
+- tapOn: "Email here"
 - inputText: "${TEST_EMAIL}"
-- tapOn: "Password"
+- tapOn: "Enter password"
 - inputText: "${TEST_PASSWORD}"
-- tapOn: "Sign in"
+- hideKeyboard
+- tapOn: "Log In"
 - assertVisible: "Hello,.*"

@@ -1,10 +1,12 @@
+import { DriverTabs } from "../../src/components/driver-tabs";
 import { RoleGuard } from "../../src/components/role-guard";
-import { RoleTabs } from "../../src/components/role-tabs";
+import { KnownDriverRealtime } from "../../src/hooks/use-known-driver-realtime";
 
 export default function DriverLayout() {
   return (
     <RoleGuard role="driver">
-      <RoleTabs />
+      <KnownDriverRealtime role="driver" />
+      <DriverTabs />
     </RoleGuard>
   );
 }

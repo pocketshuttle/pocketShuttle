@@ -11,6 +11,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthProvider } from "../src/auth/context";
 import { ConnectivityBanner } from "../src/components/connectivity-banner";
+import { ToastProvider } from "../src/components/toast";
 
 export default function RootLayout() {
   const [queryClient] = useState(
@@ -26,21 +27,29 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <StatusBar style="dark" />
-            <ConnectivityBanner />
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="login" />
-              <Stack.Screen name="parent" />
-              <Stack.Screen name="driver" />
-              <Stack.Screen name="teacher" />
-              <Stack.Screen
-                name="trip/[id]"
-                options={{ headerShown: true, title: "Trip safety" }}
-              />
-            </Stack>
-          </AuthProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <StatusBar style="dark" />
+              <ConnectivityBanner />
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="welcome" />
+                <Stack.Screen name="login" />
+                <Stack.Screen name="register" />
+                <Stack.Screen name="forgot-password" />
+                <Stack.Screen name="account/change-password" />
+                <Stack.Screen name="support/index" />
+                <Stack.Screen name="support/new" />
+                <Stack.Screen name="parent" />
+                <Stack.Screen name="driver" />
+                <Stack.Screen name="teacher" />
+                <Stack.Screen
+                  name="trip/[id]"
+                  options={{ headerShown: true, title: "Trip safety" }}
+                />
+              </Stack>
+            </AuthProvider>
+          </ToastProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

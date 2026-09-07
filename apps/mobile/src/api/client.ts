@@ -12,7 +12,8 @@ export class ApiError extends Error {
     message: string,
     public status: number,
     public code?: string,
-    public details?: unknown
+    public details?: unknown,
+    public body?: Record<string, unknown>
   ) {
     super(message);
   }
@@ -25,7 +26,8 @@ async function parseResponse(response: Response) {
       data.message || "PocketShuttle request failed.",
       response.status,
       data.code,
-      data.details
+      data.details,
+      data && typeof data === "object" ? data : undefined
     );
   }
   return data;
@@ -58,24 +60,63 @@ async function refreshAccessToken() {
   return refreshPromise;
 }
 
-export async function apiRequest<T>(
+async function authorizedFetch(
   path: string,
   init: RequestInit = {},
   retry = true
-): Promise<T> {
+): Promise<Response> {
   const accessToken = await getAccessToken();
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
     headers: {
-      "Content-Type": "application/json",
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(init.headers || {}),
     },
   });
   if (response.status === 401 && retry && (await refreshAccessToken())) {
-    return apiRequest<T>(path, init, false);
+    return authorizedFetch(path, init, false);
   }
+  return response;
+}
+
+export async function apiRequest<T>(
+  path: string,
+  init: RequestInit = {},
+  retry = true
+): Promise<T> {
+  const response = await authorizedFetch(
+    path,
+    {
+      ...init,
+      headers: { "Content-Type": "application/json", ...(init.headers || {}) },
+    },
+    retry
+  );
   return parseResponse(response) as Promise<T>;
+}
+
+export type UploadFile = { uri: string; name: string; type: string };
+
+export async function apiUpload<T>(
+  path: string,
+  file: UploadFile,
+  fields: Record<string, string> = {}
+): Promise<T> {
+  const form = new FormData();
+  for (const [key, value] of Object.entries(fields)) form.append(key, value);
+  form.append("file", {
+    uri: file.uri,
+    name: file.name,
+    type: file.type,
+  } as unknown as Blob);
+  const response = await authorizedFetch(path, { method: "POST", body: form });
+  return parseResponse(response) as Promise<T>;
+}
+
+export async function apiRaw(path: string, init: RequestInit = {}): Promise<string> {
+  const response = await authorizedFetch(path, init);
+  if (!response.ok) await parseResponse(response);
+  return response.text();
 }
 
 export async function login(input: {

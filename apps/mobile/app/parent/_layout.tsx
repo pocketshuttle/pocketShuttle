@@ -1,10 +1,12 @@
+import { ParentTabs } from "../../src/components/parent-tabs";
 import { RoleGuard } from "../../src/components/role-guard";
-import { RoleTabs } from "../../src/components/role-tabs";
+import { KnownDriverRealtime } from "../../src/hooks/use-known-driver-realtime";
 
 export default function ParentLayout() {
   return (
     <RoleGuard role="parent">
-      <RoleTabs />
+      <KnownDriverRealtime role="parent" />
+      <ParentTabs />
     </RoleGuard>
   );
 }

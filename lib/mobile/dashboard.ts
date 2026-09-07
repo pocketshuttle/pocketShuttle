@@ -3,8 +3,48 @@ import "server-only";
 import { Prisma } from "@prisma/client";
 
 import { getEntitlements, historyCutoff } from "@/lib/billing/entitlements";
+import { connectionConsumesDriverSlot } from "@/lib/billing/policy";
 import { MobileActor } from "@/lib/mobile/auth";
 import db from "@/packages/db/client";
+
+export type MobilePlanLimits = {
+  planCode: string;
+  planName: string;
+  status: string;
+  enforcementEnabled: boolean;
+  maxChildren: number | null;
+  maxConnectedDrivers: number | null;
+};
+
+async function planLimitsFor(actor: MobileActor): Promise<MobilePlanLimits> {
+  try {
+    const entitlements = await getEntitlements({
+      id: actor.id,
+      role: actor.role,
+      schoolId: actor.schoolId,
+    });
+    const maxChildren = entitlements.entitlements.max_children;
+    const maxConnectedDrivers = entitlements.entitlements.max_connected_drivers;
+    return {
+      planCode: entitlements.planCode,
+      planName: entitlements.planName,
+      status: entitlements.status,
+      enforcementEnabled: entitlements.enforcementEnabled,
+      maxChildren: typeof maxChildren === "number" ? maxChildren : null,
+      maxConnectedDrivers:
+        typeof maxConnectedDrivers === "number" ? maxConnectedDrivers : null,
+    };
+  } catch {
+    return {
+      planCode: "FREE_FAMILY",
+      planName: "Free Family",
+      status: "ACTIVE",
+      enforcementEnabled: false,
+      maxChildren: null,
+      maxConnectedDrivers: null,
+    };
+  }
+}
 
 const tripSummarySelect = {
   id: true,
@@ -16,6 +56,8 @@ const tripSummarySelect = {
   destination: true,
   driverId: true,
   vehicleId: true,
+  createdBy: true,
+  schoolId: true,
   startedAt: true,
   endedAt: true,
   createdAt: true,
@@ -173,7 +215,7 @@ export async function mobileTrips(actor: MobileActor) {
 }
 
 export async function parentMobileDashboard(actor: MobileActor) {
-  const [children, schoolChildren, assignments, trips] = await Promise.all([
+  const [children, schoolChildren, assignments, trips, plan, connections] = await Promise.all([
     db.parentChild.findMany({
       where: { parentId: actor.id },
       select: {
@@ -206,6 +248,12 @@ export async function parentMobileDashboard(actor: MobileActor) {
         billingStatus: true,
         lastStatus: true,
         lastStatusAt: true,
+        events: {
+          where: { eventType: { in: ["ON_THE_WAY_TO_SCHOOL", "PICKED_UP", "DROPPED_OFF"] } },
+          orderBy: { createdAt: "desc" },
+          take: 20,
+          select: { id: true, eventType: true, createdAt: true },
+        },
         child: { select: { id: true, fullName: true, image: true } },
         driver: {
           select: {
@@ -225,6 +273,11 @@ export async function parentMobileDashboard(actor: MobileActor) {
       orderBy: { updatedAt: "desc" },
     }),
     mobileTrips(actor),
+    planLimitsFor(actor),
+    db.parentDriverConnection.findMany({
+      where: { parentId: actor.id },
+      select: { status: true },
+    }),
   ]);
   return {
     profile: actor,
@@ -238,21 +291,36 @@ export async function parentMobileDashboard(actor: MobileActor) {
     ],
     assignments,
     trips,
+    limits: {
+      ...plan,
+      childCount: children.length,
+      driverCount: connections.filter((connection) =>
+        connectionConsumesDriverSlot(connection.status)
+      ).length,
+    },
   };
 }
 
 export async function driverMobileDashboard(actor: MobileActor) {
-  const [driver, assignments, trips] = await Promise.all([
+  const [driver, assignments, trips, connections] = await Promise.all([
     db.driver.findUnique({
       where: { id: actor.id },
       select: {
         id: true,
         full_name: true,
+        phoneNumber: true,
+        address: true,
+        serviceAreas: true,
+        liveAddress: true,
+        lastActiveAt: true,
         verificationStatus: true,
+        verificationRejectionReason: true,
+        shareProfile: { select: { shareId: true } },
         carMake: true,
         carModel: true,
         carColor: true,
         plateNumber: true,
+        vehicleCapacity: true,
         bus: {
           select: {
             id: true,
@@ -271,6 +339,12 @@ export async function driverMobileDashboard(actor: MobileActor) {
         billingStatus: true,
         lastStatus: true,
         lastStatusAt: true,
+        events: {
+          where: { eventType: { in: ["ON_THE_WAY_TO_SCHOOL", "PICKED_UP", "DROPPED_OFF"] } },
+          orderBy: { createdAt: "desc" },
+          take: 20,
+          select: { id: true, eventType: true, createdAt: true },
+        },
         child: {
           select: {
             id: true,
@@ -287,8 +361,25 @@ export async function driverMobileDashboard(actor: MobileActor) {
       orderBy: { updatedAt: "desc" },
     }),
     mobileTrips(actor),
+    db.parentDriverConnection.findMany({
+      where: { driverId: actor.id },
+      select: { status: true },
+    }),
   ]);
-  return { profile: actor, driver, assignments, trips };
+  return {
+    profile: actor,
+    driver: driver
+      ? { ...driver, shareId: driver.shareProfile?.shareId ?? null }
+      : null,
+    assignments,
+    trips,
+    connectionCounts: {
+      approved: connections.filter((connection) => connection.status === "PARENT_APPROVED").length,
+      pending: connections.filter((connection) =>
+        ["INVITED", "DRIVER_REQUESTED"].includes(connection.status)
+      ).length,
+    },
+  };
 }
 
 export async function teacherMobileDashboard(actor: MobileActor) {

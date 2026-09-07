@@ -6,6 +6,7 @@ import { Alert, StyleSheet, Text, View } from "react-native";
 import { apiRequest } from "../../src/api/client";
 import { useAuth } from "../../src/auth/context";
 import { TripMap } from "../../src/components/trip-map";
+import { TripViewersCard } from "../../src/components/trip-viewers";
 import {
   AppButton,
   Card,
@@ -107,6 +108,8 @@ export default function TripDetailScreen() {
   };
 
   const operator = actor && ["driver", "teacher"].includes(actor.role);
+  // Viewer invites and CSV reports belong to the family trip's owner (parent, not a school trip).
+  const ownsTrip = actor?.role === "parent" && trip.createdBy === actor.id && !trip.schoolId;
   return (
     <Screen>
       <Header
@@ -196,6 +199,7 @@ export default function TripDetailScreen() {
           ) : null}
         </Card>
       ) : null}
+      {ownsTrip ? <TripViewersCard tripId={trip.id} tripTitle={trip.title} /> : null}
       <Text style={textStyles.cardTitle}>Timeline</Text>
       <View style={styles.timeline}>
         {trip.events.map((event) => (
