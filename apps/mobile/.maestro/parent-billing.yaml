@@ -1,0 +1,15 @@
+appId: com.pocketshuttle.app
+---
+- runFlow:
+    file: login.yaml
+    env:
+      ROLE_LABEL: "Parent"
+      TEST_EMAIL: "${PARENT_EMAIL}"
+      TEST_PASSWORD: "${PARENT_PASSWORD}"
+- tapOn: "More"
+- tapOn:
+    text: "Plan & billing"
+- tapOn:
+    text: "See plans & upgrade|Manage subscription"
+- assertVisible: "Plans"
+- assertVisible: "Free Family"

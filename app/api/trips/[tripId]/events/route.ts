@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getApiSession } from "@/lib/api-auth";
+import { runDeduplicatedMobileEvent } from "@/lib/mobile/deduplication";
 import { canAccessTrip } from "@/lib/trip-access";
 import { recordTripEvent } from "@/lib/trip-events";
 import { TripEventType } from "@prisma/client";
@@ -35,6 +36,9 @@ export async function POST(
   if (!allowed) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
+  if (!session || !["admin", "school", "teacher", "driver"].includes(session.role)) {
+    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+  }
 
   const body = await req.json();
   const eventType = body?.eventType;
@@ -42,20 +46,46 @@ export async function POST(
   if (!eventTypes.has(eventType)) {
     return NextResponse.json({ message: "Invalid event type" }, { status: 400 });
   }
+  const status =
+    eventType === "trip_started"
+      ? "active"
+      : eventType === "trip_paused"
+        ? "paused"
+        : eventType === "trip_ended"
+          ? "completed"
+          : undefined;
 
-  const event = await recordTripEvent({
-    tripId,
-    eventType,
-    actorId: session?.id,
-    actorType: session?.role,
-    payload: body?.payload && typeof body.payload === "object" ? body.payload : undefined,
-  });
+  const createEvent = () =>
+    recordTripEvent({
+      tripId,
+      eventType,
+      actorId: session?.id,
+      actorType: session?.role,
+      payload:
+        body?.payload && typeof body.payload === "object"
+          ? body.payload
+          : undefined,
+      status,
+    });
+  const recorded =
+    session?.mobileSession &&
+    ["parent", "driver", "teacher"].includes(session.role)
+      ? await runDeduplicatedMobileEvent({
+          actor: session as typeof session & {
+            role: "parent" | "driver" | "teacher";
+          },
+          clientEventId: body?.clientEventId,
+          eventType: `trip_event:${eventType}`,
+          action: createEvent,
+        })
+      : { value: await createEvent(), duplicate: false };
+  const event = recorded.value;
 
   const studentId =
     body?.payload && typeof body.payload.studentId === "string"
       ? body.payload.studentId
       : null;
-  if (studentId) {
+  if (studentId && !recorded.duplicate) {
     const resolved = await getTripOwnerEntitlements(tripId);
     if (resolved && hasFeature(resolved, "attendance_automation")) {
       const updates =
@@ -81,5 +111,8 @@ export async function POST(
     }
   }
 
-  return NextResponse.json({ event }, { status: 201 });
+  return NextResponse.json(
+    { event, duplicate: recorded.duplicate },
+    { status: recorded.duplicate ? 200 : 201 }
+  );
 }

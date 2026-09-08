@@ -97,6 +97,19 @@ export const newPassword = async (
       },
     });
   }
+  if (["parent", "driver", "teacher"].includes(tokenRole)) {
+    await db.mobileSession.updateMany({
+      where: {
+        subjectRole: tokenRole.toUpperCase() as
+          | "PARENT"
+          | "DRIVER"
+          | "TEACHER",
+        subjectId: existingUser.id,
+        revokedAt: null,
+      },
+      data: { revokedAt: new Date() },
+    });
+  }
 
   await db.resetPasswordToken.delete({ where: { id: existingToken.id } });
 

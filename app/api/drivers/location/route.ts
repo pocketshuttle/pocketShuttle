@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { assertRateLimit } from "@/lib/admin/request-security";
 import { getApiSession, isDriver } from "@/lib/api-auth";
 import { markDriverActive } from "@/lib/driver-activity";
 import {
   recordChildDriverEvent,
   sendKnownDriverRealtimeEvent,
 } from "@/lib/known-driver-network";
+import { runDeduplicatedMobileEvent } from "@/lib/mobile/deduplication";
 import db from "@/packages/db/client";
 
 export async function POST(req: NextRequest) {
@@ -22,58 +24,85 @@ export async function POST(req: NextRequest) {
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
       return NextResponse.json({ message: "Valid latitude and longitude are required" }, { status: 400 });
     }
+    if (session.mobileSession) {
+      try {
+        assertRateLimit(`mobile-driver-location:${session.id}`, {
+          limit: 900,
+          windowMs: 15 * 60 * 1000,
+        });
+      } catch {
+        return NextResponse.json(
+          { code: "RATE_LIMITED", message: "Location updates are arriving too quickly." },
+          { status: 429 }
+        );
+      }
+    }
 
-    await db.driver.update({
-      where: { id: session.id },
-      data: {
-        liveAddress: { latitude, longitude },
-      },
-    });
-    await markDriverActive(session.id).catch((error) => {
-      console.error("Driver active timestamp update failed:", error);
-    });
+    const recordUpdate = async () => {
+      await db.driver.update({
+        where: { id: session.id },
+        data: {
+          liveAddress: { latitude, longitude },
+        },
+      });
+      await markDriverActive(session.id).catch((error) => {
+        console.error("Driver active timestamp update failed:", error);
+      });
 
-    const activeAssignments = await db.childDriverAssignment.findMany({
-      where: {
-        driverId: session.id,
-        status: "ACTIVE",
-        connection: { status: "PARENT_APPROVED" },
-      },
-      select: { id: true, parentId: true, driverId: true },
-    });
+      const activeAssignments = await db.childDriverAssignment.findMany({
+        where: {
+          driverId: session.id,
+          status: "ACTIVE",
+          connection: { status: "PARENT_APPROVED" },
+        },
+        select: { id: true, parentId: true, driverId: true },
+      });
 
-    await Promise.all(
-      activeAssignments.map((assignment) =>
-        recordChildDriverEvent({
-          assignmentId: assignment.id,
-          eventType: "LOCATION_UPDATED",
-          actorId: session.id,
-          actorType: "driver",
-          latitude,
-          longitude,
-          payload: {
-            accuracy: typeof body.accuracy === "number" ? body.accuracy : null,
-            continuous: Boolean(body.continuous),
-            sharedAt: new Date().toISOString(),
-          },
-          notifyParent: false,
-        }).catch((error) => {
-          console.error("Driver location assignment event failed:", error);
+      await Promise.all(
+        activeAssignments.map((assignment) =>
+          recordChildDriverEvent({
+            assignmentId: assignment.id,
+            eventType: "LOCATION_UPDATED",
+            actorId: session.id,
+            actorType: "driver",
+            latitude,
+            longitude,
+            payload: {
+              accuracy: typeof body.accuracy === "number" ? body.accuracy : null,
+              continuous: Boolean(body.continuous),
+              sharedAt: new Date().toISOString(),
+            },
+            notifyParent: false,
+          }).catch((error) => {
+            console.error("Driver location assignment event failed:", error);
+          })
+        )
+      );
+
+      await Promise.all(
+        activeAssignments.map((assignment) =>
+          sendKnownDriverRealtimeEvent({
+            parentId: assignment.parentId,
+            driverId: assignment.driverId,
+            event: "driver-location-updated",
+          })
+        )
+      );
+      return { message: "Location updated" };
+    };
+    const result = session.mobileSession
+      ? await runDeduplicatedMobileEvent({
+          actor: { id: session.id, role: "driver" },
+          clientEventId: body.clientEventId,
+          eventType: "driver_location",
+          action: recordUpdate,
         })
-      )
-    );
+      : { value: await recordUpdate(), duplicate: false };
 
-    await Promise.all(
-      activeAssignments.map((assignment) =>
-        sendKnownDriverRealtimeEvent({
-          parentId: assignment.parentId,
-          driverId: assignment.driverId,
-          event: "driver-location-updated",
-        })
-      )
-    );
-
-    return NextResponse.json({ message: "Location updated" });
+    return NextResponse.json({
+      ...result.value,
+      duplicate: result.duplicate,
+    });
   } catch (error) {
     console.error("Driver location update failed:", error);
     return NextResponse.json(

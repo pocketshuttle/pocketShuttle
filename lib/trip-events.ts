@@ -198,6 +198,20 @@ export async function recordTripEvent({
     });
   }
 
+  try {
+    const { getPusherInstance } = await import("@/pusher/server");
+    await getPusherInstance().trigger(`private-trip-${tripId}`, "trip-event", {
+      id: event.id,
+      tripId,
+      eventType,
+      actorType: getActorType(actorType),
+      payload: payload ?? null,
+      timestamp: event.timestamp.toISOString(),
+    });
+  } catch (error) {
+    console.error("Trip realtime event failed:", error);
+  }
+
   const trip = await db.trip.findUnique({
     where: { id: tripId },
     select: { schoolId: true },
@@ -247,6 +261,27 @@ export async function recordTripLocation({
     lng,
     speed: speed ?? null,
   });
+  try {
+    const { getPusherInstance } = await import("@/pusher/server");
+    await getPusherInstance().trigger(
+      `private-trip-${tripId}`,
+      "trip-location-updated",
+      {
+        tripId,
+        location: {
+          id: location.id,
+          lat: location.lat,
+          lng: location.lng,
+          accuracy: location.accuracy,
+          speed: location.speed,
+          heading: location.heading,
+          timestamp: location.timestamp.toISOString(),
+        },
+      }
+    );
+  } catch (error) {
+    console.error("Trip realtime location failed:", error);
+  }
   return location;
 }
 

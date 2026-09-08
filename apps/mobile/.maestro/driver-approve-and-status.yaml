@@ -1,0 +1,29 @@
+appId: com.pocketshuttle.app
+---
+# env: DRIVER_EMAIL, DRIVER_PASSWORD, PARENT_NAME
+- runFlow:
+    file: login.yaml
+    env:
+      ROLE_LABEL: "Driver"
+      TEST_EMAIL: "${DRIVER_EMAIL}"
+      TEST_PASSWORD: "${DRIVER_PASSWORD}"
+- assertVisible: "Driver operations"
+- tapOn: "Families"
+- assertVisible: "Families"
+- tapOn:
+    text: "${PARENT_NAME}"
+    optional: true
+- tapOn:
+    text: "Approve"
+    optional: true
+- tapOn: "Home"
+- assertVisible: "Assigned kids"
+- tapOn:
+    text: "On the way"
+    optional: true
+- tapOn:
+    text: "Picked up"
+    optional: true
+- assertVisible:
+    text: "Status updated|On the way to school|Picked up"
+    optional: true

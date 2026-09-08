@@ -9,6 +9,7 @@ import {
   isPlatformAdminRole,
   PlatformAdminAccessRole,
 } from "@/lib/admin/permissions";
+import { authenticateMobileAccessToken } from "@/lib/mobile/auth";
 import db from "@/packages/db/client";
 
 export type ApiSession = {
@@ -24,6 +25,10 @@ export type ApiSession = {
     accessRole: PlatformAdminAccessRole;
     workspaceSessionId: string;
     reason: string;
+  } | null;
+  mobileSession?: {
+    id: string;
+    deviceId: string;
   } | null;
 };
 
@@ -56,6 +61,31 @@ async function isAccountSuspended(role: string, id: string): Promise<boolean> {
 }
 
 export async function getApiSession(): Promise<ApiSession | null> {
+  const requestHeaders = await headers();
+  const authorization = requestHeaders.get("authorization") || "";
+  if (authorization.startsWith("Bearer ")) {
+    try {
+      const actor = await authenticateMobileAccessToken(
+        authorization.slice(7).trim()
+      );
+      return {
+        id: actor.id,
+        role: actor.role,
+        schoolId: actor.schoolId,
+        email: actor.email,
+        name: actor.name,
+        platformAccessRole: null,
+        platformActor: null,
+        mobileSession: {
+          id: actor.mobileSessionId,
+          deviceId: actor.mobileDeviceId,
+        },
+      };
+    } catch {
+      return null;
+    }
+  }
+
   const cookie = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
   if (!cookie) {
     return null;
@@ -122,7 +152,6 @@ export async function getApiSession(): Promise<ApiSession | null> {
       workspaceSessionId: workspace.id,
       reason: workspace.reason,
     };
-    const requestHeaders = await headers();
     const requestId = requestHeaders.get("x-platform-audit-request-id");
     if (requestId) {
       const existingAudit = await db.superUserAction.findFirst({
@@ -165,6 +194,7 @@ export async function getApiSession(): Promise<ApiSession | null> {
     name: asString(session?.name),
     platformAccessRole,
     platformActor,
+    mobileSession: null,
   };
 }
 

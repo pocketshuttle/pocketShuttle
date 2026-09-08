@@ -136,7 +136,9 @@ export async function ensureBillingAccountForIdentity(input: {
   schoolId?: string | null;
 }) {
   const role = input.role.toLowerCase();
-  if (role === "parent") return ensureFamilyBillingAccount(input.id);
+  if (role === "parent" && !input.schoolId) {
+    return ensureFamilyBillingAccount(input.id);
+  }
 
   const schoolId =
     input.schoolId ?? (role === "admin" || role === "school" ? input.id : null);

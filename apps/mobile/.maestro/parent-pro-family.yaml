@@ -1,0 +1,20 @@
+appId: com.pocketshuttle.app
+---
+- runFlow:
+    file: login.yaml
+    env:
+      ROLE_LABEL: "Parent"
+      TEST_EMAIL: "${PARENT_EMAIL}"
+      TEST_PASSWORD: "${PARENT_PASSWORD}"
+- tapOn: "More"
+- tapOn: "Pro Family"
+- assertVisible: "Safety automation"
+- tapOn: "Saved places & geofences"
+- assertVisible: "Saved places"
+- back
+- tapOn: "Recurring trips"
+- assertVisible: "Recurring trips"
+- back
+- tapOn: "SMS & WhatsApp alerts"
+- assertVisible: "SMS & WhatsApp alerts"
+- back
