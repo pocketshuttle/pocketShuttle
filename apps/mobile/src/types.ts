@@ -117,6 +117,9 @@ export type Connection = {
     image?: string | null;
     liveAddress?: { latitude?: number; longitude?: number } | null;
     verificationStatus?: string | null;
+    carMake?: string | null;
+    carModel?: string | null;
+    plateNumber?: string | null;
     shareProfile?: { shareId: string } | null;
     lastActiveAt?: string | null;
   };
@@ -196,7 +199,10 @@ export type ParentDashboard = {
     driver: {
       id: string;
       full_name: string;
+      image?: string | null;
       phoneNumber?: string | null;
+      carMake?: string | null;
+      carModel?: string | null;
       plateNumber?: string | null;
       liveAddress?: { latitude?: number; longitude?: number } | null;
       lastActiveAt?: string | null;

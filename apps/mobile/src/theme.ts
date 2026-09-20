@@ -17,12 +17,21 @@ export const colors = {
   warningSoft: "#FFFBEB",
   danger: "#DC2626",
   dangerSoft: "#FEF2F2",
+  accentOrange: "#EA580C",
+  accentOrangeSoft: "#FFF1E8",
+  accentBlue: "#2563EB",
+  accentBlueSoft: "#EAF1FF",
 };
 
 /** 4-pt spacing scale. */
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const;
 
 export const radius = { sm: 10, md: 14, lg: 20, xl: 24, pill: 999 } as const;
+
+/** Brand gradient used for the plan card and similar "premium" surfaces. */
+export const gradients = {
+  primary: ["#6C63FF", "#5850EC", "#4338CA"] as const,
+};
 
 /**
  * Motion tokens. Short, ease-out, transform/opacity only — animations should feel

@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import {
   Animated,
+  Image,
   Pressable,
   ScrollView,
   StyleProp,
@@ -14,6 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { API_URL } from "../api/client";
 import { useEnterAnimation, usePressScale, useReducedMotion } from "../lib/motion";
 import { colors, motion, radius, shadow, spacing } from "../theme";
 
@@ -60,6 +62,49 @@ export function Header({
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       </View>
       {right ? <View style={styles.headerRight}>{right}</View> : null}
+    </View>
+  );
+}
+
+/** Circular photo avatar; falls back to initials on a tinted background when there's no image. */
+export function Avatar({
+  uri,
+  name,
+  size = 44,
+  badge,
+  style,
+}: {
+  uri?: string | null;
+  name?: string | null;
+  size?: number;
+  badge?: ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const [failed, setFailed] = useState(false);
+  const initials = (name ?? "")
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+  // Some records store a path relative to the web app's own origin (e.g. "/images/kid.png")
+  // rather than an absolute URL — resolve it against the API host so Image can load it.
+  const resolved = uri && uri.startsWith("/") ? `${API_URL}${uri}` : uri;
+  const showImage = resolved && !failed;
+  return (
+    <View style={[{ width: size, height: size }, style]}>
+      {showImage ? (
+        <Image
+          source={{ uri: resolved }}
+          onError={() => setFailed(true)}
+          style={[styles.avatarImage, { width: size, height: size, borderRadius: size / 2 }]}
+        />
+      ) : (
+        <View style={[styles.avatarFallback, { width: size, height: size, borderRadius: size / 2 }]}>
+          <Text style={[styles.avatarInitials, { fontSize: size * 0.38 }]}>{initials || "?"}</Text>
+        </View>
+      )}
+      {badge ? <View style={styles.avatarBadge}>{badge}</View> : null}
     </View>
   );
 }
@@ -222,6 +267,72 @@ export function EmptyState({
   );
 }
 
+/** Tinted info banner with an icon, a title/body, and an optional action — the "why this matters" card. */
+export function PromoCard({
+  icon,
+  title,
+  body,
+  actionLabel,
+  onPress,
+}: {
+  icon: IconName;
+  title: string;
+  body: string;
+  actionLabel?: string;
+  onPress?(): void;
+}) {
+  return (
+    <View style={styles.promoCard}>
+      <View style={styles.promoIcon}>
+        <Ionicons name={icon} size={22} color={colors.primary} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.promoTitle}>{title}</Text>
+        <Text style={styles.promoBody}>{body}</Text>
+      </View>
+      {actionLabel && onPress ? <AppButton label={actionLabel} variant="outline" onPress={onPress} /> : null}
+    </View>
+  );
+}
+
+/** Small round icon-only button — the notification bell in a screen header. */
+export function IconButton({ icon, onPress, badge }: { icon: IconName; onPress(): void; badge?: boolean }) {
+  const press = usePressScale();
+  return (
+    <Animated.View style={press.style}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={onPress}
+        onPressIn={press.onPressIn}
+        onPressOut={press.onPressOut}
+        style={styles.iconButton}
+      >
+        <Ionicons name={icon} size={22} color={colors.ink} />
+        {badge ? <View style={styles.bellDot} /> : null}
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+/** "View all →" text link, e.g. next to a section title. */
+export function ViewAllLink({ onPress, label = "View all" }: { onPress(): void; label?: string }) {
+  const press = usePressScale();
+  return (
+    <Animated.View style={press.style}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={onPress}
+        onPressIn={press.onPressIn}
+        onPressOut={press.onPressOut}
+        style={styles.viewAllRow}
+      >
+        <Text style={styles.viewAllText}>{label}</Text>
+        <Ionicons name="arrow-forward" size={14} color={colors.primary} />
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 export function FormField({
   label,
   error,
@@ -353,9 +464,9 @@ export function SectionTitle({ children }: { children: ReactNode }) {
 }
 
 export const textStyles = StyleSheet.create({
-  cardTitle: { color: colors.ink, fontSize: 17, fontWeight: "700", letterSpacing: -0.2 },
+  cardTitle: { color: colors.ink, fontSize: 17, fontWeight: "700", letterSpacing: -0.2, marginBottom: 2 },
   body: { color: colors.ink, fontSize: 15, lineHeight: 22 },
-  muted: { color: colors.muted, fontSize: 13, lineHeight: 19 },
+  muted: { color: colors.muted, fontSize: 13, lineHeight: 19, marginBottom: 2 },
 });
 
 const styles = StyleSheet.create({
@@ -363,6 +474,10 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1 },
   content: { flex: 1, gap: spacing.lg, padding: spacing.xl, paddingBottom: spacing.xxxl + spacing.sm },
   header: { flexDirection: "row", alignItems: "flex-start", gap: spacing.md, marginBottom: spacing.xs },
+  avatarImage: { backgroundColor: colors.surfaceMuted },
+  avatarFallback: { backgroundColor: colors.primarySoft, alignItems: "center", justifyContent: "center" },
+  avatarInitials: { color: colors.primary, fontWeight: "800" },
+  avatarBadge: { position: "absolute", top: -2, right: -2 },
   headerText: { flex: 1, gap: spacing.xs },
   headerRight: { paddingTop: spacing.xs },
   eyebrow: {
@@ -402,7 +517,7 @@ const styles = StyleSheet.create({
   buttonSuccess: { backgroundColor: colors.success },
   buttonDisabled: { opacity: 0.5 },
   buttonIcon: { marginRight: spacing.sm },
-  buttonText: { fontSize: 15, fontWeight: "700", letterSpacing: -0.1 },
+  buttonText: { fontSize: 14, fontWeight: "700", letterSpacing: -0.1 },
   pill: {
     alignSelf: "flex-start",
     borderRadius: radius.pill,
@@ -483,4 +598,45 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: spacing.xs,
   },
+  promoCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    backgroundColor: colors.primarySoft,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+  },
+  promoIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  promoTitle: { color: colors.ink, fontSize: 14, fontWeight: "800" },
+  promoBody: { color: colors.inkSoft, fontSize: 12, lineHeight: 16, marginTop: 2 },
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bellDot: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: colors.danger,
+    borderWidth: 1.5,
+    borderColor: colors.surface,
+  },
+  viewAllRow: { flexDirection: "row", alignItems: "center", gap: 4, paddingVertical: 4 },
+  viewAllText: { color: colors.primary, fontSize: 13, fontWeight: "700" },
 });
