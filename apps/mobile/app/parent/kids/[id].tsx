@@ -53,6 +53,7 @@ export default function EditKidScreen() {
           age: child.age != null ? String(child.age) : "",
           grade: child.grade ?? "",
           address: child.address ?? "",
+          image: child.image ?? undefined,
         }}
         submitLabel="Save changes"
         submitting={update.isPending}

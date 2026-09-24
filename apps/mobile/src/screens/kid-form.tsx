@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { API_URL } from "../api/client";
+import { DocumentPicker } from "../components/document-picker";
 import type { FieldErrors } from "../hooks/use-api-mutation";
 import { AppButton, Card, FormField } from "../components/ui";
 
@@ -8,6 +10,7 @@ export type KidFormValues = {
   age: string;
   grade: string;
   address: string;
+  image?: string;
 };
 
 export function KidForm({
@@ -28,7 +31,11 @@ export function KidForm({
     age: initial?.age ?? "",
     grade: initial?.grade ?? "",
     address: initial?.address ?? "",
+    image: initial?.image ?? undefined,
   });
+  const [preview, setPreview] = useState<string | undefined>(
+    initial?.image ? (initial.image.startsWith("/") ? `${API_URL}${initial.image}` : initial.image) : undefined
+  );
   const [touched, setTouched] = useState(false);
   const set = (key: keyof KidFormValues) => (value: string) =>
     setValues((current) => ({ ...current, [key]: value }));
@@ -38,6 +45,17 @@ export function KidForm({
 
   return (
     <Card>
+      <DocumentPicker
+        label="Child's photo (optional)"
+        hint="Helps drivers recognize your child at pickup."
+        purpose="parent-child-image"
+        value={values.image}
+        preview={preview}
+        onUploaded={(url, localUri) => {
+          setValues((current) => ({ ...current, image: url }));
+          setPreview(localUri);
+        }}
+      />
       <FormField
         label="Full name"
         placeholder="Child's full name"
@@ -89,5 +107,6 @@ export function kidPayload(values: KidFormValues) {
     age: Number.isFinite(age) ? age : undefined,
     grade: values.grade.trim() || undefined,
     address: values.address.trim(),
+    image: values.image || undefined,
   };
 }
